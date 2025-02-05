@@ -59,8 +59,9 @@ export class ApiDataService implements OnModuleInit {
     if (!instance) return;
 
     const prototype = Object.getPrototypeOf(instance);
-    const controllerName = controller.metatype.name;
-    const controllerPath = Reflect.getMetadata(PATH, controller.metatype) || '';
+    const controllerName = controller.metatype?.name || '';
+    const controllerPath =
+      Reflect.getMetadata(PATH, controller.metatype as any) || '';
 
     Object.getOwnPropertyNames(prototype)
       .filter((method) => typeof instance[method] === FUNCTION)

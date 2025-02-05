@@ -5,7 +5,7 @@ import {
   CallHandler,
   Inject,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { FastifyRequest, FastifyReply } from 'fastify';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -45,7 +45,7 @@ export class LoggerInterceptor implements NestInterceptor {
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const request = context.switchToHttp().getRequest<Request>();
+    const request = context.switchToHttp().getRequest<FastifyRequest>();
     const { method, url } = request;
     const now = Date.now();
 
@@ -68,7 +68,7 @@ export class LoggerInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap({
         next: (data: any) => {
-          const response = context.switchToHttp().getResponse<Response>();
+          const response = context.switchToHttp().getResponse<FastifyReply>();
           this.addToBuffer({
             type: 'Response',
             timestamp: Date.now(),
