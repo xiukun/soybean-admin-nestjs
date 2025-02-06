@@ -148,7 +148,6 @@ class ThrottlerStorageAdapter implements ThrottlerStorage {
       },
     }),
 
-    BootstrapModule,
     GlobalCqrsModule,
 
     ApiModule,
@@ -156,6 +155,7 @@ class ThrottlerStorageAdapter implements ThrottlerStorage {
     SharedModule,
 
     ApiKeyModule,
+    BootstrapModule,
   ],
   controllers: [AppController],
   providers: [
