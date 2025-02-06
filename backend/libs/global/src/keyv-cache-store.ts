@@ -1,44 +1,56 @@
-import KeyvRedis, { createCluster } from '@keyv/redis';
 import { CacheStore } from '@nestjs/cache-manager';
 import { Injectable } from '@nestjs/common';
-import Keyv from 'keyv';
+import Redis, { Cluster } from 'ioredis';
 
 import { IRedisConfig } from '@lib/config/redis.config';
 
 @Injectable()
 export class KeyvCacheStore implements CacheStore {
-  private readonly keyv: Keyv;
+  private readonly redis: Redis | Cluster;
 
   constructor(redisConfig: IRedisConfig) {
-    const store =
-      redisConfig.mode === 'cluster'
-        ? new KeyvRedis(
-            createCluster({
-              rootNodes: redisConfig.cluster.map((node) => ({
-                url: `redis://:${node.password}@${node.host}:${node.port}`,
-              })),
-            }),
-          )
-        : new KeyvRedis(
-            `redis://:${redisConfig.standalone.password}@${redisConfig.standalone.host}:${redisConfig.standalone.port}/${redisConfig.standalone.db}`,
-          );
-
-    this.keyv = new Keyv({ store });
+    if (redisConfig.mode === 'cluster') {
+      this.redis = new Redis.Cluster(
+        redisConfig.cluster.map((node) => ({
+          host: node.host,
+          port: node.port,
+          password: node.password,
+        })),
+        {
+          redisOptions: {
+            password: redisConfig.cluster[0].password,
+          },
+        },
+      );
+    } else {
+      this.redis = new Redis({
+        host: redisConfig.standalone.host,
+        port: redisConfig.standalone.port,
+        password: redisConfig.standalone.password,
+        db: redisConfig.standalone.db,
+      });
+    }
   }
 
   async get<T>(key: string): Promise<T | undefined> {
-    return this.keyv.get<T>(key);
+    const value = await this.redis.get(key);
+    if (!value) return undefined;
+    return JSON.parse(value) as T;
   }
 
   async set<T>(key: string, value: T, ttl?: number): Promise<void> {
-    await this.keyv.set(key, value, ttl);
+    if (ttl) {
+      await this.redis.set(key, JSON.stringify(value), 'EX', ttl);
+    } else {
+      await this.redis.set(key, JSON.stringify(value));
+    }
   }
 
   async del(key: string): Promise<void> {
-    await this.keyv.delete(key);
+    await this.redis.del(key);
   }
 
   async reset(): Promise<void> {
-    await this.keyv.clear();
+    await this.redis.flushdb();
   }
 }
