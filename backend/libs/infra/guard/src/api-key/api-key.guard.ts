@@ -5,18 +5,21 @@ import {
   Inject,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import {
   API_KEY_AUTH_OPTIONS,
   ApiKeyAuthSource,
   ApiKeyAuthStrategy,
 } from '@lib/constants/api-key.constant';
+import { API_KEY_VALIDATION } from '@lib/constants/event-emitter-token.constant';
 import { ApiKeyAuthOptions } from '@lib/infra/decorators/api-key.decorator';
 
 import {
   ComplexApiKeyServiceToken,
   SimpleApiKeyServiceToken,
 } from './api-key.constants';
+import { ApiKeyValidationEvent } from './events/api-key-validation.event';
 import {
   IApiKeyService,
   ValidateKeyOptions,
@@ -30,6 +33,7 @@ export class ApiKeyGuard implements CanActivate {
     private readonly simpleApiKeyService: IApiKeyService,
     @Inject(ComplexApiKeyServiceToken)
     private readonly complexApiKeyService: IApiKeyService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -60,6 +64,21 @@ export class ApiKeyGuard implements CanActivate {
       requestParams: { ...request.query, ...request.body },
     };
 
-    return service.validateKey(apiKey, validateOptions);
+    try {
+      const isValid = await service.validateKey(apiKey, validateOptions);
+
+      this.eventEmitter.emit(
+        API_KEY_VALIDATION,
+        new ApiKeyValidationEvent(apiKey, validateOptions, isValid),
+      );
+
+      return isValid;
+    } catch (error) {
+      this.eventEmitter.emit(
+        API_KEY_VALIDATION,
+        new ApiKeyValidationEvent(apiKey, validateOptions, false),
+      );
+      return false;
+    }
   }
 }
