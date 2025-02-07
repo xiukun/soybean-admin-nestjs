@@ -13,7 +13,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { ApiEndpoint } from '@app/base-system/lib/bounded-contexts/api-endpoint/api-endpoint/domain/api-endpoint.model';
 
-import { API_ENDPOINT } from '@lib/constants/event-emitter-token.constant';
+import { EVENT_API_ROUTE_COLLECTED } from '@lib/constants/event-emitter-token.constant';
 import {
   FUNCTION,
   METHOD,
@@ -45,7 +45,7 @@ export class ApiDataService implements OnModuleInit {
 
       setImmediate(() => {
         this.logger.log(`Emitting ${endpoints.length} API endpoints`);
-        this.eventEmitter.emit(API_ENDPOINT, endpoints);
+        this.eventEmitter.emit(EVENT_API_ROUTE_COLLECTED, endpoints);
       });
     }
   }

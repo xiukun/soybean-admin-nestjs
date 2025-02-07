@@ -12,7 +12,7 @@ import {
   ApiKeyAuthSource,
   ApiKeyAuthStrategy,
 } from '@lib/constants/api-key.constant';
-import { API_KEY_VALIDATION } from '@lib/constants/event-emitter-token.constant';
+import { EVENT_API_KEY_VALIDATED } from '@lib/constants/event-emitter-token.constant';
 import { ApiKeyAuthOptions } from '@lib/infra/decorators/api-key.decorator';
 
 import {
@@ -68,14 +68,14 @@ export class ApiKeyGuard implements CanActivate {
       const isValid = await service.validateKey(apiKey, validateOptions);
 
       this.eventEmitter.emit(
-        API_KEY_VALIDATION,
+        EVENT_API_KEY_VALIDATED,
         new ApiKeyValidationEvent(apiKey, validateOptions, isValid),
       );
 
       return isValid;
     } catch (error) {
       this.eventEmitter.emit(
-        API_KEY_VALIDATION,
+        EVENT_API_KEY_VALIDATED,
         new ApiKeyValidationEvent(apiKey, validateOptions, false),
       );
       return false;

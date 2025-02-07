@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 
-import { API_KEY_VALIDATION } from '@lib/constants/event-emitter-token.constant';
+import { EVENT_API_KEY_VALIDATED } from '@lib/constants/event-emitter-token.constant';
 import { ApiKeyValidationEvent } from '@lib/infra/guard/api-key/events/api-key-validation.event';
 
 @Injectable()
@@ -10,7 +10,7 @@ export class ApiKeyValidationEventHandler {
 
   constructor(private readonly eventEmitter: EventEmitter2) {}
 
-  @OnEvent(API_KEY_VALIDATION)
+  @OnEvent(EVENT_API_KEY_VALIDATED)
   async handle(payload: ApiKeyValidationEvent) {
     //TODO
     this.logger.log(

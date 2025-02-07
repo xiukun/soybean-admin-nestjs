@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 
-import { LOG_OPERATION } from '@lib/constants/event-emitter-token.constant';
+import { EVENT_OPERATION_LOG_CREATED } from '@lib/constants/event-emitter-token.constant';
 
 import { OperationLogWriteRepoPortToken } from '../../constants';
 import { OperationLog } from '../../domain/operation-log.model';
@@ -14,7 +14,7 @@ export class OperationLogEventHandler {
     private readonly operationLogWriteRepo: OperationLogWriteRepoPort,
   ) {}
 
-  @OnEvent(LOG_OPERATION)
+  @OnEvent(EVENT_OPERATION_LOG_CREATED)
   async handle(operationLogProperties: OperationLogProperties) {
     const operationLog = new OperationLog(operationLogProperties);
     await this.operationLogWriteRepo.save(operationLog);

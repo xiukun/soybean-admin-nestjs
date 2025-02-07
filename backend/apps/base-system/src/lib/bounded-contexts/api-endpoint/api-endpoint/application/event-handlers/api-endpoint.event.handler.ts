@@ -1,7 +1,7 @@
 import { Injectable, Inject, OnModuleInit, Logger } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 
-import { API_ENDPOINT } from '@lib/constants/event-emitter-token.constant';
+import { EVENT_API_ROUTE_COLLECTED } from '@lib/constants/event-emitter-token.constant';
 
 import { ApiEndpointWriteRepoPortToken } from '../../constants';
 import { ApiEndpoint } from '../../domain/api-endpoint.model';
@@ -19,13 +19,16 @@ export class ApiEndpointEventHandler implements OnModuleInit {
 
   /**
    * 模块初始化时执行的方法
-   * 这里我们手动注册事件监听器，以确保能捕获到 API_ENDPOINT 事件
+   * 这里我们手动注册事件监听器，以确保能捕获到 EVENT_API_ROUTE_COLLECTED 事件
    * 这种方法可以解决 @OnEvent 装饰器在某些情况下不生效的问题
-   * 或者另一种方案是在app.module.ts中将BootstrapModule放在最后，这样在模块初始化时，API_ENDPOINT事件已经emit了
+   * 或者另一种方案是在app.module.ts中将BootstrapModule放在最后，这样在模块初始化时，EVENT_API_ROUTE_COLLECTED事件已经emit了
    */
   onModuleInit() {
     this.logger.log('ApiEndpointEventHandler initialized');
-    this.eventEmitter.on(API_ENDPOINT, this.handleManually.bind(this));
+    this.eventEmitter.on(
+      EVENT_API_ROUTE_COLLECTED,
+      this.handleManually.bind(this),
+    );
   }
 
   private handleManually(payload: ApiEndpoint[]) {
@@ -33,7 +36,7 @@ export class ApiEndpointEventHandler implements OnModuleInit {
     this.handle(payload);
   }
 
-  @OnEvent(API_ENDPOINT)
+  @OnEvent(EVENT_API_ROUTE_COLLECTED)
   async handle(payload: ApiEndpoint[]) {
     this.logger.log(`Handling ${payload.length} API endpoints`);
     try {

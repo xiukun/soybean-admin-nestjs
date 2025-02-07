@@ -12,7 +12,7 @@ import { tap } from 'rxjs/operators';
 
 import { OperationLogProperties } from '@app/base-system/lib/bounded-contexts/log-audit/operation-log/domain/operation-log.read.model';
 
-import { LOG_OPERATION } from '@lib/constants/event-emitter-token.constant';
+import { EVENT_OPERATION_LOG_CREATED } from '@lib/constants/event-emitter-token.constant';
 import { USER_AGENT } from '@lib/constants/rest.constant';
 import { LOG_KEY } from '@lib/infra/decorators/log.decorator';
 import { IAuthentication } from '@lib/typings/global';
@@ -67,7 +67,7 @@ export class LogInterceptor implements NestInterceptor {
         };
 
         setImmediate(() => {
-          this.eventEmitter.emit(LOG_OPERATION, operationLog);
+          this.eventEmitter.emit(EVENT_OPERATION_LOG_CREATED, operationLog);
         });
       }),
     );
