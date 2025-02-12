@@ -1,10 +1,9 @@
+import { createKeyv } from '@keyv/redis';
 import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { ConfigKeyPaths, IRedisConfig, redisRegToken } from '@lib/config';
-
-import { KeyvCacheStore } from './keyv-cache-store';
 
 @Module({
   imports: [
@@ -17,12 +16,24 @@ import { KeyvCacheStore } from './keyv-cache-store';
           { infer: true },
         );
 
-        const keyvCacheStore = new KeyvCacheStore(redisConfig);
+        let redisUrl = '';
+        if (redisConfig.mode === 'cluster') {
+          const nodes = redisConfig.cluster
+            .map((node) => `${node.host}:${node.port}`)
+            .join(',');
+          const password = encodeURIComponent(redisConfig.cluster[0].password);
+          redisUrl = `redis://:%${password}@${nodes}`;
+        } else {
+          const { host, port, password, db } = redisConfig.standalone;
+          const encodedPassword = encodeURIComponent(password);
+          redisUrl = `redis://:${encodedPassword}@${host}:${port}/${db}`;
+        }
+
+        const keyvCacheStore = createKeyv(redisUrl);
 
         return {
-          store: keyvCacheStore,
-          isCacheableValue: (value: any) =>
-            value !== null && value !== undefined,
+          stores: [keyvCacheStore],
+          ttl: 24 * 60 * 60 * 1000,
         };
       },
     }),

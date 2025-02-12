@@ -1,7 +1,16 @@
 import { createHash } from 'crypto';
 import * as fs from 'fs/promises';
 
-import { Body, Controller, Get, Post, Req } from '@nestjs/common';
+import { Cache, CACHE_MANAGER, CacheInterceptor } from '@nestjs/cache-manager';
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Post,
+  Req,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ApiConsumes, ApiOperation } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { FastifyRequest } from 'fastify';
@@ -15,7 +24,10 @@ import { BaseDemoService } from './base-demo.service';
 
 @Controller()
 export class BaseDemoController {
-  constructor(private readonly baseDemoService: BaseDemoService) {}
+  constructor(
+    private readonly baseDemoService: BaseDemoService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   @Get()
   @Throttle({ default: { limit: 3, ttl: 60000 } })
@@ -108,5 +120,15 @@ export class BaseDemoController {
       files: paths,
       fields: formFields,
     });
+  }
+
+  @Get('cache')
+  @UseInterceptors(CacheInterceptor)
+  @Public()
+  @ApiOperation({ summary: '缓存测试' })
+  @ApiResponseDoc({ type: String })
+  async cache() {
+    await this.cacheManager.set('key', 'hello cache');
+    return this.cacheManager.get('key');
   }
 }
