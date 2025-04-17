@@ -1,10 +1,10 @@
 <script setup lang="tsx">
 import { NAvatar, NButton, NPopconfirm, NTag } from 'naive-ui';
-import { deleteUser, fetchGetUserList } from '@/service/api';
-import { $t } from '@/locales';
-import { useAppStore } from '@/store/modules/app';
 import { enableStatusRecord } from '@/constants/business';
+import { deleteUser, fetchGetUserList } from '@/service/api';
+import { useAppStore } from '@/store/modules/app';
 import { useTable, useTableOperate } from '@/hooks/common/table';
+import { $t } from '@/locales';
 import UserOperateDrawer from './modules/user-operate-drawer.vue';
 import UserSearch from './modules/user-search.vue';
 

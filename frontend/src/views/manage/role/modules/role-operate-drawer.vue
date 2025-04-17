@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, reactive, watch } from 'vue';
-import { useFormRules, useNaiveForm } from '@/hooks/common/form';
-import { $t } from '@/locales';
 import { enableStatusOptions } from '@/constants/business';
 import type { RoleModel } from '@/service/api';
 import { createRole, updateRole } from '@/service/api';
+import { useFormRules, useNaiveForm } from '@/hooks/common/form';
+import { $t } from '@/locales';
 
 defineOptions({
   name: 'RoleOperateDrawer'

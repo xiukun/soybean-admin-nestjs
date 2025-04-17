@@ -1,10 +1,10 @@
 <script setup lang="tsx">
 import { NButton, NPopconfirm, NTag } from 'naive-ui';
-import { deleteAccessKey, fetchGetAccessKeyList } from '@/service/api';
-import { $t } from '@/locales';
-import { useAppStore } from '@/store/modules/app';
 import { enableStatusRecord } from '@/constants/business';
+import { deleteAccessKey, fetchGetAccessKeyList } from '@/service/api';
+import { useAppStore } from '@/store/modules/app';
 import { useTable, useTableOperate } from '@/hooks/common/table';
+import { $t } from '@/locales';
 import AccessKeyOperateDrawer from './modules/access-key-operate-drawer.vue';
 import AccessKeySearch from './modules/access-key-search.vue';
 

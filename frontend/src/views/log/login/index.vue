@@ -2,9 +2,9 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { fetchGetLoginLogList } from '@/service/api';
-import { $t } from '@/locales';
 import { useAppStore } from '@/store/modules/app';
 import { useTable } from '@/hooks/common/table';
+import { $t } from '@/locales';
 import LoginLogSearch from './modules/login-log-search.vue';
 
 dayjs.extend(utc);
