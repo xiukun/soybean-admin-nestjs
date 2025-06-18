@@ -1,4 +1,4 @@
-# SoybeanAdmin NestJS1
+# SoybeanAdmin NestJS
 
 <p align="center">
   <a href="https://github.com/honghuangdc/soybean-admin-nestjs/blob/main/LICENSE">
