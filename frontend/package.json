@@ -108,7 +108,7 @@
   },
   "simple-git-hooks": {
     "commit-msg": "pnpm sa git-commit-verify",
-    "pre-commit": "pnpm -C frontend run typecheck && pnpm -C frontend lint-staged"
+    "pre-commit": "cd frontend && pnpm run typecheck && pnpm exec lint-staged"
   },
   "lint-staged": {
     "*.{vue,js,ts,jsx,tsx}": "eslint --fix"
