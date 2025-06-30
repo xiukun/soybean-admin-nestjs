@@ -114,6 +114,44 @@ export const generatedRoutes: GeneratedRoute[] = [
     }
   },
   {
+    name: 'lowcode',
+    path: '/lowcode',
+    component: 'layout.base',
+    meta: {
+      title: 'lowcode',
+      i18nKey: 'route.lowcode'
+    },
+    children: [
+      {
+        name: 'lowcode_model',
+        path: '/lowcode/model',
+        component: 'view.lowcode_model',
+        meta: {
+          title: 'lowcode_model',
+          i18nKey: 'route.lowcode_model'
+        }
+      },
+      {
+        name: 'lowcode_page',
+        path: '/lowcode/page',
+        component: 'view.lowcode_page',
+        meta: {
+          title: 'lowcode_page',
+          i18nKey: 'route.lowcode_page'
+        }
+      },
+      {
+        name: 'lowcode_preview',
+        path: '/lowcode/preview',
+        component: 'view.lowcode_preview',
+        meta: {
+          title: 'lowcode_preview',
+          i18nKey: 'route.lowcode_preview'
+        }
+      }
+    ]
+  },
+  {
     name: 'manage',
     path: '/manage',
     component: 'layout.base',

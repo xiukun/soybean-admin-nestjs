@@ -43,6 +43,8 @@ const local: App.I18n.Schema = {
     trigger: '触发',
     update: '更新',
     updateSuccess: '更新成功',
+    status: '状态',
+    createdAt: '创建时间',
     userCenter: '个人中心',
     yesOrNo: {
       yes: '是',
@@ -171,7 +173,12 @@ const local: App.I18n.Schema = {
     'access-key': '访问密钥',
     log: '日志',
     log_login: '登录日志',
-    log_operation: '操作日志'
+    log_operation: '操作日志',
+    lowcode: '低代码平台',
+    lowcode_page: '页面管理',
+    lowcode_model: '模型管理',
+    lowcode_api: 'API管理',
+    lowcode_preview: '页面预览'
   },
   page: {
     login: {
@@ -368,6 +375,48 @@ const local: App.I18n.Schema = {
           iconify: 'iconify图标',
           local: '本地图标'
         }
+      }
+    },
+    lowcode: {
+      page: {
+        title: '页面管理',
+        name: '页面名称',
+        code: '页面编码',
+        path: '页面路径',
+        description: '页面描述',
+        schema: '页面配置',
+        addPage: '新增页面',
+        editPage: '编辑页面',
+        form: {
+          name: '请输入页面名称',
+          title: '请输入页面标题',
+          code: '请输入页面编码',
+          path: '请输入页面路径',
+          description: '请输入页面描述',
+          schema: '请输入页面配置JSON',
+          status: '请选择状态'
+        }
+      },
+      model: {
+        title: '模型管理',
+        name: '模型名称',
+        code: '模型编码',
+        tableName: '表名',
+        description: '模型描述',
+        addModel: '新增模型',
+        editModel: '编辑模型',
+        form: {
+          name: '请输入模型名称',
+          code: '请输入模型编码',
+          tableName: '请输入表名',
+          description: '请输入模型描述',
+          status: '请选择状态'
+        }
+      },
+      preview: {
+        title: '预览管理',
+        selectPage: '选择页面',
+        selectPageTip: '请选择页面进行预览'
       }
     }
   },

@@ -6,11 +6,12 @@ import { useBoolean, useHookTable } from '@sa/hooks';
 import { useAppStore } from '@/store/modules/app';
 import { $t } from '@/locales';
 
-type TableData = NaiveUI.TableData;
 type GetTableData<A extends NaiveUI.TableApiFn> = NaiveUI.GetTableData<A>;
 type TableColumn<T> = NaiveUI.TableColumn<T>;
 
-export function useTable<A extends NaiveUI.TableApiFn>(config: NaiveUI.NaiveTableConfig<A>) {
+export function useTable<A extends NaiveUI.TableApiFn, P extends Record<string, any> = NonNullable<Parameters<A>[0]>>(
+  config: NaiveUI.NaiveTableConfig<A, P>
+) {
   const scope = effectScope();
   const appStore = useAppStore();
 
@@ -33,7 +34,7 @@ export function useTable<A extends NaiveUI.TableApiFn>(config: NaiveUI.NaiveTabl
     searchParams,
     updateSearchParams,
     resetSearchParams
-  } = useHookTable<A, GetTableData<A>, TableColumn<NaiveUI.TableDataWithIndex<GetTableData<A>>>>({
+  } = useHookTable<A, GetTableData<A>, TableColumn<NaiveUI.TableDataWithIndex<GetTableData<A>>>, P>({
     apiFn,
     apiParams,
     columns: config.columns,
@@ -213,7 +214,7 @@ export function useTable<A extends NaiveUI.TableApiFn>(config: NaiveUI.NaiveTabl
   };
 }
 
-export function useTableOperate<T extends TableData = TableData>(data: Ref<T[]>, getData: () => Promise<void>) {
+export function useTableOperate(data: Ref<NaiveUI.OperateTableDataItem[]>, getData: () => Promise<void>) {
   const { bool: drawerVisible, setTrue: openDrawer, setFalse: closeDrawer } = useBoolean();
 
   const operateType = ref<NaiveUI.TableOperateType>('add');
@@ -224,9 +225,9 @@ export function useTableOperate<T extends TableData = TableData>(data: Ref<T[]>,
   }
 
   /** the editing row data */
-  const editingData: Ref<T | null> = ref(null);
+  const editingData: Ref<NaiveUI.OperateTableDataItem | null> = ref(null);
 
-  function handleEdit(id: T['id']) {
+  function handleEdit(id: NaiveUI.OperateTableDataItem['id']) {
     operateType.value = 'edit';
     const findItem = data.value.find(item => item.id === id) || null;
     editingData.value = jsonClone(findItem);

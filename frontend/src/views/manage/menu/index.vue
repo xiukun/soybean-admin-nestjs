@@ -19,8 +19,8 @@ const { bool: visible, setTrue: openModal } = useBoolean();
 const wrapperRef = ref<HTMLElement | null>(null);
 
 const { columns, columnChecks, data, loading, getData, getDataByPage } = useTable({
-  apiFn: fetchGetMenuList,
-  columns: () => [
+  apiFn: fetchGetMenuList as unknown as NaiveUI.TableApiFn<Api.SystemManage.Menu>,
+  columns: (): NaiveUI.TableColumn<Api.SystemManage.Menu>[] => [
     {
       type: 'selection',
       align: 'center',
@@ -36,7 +36,7 @@ const { columns, columnChecks, data, loading, getData, getDataByPage } = useTabl
       title: $t('page.manage.menu.menuType'),
       align: 'center',
       width: 80,
-      render: row => {
+      render: (row: Api.SystemManage.Menu) => {
         const tagMap: Record<Api.SystemManage.MenuType, NaiveUI.ThemeColor> = {
           directory: 'default',
           menu: 'primary'
@@ -52,7 +52,7 @@ const { columns, columnChecks, data, loading, getData, getDataByPage } = useTabl
       title: $t('page.manage.menu.menuName'),
       align: 'center',
       minWidth: 120,
-      render: row => {
+      render: (row: Api.SystemManage.Menu) => {
         const { i18nKey, menuName } = row;
 
         const label = i18nKey ? $t(i18nKey) : menuName;
@@ -65,7 +65,7 @@ const { columns, columnChecks, data, loading, getData, getDataByPage } = useTabl
       title: $t('page.manage.menu.icon'),
       align: 'center',
       width: 60,
-      render: row => {
+      render: (row: Api.SystemManage.Menu) => {
         const icon = row.iconType === 1 ? row.icon : undefined;
 
         const localIcon = row.iconType === 2 ? row.icon : undefined;
@@ -94,7 +94,7 @@ const { columns, columnChecks, data, loading, getData, getDataByPage } = useTabl
       title: $t('page.manage.menu.menuStatus'),
       align: 'center',
       width: 80,
-      render: row => {
+      render: (row: Api.SystemManage.Menu) => {
         if (row.status === null) {
           return null;
         }
@@ -114,7 +114,7 @@ const { columns, columnChecks, data, loading, getData, getDataByPage } = useTabl
       title: $t('page.manage.menu.hideInMenu'),
       align: 'center',
       width: 80,
-      render: row => {
+      render: (row: Api.SystemManage.Menu) => {
         const hide: CommonType.YesOrNo = row.hideInMenu ? 'Y' : 'N';
 
         const tagMap: Record<CommonType.YesOrNo, NaiveUI.ThemeColor> = {
@@ -144,7 +144,7 @@ const { columns, columnChecks, data, loading, getData, getDataByPage } = useTabl
       title: $t('common.operate'),
       align: 'center',
       width: 230,
-      render: row => (
+      render: (row: Api.SystemManage.Menu) => (
         <div class="flex-center justify-end gap-8px">
           {row.menuType === 'directory' && (
             <NButton type="primary" ghost size="small" onClick={() => handleAddChildMenu(row)}>

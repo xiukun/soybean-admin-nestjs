@@ -21,7 +21,16 @@ declare namespace Api {
     }
 
     /** common search params of table */
-    type CommonSearchParams = Pick<Common.PaginatingCommonParams, 'current' | 'size'>;
+    interface CommonSearchParams {
+      /** current page number */
+      current?: number;
+      /** page size */
+      size?: number;
+      /** total count */
+      total?: number;
+      /** records */
+      records?: any[];
+    }
 
     /**
      * enable status

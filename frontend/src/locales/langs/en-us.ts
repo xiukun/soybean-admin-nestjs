@@ -43,6 +43,8 @@ const local: App.I18n.Schema = {
     trigger: 'Trigger',
     update: 'Update',
     updateSuccess: 'Update Success',
+    status: 'Status',
+    createdAt: 'Created At',
     userCenter: 'User Center',
     yesOrNo: {
       yes: 'Yes',
@@ -171,7 +173,12 @@ const local: App.I18n.Schema = {
     'access-key': 'AccessKey',
     log: 'Log',
     log_login: 'Login Log',
-    log_operation: 'Operation Log'
+    log_operation: 'Operation Log',
+    lowcode: 'Lowcode',
+    lowcode_model: 'Model Manage',
+    lowcode_page: 'Page Manage',
+    lowcode_api: 'API Manage',
+    lowcode_preview: 'Preview'
   },
   page: {
     login: {
@@ -368,6 +375,48 @@ const local: App.I18n.Schema = {
           iconify: 'Iconify Icon',
           local: 'Local Icon'
         }
+      }
+    },
+    lowcode: {
+      page: {
+        title: 'Page Management',
+        name: 'Page Name',
+        code: 'Page Code',
+        path: 'Page Path',
+        description: 'Page Description',
+        schema: 'Page Schema',
+        addPage: 'Add Page',
+        editPage: 'Edit Page',
+        form: {
+          name: 'Please enter page name',
+          title: 'Please enter page title',
+          code: 'Please enter page code',
+          path: 'Please enter page path',
+          description: 'Please enter page description',
+          schema: 'Please enter page schema JSON',
+          status: 'Please select status'
+        }
+      },
+      model: {
+        title: 'Model Management',
+        name: 'Model Name',
+        code: 'Model Code',
+        tableName: 'Table Name',
+        description: 'Model Description',
+        addModel: 'Add Model',
+        editModel: 'Edit Model',
+        form: {
+          name: 'Please enter model name',
+          code: 'Please enter model code',
+          tableName: 'Please enter table name',
+          description: 'Please enter model description',
+          status: 'Please select status'
+        }
+      },
+      preview: {
+        title: 'Preview Management',
+        selectPage: 'Select Page',
+        selectPageTip: 'Please select a page to preview'
       }
     }
   },

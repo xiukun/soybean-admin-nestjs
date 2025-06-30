@@ -20,7 +20,9 @@ declare namespace NaiveUI {
 
   type SetTableColumnKey<C, T> = Omit<C, 'key'> & { key: keyof T | CustomColumnKey };
 
-  type TableData = Api.Common.CommonRecord<object>;
+  type TableData<T = object> = Api.Common.CommonRecord<T> & { id: any; index?: number };
+
+  type OperateTableDataItem = Api.Common.CommonRecord<any> & { id: any; index?: number };
 
   type TableColumnWithKey<T> = SetTableColumnKey<DataTableBaseColumn<T>, T> | SetTableColumnKey<TableColumnGroup<T>, T>;
 
@@ -40,10 +42,11 @@ declare namespace NaiveUI {
 
   type GetTableData<A extends TableApiFn> = A extends TableApiFn<infer T> ? T : never;
 
-  type NaiveTableConfig<A extends TableApiFn> = Pick<
-    import('@sa/hooks').TableConfig<A, GetTableData<A>, TableColumn<TableDataWithIndex<GetTableData<A>>>>,
-    'apiFn' | 'apiParams' | 'columns' | 'immediate'
+  type NaiveTableConfig<A extends TableApiFn, P extends Record<string, any> = NonNullable<Parameters<A>[0]>> = Pick<
+    import('@sa/hooks').TableConfig<A, GetTableData<A>, TableColumn<TableDataWithIndex<GetTableData<A>>>, P>,
+    'apiFn' | 'columns' | 'immediate'
   > & {
+    apiParams?: P;
     /**
      * whether to display the total items count
      *

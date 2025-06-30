@@ -49,6 +49,7 @@
   "dependencies": {
     "@better-scroll/core": "2.5.1",
     "@iconify/vue": "4.3.0",
+    "@maita/amis-tools": "^0.1.7",
     "@sa/axios": "workspace:*",
     "@sa/color": "workspace:*",
     "@sa/hooks": "workspace:*",
@@ -85,6 +86,7 @@
     "@unocss/vite": "66.0.0",
     "@vitejs/plugin-vue": "5.2.3",
     "@vitejs/plugin-vue-jsx": "4.1.2",
+    "amis": "6.11.0",
     "consola": "3.4.2",
     "eslint": "9.22.0",
     "eslint-plugin-vue": "10.0.0",
@@ -98,6 +100,7 @@
     "unplugin-vue-components": "28.4.1",
     "vite": "6.2.2",
     "vite-plugin-progress": "0.0.7",
+    "vite-plugin-static-copy": "2.3.1",
     "vite-plugin-svg-icons": "2.0.1",
     "vite-plugin-vue-devtools": "7.7.2",
     "vue-eslint-parser": "10.1.1",
@@ -105,10 +108,10 @@
   },
   "simple-git-hooks": {
     "commit-msg": "pnpm sa git-commit-verify",
-    "pre-commit": "pnpm typecheck && pnpm lint-staged"
+    "pre-commit": "pnpm -C frontend run typecheck && pnpm -C frontend lint-staged"
   },
   "lint-staged": {
-    "*": "eslint --fix"
+    "*.{vue,js,ts,jsx,tsx}": "eslint --fix"
   },
   "website": "https://admin.soybeanjs.cn"
 }

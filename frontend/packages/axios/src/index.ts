@@ -186,5 +186,6 @@ export function createFlatRequest<ResponseData = any, State = Record<string, unk
 }
 
 export { BACKEND_ERROR_CODE, REQUEST_ID_KEY };
+export { createAxiosConfig, createDefaultOptions, createRetryOptions };
 export type * from './type';
 export type { CreateAxiosDefaults, AxiosError };

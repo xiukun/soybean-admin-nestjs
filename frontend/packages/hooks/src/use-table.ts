@@ -27,11 +27,11 @@ export type TransformedData<T> = {
 
 export type Transformer<T, Response> = (response: Response) => TransformedData<T>;
 
-export type TableConfig<A extends ApiFn, T, C> = {
+export type TableConfig<A extends ApiFn, T, C, P extends Record<string, any>> = {
   /** api function to get table data */
   apiFn: A;
   /** api params */
-  apiParams?: Parameters<A>[0];
+  apiParams?: P;
   /** transform api response to table data */
   transformer: Transformer<T, Awaited<ReturnType<A>>>;
   /** columns factory */
@@ -62,7 +62,9 @@ export type TableConfig<A extends ApiFn, T, C> = {
   immediate?: boolean;
 };
 
-export default function useHookTable<A extends ApiFn, T, C>(config: TableConfig<A, T, C>) {
+export default function useHookTable<A extends ApiFn, T, C, P extends Record<string, any>>(
+  config: TableConfig<A, T, C, P>
+) {
   const { loading, startLoading, endLoading } = useLoading();
   const { bool: empty, setBool: setEmpty } = useBoolean();
 

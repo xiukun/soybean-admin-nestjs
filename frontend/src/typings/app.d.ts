@@ -337,6 +337,8 @@ declare namespace App {
         trigger: string;
         update: string;
         updateSuccess: string;
+        status: string;
+        createdAt: string;
         userCenter: string;
         yesOrNo: {
           yes: string;
@@ -412,7 +414,7 @@ declare namespace App {
           resetSuccessMsg: string;
         };
       };
-      route: Record<I18nRouteKey, string>;
+      route: Record<I18nRouteKey | 'lowcode_api', string>;
       page: {
         login: {
           common: {
@@ -609,6 +611,48 @@ declare namespace App {
             };
           };
         };
+        lowcode: {
+          page: {
+            title: string;
+            name: string;
+            code: string;
+            path: string;
+            description: string;
+            schema: string;
+            addPage: string;
+            editPage: string;
+            form: {
+              name: string;
+              title: string;
+              code: string;
+              path: string;
+              description: string;
+              schema: string;
+              status: string;
+            };
+          };
+          model: {
+            title: string;
+            name: string;
+            code: string;
+            tableName: string;
+            description: string;
+            addModel: string;
+            editModel: string;
+            form: {
+              name: string;
+              code: string;
+              tableName: string;
+              description: string;
+              status: string;
+            };
+          };
+          preview: {
+            title: string;
+            selectPage: string;
+            selectPageTip: string;
+          };
+        };
       };
       form: {
         required: string;
@@ -663,7 +707,7 @@ declare namespace App {
   /** Service namespace */
   namespace Service {
     /** Other baseURL key */
-    type OtherBaseURLKey = 'demo';
+    type OtherBaseURLKey = 'demo' | 'amisService';
 
     interface ServiceConfigItem {
       /** The backend service base url */

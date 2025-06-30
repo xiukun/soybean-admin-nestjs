@@ -243,3 +243,109 @@ model SysAccessKey {
 
   @@map("sys_access_key")
 }
+
+// 低代码页面表
+model SysLowcodePage {
+  id          String    @id @default(cuid())
+  name        String
+  title       String
+  code        String    @unique
+  description String?
+  path        String
+  schema      String    @db.Text
+  menuId      Int?      @map("menu_id")
+  status      Status
+  createdAt   DateTime  @default(now()) @map("created_at")
+  createdBy   String    @map("created_by")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+  updatedBy   String?   @map("updated_by")
+
+  @@map("sys_lowcode_page")
+}
+
+// 低代码模型表
+model SysLowcodeModel {
+  id          String    @id @default(cuid())
+  name        String
+  code        String    @unique
+  description String?
+  tableName   String    @map("table_name")
+  status      Status
+  createdAt   DateTime  @default(now()) @map("created_at")
+  createdBy   String    @map("created_by")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+  updatedBy   String?   @map("updated_by")
+
+  properties SysLowcodeModelProperty[]
+  references SysLowcodeModelReference[]
+
+  @@map("sys_lowcode_model")
+}
+
+// 低代码模型属性表
+model SysLowcodeModelProperty {
+  id           String    @id @default(cuid())
+  modelId      String    @map("model_id")
+  name         String
+  code         String
+  description  String?
+  type         String
+  length       Int?
+  precision    Int?
+  scale        Int?
+  nullable     Boolean   @default(true)
+  defaultValue String?   @map("default_value")
+  isPrimaryKey Boolean   @default(false) @map("is_primary_key")
+  isUnique     Boolean   @default(false) @map("is_unique")
+  isIndex      Boolean   @default(false) @map("is_index")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  createdBy    String    @map("created_by")
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+  updatedBy    String?   @map("updated_by")
+
+  model SysLowcodeModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
+
+  @@map("sys_lowcode_model_property")
+}
+
+// 低代码模型关联表
+model SysLowcodeModelReference {
+  id             String    @id @default(cuid())
+  modelId        String    @map("model_id")
+  name           String
+  sourceModel    String    @map("source_model")
+  sourceProperty String    @map("source_property")
+  targetModel    String    @map("target_model")
+  targetProperty String    @map("target_property")
+  relationType   String    @map("relation_type")
+  onDelete       String?   @map("on_delete")
+  onUpdate       String?   @map("on_update")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  createdBy      String    @map("created_by")
+  updatedAt      DateTime? @updatedAt @map("updated_at")
+  updatedBy      String?   @map("updated_by")
+
+  model SysLowcodeModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
+
+  @@map("sys_lowcode_model_reference")
+}
+
+// 低代码API表
+model SysLowcodeApi {
+  id             String    @id @default(cuid())
+  name           String
+  path           String
+  method         String
+  description    String?
+  modelId        String?   @map("model_id")
+  requestSchema  String?   @map("request_schema") @db.Text
+  responseSchema String?   @map("response_schema") @db.Text
+  status         Status
+  createdAt      DateTime  @default(now()) @map("created_at")
+  createdBy      String    @map("created_by")
+  updatedAt      DateTime? @updatedAt @map("updated_at")
+  updatedBy      String?   @map("updated_by")
+
+  @@unique([path, method])
+  @@map("sys_lowcode_api")
+}

@@ -7,8 +7,9 @@ import { setupElegantRouter } from './router';
 import { setupUnocss } from './unocss';
 import { setupUnplugin } from './unplugin';
 import { setupHtmlPlugin } from './html';
+import { setupAmisPlugin } from './amis';
 
-export function setupVitePlugins(viteEnv: Env.ImportMeta, buildTime: string) {
+export function setupVitePlugins(viteEnv: Env.ImportMeta, buildTime: string): PluginOption[] {
   const plugins: PluginOption = [
     vue(),
     vueJsx(),
@@ -17,7 +18,8 @@ export function setupVitePlugins(viteEnv: Env.ImportMeta, buildTime: string) {
     setupUnocss(viteEnv),
     ...setupUnplugin(viteEnv),
     progress(),
-    setupHtmlPlugin(buildTime)
+    setupHtmlPlugin(buildTime),
+    setupAmisPlugin()
   ];
 
   return plugins;
