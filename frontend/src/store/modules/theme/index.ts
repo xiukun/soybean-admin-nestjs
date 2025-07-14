@@ -3,6 +3,7 @@ import type { Ref } from 'vue';
 import { useEventListener, usePreferredColorScheme } from '@vueuse/core';
 import { defineStore } from 'pinia';
 import { getPaletteColorByNumber } from '@sa/color';
+import { toggleThemeMode, updateAmisTheme } from '@maita/amis-tools';
 import { localStg } from '@/utils/storage';
 import { SetupStoreId } from '@/enum';
 import {
@@ -173,6 +174,11 @@ export const useThemeStore = defineStore(SetupStoreId.Theme, () => {
     watch(
       darkMode,
       val => {
+        const themeVal = val ? 'dark' : 'light';
+        updateAmisTheme(themeColors.value.primary, val);
+
+        toggleThemeMode(themeVal);
+
         toggleCssDarkMode(val);
         localStg.set('darkMode', val);
       },
@@ -193,6 +199,7 @@ export const useThemeStore = defineStore(SetupStoreId.Theme, () => {
       val => {
         setupThemeVarsToGlobal();
         localStg.set('themeColor', val.primary);
+        updateAmisTheme(val.primary, darkMode.value);
       },
       { immediate: true }
     );

@@ -74,13 +74,6 @@ function createCommonRequest<ResponseData = any>(
       return Promise.reject(backendError);
     },
     async (error: AxiosError<ResponseData>) => {
-      if (error.response) {
-        const fail = await opts.onBackendFail(error.response, instance);
-        if (fail) {
-          return fail;
-        }
-      }
-
       await opts.onError(error);
 
       return Promise.reject(error);
@@ -188,3 +181,4 @@ export function createFlatRequest<ResponseData = any, State = Record<string, unk
 export { BACKEND_ERROR_CODE, REQUEST_ID_KEY };
 export type * from './type';
 export type { CreateAxiosDefaults, AxiosError };
+export * from './options';

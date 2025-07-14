@@ -27,7 +27,13 @@ export const request = createFlatRequest<App.Service.Response, RequestInstanceSt
     isBackendSuccess(response) {
       // when the backend response code is "0000"(default), it means the request is success
       // to change this logic by yourself, you can modify the `VITE_SERVICE_SUCCESS_CODE` in `.env` file
-      return String(response.data.code) === import.meta.env.VITE_SERVICE_SUCCESS_CODE;
+      const successFlags = import.meta.env.VITE_SERVICE_SUCCESS_CODE?.split(',') || [];
+      if (successFlags.includes(String(response.data.code))) {
+        return true;
+      }
+      return false;
+
+      // return String(response.data.code) === import.meta.env.VITE_SERVICE_SUCCESS_CODE;
     },
     async onBackendFail(response, instance) {
       const authStore = useAuthStore();
@@ -41,7 +47,7 @@ export const request = createFlatRequest<App.Service.Response, RequestInstanceSt
         handleLogout();
         window.removeEventListener('beforeunload', handleLogout);
 
-        request.state.errMsgStack = request.state.errMsgStack.filter(msg => msg !== response.data.message);
+        request.state.errMsgStack = request.state.errMsgStack.filter(msg => msg !== response.data.msg);
       }
 
       // when the backend response code is in `logoutCodes`, it means the user will be logged out and redirected to login page
@@ -53,15 +59,15 @@ export const request = createFlatRequest<App.Service.Response, RequestInstanceSt
 
       // when the backend response code is in `modalLogoutCodes`, it means the user will be logged out by displaying a modal
       const modalLogoutCodes = import.meta.env.VITE_SERVICE_MODAL_LOGOUT_CODES?.split(',') || [];
-      if (modalLogoutCodes.includes(responseCode) && !request.state.errMsgStack?.includes(response.data.message)) {
-        request.state.errMsgStack = [...(request.state.errMsgStack || []), response.data.message];
+      if (modalLogoutCodes.includes(responseCode) && !request.state.errMsgStack?.includes(response.data.msg)) {
+        request.state.errMsgStack = [...(request.state.errMsgStack || []), response.data.msg];
 
         // prevent the user from refreshing the page
         window.addEventListener('beforeunload', handleLogout);
 
         window.$dialog?.error({
           title: $t('common.error'),
-          content: response.data.message,
+          content: response.data.msg,
           positiveText: $t('common.confirm'),
           maskClosable: false,
           closeOnEsc: false,
@@ -97,13 +103,13 @@ export const request = createFlatRequest<App.Service.Response, RequestInstanceSt
     onError(error) {
       // when the request is fail, you can show error message
 
-      let message = error.response?.data.message ?? error.message;
+      let message = error.message;
       let backendErrorCode = '';
 
       // get backend error message and code
       if (error.code === BACKEND_ERROR_CODE) {
-        message = error.response?.data?.message ?? message;
-        backendErrorCode = String(error.response?.data?.code ?? '');
+        message = error.response?.data?.msg || message;
+        backendErrorCode = String(error.response?.data?.code || '');
       }
 
       // the error message is displayed in the modal
@@ -123,9 +129,9 @@ export const request = createFlatRequest<App.Service.Response, RequestInstanceSt
   }
 );
 
-export const demoRequest = createRequest<App.Service.DemoResponse>(
+export const amisRequest = createRequest<App.Service.DemoResponse>(
   {
-    baseURL: otherBaseURL.demo
+    baseURL: otherBaseURL.amisService
   },
   {
     async onRequest(config) {
@@ -141,7 +147,12 @@ export const demoRequest = createRequest<App.Service.DemoResponse>(
     isBackendSuccess(response) {
       // when the backend response code is "200", it means the request is success
       // you can change this logic by yourself
-      return response.data.status === '200';
+      // return response.data.status === '200';
+      const successFlags = import.meta.env.VITE_SERVICE_SUCCESS_CODE?.split(',') || [];
+      if (successFlags.includes(String(response.data.status))) {
+        return true;
+      }
+      return false;
     },
     async onBackendFail(_response) {
       // when the backend response code is not "200", it means the request is fail
@@ -157,7 +168,7 @@ export const demoRequest = createRequest<App.Service.DemoResponse>(
 
       // show backend error message
       if (error.code === BACKEND_ERROR_CODE) {
-        message = error.response?.data?.message ?? message;
+        message = error.response?.data?.message || message;
       }
 
       window.$message?.error(message);

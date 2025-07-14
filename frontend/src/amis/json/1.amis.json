@@ -1,0 +1,292 @@
+{
+  "type": "page",
+  "body": [
+    {
+      "type": "service",
+      "body": [
+        {
+          "type": "select",
+          "label": "接口",
+          "name": "url",
+          "id": "u:d7273d5634cf",
+          "multiple": false,
+          "clearable": true,
+          "searchable": true,
+          "creatable": true,
+          "placeholder": "请选择接口",
+          "source": "${rows}",
+          "labelField": "name",
+          "valueField": "apiPath",
+          "menuTpl": "<div>${name} -- ${apiPath}</div>",
+          "addDialog": {
+            "title": "新增选项",
+            "actions": [
+              {
+                "type": "button",
+                "actionType": "cancel",
+                "label": "取消"
+              },
+              {
+                "type": "button",
+                "actionType": "confirm",
+                "label": "确定",
+                "primary": true
+              }
+            ]
+          },
+          "addControls": [
+            {
+              "type": "input-text",
+              "name": "label",
+              "label": false,
+              "required": true,
+              "placeholder": "请输入接口"
+            }
+          ]
+        }
+      ],
+      "id": "u:d6606e429449",
+      "dsType": "api",
+      "dataProvider": "const json = localStorage.getItem('AG_API_DATA');\nconst rows = JSON.parse(json) || [];\nsetData({ rows });",
+      "name": "apiDataService",
+      "className": "m-b-lg"
+    },
+    {
+      "type": "crud",
+      "syncLocation": false,
+      "api": {
+        "method": "get",
+        "url": "https://apifoxmock.com/m1/3546534-2258203-default/common/list",
+        "requestAdaptor": "",
+        "adaptor": "",
+        "messages": {}
+      },
+      "bulkActions": [],
+      "itemActions": [],
+      "filterSettingSource": [
+        "name",
+        "age",
+        "date",
+        "id",
+        "address",
+        "enable",
+        "image",
+        "imageList",
+        "imgsList",
+        "shipType"
+      ],
+      "filterEnabledList": [
+        {
+          "label": "name",
+          "value": "name"
+        }
+      ],
+      "filter": {
+        "title": "",
+        "columnCount": 3,
+        "mode": "horizontal",
+        "body": [
+          {
+            "type": "input-text",
+            "label": "name",
+            "name": "name",
+            "id": "u:f5780ae456f3"
+          }
+        ],
+        "actions": [
+          {
+            "type": "submit",
+            "label": "查询",
+            "primary": true,
+            "id": "u:7bd5755d6ed3"
+          },
+          {
+            "type": "reset",
+            "label": "重置",
+            "id": "u:567ad5836f33"
+          }
+        ],
+        "bodyClassName": "ag-bg-light antd-Panel-body",
+        "actionsClassName": "ag-bg-light-important antd-Panel-btnToolbar antd-Panel-footer",
+        "id": "u:369e611bb19b",
+        "feat": "Insert"
+      },
+      "onEvent": {
+        "fetchInited": {
+          "weight": 0,
+          "actions": [
+            {
+              "ignoreError": false,
+              "script": "// 动态列浏览器缓存 导出用\nwindow.__JSFunc.dynimicColumnCache(context, event);",
+              "actionType": "custom"
+            }
+          ]
+        }
+      },
+      "id": "u:680e0bdbc6fc",
+      "messages": {},
+      "headerToolbar": [
+        {
+          "label": "添加",
+          "type": "button",
+          "actionType": "dialog",
+          "level": "primary",
+          "editorSetting": {
+            "behavior": "create"
+          },
+          "dialog": {
+            "title": "添加",
+            "body": {
+              "type": "form",
+              "api": {
+                "method": "post",
+                "url": "https://apifoxmock.com/m1/3546534-2258203-default/common/save",
+                "requestAdaptor": "",
+                "adaptor": "",
+                "messages": {}
+              },
+              "body": [
+                {
+                  "type": "input-text",
+                  "label": "序号"
+                },
+                {
+                  "type": "input-text",
+                  "name": "name",
+                  "label": "name"
+                },
+                {
+                  "type": "input-text",
+                  "name": "age",
+                  "label": "age"
+                },
+                {
+                  "type": "input-text",
+                  "name": "date",
+                  "label": "date"
+                },
+                {
+                  "type": "input-text",
+                  "name": "id",
+                  "label": "id"
+                },
+                {
+                  "type": "input-text",
+                  "name": "address",
+                  "label": "address"
+                },
+                {
+                  "type": "input-text",
+                  "name": "enable",
+                  "label": "enable"
+                },
+                {
+                  "type": "input-text",
+                  "name": "image",
+                  "label": "image"
+                },
+                {
+                  "type": "input-text",
+                  "name": "shipType",
+                  "label": "shipType"
+                }
+              ]
+            }
+          },
+          "id": "u:dfe6688f2d86"
+        },
+        "bulkActions",
+        {
+          "type": "columns-toggler",
+          "align": "right",
+          "draggable": true
+        }
+      ],
+      "footerToolbar": [
+        {
+          "type": "statistics"
+        },
+        {
+          "type": "pagination",
+          "align": "right",
+          "behavior": "Pagination",
+          "layout": ["perPage", "pager"],
+          "perPage": 10
+        }
+      ],
+      "autoFillHeight": true,
+      "rowClassNameExpr": "${index % 2 ? 'bg-gray-100' : ''}",
+      "perPageAvailable": [10, 20, 50, 100, 200],
+      "dynimicColumnKey": "0094eb69",
+      "columns": [
+        {
+          "type": "text",
+          "label": "序号",
+          "tpl": "${index + 1}",
+          "id": "u:a5d5c4484151"
+        },
+        {
+          "label": "name",
+          "type": "text",
+          "name": "name",
+          "sortable": true,
+          "id": "u:ad502f238f09"
+        },
+        {
+          "label": "age",
+          "type": "text",
+          "name": "age",
+          "sortable": true,
+          "id": "u:79e2635e9cff"
+        },
+        {
+          "label": "date",
+          "type": "text",
+          "name": "date",
+          "sortable": true,
+          "id": "u:1ab5a8c61bd8"
+        },
+        {
+          "label": "id",
+          "type": "text",
+          "name": "id",
+          "sortable": true,
+          "id": "u:010b6bc47f10"
+        },
+        {
+          "label": "address",
+          "type": "text",
+          "name": "address",
+          "sortable": true,
+          "id": "u:19037ede71db"
+        },
+        {
+          "label": "enable",
+          "type": "text",
+          "name": "enable",
+          "sortable": true,
+          "id": "u:90b7986010f6"
+        },
+        {
+          "label": "image",
+          "type": "text",
+          "name": "image",
+          "sortable": true,
+          "id": "u:abf51310a90a"
+        },
+        {
+          "label": "shipType",
+          "type": "text",
+          "name": "shipType",
+          "sortable": true,
+          "id": "u:2fef5a21d8ee"
+        }
+      ]
+    }
+  ],
+  "regions": ["body"],
+  "id": "u:883d9fdec15b",
+  "pullRefresh": {
+    "disabled": true
+  }
+}

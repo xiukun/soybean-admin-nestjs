@@ -166,18 +166,13 @@ const routeMap: RouteMap = {
   "403": "/403",
   "404": "/404",
   "500": "/500",
-  "access-key": "/access-key",
+  "amis-demo": "/amis-demo",
+  "amis-demo_child1": "/amis-demo/child1",
+  "amis-template": "/amis-template",
   "home": "/home",
   "iframe-page": "/iframe-page/:url",
-  "log": "/log",
-  "log_login": "/log/login",
-  "log_operation": "/log/operation",
   "login": "/login/:module(pwd-login|code-login|register|reset-pwd|bind-wechat)?",
-  "manage": "/manage",
-  "manage_menu": "/manage/menu",
-  "manage_role": "/manage/role",
-  "manage_user": "/manage/user",
-  "manage_user-detail": "/manage/user-detail/:id"
+  "reload": "/reload"
 };
 
 /**

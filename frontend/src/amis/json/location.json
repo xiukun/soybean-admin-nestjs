@@ -1,0 +1,37 @@
+{
+  "type": "page",
+  "body": [
+    {
+      "type": "form",
+      "api": "/amis/api/mock2/form/saveForm",
+      "debug": true,
+      "body": [
+        {
+          "type": "location-picker",
+          "name": "location",
+          "ak": "LiZT5dVbGTsPI91tFGcOlSpe5FDehpf7",
+          "label": "地址",
+          "id": "u:67d83ff8cf5b",
+          "coordinatesType": "bd09"
+        }
+      ],
+      "id": "u:019eed70a1cd",
+      "actions": [
+        {
+          "type": "submit",
+          "label": "提交",
+          "primary": true,
+          "id": "u:9df77af189c8"
+        }
+      ],
+      "feat": "Insert",
+      "dsType": "api",
+      "labelAlign": "left"
+    }
+  ],
+  "id": "u:ec3c0a372494",
+  "asideResizor": false,
+  "pullRefresh": {
+    "disabled": true
+  }
+}

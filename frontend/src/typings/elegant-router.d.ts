@@ -20,18 +20,13 @@ declare module "@elegant-router/types" {
     "403": "/403";
     "404": "/404";
     "500": "/500";
-    "access-key": "/access-key";
+    "amis-demo": "/amis-demo";
+    "amis-demo_child1": "/amis-demo/child1";
+    "amis-template": "/amis-template";
     "home": "/home";
     "iframe-page": "/iframe-page/:url";
-    "log": "/log";
-    "log_login": "/log/login";
-    "log_operation": "/log/operation";
     "login": "/login/:module(pwd-login|code-login|register|reset-pwd|bind-wechat)?";
-    "manage": "/manage";
-    "manage_menu": "/manage/menu";
-    "manage_role": "/manage/role";
-    "manage_user": "/manage/user";
-    "manage_user-detail": "/manage/user-detail/:id";
+    "reload": "/reload";
   };
 
   /**
@@ -66,12 +61,12 @@ declare module "@elegant-router/types" {
     | "403"
     | "404"
     | "500"
-    | "access-key"
+    | "amis-demo"
+    | "amis-template"
     | "home"
     | "iframe-page"
-    | "log"
     | "login"
-    | "manage"
+    | "reload"
   >;
 
   /**
@@ -91,16 +86,12 @@ declare module "@elegant-router/types" {
     | "403"
     | "404"
     | "500"
+    | "amis-template"
     | "iframe-page"
     | "login"
-    | "access-key"
+    | "reload"
+    | "amis-demo_child1"
     | "home"
-    | "log_login"
-    | "log_operation"
-    | "manage_menu"
-    | "manage_role"
-    | "manage_user-detail"
-    | "manage_user"
   >;
 
   /**

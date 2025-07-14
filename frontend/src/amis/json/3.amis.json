@@ -1,0 +1,153 @@
+{
+  "type": "page",
+  "body": [
+    {
+      "type": "crud",
+      "syncLocation": false,
+      "api": {
+        "method": "post",
+        "url": "https://apifoxmock.com/m1/3546534-2258203-default/post/list",
+        "requestAdaptor": "",
+        "adaptor": "",
+        "messages": {},
+        "data": {
+          "paramKey1": "paramValue"
+        }
+      },
+      "filterSettingSource": ["id", "rating"],
+      "onEvent": {
+        "fetchInited": {
+          "weight": 0,
+          "actions": [
+            {
+              "ignoreError": false,
+              "script": "// 动态列浏览器缓存 导出用\nwindow.__JSFunc.dynimicColumnCache(context, event);",
+              "actionType": "custom"
+            }
+          ]
+        }
+      },
+      "id": "u:ratingTableId",
+      "messages": {},
+      "quickSaveApi": {
+        "url": "https://apifoxmock.com/m1/3546534-2258203-default/post/save",
+        "method": "post",
+        "messages": {},
+        "requestAdaptor": "",
+        "adaptor": ""
+      },
+      "bulkActions": [
+        {
+          "label": "批量删除",
+          "type": "button",
+          "id": "u:b3869c0b90ad",
+          "disabledOnAction": false,
+          "level": "danger",
+          "confirmText": "确定批量删除${ids}？",
+          "onEvent": {
+            "click": {
+              "weight": 0,
+              "actions": [
+                {
+                  "ignoreError": false,
+                  "actionType": "ajax",
+                  "outputVar": "responseResult",
+                  "options": {},
+                  "api": {
+                    "url": "/v2/user",
+                    "method": "post",
+                    "requestAdaptor": "",
+                    "adaptor": "",
+                    "messages": {},
+                    "data": {
+                      "ids": "${ids}"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "showIndex": true,
+      "selectable": true,
+      "multiple": true,
+      "headerToolbar": [
+        {
+          "type": "bulk-actions",
+          "tpl": "操作栏"
+        },
+        {
+          "type": "columns-toggler",
+          "align": "right",
+          "draggable": true
+        }
+      ],
+      "footerToolbar": [
+        {
+          "type": "statistics"
+        },
+        {
+          "type": "pagination",
+          "align": "right",
+          "behavior": "Pagination",
+          "layout": ["perPage", "pager"],
+          "perPage": 10
+        }
+      ],
+      "autoFillHeight": true,
+      "rowClassNameExpr": "${index % 2 ? 'bg-gray-100' : ''}",
+      "perPageAvailable": [10, 20, 50, 100, 200],
+      "dynimicColumnKey": "d0c3ac43",
+      "columns": [
+        {
+          "label": "id",
+          "type": "tpl",
+          "name": "id",
+          "sortable": true,
+          "id": "u:d3faa8c9b854",
+          "placeholder": "-",
+          "toggled": false,
+          "hidden": true
+        },
+        {
+          "label": "rating",
+          "type": "text",
+          "name": "rating",
+          "sortable": true,
+          "id": "u:dee0ef168083",
+          "placeholder": "-",
+          "mode": "popOver",
+          "quickEdit": {
+            "mode": "popOver",
+            "type": "wrapper",
+            "body": [
+              {
+                "type": "input-number",
+                "label": "",
+                "name": "rating",
+                "showSteps": true,
+                "keyboard": true,
+                "id": "u:0b95d857b4d6",
+                "step": 1,
+                "precision": 3
+              }
+            ],
+            "id": "u:1cdf8367b28f",
+            "style": {
+              "position": "static",
+              "display": "block"
+            },
+            "isFixedHeight": false,
+            "isFixedWidth": false
+          }
+        }
+      ]
+    }
+  ],
+  "regions": ["body"],
+  "id": "u:pageId",
+  "pullRefresh": {
+    "disabled": true
+  }
+}

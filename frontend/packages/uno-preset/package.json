@@ -1,6 +1,6 @@
 {
   "name": "@sa/uno-preset",
-  "version": "1.3.13",
+  "version": "1.3.14",
   "exports": {
     ".": "./src/index.ts"
   },
@@ -8,5 +8,9 @@
     "*": {
       "*": ["./src/*"]
     }
+  },
+  "dependencies": {
+    "@unocss/core": "^66.1.4",
+    "@unocss/preset-uno": "^66.1.4"
   }
 }

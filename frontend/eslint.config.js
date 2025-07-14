@@ -18,7 +18,10 @@ export default defineConfig(
           ignores: ['/^icon-/']
         }
       ],
-      'unocss/order-attributify': 'off'
+      'unocss/order-attributify': 'off',
+      'no-plusplus': 'off',
+      'no-underscore-dangle': 'off',
+      'no-param-reassign': 'off'
     }
   }
 );

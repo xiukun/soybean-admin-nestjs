@@ -30,6 +30,9 @@ export const themeSettings: App.Theme.ThemeSetting = {
     },
     multilingual: {
       visible: true
+    },
+    globalSearch: {
+      visible: true
     }
   },
   tab: {
@@ -55,7 +58,8 @@ export const themeSettings: App.Theme.ThemeSetting = {
   },
   watermark: {
     visible: false,
-    text: 'SoybeanAdmin'
+    text: '411560201@qq.com',
+    enableUserName: false
   },
   tokens: {
     light: {

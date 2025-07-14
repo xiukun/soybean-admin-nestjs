@@ -1,0 +1,1624 @@
+{
+  "type": "page",
+  "body": [
+    {
+      "type": "draggable-scalable-canvas",
+      "width": 1920,
+      "height": 1080,
+      "style": {
+        "position": "fixed",
+        "top": 0,
+        "left": 0,
+        "right": 0,
+        "bottom": 0,
+        "zIndex": 100,
+        "inset": "auto auto auto auto"
+      },
+      "body": [
+        {
+          "type": "flex",
+          "items": [
+            {
+              "type": "container",
+              "body": [
+                {
+                  "type": "flex",
+                  "items": [
+                    {
+                      "type": "container",
+                      "body": [
+                        {
+                          "type": "button-group",
+                          "buttons": [
+                            {
+                              "type": "button",
+                              "label": "大数据展示",
+                              "id": "u:96ebdf5710a4",
+                              "onEvent": {
+                                "click": {
+                                  "actions": []
+                                }
+                              },
+                              "disabledOnAction": false,
+                              "themeCss": {
+                                "className": {
+                                  "background:default": "linear-gradient(0deg,#43b3f9 0%,#b7dff9 100%)"
+                                }
+                              }
+                            },
+                            {
+                              "type": "button",
+                              "label": "今日趋势汇总",
+                              "id": "u:b71aaa873249",
+                              "onEvent": {
+                                "click": {
+                                  "actions": []
+                                }
+                              },
+                              "disabledOnAction": false,
+                              "themeCss": {
+                                "className": {
+                                  "background:default": "linear-gradient(0deg,#43b3f9 0%,#b7dff9 100%)"
+                                }
+                              }
+                            },
+                            {
+                              "type": "button",
+                              "label": "季度趋势汇总",
+                              "id": "u:865ceaf093a8",
+                              "onEvent": {
+                                "click": {
+                                  "actions": []
+                                }
+                              },
+                              "disabledOnAction": false,
+                              "themeCss": {
+                                "className": {
+                                  "background:default": "linear-gradient(0deg,#43b3f9 0%,#b7dff9 100%)"
+                                }
+                              }
+                            }
+                          ],
+                          "id": "u:6190c183711d",
+                          "size": "lg"
+                        }
+                      ],
+                      "size": "none",
+                      "style": {
+                        "position": "static",
+                        "display": "flex",
+                        "flex": "1 1 auto",
+                        "flexGrow": 1,
+                        "flexBasis": "0px",
+                        "flexWrap": "nowrap",
+                        "justifyContent": "center",
+                        "alignItems": "center"
+                      },
+                      "wrapperBody": false,
+                      "isFixedHeight": false,
+                      "isFixedWidth": false,
+                      "id": "u:f00f6e716d55"
+                    },
+                    {
+                      "type": "container",
+                      "body": [
+                        {
+                          "type": "tpl",
+                          "tpl": "<h2 style=\"text-align: center;\"><strong><span style=\"font-size: 22pt; color: #fff;\">大数据可视化平台</span></strong></h2>\n<h2 style=\"position: absolute; left: -65535px;\">&nbsp;</h2>\n<h2 style=\"position: absolute; left: -65535px;\">&nbsp;</h2>\n<h2 style=\"position: absolute; left: -65535px;\">&nbsp;</h2>\n<h2 style=\"position: absolute; left: -65535px;\">&nbsp;</h2>\n<h2 style=\"position: absolute; left: -65535px;\">&nbsp;</h2>\n<h2 style=\"position: absolute; left: -65535px;\">&nbsp;</h2>\n<h2 style=\"position: absolute; left: -65535px;\">&nbsp;</h2>\n<h2 style=\"position: absolute; left: -65535px;\">&nbsp;</h2>\n<h2 style=\"position: absolute; left: -65535px;\">&nbsp;</h2>",
+                          "inline": true,
+                          "id": "u:00a3f7c5b9a8"
+                        }
+                      ],
+                      "size": "none",
+                      "style": {
+                        "position": "static",
+                        "display": "flex",
+                        "flex": "1 1 auto",
+                        "flexGrow": 1,
+                        "flexBasis": "0px",
+                        "flexWrap": "nowrap",
+                        "justifyContent": "center",
+                        "alignItems": "center"
+                      },
+                      "wrapperBody": false,
+                      "isFixedHeight": false,
+                      "isFixedWidth": false,
+                      "id": "u:20bae5d1ffe8"
+                    },
+                    {
+                      "type": "container",
+                      "body": [
+                        {
+                          "type": "chart-clocktime",
+                          "width": "100%",
+                          "height": "150px",
+                          "format": "YYYY-MM-DD HH:mm:ss",
+                          "scale": 0.7,
+                          "config": {
+                            "backgroundColor": "#0a2732",
+                            "color": "#4fd2dd",
+                            "separatorColor": "#4fd2dd"
+                          },
+                          "id": "u:e88a06c73b27"
+                        }
+                      ],
+                      "size": "none",
+                      "style": {
+                        "position": "static",
+                        "display": "block",
+                        "flex": "1 1 auto",
+                        "flexGrow": 1,
+                        "flexBasis": "0px"
+                      },
+                      "wrapperBody": false,
+                      "isFixedHeight": false,
+                      "isFixedWidth": false,
+                      "id": "u:692fd72c280b"
+                    }
+                  ],
+                  "style": {
+                    "position": "relative",
+                    "rowGap": "10px",
+                    "columnGap": "10px",
+                    "flexWrap": "nowrap",
+                    "inset": "auto",
+                    "height": "120px",
+                    "overflowY": "visible"
+                  },
+                  "id": "u:5dce8e484889",
+                  "isFixedHeight": true,
+                  "isFixedWidth": false,
+                  "themeCss": {
+                    "baseControlClassName": {
+                      "background:default": "transparent"
+                    }
+                  }
+                }
+              ],
+              "size": "none",
+              "style": {
+                "position": "static",
+                "display": "block",
+                "flex": "0 0 150px",
+                "flexBasis": "120px",
+                "overflowY": "visible"
+              },
+              "wrapperBody": false,
+              "isFixedHeight": false,
+              "isFixedWidth": false,
+              "id": "u:cad37abeff28",
+              "themeCss": {
+                "baseControlClassName": {
+                  "background:default": "url(https://help.fanruan.com/dvg/uploads/20210623/1624414772560379.png) center center / auto "
+                }
+              }
+            },
+            {
+              "type": "container",
+              "body": [
+                {
+                  "type": "flex",
+                  "items": [
+                    {
+                      "type": "container",
+                      "body": [
+                        {
+                          "type": "flex",
+                          "items": [
+                            {
+                              "type": "container",
+                              "body": [
+                                {
+                                  "type": "chart-border-box-3",
+                                  "width": "100%",
+                                  "height": "100%",
+                                  "body": [
+                                    {
+                                      "type": "chart-line",
+                                      "chartTitle": "折线图",
+                                      "asChartType": "default",
+                                      "dataSourceType": "api",
+                                      "api": {
+                                        "method": "get",
+                                        "url": "https://m1.apifoxmock.com/m1/6148594-5840528-default/charts/linelist"
+                                      },
+                                      "dimensions": [
+                                        {
+                                          "label": "图例指标",
+                                          "as": "weekDay"
+                                        }
+                                      ],
+                                      "measures": [
+                                        {
+                                          "label": "图例1",
+                                          "as": "value"
+                                        },
+                                        {
+                                          "label": "图例2",
+                                          "as": "value2",
+                                          "chartType": "bar"
+                                        }
+                                      ],
+                                      "colorTheme": "custom",
+                                      "colorBy": "series",
+                                      "gradientStatus": false,
+                                      "titleShow": true,
+                                      "legendShow": true,
+                                      "labelShow": true,
+                                      "tooltipShow": true,
+                                      "xAxisShow": true,
+                                      "xAxisSplitLineShow": false,
+                                      "xAxisSplitAreaShow": false,
+                                      "xAxisInverse": false,
+                                      "yAxisShow": true,
+                                      "titleAlignment": "left",
+                                      "legendAlign": "auto",
+                                      "legendOrient": "horizontal",
+                                      "legendType": "plain",
+                                      "legendPosition": "top",
+                                      "legendDataShow": false,
+                                      "labelPosition": "top",
+                                      "labelOverflow": "truncate",
+                                      "labelContent": "b,c",
+                                      "tooltipContent": "b,c",
+                                      "xAxisLabelShow": true,
+                                      "xAxisLineShow": true,
+                                      "axisTickStyle": {
+                                        "show": true,
+                                        "length": 5,
+                                        "color": "#000",
+                                        "width": 1
+                                      },
+                                      "yAxisMinAsDataMinAndMaxAsDataMax": false,
+                                      "yAxisSplitLineShow": false,
+                                      "yAxisSplitAreaShow": false,
+                                      "yAxisFormatter": "",
+                                      "yAxisLabelShow": true,
+                                      "yAxisLineShow": true,
+                                      "xAxisLabelShowOverlap": false,
+                                      "color": [
+                                        "#697BD5",
+                                        "#FF6F6B",
+                                        "#FFC86B",
+                                        "#60E368",
+                                        "#B45ED3",
+                                        "#FF936B",
+                                        "#56CCC4"
+                                      ],
+                                      "titleColor": "#ffffff",
+                                      "textStyle": {
+                                        "color": "#56CCC4",
+                                        "fontSize": 12
+                                      },
+                                      "id": "u:47d8543a509e",
+                                      "labelColor": "#ffffff",
+                                      "xAxisLabelRotate": 0,
+                                      "this": {
+                                        "yAxisShow": true
+                                      },
+                                      "height": "97%",
+                                      "width": "97%"
+                                    }
+                                  ],
+                                  "wrapperBody": false,
+                                  "base": {
+                                    "backgroundColor": "transparent",
+                                    "colors": ["#235FA7", "#4FD2DD"],
+                                    "dur": 3
+                                  },
+                                  "id": "u:e610431d52af"
+                                }
+                              ],
+                              "size": "none",
+                              "style": {
+                                "position": "static",
+                                "display": "block",
+                                "flex": "0 0 150px",
+                                "flexBasis": "400px",
+                                "overflowY": "visible"
+                              },
+                              "wrapperBody": false,
+                              "isFixedHeight": false,
+                              "isFixedWidth": false,
+                              "id": "u:7231a59207a4"
+                            },
+                            {
+                              "type": "container",
+                              "body": [
+                                {
+                                  "type": "chart-border-box-4",
+                                  "width": "100%",
+                                  "height": "100%",
+                                  "body": [
+                                    {
+                                      "id": "u:458d64e5b44a",
+                                      "type": "crud2",
+                                      "mode": "table2",
+                                      "dsType": "api",
+                                      "syncLocation": false,
+                                      "primaryField": "id",
+                                      "loadType": "",
+                                      "api": {
+                                        "url": "https://m1.apifoxmock.com/m1/3546534-2258203-default/common/list",
+                                        "method": "get",
+                                        "requestAdaptor": "",
+                                        "adaptor": "",
+                                        "messages": {}
+                                      },
+                                      "headerToolbar": [
+                                        {
+                                          "type": "flex",
+                                          "direction": "row",
+                                          "justify": "flex-start",
+                                          "alignItems": "stretch",
+                                          "style": {
+                                            "position": "static",
+                                            "flexWrap": "nowrap"
+                                          },
+                                          "items": [
+                                            {
+                                              "type": "container",
+                                              "align": "left",
+                                              "behavior": ["Insert", "BulkEdit", "BulkDelete"],
+                                              "body": [],
+                                              "wrapperBody": false,
+                                              "style": {
+                                                "flexGrow": 1,
+                                                "flex": "1 1 auto",
+                                                "position": "static",
+                                                "display": "flex",
+                                                "flexWrap": "nowrap"
+                                              },
+                                              "id": "u:ff34aa1b7465",
+                                              "isFixedHeight": false
+                                            },
+                                            {
+                                              "type": "container",
+                                              "align": "right",
+                                              "behavior": ["FuzzyQuery"],
+                                              "body": [],
+                                              "wrapperBody": false,
+                                              "style": {
+                                                "flexGrow": 1,
+                                                "flex": "1 1 auto",
+                                                "position": "static",
+                                                "display": "flex",
+                                                "flexDirection": "row",
+                                                "flexWrap": "nowrap",
+                                                "alignItems": "stretch",
+                                                "justifyContent": "flex-end"
+                                              },
+                                              "id": "u:f9220c034991",
+                                              "isFixedHeight": false
+                                            }
+                                          ],
+                                          "id": "u:ee11886abb05",
+                                          "isFixedHeight": false,
+                                          "isFixedWidth": false
+                                        }
+                                      ],
+                                      "footerToolbar": [
+                                        {
+                                          "type": "flex",
+                                          "direction": "row",
+                                          "justify": "flex-start",
+                                          "alignItems": "stretch",
+                                          "style": {
+                                            "position": "static"
+                                          },
+                                          "items": [
+                                            {
+                                              "type": "container",
+                                              "align": "left",
+                                              "body": [],
+                                              "wrapperBody": false,
+                                              "style": {
+                                                "flexGrow": 1,
+                                                "flex": "1 1 auto",
+                                                "position": "static",
+                                                "display": "flex",
+                                                "flexBasis": "auto",
+                                                "flexDirection": "row",
+                                                "flexWrap": "nowrap",
+                                                "alignItems": "stretch",
+                                                "justifyContent": "flex-start"
+                                              },
+                                              "id": "u:4d5ab7a83103"
+                                            },
+                                            {
+                                              "type": "container",
+                                              "align": "right",
+                                              "body": [],
+                                              "wrapperBody": false,
+                                              "style": {
+                                                "flexGrow": 1,
+                                                "flex": "1 1 auto",
+                                                "position": "static",
+                                                "display": "flex",
+                                                "flexDirection": "row",
+                                                "flexWrap": "nowrap",
+                                                "alignItems": "stretch",
+                                                "justifyContent": "flex-end"
+                                              },
+                                              "id": "u:b1adc2d24359",
+                                              "isFixedHeight": false
+                                            }
+                                          ],
+                                          "id": "u:ac49c0181ade"
+                                        }
+                                      ],
+                                      "columns": [
+                                        {
+                                          "type": "tpl",
+                                          "title": "name",
+                                          "name": "name",
+                                          "id": "u:c0e1a9448bed",
+                                          "placeholder": "-",
+                                          "themeCss": {
+                                            "baseControlClassName": {}
+                                          }
+                                        },
+                                        {
+                                          "type": "tpl",
+                                          "title": "age",
+                                          "name": "age",
+                                          "id": "u:848421fd6804",
+                                          "placeholder": "-"
+                                        },
+                                        {
+                                          "type": "tpl",
+                                          "title": "date",
+                                          "name": "date",
+                                          "id": "u:4c0cdea73c7b",
+                                          "placeholder": "-"
+                                        }
+                                      ],
+                                      "showHeader": true,
+                                      "editorSetting": {
+                                        "mock": {
+                                          "enable": true,
+                                          "maxDisplayRows": 5
+                                        }
+                                      },
+                                      "themeCss": {
+                                        "tableHeadClassname": {
+                                          "font": {
+                                            "color": "var(--colors-neutral-text-11)"
+                                          },
+                                          "background": "#4445cb",
+                                          "border": {}
+                                        },
+                                        "tableBodyClassname": {
+                                          "background:default": "#071b52",
+                                          "font:default": {
+                                            "color": "var(--colors-neutral-text-11)",
+                                            "fontWeight": "var(--fonts-weight-2)"
+                                          }
+                                        },
+                                        "tableRowClassname": {
+                                          "border:default": {}
+                                        }
+                                      },
+                                      "scroll": {
+                                        "x": "99%"
+                                      }
+                                    }
+                                  ],
+                                  "wrapperBody": false,
+                                  "base": {
+                                    "backgroundColor": "transparent",
+                                    "colors": ["#4fd2dd", "#235fa7"]
+                                  },
+                                  "id": "u:d75359099eb2"
+                                }
+                              ],
+                              "size": "none",
+                              "style": {
+                                "position": "static",
+                                "display": "block",
+                                "flex": "1 1 auto",
+                                "flexGrow": 2
+                              },
+                              "wrapperBody": false,
+                              "isFixedHeight": false,
+                              "isFixedWidth": false,
+                              "id": "u:bc08b20e9440"
+                            }
+                          ],
+                          "style": {
+                            "position": "relative",
+                            "rowGap": "10px",
+                            "columnGap": "10px",
+                            "flexDirection": "column",
+                            "height": "100%",
+                            "overflowY": "visible"
+                          },
+                          "id": "u:1284e54e5c0b",
+                          "isFixedHeight": true,
+                          "isFixedWidth": false
+                        }
+                      ],
+                      "size": "none",
+                      "style": {
+                        "position": "static",
+                        "display": "block",
+                        "flex": "1 1 auto",
+                        "flexGrow": 1,
+                        "flexBasis": "0px",
+                        "height": "100%"
+                      },
+                      "wrapperBody": false,
+                      "isFixedHeight": false,
+                      "isFixedWidth": false,
+                      "id": "u:7e593e684a63"
+                    },
+                    {
+                      "type": "container",
+                      "body": [
+                        {
+                          "type": "flex",
+                          "items": [
+                            {
+                              "type": "container",
+                              "body": [
+                                {
+                                  "type": "chart",
+                                  "config": {
+                                    "title": {
+                                      "text": "上市企业数量（2011）",
+                                      "subtext": "百亿市值",
+                                      "color": "#ffffff",
+                                      "textStyle": {
+                                        "color": "#ffffff"
+                                      }
+                                    },
+                                    "tooltip": {
+                                      "trigger": "item",
+                                      "formatter": "{b}<br/>{c} (家)"
+                                    },
+                                    "toolbox": {
+                                      "show": true,
+                                      "orient": "vertical",
+                                      "left": "right",
+                                      "top": "center",
+                                      "feature": {
+                                        "dataView": {
+                                          "readOnly": false
+                                        },
+                                        "restore": {},
+                                        "saveAsImage": {}
+                                      }
+                                    },
+                                    "visualMap": {
+                                      "min": 10,
+                                      "max": 100000,
+                                      "realtime": false,
+                                      "calculable": true,
+                                      "inRange": {
+                                        "color": ["lightskyblue", "yellow", "orangered"]
+                                      },
+                                      "text": ["高", "低"],
+                                      "textStyle": {
+                                        "color": "#ffffff"
+                                      }
+                                    },
+                                    "series": [
+                                      {
+                                        "name": "上市企业数量(家)",
+                                        "type": "map",
+                                        "map": "CHINA",
+                                        "label": {
+                                          "show": true,
+                                          "color": "#ffffff"
+                                        },
+                                        "data": [
+                                          {
+                                            "name": "澳门",
+                                            "value": 181
+                                          },
+                                          {
+                                            "name": "香港",
+                                            "value": 2730
+                                          },
+                                          {
+                                            "name": "台湾",
+                                            "value": 1530
+                                          },
+                                          {
+                                            "name": "新疆",
+                                            "value": 760
+                                          },
+                                          {
+                                            "name": "宁夏",
+                                            "value": 750
+                                          },
+                                          {
+                                            "name": "青海",
+                                            "value": 180
+                                          },
+                                          {
+                                            "name": "甘肃",
+                                            "value": 1341
+                                          },
+                                          {
+                                            "name": "陕西",
+                                            "value": 3248
+                                          },
+                                          {
+                                            "name": "西藏",
+                                            "value": 100
+                                          },
+                                          {
+                                            "name": "云南",
+                                            "value": 176
+                                          },
+                                          {
+                                            "name": "贵州",
+                                            "value": 146
+                                          },
+                                          {
+                                            "name": "四川",
+                                            "value": 543
+                                          },
+                                          {
+                                            "name": "重庆",
+                                            "value": 576
+                                          },
+                                          {
+                                            "name": "海南",
+                                            "value": 16800
+                                          },
+                                          {
+                                            "name": "广西",
+                                            "value": 254
+                                          },
+                                          {
+                                            "name": "广东",
+                                            "value": 80700
+                                          },
+                                          {
+                                            "name": "湖南",
+                                            "value": 7666
+                                          },
+                                          {
+                                            "name": "湖北",
+                                            "value": 67800
+                                          },
+                                          {
+                                            "name": "河南",
+                                            "value": 1273
+                                          },
+                                          {
+                                            "name": "山东",
+                                            "value": 765
+                                          },
+                                          {
+                                            "name": "江西",
+                                            "value": 936
+                                          },
+                                          {
+                                            "name": "福建",
+                                            "value": 307
+                                          },
+                                          {
+                                            "name": "安徽",
+                                            "value": 990
+                                          },
+                                          {
+                                            "name": "浙江",
+                                            "value": 1237
+                                          },
+                                          {
+                                            "name": "江苏",
+                                            "value": 633
+                                          },
+                                          {
+                                            "name": "上海",
+                                            "value": 394
+                                          },
+                                          {
+                                            "name": "黑龙江",
+                                            "value": 484
+                                          },
+                                          {
+                                            "name": "吉林",
+                                            "value": 93
+                                          },
+                                          {
+                                            "name": "辽宁",
+                                            "value": 126
+                                          },
+                                          {
+                                            "name": "内蒙古",
+                                            "value": 75
+                                          },
+                                          {
+                                            "name": "山西",
+                                            "value": 133
+                                          },
+                                          {
+                                            "name": "河北",
+                                            "value": 319
+                                          },
+                                          {
+                                            "name": "天津",
+                                            "value": 137
+                                          },
+                                          {
+                                            "name": "北京",
+                                            "value": 512
+                                          },
+                                          {
+                                            "name": "台湾",
+                                            "value": 512
+                                          }
+                                        ]
+                                      }
+                                    ],
+                                    "backgroundColor": "transparent"
+                                  },
+                                  "id": "u:0004c16fdd79",
+                                  "dataFilter": "",
+                                  "height": "700px",
+                                  "mapURL": "http://localhost:9527/china.json",
+                                  "mapName": "CHINA"
+                                }
+                              ],
+                              "size": "none",
+                              "style": {
+                                "position": "static",
+                                "display": "block",
+                                "flex": "1 1 auto",
+                                "flexGrow": 12
+                              },
+                              "wrapperBody": false,
+                              "isFixedHeight": false,
+                              "isFixedWidth": false,
+                              "id": "u:ecfcb1e657a5"
+                            },
+                            {
+                              "type": "container",
+                              "body": [
+                                {
+                                  "type": "service",
+                                  "body": [
+                                    {
+                                      "type": "each",
+                                      "name": "list2",
+                                      "items": {
+                                        "type": "container",
+                                        "body": [
+                                          {
+                                            "type": "container",
+                                            "body": [
+                                              {
+                                                "type": "image",
+                                                "id": "u:fd4f52cbcfd9",
+                                                "maxScale": "50",
+                                                "minScale": 50,
+                                                "style": {
+                                                  "display": "block"
+                                                },
+                                                "imageMode": "thumb",
+                                                "src": "${src}",
+                                                "showToolbar": true,
+                                                "enlargeAble": true,
+                                                "themeCss": {
+                                                  "imageContentClassName": {
+                                                    "size:default": {
+                                                      "width": "80px",
+                                                      "height": "76px",
+                                                      "minWidth": ""
+                                                    }
+                                                  },
+                                                  "imageControlClassName": {
+                                                    "border:default": {
+                                                      "top-border-style": "var(--borders-style-1)",
+                                                      "left-border-style": "var(--borders-style-1)",
+                                                      "right-border-style": "var(--borders-style-1)",
+                                                      "bottom-border-style": "var(--borders-style-1)"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            ],
+                                            "style": {
+                                              "position": "static",
+                                              "display": "flex",
+                                              "flexWrap": "nowrap",
+                                              "justifyContent": "center",
+                                              "alignItems": "center",
+                                              "flexDirection": "column"
+                                            },
+                                            "wrapperBody": false,
+                                            "isFixedHeight": false,
+                                            "isFixedWidth": false,
+                                            "themeCss": {
+                                              "baseControlClassName": {
+                                                "padding-and-margin:default": {
+                                                  "marginBottom": "6px"
+                                                }
+                                              }
+                                            },
+                                            "id": "u:21781f9a6811"
+                                          },
+                                          {
+                                            "type": "container",
+                                            "body": [
+                                              {
+                                                "type": "tpl",
+                                                "tpl": "转化率类型：${type}",
+                                                "inline": true,
+                                                "wrapperComponent": "",
+                                                "id": "u:2e2f46050fd5",
+                                                "editorSetting": {
+                                                  "mock": {
+                                                    "tpl": "转化率类型：xxxxxx"
+                                                  }
+                                                },
+                                                "themeCss": {
+                                                  "baseControlClassName": {
+                                                    "font:default": {
+                                                      "color": "var(--colors-neutral-fill-11)"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              {
+                                                "type": "tpl",
+                                                "tpl": "转化率名称：${name}",
+                                                "inline": true,
+                                                "wrapperComponent": "",
+                                                "id": "u:4453463d9708",
+                                                "editorSetting": {
+                                                  "mock": {
+                                                    "tpl": "转化率名称：xxxxxx"
+                                                  }
+                                                },
+                                                "themeCss": {
+                                                  "baseControlClassName": {
+                                                    "font:default": {
+                                                      "color": "var(--colors-neutral-fill-11)"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            ],
+                                            "style": {
+                                              "position": "static",
+                                              "display": "flex",
+                                              "flexWrap": "nowrap",
+                                              "flexDirection": "column",
+                                              "justifyContent": "center",
+                                              "alignItems": "center",
+                                              "flex": "0 0 auto"
+                                            },
+                                            "wrapperBody": false,
+                                            "id": "u:574cc5a53acf",
+                                            "isFixedHeight": false,
+                                            "isFixedWidth": false,
+                                            "themeCss": {
+                                              "baseControlClassName": {
+                                                "padding-and-margin:default": {
+                                                  "paddingLeft": "10px"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        ],
+                                        "size": "none",
+                                        "style": {
+                                          "position": "static",
+                                          "display": "flex",
+                                          "flex": "0 0 150px",
+                                          "flexBasis": "300px",
+                                          "overflowX": "hidden",
+                                          "overflowY": "hidden",
+                                          "flexWrap": "nowrap",
+                                          "height": "100px",
+                                          "justifyContent": "center",
+                                          "alignItems": "center"
+                                        },
+                                        "wrapperBody": false,
+                                        "isFixedHeight": true,
+                                        "themeCss": {
+                                          "baseControlClassName": {
+                                            "boxShadow:default": " 0px 0px 8px 0px #ffffff",
+                                            "radius:default": {
+                                              "top-left-border-radius": "var(--borders-radius-3)",
+                                              "top-right-border-radius": "var(--borders-radius-3)",
+                                              "bottom-left-border-radius": "var(--borders-radius-3)",
+                                              "bottom-right-border-radius": "var(--borders-radius-3)"
+                                            },
+                                            "padding-and-margin:default": {}
+                                          }
+                                        },
+                                        "id": "u:3c3861952329"
+                                      },
+                                      "placeholder": "",
+                                      "style": {
+                                        "position": "static",
+                                        "display": "flex",
+                                        "flexWrap": "nowrap",
+                                        "justifyContent": "space-around",
+                                        "alignItems": "center",
+                                        "marginTop": "10px",
+                                        "marginBottom": "10px"
+                                      },
+                                      "isFixedHeight": false,
+                                      "isFixedWidth": false,
+                                      "size": "none",
+                                      "id": "u:9de09e91487a"
+                                    },
+                                    {
+                                      "type": "each",
+                                      "name": "list2",
+                                      "items": {
+                                        "type": "container",
+                                        "body": [
+                                          {
+                                            "type": "container",
+                                            "body": [
+                                              {
+                                                "type": "image",
+                                                "id": "u:0c9c49e9db5b",
+                                                "maxScale": "50",
+                                                "minScale": 50,
+                                                "style": {
+                                                  "display": "block"
+                                                },
+                                                "imageMode": "thumb",
+                                                "src": "${src}",
+                                                "showToolbar": true,
+                                                "enlargeAble": true,
+                                                "themeCss": {
+                                                  "imageContentClassName": {
+                                                    "size:default": {
+                                                      "width": "80px",
+                                                      "height": "76px",
+                                                      "minWidth": ""
+                                                    }
+                                                  },
+                                                  "imageControlClassName": {
+                                                    "border:default": {
+                                                      "top-border-style": "var(--borders-style-1)",
+                                                      "left-border-style": "var(--borders-style-1)",
+                                                      "right-border-style": "var(--borders-style-1)",
+                                                      "bottom-border-style": "var(--borders-style-1)"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            ],
+                                            "style": {
+                                              "position": "static",
+                                              "display": "flex",
+                                              "flexWrap": "nowrap",
+                                              "justifyContent": "center",
+                                              "alignItems": "center",
+                                              "flexDirection": "column"
+                                            },
+                                            "wrapperBody": false,
+                                            "isFixedHeight": false,
+                                            "isFixedWidth": false,
+                                            "themeCss": {
+                                              "baseControlClassName": {
+                                                "padding-and-margin:default": {
+                                                  "marginBottom": "6px"
+                                                }
+                                              }
+                                            },
+                                            "id": "u:0ebfc6e38537"
+                                          },
+                                          {
+                                            "type": "container",
+                                            "body": [
+                                              {
+                                                "type": "tpl",
+                                                "tpl": "转化率类型：${type}",
+                                                "inline": true,
+                                                "wrapperComponent": "",
+                                                "id": "u:04dce0f4913a",
+                                                "editorSetting": {
+                                                  "mock": {
+                                                    "tpl": "转化率类型：xxxxxx"
+                                                  }
+                                                },
+                                                "themeCss": {
+                                                  "baseControlClassName": {
+                                                    "font:default": {
+                                                      "color": "var(--colors-neutral-fill-11)"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              {
+                                                "type": "tpl",
+                                                "tpl": "转化率名称：${name}",
+                                                "inline": true,
+                                                "wrapperComponent": "",
+                                                "id": "u:572df4e6f0cf",
+                                                "editorSetting": {
+                                                  "mock": {
+                                                    "tpl": "转化率名称：xxxxxx"
+                                                  }
+                                                },
+                                                "themeCss": {
+                                                  "baseControlClassName": {
+                                                    "font:default": {
+                                                      "color": "var(--colors-neutral-fill-11)"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            ],
+                                            "style": {
+                                              "position": "static",
+                                              "display": "flex",
+                                              "flexWrap": "nowrap",
+                                              "flexDirection": "column",
+                                              "justifyContent": "center",
+                                              "alignItems": "center",
+                                              "flex": "0 0 auto"
+                                            },
+                                            "wrapperBody": false,
+                                            "id": "u:b67ed5246a0d",
+                                            "isFixedHeight": false,
+                                            "isFixedWidth": false,
+                                            "themeCss": {
+                                              "baseControlClassName": {
+                                                "padding-and-margin:default": {
+                                                  "paddingLeft": "10px"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        ],
+                                        "size": "none",
+                                        "style": {
+                                          "position": "static",
+                                          "display": "flex",
+                                          "flex": "0 0 150px",
+                                          "flexBasis": "300px",
+                                          "overflowX": "hidden",
+                                          "overflowY": "hidden",
+                                          "flexWrap": "nowrap",
+                                          "height": "100px",
+                                          "justifyContent": "center",
+                                          "alignItems": "center"
+                                        },
+                                        "wrapperBody": false,
+                                        "isFixedHeight": true,
+                                        "themeCss": {
+                                          "baseControlClassName": {
+                                            "boxShadow:default": " 0px 0px 8px 0px #ffffff",
+                                            "radius:default": {
+                                              "top-left-border-radius": "var(--borders-radius-3)",
+                                              "top-right-border-radius": "var(--borders-radius-3)",
+                                              "bottom-left-border-radius": "var(--borders-radius-3)",
+                                              "bottom-right-border-radius": "var(--borders-radius-3)"
+                                            },
+                                            "padding-and-margin:default": {}
+                                          }
+                                        },
+                                        "id": "u:9c8f0cf58d8e"
+                                      },
+                                      "placeholder": "",
+                                      "style": {
+                                        "position": "static",
+                                        "display": "flex",
+                                        "flexWrap": "nowrap",
+                                        "justifyContent": "space-around",
+                                        "alignItems": "center",
+                                        "marginTop": "10px",
+                                        "marginBottom": "10px"
+                                      },
+                                      "isFixedHeight": false,
+                                      "isFixedWidth": false,
+                                      "size": "none",
+                                      "id": "u:07ed766fb377",
+                                      "themeCss": {
+                                        "baseControlClassName": {
+                                          "padding-and-margin:default": {
+                                            "paddingTop": "12px"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  ],
+                                  "id": "u:c49e6af9697e",
+                                  "dsType": "api",
+                                  "api": {
+                                    "url": "https://m1.apifoxmock.com/m1/3546534-2258203-default/common/filelist",
+                                    "method": "get",
+                                    "requestAdaptor": "",
+                                    "adaptor": "",
+                                    "messages": {}
+                                  }
+                                }
+                              ],
+                              "size": "none",
+                              "style": {
+                                "position": "static",
+                                "display": "flex",
+                                "flex": "1 1 auto",
+                                "flexGrow": 1,
+                                "flexWrap": "nowrap",
+                                "flexDirection": "column",
+                                "justifyContent": "space-around"
+                              },
+                              "wrapperBody": false,
+                              "isFixedHeight": false,
+                              "isFixedWidth": false,
+                              "id": "u:720c6833163e"
+                            }
+                          ],
+                          "style": {
+                            "position": "relative",
+                            "rowGap": "10px",
+                            "columnGap": "10px",
+                            "flexDirection": "column",
+                            "flexWrap": "nowrap",
+                            "inset": "auto",
+                            "height": "100%",
+                            "overflowY": "visible"
+                          },
+                          "id": "u:7a654ec45e60",
+                          "isFixedHeight": true,
+                          "isFixedWidth": false
+                        }
+                      ],
+                      "size": "none",
+                      "style": {
+                        "position": "static",
+                        "display": "block",
+                        "flex": "1 1 auto",
+                        "flexGrow": 3,
+                        "flexBasis": "0px"
+                      },
+                      "wrapperBody": false,
+                      "isFixedHeight": false,
+                      "isFixedWidth": false,
+                      "id": "u:270a97c56780"
+                    },
+                    {
+                      "type": "container",
+                      "body": [
+                        {
+                          "type": "flex",
+                          "items": [
+                            {
+                              "type": "container",
+                              "body": [
+                                {
+                                  "type": "chart-border-box-3",
+                                  "width": "100%",
+                                  "height": "100%",
+                                  "body": [
+                                    {
+                                      "type": "chart-radar",
+                                      "chartTitle": "雷达图",
+                                      "asChartType": "area",
+                                      "dataSourceType": "api",
+                                      "api": {
+                                        "url": "https://m1.apifoxmock.com/m1/6148594-5840528-default/charts/radarlist",
+                                        "method": "get"
+                                      },
+                                      "dimensions": [
+                                        {
+                                          "label": "维度",
+                                          "as": "category"
+                                        }
+                                      ],
+                                      "measures": [
+                                        {
+                                          "label": "指标",
+                                          "as": "value"
+                                        }
+                                      ],
+                                      "colorTheme": "custom",
+                                      "colorBy": "series",
+                                      "titleShow": true,
+                                      "legendShow": false,
+                                      "labelShow": true,
+                                      "tooltipShow": true,
+                                      "titleAlignment": "left",
+                                      "legendAlign": "auto",
+                                      "legendOrient": "horizontal",
+                                      "legendType": "plain",
+                                      "legendPosition": "top",
+                                      "legendDataShow": false,
+                                      "labelPosition": "top",
+                                      "labelOverflow": "truncate",
+                                      "tooltipContent": "b,c",
+                                      "shape": "polygon",
+                                      "color": [
+                                        "#697BD5",
+                                        "#FF6F6B",
+                                        "#FFC86B",
+                                        "#60E368",
+                                        "#B45ED3",
+                                        "#FF936B",
+                                        "#56CCC4"
+                                      ],
+                                      "titleColor": "#ffffff",
+                                      "id": "u:833006ffb778",
+                                      "axisNameColor": "#ffffff",
+                                      "axisLineColor": "",
+                                      "labelColor": "#d58918"
+                                    }
+                                  ],
+                                  "wrapperBody": false,
+                                  "base": {
+                                    "backgroundColor": "transparent",
+                                    "colors": ["#4FD2DD", "#235FA7"]
+                                  },
+                                  "id": "u:db8c23290e5a"
+                                }
+                              ],
+                              "size": "none",
+                              "style": {
+                                "position": "static",
+                                "display": "block",
+                                "flex": "1 1 auto",
+                                "flexGrow": 1
+                              },
+                              "wrapperBody": false,
+                              "isFixedHeight": false,
+                              "isFixedWidth": false,
+                              "id": "u:18dde733df95"
+                            },
+                            {
+                              "type": "container",
+                              "body": [
+                                {
+                                  "type": "chart-border-box-3",
+                                  "width": "100%",
+                                  "height": "300px",
+                                  "body": [
+                                    {
+                                      "type": "chart-column",
+                                      "chartTitle": "柱状图",
+                                      "asChartType": "horizontal",
+                                      "dataSourceType": "api",
+                                      "api": {
+                                        "method": "get",
+                                        "url": "https://m1.apifoxmock.com/m1/6148594-5840528-default/charts/barlist"
+                                      },
+                                      "dimensions": [
+                                        {
+                                          "label": "图例指标",
+                                          "as": "weekDay"
+                                        }
+                                      ],
+                                      "measures": [
+                                        {
+                                          "label": "图例1",
+                                          "as": "value",
+                                          "chartType": "bar",
+                                          "itemStyle": {
+                                            "borderRadius": [0, 20, 20, 0]
+                                          }
+                                        }
+                                      ],
+                                      "colorTheme": "custom",
+                                      "colorBy": "series",
+                                      "gradientStatus": false,
+                                      "titleShow": false,
+                                      "legendShow": false,
+                                      "labelShow": true,
+                                      "tooltipShow": true,
+                                      "xAxisShow": true,
+                                      "xAxisSplitLineShow": false,
+                                      "xAxisSplitAreaShow": false,
+                                      "xAxisInverse": false,
+                                      "yAxisShow": true,
+                                      "titleAlignment": "left",
+                                      "legendAlign": "auto",
+                                      "legendOrient": "horizontal",
+                                      "legendType": "plain",
+                                      "legendPosition": "top",
+                                      "legendDataShow": false,
+                                      "labelPosition": "right",
+                                      "labelOverflow": "truncate",
+                                      "labelContent": "b",
+                                      "tooltipContent": "$b",
+                                      "xAxisLabelShow": true,
+                                      "xAxisLineShow": false,
+                                      "axisTickStyle": {
+                                        "show": true,
+                                        "length": 5,
+                                        "color": "#000",
+                                        "width": 1
+                                      },
+                                      "yAxisMinAsDataMinAndMaxAsDataMax": false,
+                                      "yAxisSplitLineShow": false,
+                                      "yAxisSplitAreaShow": false,
+                                      "yAxisFormatter": "",
+                                      "xAxisLabelShowOverlap": false,
+                                      "yAxisLabelShow": true,
+                                      "yAxisLineShow": false,
+                                      "color": [
+                                        "#697BD5",
+                                        "#FF6F6B",
+                                        "#FFC86B",
+                                        "#60E368",
+                                        "#B45ED3",
+                                        "#FF936B",
+                                        "#56CCC4"
+                                      ],
+                                      "titleColor": "#000000",
+                                      "textStyle": {
+                                        "color": "#56cdc4",
+                                        "fontSize": 12
+                                      },
+                                      "id": "u:7ffd93c9e8e4",
+                                      "labelColor": "#ffffff",
+                                      "xAxisLabelRotate": 0,
+                                      "height": "98%",
+                                      "width": "98%"
+                                    }
+                                  ],
+                                  "wrapperBody": false,
+                                  "base": {
+                                    "backgroundColor": "transparent",
+                                    "colors": ["#235FA7", "#4FD2DD"],
+                                    "dur": 3
+                                  },
+                                  "id": "u:9cba315ec848"
+                                }
+                              ],
+                              "size": "none",
+                              "style": {
+                                "position": "relative",
+                                "display": "block",
+                                "flex": "0 0 150px",
+                                "flexBasis": "300px",
+                                "overflowY": "visible",
+                                "zIndex": 1,
+                                "inset": "auto"
+                              },
+                              "wrapperBody": false,
+                              "isFixedHeight": false,
+                              "isFixedWidth": false,
+                              "id": "u:9b9f743c1918"
+                            },
+                            {
+                              "type": "container",
+                              "body": [
+                                {
+                                  "type": "chart-border-box-5",
+                                  "width": "100%",
+                                  "height": "300%",
+                                  "body": [
+                                    {
+                                      "type": "chart-pie",
+                                      "chartTitle": "饼图",
+                                      "asChartType": "ring",
+                                      "dataSourceType": "staticJson",
+                                      "staticJson": [
+                                        {
+                                          "chartLegend": "IT部转化率",
+                                          "pv": 98609,
+                                          "uv": 36553,
+                                          "orders": 21162,
+                                          "conversionRate": 0.1126,
+                                          "growthRate": 36
+                                        },
+                                        {
+                                          "chartLegend": "财务部转化率",
+                                          "pv": 65892,
+                                          "uv": 25721,
+                                          "orders": 13820,
+                                          "conversionRate": 0.0932,
+                                          "growthRate": 21
+                                        },
+                                        {
+                                          "chartLegend": "市场部转化率",
+                                          "pv": 78459,
+                                          "uv": 30245,
+                                          "orders": 16432,
+                                          "conversionRate": 0.1053,
+                                          "growthRate": 28
+                                        },
+                                        {
+                                          "chartLegend": "销售部转化率",
+                                          "pv": 89357,
+                                          "uv": 32451,
+                                          "orders": 19234,
+                                          "conversionRate": 0.1089,
+                                          "growthRate": 32
+                                        }
+                                      ],
+                                      "dimensions": [
+                                        {
+                                          "label": "图例指标",
+                                          "as": "chartLegend"
+                                        }
+                                      ],
+                                      "measures": [
+                                        {
+                                          "label": "数值",
+                                          "as": "conversionRate"
+                                        }
+                                      ],
+                                      "colorTheme": "custom",
+                                      "titleShow": false,
+                                      "legendShow": false,
+                                      "labelShow": true,
+                                      "tooltipShow": true,
+                                      "titleAlignment": "left",
+                                      "legendAlign": "auto",
+                                      "legendOrient": "horizontal",
+                                      "legendType": "plain",
+                                      "legendPosition": "top",
+                                      "labelPosition": "inside",
+                                      "labelOverflow": "truncate",
+                                      "labelContent": "b,d",
+                                      "tooltipContent": "b,c,d",
+                                      "radius": "75%",
+                                      "ringRadius": ["50%", "75%"],
+                                      "roseRadius": "75%",
+                                      "centerTextShow": false,
+                                      "percentUnit": "%",
+                                      "color": [
+                                        "#697BD5",
+                                        "#FF6F6B",
+                                        "#FFC86B",
+                                        "#60E368",
+                                        "#B45ED3",
+                                        "#FF936B",
+                                        "#56CCC4"
+                                      ],
+                                      "titleColor": "#000000",
+                                      "id": "u:0a013f569dc1",
+                                      "labelColor": "#ffffff",
+                                      "height": "300px"
+                                    }
+                                  ],
+                                  "wrapperBody": false,
+                                  "base": {
+                                    "backgroundColor": "transparent",
+                                    "colors": ["#4fd2dd", "#235fa7"]
+                                  },
+                                  "id": "u:a72bd5c637d5"
+                                }
+                              ],
+                              "size": "none",
+                              "style": {
+                                "position": "static",
+                                "display": "block",
+                                "flex": "0 0 150px",
+                                "flexBasis": "300px",
+                                "overflowY": "visible"
+                              },
+                              "wrapperBody": false,
+                              "isFixedHeight": false,
+                              "isFixedWidth": false,
+                              "id": "u:5351d7d40984"
+                            }
+                          ],
+                          "style": {
+                            "position": "relative",
+                            "rowGap": "10px",
+                            "columnGap": "10px",
+                            "flexDirection": "column",
+                            "height": "100%",
+                            "overflowY": "visible",
+                            "flexWrap": "nowrap",
+                            "inset": "auto",
+                            "width": "95%",
+                            "overflowX": "visible"
+                          },
+                          "id": "u:1c394becbdcd",
+                          "isFixedHeight": true,
+                          "isFixedWidth": true
+                        }
+                      ],
+                      "size": "none",
+                      "style": {
+                        "position": "static",
+                        "display": "block",
+                        "flex": "1 1 auto",
+                        "flexGrow": 1,
+                        "flexBasis": "0px"
+                      },
+                      "wrapperBody": false,
+                      "isFixedHeight": false,
+                      "isFixedWidth": false,
+                      "id": "u:e6214a0664d6"
+                    }
+                  ],
+                  "style": {
+                    "position": "relative",
+                    "rowGap": "10px",
+                    "columnGap": "10px",
+                    "flexWrap": "nowrap",
+                    "flex": "0 0 150px",
+                    "inset": "auto",
+                    "flexBasis": "100%",
+                    "overflowX": "visible"
+                  },
+                  "id": "u:39db9b9b088e",
+                  "isFixedHeight": false,
+                  "themeCss": {
+                    "baseControlClassName": {
+                      "padding-and-margin:default": {
+                        "marginLeft": "12px",
+                        "marginRight": "12px"
+                      }
+                    }
+                  }
+                }
+              ],
+              "size": "none",
+              "style": {
+                "position": "static",
+                "display": "flex",
+                "flex": "1 1 auto",
+                "flexWrap": "nowrap",
+                "flexBasis": "100%",
+                "overflowY": "visible",
+                "flexGrow": 1
+              },
+              "wrapperBody": false,
+              "isFixedHeight": false,
+              "isFixedWidth": false,
+              "id": "u:6d22220b1048",
+              "themeCss": {
+                "baseControlClassName": {
+                  "background:default": "transparent"
+                }
+              }
+            }
+          ],
+          "style": {
+            "position": "relative",
+            "rowGap": "10px",
+            "columnGap": "10px",
+            "flexWrap": "nowrap",
+            "inset": "auto",
+            "flexDirection": "column",
+            "height": "100%",
+            "overflowY": "visible"
+          },
+          "id": "u:c415fa731b85",
+          "isFixedHeight": true,
+          "isFixedWidth": false,
+          "themeCss": {
+            "baseControlClassName": {
+              "background:default": "transparent"
+            }
+          }
+        }
+      ],
+      "wrapperBody": false,
+      "id": "u:864301fb3f52",
+      "themeCss": {
+        "baseControlClassName": {
+          "background:default": "url(https://help.fanruan.com/dvg/uploads/20210623/1624412453976607.png) center center / auto "
+        }
+      }
+    }
+  ],
+  "regions": ["body"],
+  "id": "u:e5f57f796104",
+  "pullRefresh": {
+    "disabled": true
+  },
+  "data": {
+    "countryId": "",
+    "checkedData": ""
+  },
+  "definitions": {},
+  "themeCss": {
+    "baseControlClassName": {
+      "background:default": "#14417f"
+    }
+  },
+  "wrapperCustomStyle": {
+    ".cxd-Page-body": {
+      "padding": "0 0 0 0"
+    }
+  }
+}

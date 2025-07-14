@@ -1,0 +1,189 @@
+{
+  "type": "page",
+  "body": [
+    {
+      "type": "crud",
+      "syncLocation": false,
+      "api": {
+        "method": "get",
+        "url": "https://m1.apifoxmock.com/m1/3546534-2258203-default/common/list",
+        "requestAdaptor": "",
+        "adaptor": "",
+        "messages": {}
+      },
+      "bulkActions": [
+        {
+          "type": "button",
+          "level": "danger",
+          "label": "批量删除",
+          "actionType": "ajax",
+          "confirmText": "确定要删除？",
+          "api": "https://m1.apifoxmock.com/m1/3546534-2258203-default/aaa",
+          "editorSetting": {
+            "behavior": "bulkDelete"
+          },
+          "id": "u:c057a56ba8e9"
+        }
+      ],
+      "itemActions": [],
+      "filterSettingSource": [
+        "name",
+        "age",
+        "date",
+        "id",
+        "address",
+        "enable",
+        "image",
+        "imageList",
+        "imgsList",
+        "shipType",
+        "rating"
+      ],
+      "filterEnabledList": [
+        {
+          "label": "name",
+          "value": "name"
+        },
+        {
+          "label": "age",
+          "value": "age"
+        }
+      ],
+      "filter": {
+        "title": "查询条件",
+        "columnCount": 3,
+        "mode": "horizontal",
+        "body": [
+          {
+            "type": "input-text",
+            "label": "name",
+            "name": "name",
+            "id": "u:76e7654a7022"
+          },
+          {
+            "type": "input-text",
+            "label": "age",
+            "name": "age",
+            "id": "u:43bb2b91b333"
+          }
+        ],
+        "id": "u:92742e9e5675",
+        "actions": [
+          {
+            "type": "submit",
+            "label": "搜索",
+            "primary": true,
+            "id": "u:8603b0360453"
+          }
+        ],
+        "feat": "Insert"
+      },
+      "columns": [
+        {
+          "label": "name",
+          "type": "text",
+          "name": "name",
+          "id": "u:c93d810020fe"
+        },
+        {
+          "label": "age",
+          "type": "text",
+          "name": "age",
+          "id": "u:95c3481cffae"
+        },
+        {
+          "label": "date",
+          "type": "text",
+          "name": "date",
+          "id": "u:977688cfc64a"
+        },
+        {
+          "label": "id",
+          "type": "text",
+          "name": "id",
+          "id": "u:3fb3d8a7953b"
+        },
+        {
+          "label": "address",
+          "type": "text",
+          "name": "address",
+          "id": "u:661e1551e9e3"
+        },
+        {
+          "label": "enable",
+          "type": "text",
+          "name": "enable",
+          "id": "u:c5795e07d01f"
+        },
+        {
+          "label": "image",
+          "type": "text",
+          "name": "image",
+          "id": "u:b92ba4722c6f"
+        },
+        {
+          "label": "rating",
+          "type": "text",
+          "name": "rating",
+          "id": "u:b1ea0f46a6ea"
+        },
+        {
+          "type": "operation",
+          "label": "操作",
+          "buttons": [
+            {
+              "type": "button",
+              "label": "删除",
+              "actionType": "ajax",
+              "level": "link",
+              "className": "text-danger",
+              "confirmText": "确定要删除？",
+              "api": {
+                "method": "post",
+                "url": "https://m1.apifoxmock.com/m1/3546534-2258203-default/common/list",
+                "requestAdaptor": "",
+                "adaptor": "",
+                "messages": {}
+              },
+              "editorSetting": {
+                "behavior": "delete"
+              },
+              "id": "u:24e63b42f163"
+            }
+          ],
+          "id": "u:d2ebf3198ab0"
+        }
+      ],
+      "id": "u:d3be9e41ffbe",
+      "perPageAvailable": [5, 10, 20, 50, 100],
+      "messages": {}
+    }
+  ],
+  "data": {
+    "ads": [
+      {
+        "title": "重要通知",
+        "content": "系统将于本周六进行升级维护",
+        "type": "warning"
+      },
+      {
+        "title": "活动预告",
+        "content": "年度用户大会即将开始",
+        "type": "success"
+      },
+      {
+        "title": "系统公告",
+        "content": "新功能上线啦",
+        "type": "info"
+      }
+    ],
+    "currentIndex": 0
+  },
+  "id": "u:61352246b198",
+  "pullRefresh": {
+    "disabled": true
+  },
+  "regions": ["body"],
+  "definitions": {},
+  "asideResizor": false
+}

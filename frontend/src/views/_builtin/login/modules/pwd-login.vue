@@ -15,12 +15,12 @@ const { toggleLoginModule } = useRouterPush();
 const { formRef, validate } = useNaiveForm();
 
 interface FormModel {
-  identifier: string;
+  userName: string;
   password: string;
 }
 
 const model: FormModel = reactive({
-  identifier: 'Soybean',
+  userName: 'Soybean',
   password: '123456'
 });
 
@@ -29,14 +29,14 @@ const rules = computed<Record<keyof FormModel, App.Global.FormRule[]>>(() => {
   const { formRules } = useFormRules();
 
   return {
-    identifier: formRules.userName,
+    userName: formRules.userName,
     password: formRules.pwd
   };
 });
 
 async function handleSubmit() {
   await validate();
-  await authStore.login(model.identifier, model.password);
+  await authStore.login(model.userName, model.password);
 }
 
 type AccountKey = 'super' | 'admin' | 'user';
@@ -44,7 +44,7 @@ type AccountKey = 'super' | 'admin' | 'user';
 interface Account {
   key: AccountKey;
   label: string;
-  identifier: string;
+  userName: string;
   password: string;
 }
 
@@ -52,32 +52,32 @@ const accounts = computed<Account[]>(() => [
   {
     key: 'super',
     label: $t('page.login.pwdLogin.superAdmin'),
-    identifier: 'Soybean',
+    userName: 'Super',
     password: '123456'
   },
   {
     key: 'admin',
     label: $t('page.login.pwdLogin.admin'),
-    identifier: 'Administrator',
+    userName: 'Admin',
     password: '123456'
   },
   {
     key: 'user',
     label: $t('page.login.pwdLogin.user'),
-    identifier: 'GeneralUser',
+    userName: 'User',
     password: '123456'
   }
 ]);
 
 async function handleAccountLogin(account: Account) {
-  await authStore.login(account.identifier, account.password);
+  await authStore.login(account.userName, account.password);
 }
 </script>
 
 <template>
   <NForm ref="formRef" :model="model" :rules="rules" size="large" :show-label="false" @keyup.enter="handleSubmit">
-    <NFormItem path="identifier">
-      <NInput v-model:value="model.identifier" :placeholder="$t('page.login.common.userNamePlaceholder')" />
+    <NFormItem path="userName">
+      <NInput v-model:value="model.userName" :placeholder="$t('page.login.common.userNamePlaceholder')" />
     </NFormItem>
     <NFormItem path="password">
       <NInput
@@ -94,7 +94,7 @@ async function handleAccountLogin(account: Account) {
           {{ $t('page.login.pwdLogin.forgetPassword') }}
         </NButton>
       </div>
-      <NButton type="primary" size="large" round block :loading="authStore.loginLoading" @click="handleSubmit">
+      <NButton type="primary" size="large" round block @click="handleSubmit">
         {{ $t('common.confirm') }}
       </NButton>
       <div class="flex-y-center justify-between gap-12px">

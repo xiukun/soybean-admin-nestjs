@@ -25,7 +25,7 @@ declare namespace Env {
      *
      * This prefix is start with the icon prefix
      */
-    readonly VITE_ICON_LOCAL_PREFIX: 'local-icon';
+    readonly VITE_ICON_LOCAL_PREFIX: 'icon-local';
     /** backend service base url */
     readonly VITE_SERVICE_BASE_URL: string;
     /**
@@ -108,6 +108,8 @@ declare namespace Env {
     readonly VITE_AUTOMATICALLY_DETECT_UPDATE?: CommonType.YesOrNo;
     /** show proxy url log in terminal */
     readonly VITE_PROXY_LOG?: CommonType.YesOrNo;
+    /** The launch editor */
+    readonly VITE_DEVTOOLS_LAUNCH_EDITOR?: import('vite-plugin-vue-devtools').VitePluginVueDevToolsOptions['launchEditor'];
   }
 }
 

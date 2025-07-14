@@ -1,0 +1,48 @@
+{
+  "type": "page",
+  "title": "Simple Form Page",
+  "regions": ["body"],
+  "body": [
+    {
+      "type": "maita-gantt",
+      "height": 600,
+      "locale": "zh-CN",
+      "columns": [
+        {
+          "name": "name",
+          "label": "任务名称",
+          "width": 200,
+          "maxWidth": 200,
+          "minWidth": 200
+        }
+      ],
+      "data": [
+        {
+          "name": "项目1",
+          "startDate": "2023-01-01",
+          "endDate": "2023-01-10",
+          "collapsed": false,
+          "children": [
+            {
+              "name": "任务1",
+              "startDate": "2023-01-01",
+              "endDate": "2023-01-05",
+              "collapsed": false
+            },
+            {
+              "name": "任务2",
+              "startDate": "2023-01-06",
+              "endDate": "2023-01-10",
+              "collapsed": false
+            }
+          ]
+        }
+      ],
+      "id": "u:93aa9686d573"
+    }
+  ],
+  "id": "u:e4da17c4cff2",
+  "pullRefresh": {
+    "disabled": true
+  }
+}
