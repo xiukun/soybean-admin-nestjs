@@ -43,7 +43,7 @@
     "prepare": "simple-git-hooks",
     "preview": "vite preview",
     "release": "sa release",
-    "typecheck": "echo 'Skipping typecheck for commit' && exit 0",
+    "typecheck": "vue-tsc --noEmit --skipLibCheck",
     "update-pkg": "sa update-pkg"
   },
   "dependencies": {
@@ -111,8 +111,8 @@
     "vue-tsc": "2.2.10"
   },
   "simple-git-hooks": {
-    "commit-msg": "echo 'Skipping commit-msg hook'",
-    "pre-commit": "echo 'Skipping pre-commit hook'"
+    "commit-msg": "pnpm sa git-commit-verify",
+    "pre-commit": "pnpm typecheck && pnpm lint && git diff --exit-code"
   },
   "website": "https://admin.soybeanjs.cn"
 }
