@@ -12,6 +12,7 @@ export type RouteMeta = {
 };
 
 export type MenuRoute = {
+  id: string;
   name: string;
   path: string;
   component: string;

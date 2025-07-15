@@ -36,6 +36,7 @@ export class MenuService {
     const constantMenus = await this.repository.getConstantRoutes();
 
     return constantMenus.map((menu) => ({
+      id: menu.id.toString(),
       name: menu.menuName,
       path: menu.routePath,
       component: menu.component,
@@ -73,6 +74,7 @@ function buildMenuTree(
   children.sort((a, b) => a.order - b.order);
 
   return children.map((menu) => ({
+    id: menu.id.toString(),
     name: menu.routeName,
     path: menu.routePath,
     component: menu.component,

@@ -22,6 +22,13 @@ export const views: Record<LastLevelRouteKey, RouteComponent | (() => Promise<Ro
   "iframe-page": () => import("@/views/_builtin/iframe-page/[url].vue"),
   login: () => import("@/views/_builtin/login/index.vue"),
   reload: () => import("@/views/_builtin/reload/index.vue"),
+  "access-key": () => import("@/views/access-key/index.vue"),
   "amis-demo_child1": () => import("@/views/amis-demo/child1/index.vue"),
   home: () => import("@/views/home/index.vue"),
+  log_login: () => import("@/views/log/login/index.vue"),
+  log_operation: () => import("@/views/log/operation/index.vue"),
+  manage_menu: () => import("@/views/manage/menu/index.vue"),
+  manage_role: () => import("@/views/manage/role/index.vue"),
+  "manage_user-detail": () => import("@/views/manage/user-detail/[id].vue"),
+  manage_user: () => import("@/views/manage/user/index.vue"),
 };

@@ -40,6 +40,15 @@ export const generatedRoutes: GeneratedRoute[] = [
     }
   },
   {
+    name: 'access-key',
+    path: '/access-key',
+    component: 'layout.base$view.access-key',
+    meta: {
+      title: 'access-key',
+      i18nKey: 'route.access-key'
+    }
+  },
+  {
     name: 'amis-demo',
     path: '/amis-demo',
     component: 'layout.base',
@@ -96,6 +105,35 @@ export const generatedRoutes: GeneratedRoute[] = [
     }
   },
   {
+    name: 'log',
+    path: '/log',
+    component: 'layout.base',
+    meta: {
+      title: 'log',
+      i18nKey: 'route.log'
+    },
+    children: [
+      {
+        name: 'log_login',
+        path: '/log/login',
+        component: 'view.log_login',
+        meta: {
+          title: 'log_login',
+          i18nKey: 'route.log_login'
+        }
+      },
+      {
+        name: 'log_operation',
+        path: '/log/operation',
+        component: 'view.log_operation',
+        meta: {
+          title: 'log_operation',
+          i18nKey: 'route.log_operation'
+        }
+      }
+    ]
+  },
+  {
     name: 'login',
     path: '/login/:module(pwd-login|code-login|register|reset-pwd|bind-wechat)?',
     component: 'layout.blank$view.login',
@@ -106,6 +144,53 @@ export const generatedRoutes: GeneratedRoute[] = [
       constant: true,
       hideInMenu: true
     }
+  },
+  {
+    name: 'manage',
+    path: '/manage',
+    component: 'layout.base',
+    meta: {
+      title: 'manage',
+      i18nKey: 'route.manage'
+    },
+    children: [
+      {
+        name: 'manage_menu',
+        path: '/manage/menu',
+        component: 'view.manage_menu',
+        meta: {
+          title: 'manage_menu',
+          i18nKey: 'route.manage_menu'
+        }
+      },
+      {
+        name: 'manage_role',
+        path: '/manage/role',
+        component: 'view.manage_role',
+        meta: {
+          title: 'manage_role',
+          i18nKey: 'route.manage_role'
+        }
+      },
+      {
+        name: 'manage_user',
+        path: '/manage/user',
+        component: 'view.manage_user',
+        meta: {
+          title: 'manage_user',
+          i18nKey: 'route.manage_user'
+        }
+      },
+      {
+        name: 'manage_user-detail',
+        path: '/manage/user-detail/:id',
+        component: 'view.manage_user-detail',
+        meta: {
+          title: 'manage_user-detail',
+          i18nKey: 'route.manage_user-detail'
+        }
+      }
+    ]
   },
   {
     name: 'reload',

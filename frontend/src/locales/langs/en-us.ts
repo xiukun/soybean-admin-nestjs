@@ -167,6 +167,14 @@ const local: App.I18n.Schema = {
     500: 'Server Error',
     'iframe-page': 'Iframe',
     home: 'Home',
+    manage: 'System Manage',
+    manage_user: 'User Manage',
+    manage_role: 'Role Manage',
+    manage_menu: 'Menu Manage',
+    'access-key': 'Access Key',
+    log: 'Log',
+    log_login: 'Login Log',
+    log_operation: 'Operation Log',
     'amis-demo': 'Amis Demo',
     'amis-demo_child1': 'Amis Demo Child1',
     'amis-template': 'Amis Template',
@@ -247,6 +255,127 @@ const local: App.I18n.Schema = {
         desc5: 'Soybean just wrote some of the workbench pages casually, and it was enough to see!'
       },
       creativity: 'Creativity'
+    },
+    manage: {
+      common: {
+        status: {
+          enable: 'Enable',
+          disable: 'Disable'
+        }
+      },
+      role: {
+        title: 'Role List',
+        roleName: 'Role Name',
+        roleCode: 'Role Code',
+        roleStatus: 'Role Status',
+        roleDesc: 'Role Description',
+        menuAuth: 'Menu Auth',
+        buttonAuth: 'Button Auth',
+        permissionAuth: 'API Auth',
+        form: {
+          roleName: 'Please enter role name',
+          roleCode: 'Please enter role code',
+          roleStatus: 'Please select role status',
+          roleDesc: 'Please enter role description'
+        },
+        addRole: 'Add Role',
+        editRole: 'Edit Role'
+      },
+      menu: {
+        home: 'Home',
+        title: 'Menu List',
+        id: 'ID',
+        parentId: 'Parent ID',
+        menuType: 'Menu Type',
+        menuName: 'Menu Name',
+        routeName: 'Route Name',
+        routePath: 'Route Path',
+        pathParam: 'Path Param',
+        layout: 'Layout Component',
+        page: 'Page Component',
+        i18nKey: 'I18n Key',
+        icon: 'Icon',
+        localIcon: 'Local Icon',
+        iconTypeTitle: 'Icon Type',
+        order: 'Order',
+        constant: 'Constant',
+        keepAlive: 'Keep Alive',
+        href: 'Href',
+        hideInMenu: 'Hide In Menu',
+        activeMenu: 'Active Menu',
+        multiTab: 'Multi Tab',
+        fixedIndexInTab: 'Fixed Index In Tab',
+        query: 'Query Params',
+        button: 'Button',
+        buttonCode: 'Button Code',
+        buttonDesc: 'Button Desc',
+        menuStatus: 'Menu Status',
+        form: {
+          home: 'Please select home',
+          menuType: 'Please select menu type',
+          menuName: 'Please enter menu name',
+          routeName: 'Please enter route name',
+          routePath: 'Please enter route path',
+          pathParam: 'Please enter path param',
+          page: 'Please select page component',
+          layout: 'Please select layout component',
+          i18nKey: 'Please enter i18n key',
+          icon: 'Please enter iconify name',
+          localIcon: 'Please enter local icon name',
+          order: 'Please enter order',
+          keepAlive: 'Please select whether to cache route',
+          href: 'Please enter href',
+          hideInMenu: 'Please select whether to hide menu',
+          activeMenu: 'Please select route name of the highlighted menu',
+          multiTab: 'Please select whether to support multiple tabs',
+          fixedInTab: 'Please select whether to fix in the tab',
+          fixedIndexInTab: 'Please enter the index fixed in the tab',
+          queryKey: 'Please enter route parameter Key',
+          queryValue: 'Please enter route parameter Value',
+          button: 'Please select whether it is a button',
+          buttonCode: 'Please enter button code',
+          buttonDesc: 'Please enter button description',
+          menuStatus: 'Please select menu status'
+        },
+        addMenu: 'Add Menu',
+        editMenu: 'Edit Menu',
+        addChildMenu: 'Add Child Menu',
+        type: {
+          directory: 'Directory',
+          menu: 'Menu'
+        },
+        iconType: {
+          iconify: 'Iconify Icon',
+          local: 'Local Icon'
+        }
+      },
+      user: {
+        title: 'User List',
+        userName: 'User Name',
+        userGender: 'Gender',
+        nickName: 'Nick Name',
+        userPhone: 'Phone Number',
+        userEmail: 'Email',
+        userStatus: 'User Status',
+        userRole: 'User Role',
+        form: {
+          userName: 'Please enter user name',
+          password: 'Please enter password',
+          domain: 'Please enter domain',
+          userGender: 'Please select gender',
+          nickName: 'Please enter nick name',
+          userPhone: 'Please enter phone number',
+          userEmail: 'Please enter email',
+          userStatus: 'Please select user status',
+          userRole: 'Please select user role'
+        },
+        addUser: 'Add User',
+        editUser: 'Edit User',
+        gender: {
+          male: 'Male',
+          female: 'Female'
+        }
+      }
     }
   },
   form: {
