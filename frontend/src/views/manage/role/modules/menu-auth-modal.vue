@@ -58,7 +58,7 @@ async function getMenuId() {
 function recursive(item: Api.SystemManage.Menu): TreeOption {
   const result: TreeOption = {
     key: item.id,
-    label: $t(item.i18nKey as App.I18n.I18nKey)
+    label: item.i18nKey ? $t(item.i18nKey as App.I18n.I18nKey) : item.menuName
   };
   if (item.children && item.children.length > 0) {
     result.children = item.children.map(recursive);

@@ -103,7 +103,7 @@ const {
             type="primary"
             quaternary
             size="small"
-            onClick={() => handleRoleAction(String(row.id), row.roleCode, openMenuAuthModal)}
+            onClick={() => handleRoleAction(String(row.id), row.code, openMenuAuthModal)}
           >
             {$t('page.manage.role.menuAuth')}
           </NButton>
@@ -111,7 +111,7 @@ const {
             type="primary"
             quaternary
             size="small"
-            onClick={() => handleRoleAction(String(row.id), row.roleCode, openApiEndpointAuthModal)}
+            onClick={() => handleRoleAction(String(row.id), row.code, openApiEndpointAuthModal)}
           >
             {$t('page.manage.role.permissionAuth')}
           </NButton>
@@ -164,7 +164,7 @@ async function handleDelete(id: string) {
 }
 
 function edit(id: string) {
-  handleEdit(Number(id));
+  handleEdit(id);
 }
 
 function handleRoleAction(id: string, code: string, action: () => void): void {

@@ -12,7 +12,7 @@ interface Props {
   /** the roleId */
   roleId: string;
   /** the roleCode */
-  roleCode: string;
+  roleCode?: string;
 }
 
 const props = defineProps<Props>();
@@ -34,7 +34,7 @@ const model: Api.SystemManage.RolePermission = reactive(createDefaultModel());
 
 function createDefaultModel(): Api.SystemManage.RolePermission {
   return {
-    roleId: props.roleId,
+    roleId: props.roleId || '-1', // Provide a default value if roleId is undefined
     permissions: []
   };
 }
@@ -49,6 +49,11 @@ async function getTree() {
 
 /** init get apiEndpointIds for roleCode, belong checks */
 async function getApiEndpointId() {
+  if (!props.roleCode) {
+    checks.value = [];
+    await getTree();
+    return;
+  }
   checks.value = await fetchGetRoleApiEndpoints(props.roleCode);
   await getTree();
 }
