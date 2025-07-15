@@ -228,7 +228,7 @@ export function useTableOperate<T extends TableData = TableData>(data: Ref<T[]>,
 
   function handleEdit(id: T['id']) {
     operateType.value = 'edit';
-    const findItem = data.value.find(item => item.id === id) || null;
+    const findItem = data.value.find(item => item.id == id) || null;
     editingData.value = jsonClone(findItem);
 
     openDrawer();

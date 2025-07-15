@@ -57,10 +57,12 @@ function createDefaultModel(): UserFormModel {
   };
 }
 
-type RuleKey = Extract<keyof UserFormModel, 'username' | 'status'>;
+type RuleKey = Extract<keyof UserFormModel, 'username' | 'nickName' | 'status' | 'domain'>;
 
 const rules: Record<RuleKey, App.Global.FormRule> = {
   username: defaultRequiredRule,
+  nickName: defaultRequiredRule,
+  domain: defaultRequiredRule, 
   status: defaultRequiredRule
 };
 
@@ -152,13 +154,13 @@ watch(visible, () => {
   <NDrawer v-model:show="visible" display-directive="show" :width="360">
     <NDrawerContent :title="title" :native-scrollbar="false" closable>
       <NForm ref="formRef" :model="model" :rules="rules">
-        <NFormItem :label="$t('page.manage.user.userName')" path="userName">
+        <NFormItem :label="$t('page.manage.user.userName')" path="username">
           <NInput v-model:value="model.username" :placeholder="$t('page.manage.user.form.userName')" />
         </NFormItem>
-        <NFormItem v-if="props.operateType === 'add'" label="password" path="password">
+        <NFormItem v-if="props.operateType === 'add'" :label="$t('page.manage.user.password')" path="password">
           <NInput v-model:value="model.password" :placeholder="$t('page.manage.user.form.password')" />
         </NFormItem>
-        <NFormItem v-if="props.operateType === 'add'" label="domain" path="domain">
+        <NFormItem v-if="props.operateType === 'add'" :label="$t('page.manage.user.domain')" path="domain">
           <NInput v-model:value="model.domain" :placeholder="$t('page.manage.user.form.domain')" />
         </NFormItem>
         <NFormItem :label="$t('page.manage.user.nickName')" path="nickName">

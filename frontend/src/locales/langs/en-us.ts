@@ -352,6 +352,9 @@ const local: App.I18n.Schema = {
       user: {
         title: 'User List',
         userName: 'User Name',
+        password: 'Password',
+        domain: 'Domain',
+        avatar: 'Avatar',
         userGender: 'Gender',
         nickName: 'Nick Name',
         userPhone: 'Phone Number',

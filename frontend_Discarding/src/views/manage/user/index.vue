@@ -54,13 +54,13 @@ const {
     },
     {
       key: 'domain',
-      title: 'domain',
+      title: $t('page.manage.user.domain'),
       align: 'center',
       minWidth: 100
     },
     {
       key: 'avatar',
-      title: 'avatar',
+      title: $t('page.manage.user.avatar'),
       align: 'center',
       minWidth: 80,
       render: row => {

@@ -516,6 +516,9 @@ declare namespace App {
           user: {
             title: string;
             userName: string;
+            password: string;
+            domain: string;
+            avatar: string;
             userGender: string;
             nickName: string;
             userPhone: string;

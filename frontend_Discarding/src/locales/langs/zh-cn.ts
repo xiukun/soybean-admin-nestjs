@@ -277,6 +277,9 @@ const local: App.I18n.Schema = {
       user: {
         title: '用户列表',
         userName: '用户名',
+        password: '密码',
+        domain: '域',
+        avatar: '头像',
         userGender: '性别',
         nickName: '昵称',
         userPhone: '手机号',
