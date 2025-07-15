@@ -33,6 +33,7 @@ export class Menu extends AggregateRoot implements IMenu {
   keepAlive?: boolean;
   href?: string;
   multiTab?: boolean;
+  lowcodePageId?: string;
   createdAt: Date;
   createdBy: string;
 

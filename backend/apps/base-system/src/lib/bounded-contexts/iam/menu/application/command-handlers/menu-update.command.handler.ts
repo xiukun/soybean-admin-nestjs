@@ -36,6 +36,14 @@ export class MenuUpdateHandler
       }
     }
 
+    // 获取现有菜单以保留原有的 lowcodePageId
+    const existingMenu = await this.menuReadRepoPort.getMenuById(command.id);
+    if (!existingMenu) {
+      throw new BadRequestException(
+        `Menu with id ${command.id} does not exist.`,
+      );
+    }
+
     const menuUpdateProperties: MenuUpdateProperties = {
       id: command.id,
       menuName: command.menuName,
@@ -56,6 +64,7 @@ export class MenuUpdateHandler
       keepAlive: command.keepAlive,
       href: command.href,
       multiTab: command.multiTab,
+      lowcodePageId: existingMenu.lowcodePageId, // 保留原有的 lowcodePageId，不允许修改
       updatedAt: new Date(),
       updatedBy: command.uid,
     };

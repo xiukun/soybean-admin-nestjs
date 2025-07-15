@@ -1,5 +1,6 @@
 import { BadRequestException, Inject } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { MenuType } from '@prisma/client';
 
 import { ROOT_ROUTE_PID } from '@lib/shared/prisma/db.constant';
 
@@ -9,6 +10,7 @@ import { Menu } from '../../domain/menu.model';
 import { MenuCreateProperties } from '../../domain/menu.read.model';
 import { MenuReadRepoPort } from '../../ports/menu.read.repo-port';
 import { MenuWriteRepoPort } from '../../ports/menu.write.repo-port';
+import { LowcodePageIdGenerator } from '../../services/lowcode-page-id.generator';
 
 @CommandHandler(MenuCreateCommand)
 export class MenuCreateHandler
@@ -18,6 +20,8 @@ export class MenuCreateHandler
   private readonly menuWriteRepository: MenuWriteRepoPort;
   @Inject(MenuReadRepoPortToken)
   private readonly menuReadRepoPort: MenuReadRepoPort;
+
+  private readonly lowcodePageIdGenerator = new LowcodePageIdGenerator();
 
   async execute(command: MenuCreateCommand) {
     // Check if routeName already exists
@@ -36,6 +40,13 @@ export class MenuCreateHandler
           `Parent menu with code ${command.pid} does not exist.`,
         );
       }
+    }
+
+    // 自动生成低代码页面ID（如果菜单类型为lowcode）
+    let finalLowcodePageId = command.lowcodePageId;
+    if (command.menuType === MenuType.lowcode) {
+      // 为低代码菜单自动生成页面ID
+      finalLowcodePageId = this.lowcodePageIdGenerator.generateFromMenuName(command.menuName);
     }
 
     const menuCreateProperties: MenuCreateProperties = {
@@ -60,6 +71,7 @@ export class MenuCreateHandler
       keepAlive: command.keepAlive,
       href: command.href,
       multiTab: command.multiTab,
+      lowcodePageId: finalLowcodePageId,
     };
 
     const menu = Menu.fromCreate(menuCreateProperties);

@@ -24,6 +24,7 @@ export class MenuUpdateCommand extends MenuCreateCommand implements ICommand {
     readonly constant: boolean,
     readonly href: string | null,
     readonly multiTab: boolean | null,
+    readonly lowcodePageId: string | null,
     readonly uid: string,
   ) {
     super(
@@ -45,6 +46,7 @@ export class MenuUpdateCommand extends MenuCreateCommand implements ICommand {
       constant,
       href,
       multiTab,
+      lowcodePageId,
       uid,
     );
   }

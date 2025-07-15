@@ -33,6 +33,7 @@ export type MenuOptionalProperties = Readonly<
     keepAlive: boolean | null;
     href: string | null;
     multiTab: boolean | null;
+    lowcodePageId: string | null;
   }>
 >;
 
@@ -163,4 +164,12 @@ export class MenuReadModel extends UpdateAuditInfo {
     nullable: true,
   })
   multiTab: boolean | null;
+
+  @ApiProperty({
+    description: 'ID of the associated lowcode page for lowcode menu type',
+    example: 'a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6',
+    required: false,
+    nullable: true,
+  })
+  lowcodePageId: string | null;
 }

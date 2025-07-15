@@ -168,6 +168,48 @@
       ],
       "@lib/infra/crypto/*": [
         "libs/infra/crypto/src/*"
+      ],
+      "@lowcode": [
+        "apps/base-system/src/lib/bounded-contexts/lowcode"
+      ],
+      "@lowcode/*": [
+        "apps/base-system/src/lib/bounded-contexts/lowcode/*"
+      ],
+      "@lowcode/page": [
+        "apps/base-system/src/lib/bounded-contexts/lowcode/page"
+      ],
+      "@lowcode/page/*": [
+        "apps/base-system/src/lib/bounded-contexts/lowcode/page/*"
+      ],
+      "@lowcode/page/domain": [
+        "apps/base-system/src/lib/bounded-contexts/lowcode/page/domain"
+      ],
+      "@lowcode/page/domain/*": [
+        "apps/base-system/src/lib/bounded-contexts/lowcode/page/domain/*"
+      ],
+      "@lowcode/page/application": [
+        "apps/base-system/src/lib/bounded-contexts/lowcode/page/application"
+      ],
+      "@lowcode/page/application/*": [
+        "apps/base-system/src/lib/bounded-contexts/lowcode/page/application/*"
+      ],
+      "@lowcode/page/infrastructure": [
+        "apps/base-system/src/lib/bounded-contexts/lowcode/page/infrastructure"
+      ],
+      "@lowcode/page/infrastructure/*": [
+        "apps/base-system/src/lib/bounded-contexts/lowcode/page/infrastructure/*"
+      ],
+      "@lowcode/page/commands": [
+        "apps/base-system/src/lib/bounded-contexts/lowcode/page/commands"
+      ],
+      "@lowcode/page/commands/*": [
+        "apps/base-system/src/lib/bounded-contexts/lowcode/page/commands/*"
+      ],
+      "@lowcode/page/queries": [
+        "apps/base-system/src/lib/bounded-contexts/lowcode/page/queries"
+      ],
+      "@lowcode/page/queries/*": [
+        "apps/base-system/src/lib/bounded-contexts/lowcode/page/queries/*"
       ]
     },
     "resolveJsonModule": true

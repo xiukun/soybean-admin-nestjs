@@ -350,6 +350,7 @@ const local: App.I18n.Schema = {
         activeMenu: 'Active Menu',
         multiTab: 'Multi Tab',
         fixedIndexInTab: 'Fixed Index In Tab',
+        lowcodePage: 'Lowcode Page',
         query: 'Query Params',
         button: 'Button',
         buttonCode: 'Button Code',
@@ -375,6 +376,7 @@ const local: App.I18n.Schema = {
           multiTab: 'Please select whether to support multiple tabs',
           fixedInTab: 'Please select whether to fix in the tab',
           fixedIndexInTab: 'Please enter the index fixed in the tab',
+          lowcodePage: 'Please select lowcode page',
           queryKey: 'Please enter route parameter Key',
           queryValue: 'Please enter route parameter Value',
           button: 'Please select whether it is a button',
@@ -387,7 +389,8 @@ const local: App.I18n.Schema = {
         addChildMenu: 'Add Child Menu',
         type: {
           directory: 'Directory',
-          menu: 'Menu'
+          menu: 'Menu',
+          lowcode: 'Lowcode Page'
         },
         iconType: {
           iconify: 'Iconify Icon',

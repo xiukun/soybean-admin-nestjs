@@ -1,0 +1,2 @@
+// 依赖注入令牌
+export const LOWCODE_PAGE_REPOSITORY = Symbol('LOWCODE_PAGE_REPOSITORY');

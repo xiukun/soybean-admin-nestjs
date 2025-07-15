@@ -39,6 +39,7 @@ export class MenuWritePostgresRepository implements MenuWriteRepoPort {
       constant: menuData.constant,
       href: menuData.href,
       multiTab: menuData.multiTab,
+      lowcodePageId: menuData.lowcodePageId, // 添加低代码页面ID字段
       createdAt: menuData.createdAt,
       createdBy: menuData.createdBy,
       updatedAt: new Date(),

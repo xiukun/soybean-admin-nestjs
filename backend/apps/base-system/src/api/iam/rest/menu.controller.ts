@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -18,6 +19,7 @@ import { MenuDeleteCommand } from '@app/base-system/lib/bounded-contexts/iam/men
 import { MenuUpdateCommand } from '@app/base-system/lib/bounded-contexts/iam/menu/commands/menu-update.command';
 import { MenuTreeProperties } from '@app/base-system/lib/bounded-contexts/iam/menu/domain/menu.read.model';
 import { MenuIdsByRoleIdAndDomainQuery } from '@app/base-system/lib/bounded-contexts/iam/menu/queries/menu-ids.by-role_id&domain.query';
+import { MenusByIdsQuery } from '@app/base-system/lib/bounded-contexts/iam/menu/queries/menus.by-ids.query';
 import { MenusQuery } from '@app/base-system/lib/bounded-contexts/iam/menu/queries/menus.query';
 import { MenusTreeQuery } from '@app/base-system/lib/bounded-contexts/iam/menu/queries/menus.tree.query';
 
@@ -101,6 +103,7 @@ export class MenuController {
         dto.constant,
         dto.href,
         dto.multiTab,
+        null, // lowcodePageId 将由系统自动生成
         req.user.uid,
       ),
     );
@@ -139,10 +142,31 @@ export class MenuController {
         dto.constant,
         dto.href,
         dto.multiTab,
+        null, // lowcodePageId 不允许修改，将使用现有值
         req.user.uid,
       ),
     );
     return ApiRes.ok();
+  }
+
+  @Get(':id/lowcode-page-id')
+  @ApiOperation({ summary: 'Get lowcode page ID for a menu' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the lowcode page ID if the menu is of type lowcode.',
+  })
+  @ApiResponse({ status: 404, description: 'Menu not found.' })
+  async getLowcodePageId(@Param('id') id: number): Promise<ApiRes<{ lowcodePageId: string | null }>> {
+    // 使用 MenusByIdsQuery 来获取菜单信息
+    const menus = await this.queryBus.execute(new MenusByIdsQuery([id]));
+    if (!menus || menus.length === 0) {
+      throw new BadRequestException(`Menu with id ${id} not found.`);
+    }
+
+    const menu = menus[0];
+    return ApiRes.success({
+      lowcodePageId: menu.lowcodePageId
+    });
   }
 
   @Delete(':id')

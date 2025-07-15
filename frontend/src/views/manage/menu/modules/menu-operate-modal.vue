@@ -2,7 +2,7 @@
 import { computed, reactive, ref, watch } from 'vue';
 import type { SelectOption } from 'naive-ui';
 import { enableStatusOptions, menuIconTypeOptions, menuTypeOptions } from '@/constants/business';
-import type { RouteModel } from '@/service/api';
+import type { RouteModel, RouteCreateModel, RouteUpdateModel } from '@/service/api';
 import { createRoute, fetchGetAllRoles, updateRoute } from '@/service/api';
 import { useFormRules, useNaiveForm } from '@/hooks/common/form';
 import { getLocalIcons } from '@/utils/icon';
@@ -79,7 +79,7 @@ function createDefaultModel(): Model {
     icon: '',
     iconType: 1,
     pid: 0,
-    status: '1',
+    status: 'ENABLED',
     keepAlive: false,
     constant: false,
     order: 0,
@@ -88,6 +88,7 @@ function createDefaultModel(): Model {
     activeMenu: null,
     multiTab: false,
     fixedIndexInTab: null,
+    lowcodePageId: null,
     query: [],
     buttons: []
   };
@@ -118,6 +119,8 @@ const localIconOptions = localIcons.map<SelectOption>(item => ({
 const showLayout = computed(() => model.pid === 0);
 
 const showPage = computed(() => model.menuType === 'menu');
+
+const showLowcodePage = computed(() => model.menuType === 'lowcode');
 
 const pageOptions = computed(() => {
   const allPages = [...props.allPages];
@@ -227,6 +230,11 @@ function getSubmitParams() {
   params.component = component;
   params.routePath = routePath;
 
+  // For update operations, ensure id is included
+  if (props.operateType === 'edit' && props.rowData?.id) {
+    (params as any).id = props.rowData.id;
+  }
+
   return params;
 }
 
@@ -234,14 +242,16 @@ async function handleSubmit() {
   await validate();
 
   const params = getSubmitParams();
-
+  if(showLowcodePage.value){
+    params.component = 'view.amis-template';
+  }
   // request
   if (props.operateType === 'add' || props.operateType === 'addChild') {
-    const { error } = await createRoute(params);
+    const { error } = await createRoute(params as RouteCreateModel);
     if (error) return;
     window.$message?.success($t('common.addSuccess'));
   } else {
-    const { error } = await updateRoute(params);
+    const { error } = await updateRoute(params as RouteUpdateModel);
     if (error) return;
     window.$message?.success($t('common.updateSuccess'));
   }
@@ -301,6 +311,9 @@ watch(
               :options="pageOptions"
               :placeholder="$t('page.manage.menu.form.page')"
             />
+          </NFormItemGi>
+          <NFormItemGi v-if="showLowcodePage" span="24 m:12" :label="$t('page.manage.menu.lowcodePage')" path="lowcodePageId">
+            <NInput v-model:value="model.lowcodePageId" :placeholder="$t('page.manage.menu.form.lowcodePage')" />
           </NFormItemGi>
           <NFormItemGi span="24 m:12" :label="$t('page.manage.menu.i18nKey')" path="i18nKey">
             <NInput v-model:value="model.i18nKey" :placeholder="$t('page.manage.menu.form.i18nKey')" />

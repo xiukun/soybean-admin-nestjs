@@ -156,7 +156,7 @@ declare namespace Api {
     /** user list */
     type UserList = Common.PaginatingQueryRecord<User>;
 
-    type MenuType = 'directory' | 'menu';
+    type MenuType = 'directory' | 'menu' | 'lowcode';
     type IconType = 1 | 2;
 
     /** menu */
@@ -199,6 +199,8 @@ declare namespace Api {
       multiTab?: boolean;
       /** fixed index in tab */
       fixedIndexInTab?: number | null;
+      /** lowcode page id */
+      lowcodePageId?: string | null;
       /** order */
       order: number;
       /** query */

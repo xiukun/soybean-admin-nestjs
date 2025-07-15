@@ -190,6 +190,7 @@ model SysOperationLog {
 enum MenuType {
   directory
   menu
+  lowcode
 }
 
 model SysMenu {
@@ -214,6 +215,12 @@ model SysMenu {
   href       String?  @map("href") @db.VarChar(64)
   multiTab   Boolean? @default(false) @map("multi_tab")
 
+  // 低代码菜单相关字段
+  lowcodePageId String? @map("lowcode_page_id") @db.VarChar(36)
+
+  // 关联到低代码页面
+  lowcodePage SysLowcodePage? @relation(fields: [lowcodePageId], references: [id], onDelete: SetNull)
+
   createdAt DateTime  @default(now()) @map("created_at")
   createdBy String    @map("created_by")
   updatedAt DateTime? @updatedAt @map("updated_at")
@@ -229,6 +236,45 @@ model SysRoleMenu {
 
   @@id([roleId, menuId, domain])
   @@map("sys_role_menu")
+}
+
+// 低代码页面表
+model SysLowcodePage {
+  id          String    @id @default(uuid())
+  name        String    @map("name") @db.VarChar(100)
+  title       String    @map("title") @db.VarChar(100)
+  code        String    @unique @map("code") @db.VarChar(100)
+  description String?   @map("description") @db.Text
+  schema      Json      @map("schema") // AMIS JSON Schema
+  status      Status    @default(ENABLED)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  createdBy   String    @map("created_by")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+  updatedBy   String?   @map("updated_by")
+
+  // 页面版本历史记录
+  versions SysLowcodePageVersion[]
+
+  // 关联的菜单
+  menus SysMenu[]
+
+  @@map("sys_lowcode_page")
+}
+
+// 低代码页面版本表
+model SysLowcodePageVersion {
+  id          String   @id @default(uuid())
+  pageId      String   @map("page_id")
+  version     String   @map("version") @db.VarChar(20)
+  schema      Json     @map("schema") // AMIS JSON Schema
+  changelog   String?  @map("changelog") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdBy   String   @map("created_by")
+
+  // 关联到页面
+  page SysLowcodePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@map("sys_lowcode_page_version")
 }
 
 model SysAccessKey {

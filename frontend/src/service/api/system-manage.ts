@@ -194,6 +194,8 @@ export type RouteCreateModel = {
   constant: boolean;
   href: string | null;
   multiTab: boolean;
+  lowcodePageId?: string | null;
+  fixedIndexInTab?: number | null;
 };
 
 export type RouteUpdateModel = RouteCreateModel & {

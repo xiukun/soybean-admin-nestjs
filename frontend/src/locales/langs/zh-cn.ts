@@ -350,6 +350,7 @@ const local: App.I18n.Schema = {
         activeMenu: '高亮的菜单',
         multiTab: '支持多页签',
         fixedIndexInTab: '固定在页签中的序号',
+        lowcodePage: '低代码页面',
         query: '路由参数',
         button: '按钮',
         buttonCode: '按钮编码',
@@ -375,6 +376,7 @@ const local: App.I18n.Schema = {
           multiTab: '请选择是否支持多标签',
           fixedInTab: '请选择是否固定在页签中',
           fixedIndexInTab: '请输入固定在页签中的序号',
+          lowcodePage: '请选择低代码页面',
           queryKey: '请输入路由参数Key',
           queryValue: '请输入路由参数Value',
           button: '请选择是否按钮',
@@ -387,7 +389,8 @@ const local: App.I18n.Schema = {
         addChildMenu: '新增子菜单',
         type: {
           directory: '目录',
-          menu: '菜单'
+          menu: '菜单',
+          lowcode: '低代码页面'
         },
         iconType: {
           iconify: 'iconify图标',

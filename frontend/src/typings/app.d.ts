@@ -621,6 +621,7 @@ declare namespace App {
             activeMenu: string;
             multiTab: string;
             fixedIndexInTab: string;
+            lowcodePage: string;
             query: string;
             button: string;
             buttonCode: string;
@@ -646,6 +647,7 @@ declare namespace App {
               multiTab: string;
               fixedInTab: string;
               fixedIndexInTab: string;
+              lowcodePage: string;
               queryKey: string;
               queryValue: string;
               button: string;
@@ -659,6 +661,7 @@ declare namespace App {
             type: {
               directory: string;
               menu: string;
+              lowcode: string;
             };
             iconType: {
               iconify: string;
