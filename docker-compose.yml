@@ -34,6 +34,12 @@ services:
       JWT_EXPIRE_IN: 3600
       REFRESH_TOKEN_SECRET: 'REFRESH_TOKEN_EXPIRE_IN-soybean-admin-nest@123456!@#.'
       REFRESH_TOKEN_EXPIRE_IN: 7200
+      # CORS配置
+      CORS_ENABLED: 'true'
+      CORS_ORIGIN: 'http://localhost:9527,http://127.0.0.1:9527,http://localhost:9528,http://127.0.0.1:9528,http://localhost:9529,http://127.0.0.1:9529'
+      CORS_METHODS: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS'
+      CORS_CREDENTIALS: 'true'
+      CORS_MAX_AGE: 3600
     depends_on:
       postgres:
         condition: service_healthy
