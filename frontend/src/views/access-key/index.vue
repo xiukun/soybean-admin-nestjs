@@ -44,25 +44,25 @@ const {
     },
     {
       key: 'domain',
-      title: 'domain',
+      title: $t('page.manage.accessKey.domain'),
       align: 'center',
       minWidth: 100
     },
     {
       key: 'AccessKeyID',
-      title: 'AccessKeyID',
+      title: $t('page.manage.accessKey.accessKeyId'),
       align: 'center',
       minWidth: 100
     },
     {
       key: 'description',
-      title: 'description',
+      title: $t('page.manage.accessKey.description'),
       align: 'center',
       minWidth: 100
     },
     {
       key: 'status',
-      title: 'status',
+      title: $t('page.manage.accessKey.status'),
       align: 'center',
       width: 100,
       render: row => {
@@ -140,7 +140,7 @@ function edit(id: string) {
 <template>
   <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
     <AccessKeySearch v-model:model="searchParams" @reset="resetSearchParams" @search="getDataByPage" />
-    <NCard title="access list" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
+    <NCard :title="$t('page.manage.accessKey.title')" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
       <template #header-extra>
         <TableHeaderOperation
           v-model:columns="columnChecks"

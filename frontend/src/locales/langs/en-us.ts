@@ -282,6 +282,50 @@ const local: App.I18n.Schema = {
         addRole: 'Add Role',
         editRole: 'Edit Role'
       },
+      accessKey: {
+        title: 'Access Key List',
+        domain: 'Domain',
+        accessKeyId: 'Access Key ID',
+        description: 'Description',
+        status: 'Status',
+        form: {
+          domain: 'Please enter domain',
+          description: 'Please enter description',
+          status: 'Please select status'
+        },
+        addAccessKey: 'Add Access Key',
+        editAccessKey: 'Edit Access Key'
+      },
+      log: {
+        login: {
+          title: 'Login Log',
+          username: 'Username',
+          domain: 'Domain',
+          loginTime: 'Login Time',
+          port: 'Port',
+          address: 'IP Address',
+          userAgent: 'User Agent',
+          requestId: 'Request ID',
+          type: 'Type'
+        },
+        operation: {
+          title: 'Operation Log',
+          userId: 'User ID',
+          username: 'Username',
+          domain: 'Domain',
+          moduleName: 'Module Name',
+          description: 'Description',
+          requestId: 'Request ID',
+          method: 'Method',
+          url: 'URL',
+          ip: 'IP Address',
+          userAgent: 'User Agent',
+          params: 'Parameters',
+          duration: 'Duration',
+          startTime: 'Start Time',
+          endTime: 'End Time'
+        }
+      },
       menu: {
         home: 'Home',
         title: 'Menu List',

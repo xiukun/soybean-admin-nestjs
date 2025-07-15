@@ -33,31 +33,31 @@ const { columns, data, getData, getDataByPage, loading, mobilePagination, search
     },
     {
       key: 'userId',
-      title: 'userId',
+      title: $t('page.manage.log.operation.userId'),
       align: 'center',
       width: 80
     },
     {
       key: 'username',
-      title: 'username',
+      title: $t('page.manage.log.operation.username'),
       align: 'center',
       width: 100
     },
     {
       key: 'domain',
-      title: 'domain',
+      title: $t('page.manage.log.operation.domain'),
       align: 'center',
       width: 80
     },
     {
       key: 'moduleName',
-      title: 'moduleName',
+      title: $t('page.manage.log.operation.moduleName'),
       align: 'center',
       width: 120
     },
     {
       key: 'description',
-      title: 'description',
+      title: $t('page.manage.log.operation.description'),
       align: 'center',
       minWidth: 150,
       ellipsis: {
@@ -66,31 +66,31 @@ const { columns, data, getData, getDataByPage, loading, mobilePagination, search
     },
     {
       key: 'requestId',
-      title: 'requestId',
+      title: $t('page.manage.log.operation.requestId'),
       align: 'center',
       width: 80
     },
     {
       key: 'method',
-      title: 'method',
+      title: $t('page.manage.log.operation.method'),
       align: 'center',
       width: 80
     },
     {
       key: 'url',
-      title: 'url',
+      title: $t('page.manage.log.operation.url'),
       align: 'center',
       minWidth: 120
     },
     {
       key: 'ip',
-      title: 'ip',
+      title: $t('page.manage.log.operation.ip'),
       align: 'center',
       width: 100
     },
     {
       key: 'userAgent',
-      title: 'userAgent',
+      title: $t('page.manage.log.operation.userAgent'),
       align: 'center',
       minWidth: 150,
       ellipsis: {
@@ -99,7 +99,7 @@ const { columns, data, getData, getDataByPage, loading, mobilePagination, search
     },
     {
       key: 'params',
-      title: 'params',
+      title: $t('page.manage.log.operation.params'),
       align: 'center',
       minWidth: 150,
       ellipsis: {
@@ -111,13 +111,13 @@ const { columns, data, getData, getDataByPage, loading, mobilePagination, search
     },
     {
       key: 'duration',
-      title: 'duration',
+      title: $t('page.manage.log.operation.duration'),
       align: 'center',
       width: 80
     },
     {
       key: 'startTime',
-      title: 'startTime',
+      title: $t('page.manage.log.operation.startTime'),
       align: 'center',
       minWidth: 100,
       render(row) {
@@ -126,7 +126,7 @@ const { columns, data, getData, getDataByPage, loading, mobilePagination, search
     },
     {
       key: 'endTime',
-      title: 'endTime',
+      title: $t('page.manage.log.operation.endTime'),
       align: 'center',
       minWidth: 100,
       render(row) {
@@ -140,7 +140,7 @@ const { columns, data, getData, getDataByPage, loading, mobilePagination, search
 <template>
   <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
     <OperationSearch v-model:model="searchParams" @reset="resetSearchParams" @search="getDataByPage" />
-    <NCard title="operation log" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
+    <NCard :title="$t('page.manage.log.operation.title')" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
       <template #header-extra>
         <TableHeaderOperation :loading="loading" @refresh="getData" />
       </template>

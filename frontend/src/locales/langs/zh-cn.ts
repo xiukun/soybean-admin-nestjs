@@ -282,6 +282,50 @@ const local: App.I18n.Schema = {
         addRole: '新增角色',
         editRole: '编辑角色'
       },
+      accessKey: {
+        title: '访问密钥列表',
+        domain: '域',
+        accessKeyId: '访问密钥ID',
+        description: '描述',
+        status: '状态',
+        form: {
+          domain: '请输入域',
+          description: '请输入描述',
+          status: '请选择状态'
+        },
+        addAccessKey: '新增访问密钥',
+        editAccessKey: '编辑访问密钥'
+      },
+      log: {
+        login: {
+          title: '登录日志',
+          username: '用户名',
+          domain: '域',
+          loginTime: '登录时间',
+          port: '端口',
+          address: 'IP地址',
+          userAgent: '用户代理',
+          requestId: '请求ID',
+          type: '类型'
+        },
+        operation: {
+          title: '操作日志',
+          userId: '用户ID',
+          username: '用户名',
+          domain: '域',
+          moduleName: '模块名称',
+          description: '描述',
+          requestId: '请求ID',
+          method: '方法',
+          url: 'URL',
+          ip: 'IP地址',
+          userAgent: '用户代理',
+          params: '参数',
+          duration: '持续时间',
+          startTime: '开始时间',
+          endTime: '结束时间'
+        }
+      },
       menu: {
         home: '首页',
         title: '菜单列表',

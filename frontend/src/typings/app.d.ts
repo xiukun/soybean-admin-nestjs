@@ -523,6 +523,50 @@ declare namespace App {
             buttonAuth: string;
             permissionAuth: string;
           };
+          accessKey: {
+            title: string;
+            domain: string;
+            accessKeyId: string;
+            description: string;
+            status: string;
+            form: {
+              domain: string;
+              description: string;
+              status: string;
+            };
+            addAccessKey: string;
+            editAccessKey: string;
+          };
+          log: {
+            login: {
+              title: string;
+              username: string;
+              domain: string;
+              loginTime: string;
+              port: string;
+              address: string;
+              userAgent: string;
+              requestId: string;
+              type: string;
+            };
+            operation: {
+              title: string;
+              userId: string;
+              username: string;
+              domain: string;
+              moduleName: string;
+              description: string;
+              requestId: string;
+              method: string;
+              url: string;
+              ip: string;
+              userAgent: string;
+              params: string;
+              duration: string;
+              startTime: string;
+              endTime: string;
+            };
+          };
           user: {
             title: string;
             userName: string;

@@ -33,19 +33,19 @@ const { columns, data, getData, getDataByPage, loading, mobilePagination, search
     },
     {
       key: 'username',
-      title: 'username',
+      title: $t('page.manage.log.login.username'),
       align: 'center',
       minWidth: 100
     },
     {
       key: 'domain',
-      title: 'domain',
+      title: $t('page.manage.log.login.domain'),
       align: 'center',
       width: 80
     },
     {
       key: 'loginTime',
-      title: 'loginTime',
+      title: $t('page.manage.log.login.loginTime'),
       align: 'center',
       minWidth: 100,
       render(row) {
@@ -54,19 +54,19 @@ const { columns, data, getData, getDataByPage, loading, mobilePagination, search
     },
     {
       key: 'port',
-      title: 'port',
+      title: $t('page.manage.log.login.port'),
       align: 'center',
       width: 80
     },
     {
       key: 'address',
-      title: 'address',
+      title: $t('page.manage.log.login.address'),
       align: 'center',
       minWidth: 100
     },
     {
       key: 'userAgent',
-      title: 'userAgent',
+      title: $t('page.manage.log.login.userAgent'),
       align: 'center',
       ellipsis: {
         tooltip: true
@@ -74,13 +74,13 @@ const { columns, data, getData, getDataByPage, loading, mobilePagination, search
     },
     {
       key: 'requestId',
-      title: 'requestId',
+      title: $t('page.manage.log.login.requestId'),
       align: 'center',
       width: 80
     },
     {
       key: 'type',
-      title: 'type',
+      title: $t('page.manage.log.login.type'),
       align: 'center',
       width: 80
     }
@@ -91,7 +91,7 @@ const { columns, data, getData, getDataByPage, loading, mobilePagination, search
 <template>
   <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
     <LoginLogSearch v-model:model="searchParams" @reset="resetSearchParams" @search="getDataByPage" />
-    <NCard title="login log" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
+    <NCard :title="$t('page.manage.log.login.title')" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
       <template #header-extra>
         <TableHeaderOperation :loading="loading" @refresh="getData" />
       </template>
