@@ -20,6 +20,7 @@ import {
   RoleReadModel,
 } from '@app/base-system/lib/bounded-contexts/iam/role/domain/role.read.model';
 import { PageRolesQuery } from '@app/base-system/lib/bounded-contexts/iam/role/queries/page-roles.query';
+import { AllRolesQuery } from '@app/base-system/lib/bounded-contexts/iam/role/queries/all-roles.query';
 
 import { ApiResponseDoc } from '@lib/infra/decorators/api-result.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
@@ -55,6 +56,19 @@ export class RoleController {
       PageRolesQuery,
       PaginationResult<RoleProperties>
     >(query);
+    return ApiRes.success(result);
+  }
+
+  @Get('all')
+  @ApiOperation({
+    summary: 'Retrieve All Enabled Roles',
+  })
+  @ApiResponseDoc({ type: RoleReadModel, isArray: true })
+  async getAllRoles(): Promise<ApiRes<RoleProperties[]>> {
+    const result = await this.queryBus.execute<
+      AllRolesQuery,
+      RoleProperties[]
+    >(new AllRolesQuery());
     return ApiRes.success(result);
   }
 

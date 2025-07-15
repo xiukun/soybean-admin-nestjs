@@ -15,6 +15,7 @@ import { Controllers as EndpointRest } from './endpoint/rest';
 import { Controllers as IamRest } from './iam/rest';
 import { Controllers as LoginLogRest } from './log-audit/login-log/rest';
 import { Controllers as OperationLogRest } from './log-audit/operation-log/rest';
+import { Controllers as SystemManageRest } from './system-manage/rest';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { Controllers as OperationLogRest } from './log-audit/operation-log/rest'
     ...LoginLogRest,
     ...OperationLogRest,
     ...AccessKeyRest,
+    ...SystemManageRest,
   ],
 })
 export class ApiModule {}

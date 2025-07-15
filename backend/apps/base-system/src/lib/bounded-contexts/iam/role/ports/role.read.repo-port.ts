@@ -8,6 +8,8 @@ export interface RoleReadRepoPort {
 
   pageRoles(query: PageRolesQuery): Promise<PaginationResult<RoleProperties>>;
 
+  getAllRoles(): Promise<RoleProperties[]>;
+
   getRoleByCode(code: string): Promise<Readonly<RoleProperties> | null>;
 
   getRoleById(id: string): Promise<Readonly<RoleProperties> | null>;

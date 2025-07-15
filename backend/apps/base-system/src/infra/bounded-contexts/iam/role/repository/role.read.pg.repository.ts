@@ -75,6 +75,17 @@ export class RoleReadPostgresRepository implements RoleReadRepoPort {
     );
   }
 
+  async getAllRoles(): Promise<RoleProperties[]> {
+    return this.prisma.sysRole.findMany({
+      where: {
+        status: 'ENABLED', // 只返回启用的角色
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+  }
+
   async getRoleByCode(code: string): Promise<Readonly<RoleProperties> | null> {
     return this.prisma.sysRole.findUnique({
       where: { code },
