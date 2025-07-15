@@ -27,6 +27,12 @@ export class MenuReadPostgresRepository implements MenuReadRepoPort {
     });
   }
 
+  async getMenuByRouteName(routeName: string): Promise<Readonly<MenuProperties> | null> {
+    return this.prisma.sysMenu.findUnique({
+      where: { routeName },
+    });
+  }
+
   async findMenusByRoleCode(
     roleCode: string[],
     domain: string,

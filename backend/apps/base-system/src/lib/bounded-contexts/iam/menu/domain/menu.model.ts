@@ -37,7 +37,8 @@ export class Menu extends AggregateRoot implements IMenu {
   createdBy: string;
 
   static fromCreate(properties: MenuCreateProperties): Menu {
-    return Object.assign(new Menu(), properties);
+    // For create operations, set a temporary id that will be ignored by the repository
+    return Object.assign(new Menu(), { ...properties, id: 0 });
   }
 
   static fromUpdate(properties: MenuUpdateProperties): Menu {

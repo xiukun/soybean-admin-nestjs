@@ -43,7 +43,8 @@ export type MenuTreeProperties = MenuProperties & {
   children?: MenuTreeProperties[];
 };
 
-export type MenuCreateProperties = MenuProperties & CreationAuditInfoProperties;
+// For create operations, we don't need the id field as it's auto-generated
+export type MenuCreateProperties = Omit<MenuProperties, 'id'> & CreationAuditInfoProperties;
 
 export type MenuUpdateProperties = MenuProperties & UpdateAuditInfoProperties;
 

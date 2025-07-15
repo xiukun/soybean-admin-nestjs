@@ -5,6 +5,8 @@ export interface MenuReadRepoPort {
 
   getMenuById(id: number): Promise<MenuProperties | null>;
 
+  getMenuByRouteName(routeName: string): Promise<MenuProperties | null>;
+
   findMenusByRoleCode(
     roleCode: string[],
     domain: string,

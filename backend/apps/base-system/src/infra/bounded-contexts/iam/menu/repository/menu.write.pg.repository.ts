@@ -16,8 +16,36 @@ export class MenuWritePostgresRepository implements MenuWriteRepoPort {
   }
 
   async save(menu: Menu): Promise<void> {
+    // Use destructuring to explicitly exclude id and any other problematic fields
+    const { id, uid, ...menuData } = menu;
+
+    // Ensure we have the correct field mapping for Prisma
+    const prismaData = {
+      menuType: menuData.menuType,
+      menuName: menuData.menuName,
+      iconType: menuData.iconType,
+      icon: menuData.icon,
+      routeName: menuData.routeName,
+      routePath: menuData.routePath,
+      component: menuData.component,
+      pathParam: menuData.pathParam,
+      status: menuData.status,
+      activeMenu: menuData.activeMenu,
+      hideInMenu: menuData.hideInMenu,
+      pid: menuData.pid,
+      order: menuData.order,
+      i18nKey: menuData.i18nKey,
+      keepAlive: menuData.keepAlive,
+      constant: menuData.constant,
+      href: menuData.href,
+      multiTab: menuData.multiTab,
+      createdAt: menuData.createdAt,
+      createdBy: menuData.createdBy,
+      updatedAt: new Date(),
+    };
+
     await this.prisma.sysMenu.create({
-      data: { ...menu, id: undefined },
+      data: prismaData,
     });
   }
 
