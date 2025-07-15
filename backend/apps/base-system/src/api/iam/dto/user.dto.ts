@@ -1,6 +1,7 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Status } from '@prisma/client';
 
 export class UserCreateDto {
   @ApiProperty({ required: true })
@@ -40,6 +41,11 @@ export class UserCreateDto {
   @IsString({ message: 'phoneNumber must be a string or null' })
   @Type(() => String)
   phoneNumber: string | null;
+
+  @ApiProperty({ enum: Status, required: true })
+  @IsEnum(Status, { message: 'status must be a valid Status enum value' })
+  @IsNotEmpty({ message: 'status cannot be empty' })
+  status: Status;
 }
 
 export class UserUpdateDto extends OmitType(UserCreateDto, [

@@ -32,7 +32,7 @@ export class UserUpdateHandler
     const userUpdateProperties: UserUpdateProperties = {
       id: command.id,
       nickName: command.nickName,
-      status: Status.ENABLED,
+      status: command.status,
       avatar: command.avatar,
       email: command.email,
       phoneNumber: command.phoneNumber,

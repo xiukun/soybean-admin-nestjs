@@ -41,7 +41,7 @@ export class UserCreateHandler
       nickName: command.nickName,
       password: hashedPassword.getValue(),
       domain: command.domain,
-      status: Status.ENABLED,
+      status: command.status,
       avatar: command.avatar,
       email: command.email,
       phoneNumber: command.phoneNumber,
