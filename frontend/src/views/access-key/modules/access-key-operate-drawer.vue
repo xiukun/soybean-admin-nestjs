@@ -33,8 +33,8 @@ const { defaultRequiredRule } = useFormRules();
 
 const title = computed(() => {
   const titles: Record<NaiveUI.TableOperateType, string> = {
-    add: '添加AccessKey',
-    edit: '编辑AccessKey'
+    add: $t('page.manage.accessKey.addAccessKey'),
+    edit: $t('page.manage.accessKey.editAccessKey')
   };
   return titles[props.operateType];
 });
@@ -96,10 +96,10 @@ watch(visible, () => {
   <NDrawer v-model:show="visible" display-directive="show" :width="360">
     <NDrawerContent :title="title" :native-scrollbar="false" closable>
       <NForm ref="formRef" :model="model" :rules="rules">
-        <NFormItem label="domain" path="domain">
-          <NInput v-model:value="model.domain" />
+        <NFormItem :label="$t('page.manage.accessKey.domain')" path="domain">
+          <NInput v-model:value="model.domain" :placeholder="$t('page.manage.accessKey.form.domain')" />
         </NFormItem>
-        <NFormItem label="status" path="status">
+        <NFormItem :label="$t('page.manage.accessKey.status')" path="status">
           <NRadioGroup v-model:value="model.status">
             <NRadio v-for="item in enableStatusOptions" :key="item.value" :value="item.value" :label="$t(item.label)" />
           </NRadioGroup>
