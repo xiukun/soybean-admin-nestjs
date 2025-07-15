@@ -48,7 +48,7 @@ function createDefaultModel(): UserFormModel {
   return {
     username: '',
     password: '',
-    domain: '',
+    domain: 'built-in',
     nickName: '',
     phoneNumber: '',
     email: '',
