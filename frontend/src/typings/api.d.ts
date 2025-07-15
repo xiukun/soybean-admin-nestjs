@@ -150,7 +150,8 @@ declare namespace Api {
     type UserGender = '1' | '2';
 
     /** user search params */
-    type UserSearchParams = CommonSearchParams & Partial<Pick<User, 'username' | 'userGender' | 'nickName' | 'phoneNumber' | 'email' | 'status'>>;
+    type UserSearchParams = CommonSearchParams &
+      Partial<Pick<User, 'username' | 'userGender' | 'nickName' | 'phoneNumber' | 'email' | 'status'>>;
 
     /** user list */
     type UserList = Common.PaginatingQueryRecord<User>;

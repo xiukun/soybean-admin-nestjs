@@ -3,10 +3,10 @@ import { computed, reactive, watch } from 'vue';
 import { enableStatusOptions } from '@/constants/business';
 import type { RoleCreateModel, RoleUpdateModel } from '@/service/api';
 import { createRole, updateRole } from '@/service/api';
-
-type RoleFormModel = RoleCreateModel & Partial<Pick<RoleUpdateModel, 'id'>>;
 import { useFormRules, useNaiveForm } from '@/hooks/common/form';
 import { $t } from '@/locales';
+
+type RoleFormModel = RoleCreateModel & Partial<Pick<RoleUpdateModel, 'id'>>;
 
 defineOptions({
   name: 'RoleOperateDrawer'

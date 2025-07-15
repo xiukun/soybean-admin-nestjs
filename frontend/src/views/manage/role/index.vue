@@ -78,8 +78,8 @@ const {
         }
 
         const tagMap: Record<Api.Common.EnableStatus, NaiveUI.ThemeColor> = {
-          'ENABLED': 'success',
-          'DISABLED': 'warning'
+          ENABLED: 'success',
+          DISABLED: 'warning'
         };
 
         const statusKey = enableStatusRecord[row.status];

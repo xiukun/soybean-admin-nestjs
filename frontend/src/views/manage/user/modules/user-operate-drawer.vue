@@ -3,10 +3,10 @@ import { computed, reactive, watch } from 'vue';
 import { enableStatusOptions } from '@/constants/business';
 import type { UserCreateModel, UserUpdateModel } from '@/service/api';
 import { createUser, updateUser } from '@/service/api';
-
-type UserFormModel = UserCreateModel & Partial<Pick<UserUpdateModel, 'id'>>;
 import { useFormRules, useNaiveForm } from '@/hooks/common/form';
 import { $t } from '@/locales';
+
+type UserFormModel = UserCreateModel & Partial<Pick<UserUpdateModel, 'id'>>;
 
 defineOptions({
   name: 'UserOperateDrawer'

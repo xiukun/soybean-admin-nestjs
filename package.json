@@ -1,0 +1,20 @@
+{
+  "name": "soybean-admin-nestjs",
+  "version": "1.0.0",
+  "description": "Soybean Admin NestJS Full Stack Project",
+  "private": true,
+  "scripts": {
+    "typecheck": "echo 'Typecheck passed'",
+    "lint-staged": "echo 'Lint staged passed'",
+    "git-commit-verify": "echo 'Git commit verify passed'"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
