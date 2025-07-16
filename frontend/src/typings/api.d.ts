@@ -227,4 +227,88 @@ declare namespace Api {
       children?: ApiEndpoint[];
     };
   }
+
+  /**
+   * namespace Lowcode
+   *
+   * 低代码相关接口类型定义
+   */
+  namespace Lowcode {
+    /** 低代码页面状态 */
+    type PageStatus = 'ENABLED' | 'DISABLED';
+
+    /** 低代码页面基本信息 */
+    interface PageInfo {
+      /** 页面ID */
+      id: string;
+      /** 页面名称 */
+      name: string;
+      /** 页面标题 */
+      title: string;
+      /** 页面编码 */
+      code: string;
+      /** 页面描述 */
+      description?: string | null;
+      /** AMIS JSON Schema */
+      schema: any;
+      /** 页面状态 */
+      status: PageStatus;
+      /** 创建时间 */
+      createdAt: string;
+      /** 创建者 */
+      createdBy: string;
+      /** 更新时间 */
+      updatedAt?: string | null;
+      /** 更新者 */
+      updatedBy?: string | null;
+    }
+
+    /** 创建低代码页面请求 */
+    interface CreatePageRequest {
+      /** 页面名称 */
+      name: string;
+      /** 页面标题 */
+      title: string;
+      /** 页面编码 */
+      code: string;
+      /** 页面描述 */
+      description?: string;
+      /** AMIS JSON Schema */
+      schema: any;
+      /** 页面状态 */
+      status?: PageStatus;
+    }
+
+    /** 更新低代码页面请求 */
+    interface UpdatePageRequest {
+      /** 页面名称 */
+      name?: string;
+      /** 页面标题 */
+      title?: string;
+      /** 页面编码 */
+      code?: string;
+      /** 页面描述 */
+      description?: string;
+      /** AMIS JSON Schema */
+      schema?: any;
+      /** 页面状态 */
+      status?: PageStatus;
+      /** 变更日志 */
+      changelog?: string;
+    }
+
+    /** 低代码页面列表响应 */
+    interface PageListResponse {
+      /** 页面列表 */
+      items: PageInfo[];
+      /** 当前页码 */
+      current: number;
+      /** 每页数量 */
+      size: number;
+      /** 总数量 */
+      total: number;
+      /** 总页数 */
+      pages: number;
+    }
+  }
 }

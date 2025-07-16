@@ -1,11 +1,18 @@
 import agHttp from '@/utils/http'
 
-export const amisPageFindDetail = (data: object) => {
-  return agHttp.post('/system/amisPage/findOne', data)
+export const amisPageFindDetail = (data: { id: string }) => {
+  // 根据菜单ID获取低代码页面
+  return agHttp.get(`/v1/lowcode/pages/menu/${data.id}`)
 }
 
-export const amisPageSave = (data: object) => {
-  return agHttp.post('/system/amisPage/save', data)
+export const amisPageSave = (data: { id: string; content: string; unitType?: string }) => {
+  // 保存低代码页面到后端
+  const schema = JSON.parse(data.content)
+  return agHttp.post(`/v1/lowcode/pages/menu/${data.id}/save`, {
+    schema,
+    title: undefined, // 可以从URL参数中获取
+    changelog: `设计器保存 - ${new Date().toLocaleString()}`
+  })
 }
 
 export const amisPageFindHistoryListById = (data: object) => {

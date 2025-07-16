@@ -45,13 +45,13 @@ export class MenuService {
         i18nKey: menu.i18nKey,
         constant: menu.constant,
         hideInMenu: menu.hideInMenu,
-
         keepAlive: menu.keepAlive,
         icon: menu.icon,
         order: menu.order,
         href: menu.href,
         activeMenu: menu.activeMenu,
         multiTab: menu.multiTab,
+        menuId: menu.id.toString(), // 添加菜单ID到meta中
       },
     }));
   }
@@ -89,6 +89,7 @@ function buildMenuTree(
       hideInMenu: menu.hideInMenu,
       activeMenu: menu.activeMenu,
       multiTab: menu.multiTab,
+      menuId: menu.id.toString(), // 添加菜单ID到meta中
     },
     children: buildMenuTree(menus, menu.id),
   }));

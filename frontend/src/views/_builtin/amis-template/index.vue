@@ -1,23 +1,69 @@
 <script setup lang="ts">
-import { defineOptions, onActivated, onBeforeMount, onDeactivated, ref } from 'vue';
-import { amisApi } from '@/service/api/amis.api';
+import { defineOptions, onActivated, onBeforeMount, onDeactivated, ref, computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { fetchGetLowcodePageByMenuId } from '@/service/api/lowcode';
 import { useThemeStore } from '@/store/modules/theme';
 import { useAppStore } from '@/store/modules/app';
+
 import AmisRenderer from '@/components/amis-renderer/amis.vue';
 import OpenDesignerIcon from '@/components/amis-renderer/open-designer-icon.vue';
+
 defineOptions({
   name: 'AmisTemplatePage'
 });
+
+const route = useRoute();
 const themeStore = useThemeStore();
 const appStore = useAppStore();
+
 const amisRef = ref();
 const schema = ref({} as any);
+const lowcodePageInfo = ref<Api.Lowcode.PageInfo | null>(null);
 const themeMark = ref(themeStore.themeScheme);
 const localeMark = ref(appStore.locale);
 
+// 获取当前菜单ID（从路由meta中直接获取）
+const currentMenuId = computed(() => {
+  const menuId = route.meta?.menuId;
+  return menuId ? parseInt(menuId, 10) : null;
+});
+
 onBeforeMount(async () => {
-  const res = await amisApi.fetchGetAmisSchema();
-  schema.value = res;
+  try {
+    const menuId = currentMenuId.value;
+
+    if (menuId) {
+      // 直接通过菜单ID获取低代码页面数据
+      const { data: pageInfo } = await fetchGetLowcodePageByMenuId(menuId);
+      if (pageInfo) {
+        lowcodePageInfo.value = pageInfo;
+        schema.value = pageInfo.schema || {};
+      } else {
+        // 如果没有找到页面数据，使用默认schema
+        schema.value = getDefaultSchema();
+      }
+    } else {
+      // 如果没有找到菜单ID，使用默认schema
+      schema.value = getDefaultSchema();
+    }
+  } catch (error) {
+    console.error('Failed to load lowcode page:', error);
+    // 出错时使用默认schema
+    schema.value = getDefaultSchema();
+  }
+});
+
+// 默认schema
+const getDefaultSchema = () => ({
+  type: 'page',
+  title: '低代码页面',
+  body: [
+    {
+      type: 'alert',
+      level: 'info',
+      body: '当前页面暂未配置低代码内容，请联系管理员进行配置。'
+    }
+  ]
 });
 // 刷新
 const handleRefresh = () => {
@@ -40,7 +86,12 @@ onDeactivated(() => {
     <AmisRenderer ref="amisRef" :schema="schema" />
 
     <div class="icon-float-right">
-      <OpenDesignerIcon />
+      <OpenDesignerIcon
+        :lowcode-page-info="lowcodePageInfo"
+        :menu-id="currentMenuId"
+        :page-key="lowcodePageInfo?.id || `menu_${currentMenuId}`"
+        :objtitle="lowcodePageInfo?.title || route.meta?.title || '低代码页面'"
+      />
     </div>
   </div>
 </template>

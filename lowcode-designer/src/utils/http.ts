@@ -2,7 +2,19 @@ import Axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 import { getToken } from './token'
 import { getServiceAddress } from './system-address'
 
-const searchParams = new URLSearchParams(location.hash || location.search)
+// 正确解析hash模式下的查询参数
+const getSearchParams = () => {
+  const hash = location.hash
+  if (hash && hash.includes('?')) {
+    // 从hash中提取查询参数部分: #/?pageKey=81&token=... -> pageKey=81&token=...
+    const queryString = hash.split('?')[1]
+    return new URLSearchParams(queryString)
+  }
+  // 回退到普通的search参数
+  return new URLSearchParams(location.search)
+}
+
+const searchParams = getSearchParams()
 const { CancelToken } = Axios
 // 取消重复请求
 const pending = [] as any
@@ -59,9 +71,11 @@ class Http {
       (config: any) => {
         const $config = config
 
-        $config.headers['Token'] = getToken()
+        const token = getToken()
+        if (token) {
+          $config.headers['Authorization'] = `Bearer ${token}`
+        }
         $config.headers['Page-Auth'] = searchParams.get('pageKey') // 功能页面标识，后端需要用到
-        $config.headers['ag-neptune-token'] = getToken()
         removePending($config)
         config.cancelToken = new CancelToken(c => {
           const { url, method, params, data } = config

@@ -147,7 +147,27 @@ export default defineConfig(({ mode, command }) => {
         '/api': {
           target: env.VITE_APP_API_BASEURL,
           changeOrigin: true,
-          rewrite: path => path.replace(/\/api/, ''),
+          secure: false,
+          timeout: 30000,
+          rewrite: path => {
+            const newPath = path.replace(/^\/api/, '')
+            console.log(`Proxy rewrite: ${path} -> ${newPath}`)
+            console.log(`Target: ${env.VITE_APP_API_BASEURL}${newPath}`)
+            return newPath
+          },
+          configure: (proxy, options) => {
+            proxy.on('error', (err, req, res) => {
+              console.log('Proxy error:', err.message)
+              console.log('Request URL:', req.url)
+            })
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              console.log('Proxy request:', req.method, req.url)
+              console.log('Target URL:', `${options.target}${req.url}`)
+            })
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              console.log('Proxy response:', proxyRes.statusCode, req.url)
+            })
+          },
         },
       },
     },

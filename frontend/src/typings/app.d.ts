@@ -217,6 +217,8 @@ declare namespace App {
       icon?: () => VNode;
       /** The menu children */
       children?: Menu[];
+      /** The menu database ID */
+      id?: string;
     };
 
     type Breadcrumb = Omit<Menu, 'children'> & {

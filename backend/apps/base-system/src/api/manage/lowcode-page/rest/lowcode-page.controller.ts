@@ -13,6 +13,7 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { ApiRes } from '@lib/infra/rest/res.response';
+import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
 
 import {
   CreateLowcodePageDto,
@@ -39,7 +40,8 @@ import { GetLowcodePageVersionsQuery } from '@lowcode/page/queries/get-lowcode-p
 import { Status } from '@prisma/client';
 
 @ApiTags('Lowcode Page Management')
-@Controller('lowcode-pages')
+@ApiJwtAuth() // 添加Bearer认证装饰器
+@Controller('lowcode/pages')
 export class LowcodePageController {
   constructor(
     private readonly queryBus: QueryBus,
@@ -119,6 +121,57 @@ export class LowcodePageController {
     );
 
     return ApiRes.success(result);
+  }
+
+  @Post('menu/:menuId/save')
+  @ApiOperation({ summary: 'Save lowcode page for menu (designer)' })
+  @ApiResponse({ status: 200, description: 'Success' })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  async savePageForMenu(
+    @Param('menuId') menuId: string,
+    @Body() dto: { schema: any; title?: string; changelog?: string },
+    @Request() req: any,
+  ): Promise<ApiRes<any>> {
+    // 首先检查菜单是否已有低代码页面
+    const existingPage = await this.queryBus.execute(
+      new GetLowcodePageByMenuQuery(parseInt(menuId, 10)),
+    );
+
+    if (existingPage) {
+      // 更新现有页面
+      const result = await this.commandBus.execute(
+        new LowcodePageUpdateCommand(
+          existingPage.id,
+          undefined, // name - 不更新
+          dto.title || existingPage.title,
+          undefined, // description - 不更新
+          dto.schema,
+          undefined, // status - 不更新
+          dto.changelog || `设计器保存 - ${new Date().toLocaleString()}`,
+          req.user.uid,
+        ),
+      );
+      return ApiRes.success(result);
+    } else {
+      // 创建新页面
+      const result = await this.commandBus.execute(
+        new LowcodePageCreateCommand(
+          `menu_${menuId}_page`,
+          dto.title || `菜单${menuId}页面`,
+          `menu_${menuId}_code`,
+          `菜单${menuId}的低代码页面`,
+          dto.schema,
+          Status.ENABLED,
+          dto.changelog || `设计器创建 - ${new Date().toLocaleString()}`,
+          req.user.uid,
+        ),
+      );
+
+      // TODO: 需要将新创建的页面ID关联到菜单
+      // 这里需要调用菜单更新命令来设置lowcodePageId
+
+      return ApiRes.success(result);
+    }
   }
 
   @Put(':id')

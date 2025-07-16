@@ -141,6 +141,11 @@ function getGlobalMenuByBaseRoute(route: RouteLocationNormalizedLoaded | Elegant
     icon: SvgIconVNode({ icon, localIcon, fontSize: iconFontSize || 20 })
   };
 
+  // 如果路由包含ID字段（来自后端的MenuRoute），则保留它
+  if ('id' in route && route.id) {
+    menu.id = route.id;
+  }
+
   return menu;
 }
 

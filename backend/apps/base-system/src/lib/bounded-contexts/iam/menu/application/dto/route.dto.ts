@@ -9,6 +9,7 @@ export type RouteMeta = {
   hideInMenu: boolean | null;
   activeMenu: string | null;
   multiTab: boolean | null;
+  menuId: string; // 添加菜单ID到meta中
 };
 
 export type MenuRoute = {
