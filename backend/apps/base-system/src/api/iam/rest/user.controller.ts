@@ -22,6 +22,7 @@ import {
 import { PageUsersQuery } from '@app/base-system/lib/bounded-contexts/iam/authentication/queries/page-users.query';
 
 import { ApiResponseDoc } from '@lib/infra/decorators/api-result.decorator';
+import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
 import { PaginationResult } from '@lib/shared/prisma/pagination';
 
@@ -29,6 +30,7 @@ import { PageUsersDto } from '../dto/page-users.dto';
 import { UserCreateDto, UserUpdateDto } from '../dto/user.dto';
 
 @ApiTags('User - Module')
+@ApiJwtAuth() // 添加Bearer认证装饰器
 @Controller('user')
 export class UserController {
   constructor(

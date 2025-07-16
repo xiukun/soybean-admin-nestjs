@@ -10,6 +10,7 @@ import { PageLoginLogsQuery } from '@app/base-system/lib/bounded-contexts/log-au
 
 import { AuthActionVerb, AuthZGuard, UsePermissions } from '@lib/infra/casbin';
 import { ApiResponseDoc } from '@lib/infra/decorators/api-result.decorator';
+import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
 import { PaginationResult } from '@lib/shared/prisma/pagination';
 
@@ -17,6 +18,7 @@ import { PageLoginLogsQueryDto } from '../dto/page-login-log.dto';
 
 @UseGuards(AuthZGuard)
 @ApiTags('Login Log - Module')
+@ApiJwtAuth() // 添加Bearer认证装饰器
 @Controller('login-log')
 export class LoginLogController {
   constructor(private readonly queryBus: QueryBus) {}

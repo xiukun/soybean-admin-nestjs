@@ -15,6 +15,7 @@ import {
 import { ApiKeyAuth } from '@lib/infra/decorators/api-key.decorator';
 import { BypassTransform } from '@lib/infra/decorators/bypass-transform.decorator';
 import { Public } from '@lib/infra/decorators/public.decorator';
+import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
 import {
   ComplexApiKeyServiceToken,
   SimpleApiKeyServiceToken,
@@ -66,12 +67,14 @@ export class AppController {
   }
 
   @Get('/system-info')
+  @ApiJwtAuth() // 添加Bearer认证装饰器
   async getSystemInfo() {
     const result = await this.appService.getSystemInfo();
     return ApiRes.success(result);
   }
 
   @Get('/redis-info')
+  @ApiJwtAuth() // 添加Bearer认证装饰器
   async getRedisInfo() {
     const result = await this.appService.getRedisInfo();
     return ApiRes.success(result);

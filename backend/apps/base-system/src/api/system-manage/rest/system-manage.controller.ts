@@ -6,9 +6,11 @@ import { RoleProperties } from '@app/base-system/lib/bounded-contexts/iam/role/d
 import { AllRolesQuery } from '@app/base-system/lib/bounded-contexts/iam/role/queries/all-roles.query';
 
 import { ApiResponseDoc } from '@lib/infra/decorators/api-result.decorator';
+import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
 
 @ApiTags('System Manage - Module')
+@ApiJwtAuth() // 添加Bearer认证装饰器
 @Controller('systemManage')
 export class SystemManageController {
   constructor(private readonly queryBus: QueryBus) {}

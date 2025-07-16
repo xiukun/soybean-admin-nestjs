@@ -16,6 +16,7 @@ import { IAuthentication } from '@lib/typings/global';
 import { getClientIpAndPort } from '@lib/utils/ip.util';
 
 import { PasswordLoginDto } from '../dto/password-login.dto';
+import { ApiJwtAuth } from '@lib/infra/decorators';
 
 @ApiTags('Authentication - Module')
 @Controller('auth')
@@ -82,6 +83,7 @@ export class AuthenticationController {
     return ApiRes.success(token);
   }
 
+  @ApiJwtAuth() // 添加Bearer认证装饰器
   @Get('getUserInfo')
   async getProfile(@Request() req: any): Promise<ApiRes<any>> {
     const user: IAuthentication = req.user;

@@ -10,9 +10,11 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ApiRes } from '@lib/infra/rest/res.response';
+import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
 
 // 简化的低代码页面控制器，用于测试基本功能
 @ApiTags('Simple Lowcode Pages')
+@ApiJwtAuth() // 添加Bearer认证装饰器
 @Controller('simple-lowcode-pages')
 export class SimpleLowcodeController {
   

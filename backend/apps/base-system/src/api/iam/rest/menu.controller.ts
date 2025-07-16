@@ -24,11 +24,13 @@ import { MenusQuery } from '@app/base-system/lib/bounded-contexts/iam/menu/queri
 import { MenusTreeQuery } from '@app/base-system/lib/bounded-contexts/iam/menu/queries/menus.tree.query';
 
 import { Public } from '@lib/infra/decorators/public.decorator';
+import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
 
 import { RouteCreateDto, RouteUpdateDto } from '../dto/route.dto';
 
 @ApiTags('Menu - Module')
+@ApiJwtAuth() // 添加Bearer认证装饰器
 @Controller('route')
 export class MenuController {
   constructor(

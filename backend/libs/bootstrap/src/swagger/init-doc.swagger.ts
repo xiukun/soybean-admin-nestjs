@@ -37,12 +37,15 @@ export function initDocSwagger(
       'https://github.com/soybeanjs/soybean-admin-nestjs/blob/main/LICENSE',
     );
 
-  documentBuilder.addSecurity('', {
-    description: 'Bearer Authentication',
-    type: 'http',
-    scheme: 'bearer',
-    bearerFormat: 'JWT',
-  });
+  documentBuilder.addBearerAuth(
+    {
+      description: 'Bearer Authentication',
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+    },
+    'bearer', // 这是安全方案的名称
+  );
 
   const document = SwaggerModule.createDocument(app, documentBuilder.build(), {
     ignoreGlobalPrefix: false,

@@ -19,6 +19,7 @@ import { MenuService } from '@app/base-system/lib/bounded-contexts/iam/menu/appl
 
 import { CacheConstant } from '@lib/constants/cache.constant';
 import { AuthZGuard, UsePermissions } from '@lib/infra/casbin';
+import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
 import { RedisUtility } from '@lib/shared/redis/redis.util';
 import { IAuthentication } from '@lib/typings/global';
@@ -29,6 +30,7 @@ import { AssignUserDto } from '../dto/assign-user.dto';
 
 @UseGuards(AuthZGuard)
 @ApiTags('Authorization - Module')
+@ApiJwtAuth() // 添加Bearer认证装饰器
 @Controller('authorization')
 export class AuthorizationController {
   constructor(

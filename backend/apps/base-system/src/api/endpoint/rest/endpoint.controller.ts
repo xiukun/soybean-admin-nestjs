@@ -20,6 +20,7 @@ import { PageEndpointsQuery } from '@app/base-system/lib/bounded-contexts/api-en
 
 import { AuthActionVerb, AuthZGuard, UsePermissions } from '@lib/infra/casbin';
 import { ApiResponseDoc } from '@lib/infra/decorators/api-result.decorator';
+import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
 import { PaginationResult } from '@lib/shared/prisma/pagination';
 
@@ -27,6 +28,7 @@ import { PageEndpointsQueryDto } from '../dto/page-endpoint.dto';
 
 @UseGuards(AuthZGuard)
 @ApiTags('API Endpoint - Module')
+@ApiJwtAuth() // 添加Bearer认证装饰器
 @Controller('api-endpoint')
 export class EndpointController {
   constructor(

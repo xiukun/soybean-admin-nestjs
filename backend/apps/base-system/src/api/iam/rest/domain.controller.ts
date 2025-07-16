@@ -22,6 +22,7 @@ import {
 import { PageDomainsQuery } from '@app/base-system/lib/bounded-contexts/iam/domain/queries/page-domains.query';
 
 import { ApiResponseDoc } from '@lib/infra/decorators/api-result.decorator';
+import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
 import { PaginationResult } from '@lib/shared/prisma/pagination';
 
@@ -29,6 +30,7 @@ import { DomainCreateDto, DomainUpdateDto } from '../dto/domain.dto';
 import { PageDomainsDto } from '../dto/page-domains.dto';
 
 @ApiTags('Casbin Domain - Module')
+@ApiJwtAuth() // 添加Bearer认证装饰器
 @Controller('domain')
 export class DomainController {
   constructor(

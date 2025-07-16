@@ -20,6 +20,7 @@ import {
 import { PageAccessKeysQuery } from '@app/base-system/lib/bounded-contexts/access-key/queries/page-access_key.query';
 
 import { ApiResponseDoc } from '@lib/infra/decorators/api-result.decorator';
+import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
 import { BUILT_IN } from '@lib/shared/prisma/db.constant';
 import { PaginationResult } from '@lib/shared/prisma/pagination';
@@ -28,6 +29,7 @@ import { AccessKeyCreateDto } from '../dto/access_key.dto';
 import { PageAccessKeysQueryDto } from '../dto/page-access_key.dto';
 
 @ApiTags('AccessKey - Module')
+@ApiJwtAuth() // 添加Bearer认证装饰器
 @Controller('access-key')
 export class AccessKeyController {
   constructor(
