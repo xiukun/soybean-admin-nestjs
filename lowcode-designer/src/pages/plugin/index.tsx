@@ -22,7 +22,7 @@ function PluginEditor() {
   return (
     <>
       <Suspense fallback={<Spinner overlay className="m-t-lg" size="lg" />}>
-        <Amis title="岸基组件设计器" editorType="plugin" />
+        <Amis title="组件设计器" editorType="plugin" />
       </Suspense>
     </>
   )

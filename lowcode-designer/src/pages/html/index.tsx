@@ -22,7 +22,7 @@ function HtmlEditor() {
   return (
     <>
       <Suspense fallback={<Spinner overlay className="m-t-lg" size="lg" />}>
-        <Amis title="岸基页面设计器" editorType="html" />
+        <Amis title="页面设计器" editorType="html" />
       </Suspense>
     </>
   )

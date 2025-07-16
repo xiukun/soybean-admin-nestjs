@@ -21,7 +21,7 @@ function FlowEditor() {
   return (
     <>
       <Suspense fallback={<Spinner overlay className="m-t-lg" size="lg" />}>
-        <Amis title="岸基工作流设计器" editorType="flow" />
+        <Amis title="工作流设计器" editorType="flow" />
       </Suspense>
     </>
   )
