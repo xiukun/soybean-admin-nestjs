@@ -1,1 +1,0 @@
-import{g as p}from"./react-vendor-DeqkGhWy.js";import{e9 as u}from"./amis-WMe1Knp9.js";var r,t;function g(){if(t)return r;t=1;var i=u(),a=i(function(o,e,n){o[n?0:1].push(e)},function(){return[[],[]]});return r=a,r}var s=g();const m=p(s);export{m as p};

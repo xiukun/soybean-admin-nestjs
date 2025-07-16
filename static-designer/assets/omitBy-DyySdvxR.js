@@ -1,0 +1,1 @@
+import{g as u}from"./react-vendor-DeqkGhWy.js";import{bv as n}from"./amis-CX4p0iDy.js";import{c as f}from"./index-ChmYUKkS.js";import{aK as p}from"./amis-editor-sioseBVH.js";var r,e;function y(){if(e)return r;e=1;var t=n(),i=f(),o=p();function a(m,s){return o(m,i(t(s)))}return r=a,r}var B=y();const b=u(B);export{b as o};
