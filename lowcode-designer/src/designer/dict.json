@@ -1,0 +1,76 @@
+[
+  {
+    "apiName": "groundPile",
+    "appName": "WMS",
+    "desc": "",
+    "id": "1737299967661309952",
+    "name": "是否地堆",
+    "options": [
+      {
+        "type": "tag",
+        "label": "是",
+        "displayMode": "status",
+        "color": "success",
+        "closable": true,
+        "dictValue": "1"
+      },
+      {
+        "type": "tag",
+        "label": "否",
+        "displayMode": "status",
+        "color": "#f70e47",
+        "closable": false,
+        "dictValue": "0"
+      }
+    ]
+  },
+  {
+    "apiName": "wareHouse",
+    "appName": "WMS",
+    "desc": "",
+    "id": "1735465137768235008",
+    "name": "是否所属仓库",
+    "options": [
+      {
+        "type": "tag",
+        "label": "是1",
+        "displayMode": "status",
+        "color": "#46c857",
+        "closable": true,
+        "dictValue": "1"
+      },
+      {
+        "type": "tag",
+        "label": "否2",
+        "displayMode": "status",
+        "color": "#cf3333",
+        "closable": false,
+        "dictValue": "0"
+      }
+    ]
+  },
+  {
+    "apiName": "inventoryCompleteType",
+    "appName": "WMS",
+    "desc": "",
+    "id": "1733020346950352896",
+    "name": "盘点任务完成状态",
+    "options": [
+      {
+        "apiName": "COMPLETE",
+        "color": "",
+        "name": "完成"
+      },
+      {
+        "apiName": "TOBECOMPLETE",
+        "color": "",
+        "name": "待盘点"
+      },
+      {
+        "apiName": "COMPLETING",
+        "color": "",
+        "name": "盘点中"
+      }
+    ]
+  }
+]

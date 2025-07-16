@@ -1,0 +1,527 @@
+{
+  "type": "page",
+  "body": [
+    {
+      "type": "tabs",
+      "tabs": [
+        {
+          "title": "流程告警",
+          "body": [
+            {
+              "type": "crud",
+              "syncLocation": false,
+              "labelTpl": "${flowId}",
+              "api": {
+                "method": "post",
+                "url": "/service/warn/amis-warn-msg/getData",
+                "data": {
+                  "flag": 0,
+                  "flowId": "${flowId}",
+                  "sendSuccess": "${sendSuccess}"
+                },
+                "requestAdaptor": "",
+                "adaptor": "",
+                "messages": {},
+                "dataType": "form"
+              },
+              "bulkActions": [
+                {
+                  "type": "button",
+                  "level": "danger",
+                  "label": "批量删除",
+                  "actionType": "ajax",
+                  "confirmText": "确定要批量删除？",
+                  "api": {
+                    "method": "post",
+                    "url": "/service/warn/amis-warn-msg/deleteBatchIds",
+                    "dataType": "form"
+                  },
+                  "id": "u:77cbaccf5ec7"
+                },
+                {
+                  "type": "button",
+                  "level": "primary",
+                  "label": "批量发送",
+                  "actionType": "ajax",
+                  "confirmText": "确定要批量发送？",
+                  "api": {
+                    "method": "post",
+                    "url": "/service/warn/amis-warn-msg/sendBatchIds",
+                    "dataType": "form",
+                    "data": {
+                      "flag": 0,
+                      "ids": "${ids}"
+                    }
+                  },
+                  "id": "u:77cbaccf5ec7"
+                }
+              ],
+              "itemActions": [],
+              "features": ["create", "filter", "bulkDelete", "update", "delete"],
+              "filterColumnCount": 3,
+              "headerToolbar": [
+                {
+                  "type": "bulk-actions"
+                }
+              ],
+              "id": "u:e0986bb8473c",
+              "perPageAvailable": [10],
+              "messages": {},
+              "initFetch": true,
+              "loadDataOnce": true,
+              "footerToolbar": [
+                {
+                  "type": "statistics"
+                },
+                {
+                  "type": "pagination"
+                },
+                {
+                  "type": "filter-toggler",
+                  "tpl": "内容",
+                  "wrapperComponent": "",
+                  "id": "u:d28e3a7e699b"
+                }
+              ],
+              "alwaysShowPagination": true,
+              "autoFillHeight": true,
+              "mode": "table",
+              "columns": [
+                {
+                  "name": "id",
+                  "label": "ID",
+                  "type": "text",
+                  "id": "u:b6f07445a720",
+                  "visibleOn": "false"
+                },
+                {
+                  "name": "amisWarnRelationFlow.flowId",
+                  "label": "流程ID",
+                  "type": "text",
+                  "id": "u:fee961086aac",
+                  "placeholder": "-",
+                  "fixed": ""
+                },
+                {
+                  "name": "title",
+                  "label": "消息标题",
+                  "type": "text",
+                  "id": "u:28d0ccbfd676",
+                  "placeholder": "-",
+                  "fixed": ""
+                },
+                {
+                  "name": "contetnt",
+                  "label": "消息内容",
+                  "type": "text",
+                  "id": "u:28d0ccbfd686",
+                  "placeholder": "-",
+                  "fixed": ""
+                },
+                {
+                  "name": "sendSuccess",
+                  "label": "是否发送成功",
+                  "type": "text",
+                  "id": "u:28d0ccbfd686",
+                  "placeholder": "-",
+                  "fixed": "",
+                  "visibleOn": "false"
+                },
+                {
+                  "name": "sendSuccessName",
+                  "label": "是否发送成功",
+                  "type": "text",
+                  "id": "u:5d818bce34a6",
+                  "placeholder": "-",
+                  "fixed": ""
+                },
+                {
+                  "name": "amisWarnRelationFlow.msgTypeName",
+                  "label": "发送方式",
+                  "type": "text",
+                  "id": "u:5d818bce34a6",
+                  "placeholder": "-",
+                  "fixed": ""
+                },
+                {
+                  "type": "operation",
+                  "label": "操作",
+                  "buttons": [
+                    {
+                      "label": "重新发送",
+                      "type": "button",
+                      "visibleOn": "sendSuccess == '0'",
+                      "level": "link",
+                      "actionType": "ajax",
+                      "confirmText": "确定要重新发送吗？",
+                      "api": {
+                        "method": "post",
+                        "url": "/service/warn/amis-warn-msg/send",
+                        "requestAdaptor": "",
+                        "adaptor": "",
+                        "data": {
+                          "flag": 0,
+                          "id": "${id}"
+                        },
+                        "messages": {},
+                        "dataType": "form"
+                      },
+                      "id": "u:d5c0babade5e"
+                    },
+                    {
+                      "type": "button",
+                      "label": "删除",
+                      "level": "link",
+                      "className": "text-danger",
+                      "actionType": "ajax",
+                      "confirmText": "确定要删除？",
+                      "api": {
+                        "method": "post",
+                        "url": "/service/warn/amis-warn-msg/delete",
+                        "requestAdaptor": "",
+                        "adaptor": "",
+                        "messages": {},
+                        "dataType": "form"
+                      },
+                      "id": "u:bf5fb9f355a2"
+                    }
+                  ],
+                  "id": "u:0ad7ded1fb93"
+                }
+              ],
+              "filter": {
+                "title": "查询条件",
+                "body": [
+                  {
+                    "type": "select",
+                    "label": "流程ID",
+                    "name": "flowId",
+                    "id": "u:78669aa83a7c",
+                    "multiple": false,
+                    "size": "md",
+                    "options": [
+                      {
+                        "label": "agsecp20230910112034",
+                        "value": "agsecp20230910112034"
+                      },
+                      {
+                        "label": "agsecp20231012200043",
+                        "value": "agsecp20231012200043"
+                      },
+                      {
+                        "label": "agsecp20231111113345",
+                        "value": "agsecp20231111113345"
+                      },
+                      {
+                        "label": "agsecp20231120141203",
+                        "value": "agsecp20231120141203"
+                      }
+                    ],
+                    "labelField": "label",
+                    "valueField": "value"
+                  },
+                  {
+                    "type": "select",
+                    "label": "是否发送成功",
+                    "name": "sendSuccess",
+                    "id": "u:78669aa83a78",
+                    "multiple": false,
+                    "size": "md",
+                    "options": [
+                      {
+                        "label": "发送成功",
+                        "value": 1
+                      },
+                      {
+                        "label": "发送失败",
+                        "value": 0
+                      }
+                    ],
+                    "labelField": "label",
+                    "valueField": "value"
+                  }
+                ],
+                "id": "u:26246d4ad092",
+                "submitText": "查询",
+                "canAccessSuperData": true,
+                "type": "form",
+                "actionType": "reload",
+                "actions": [
+                  {
+                    "type": "submit",
+                    "label": "查询",
+                    "primary": true,
+                    "id": "u:d7dde544cced"
+                  }
+                ]
+              },
+              "perPage": 12,
+              "onEvent": {}
+            }
+          ],
+          "id": "u:287444837bfa"
+        },
+        {
+          "title": "系统告警",
+          "body": [
+            {
+              "type": "crud",
+              "syncLocation": false,
+              "labelTpl": "${typeAbbEn}",
+              "api": {
+                "method": "post",
+                "url": "/service/warn/amis-warn-msg/getData",
+                "data": {
+                  "flag": 1,
+                  "typeAbbEn": "${typeAbbEn}",
+                  "typeName": "${typeName}",
+                  "sendSuccess": "${sendSuccess}"
+                },
+                "requestAdaptor": "",
+                "adaptor": "",
+                "messages": {},
+                "dataType": "form"
+              },
+              "bulkActions": [
+                {
+                  "type": "button",
+                  "level": "danger",
+                  "label": "批量删除",
+                  "actionType": "ajax",
+                  "confirmText": "确定要批量删除？",
+                  "api": {
+                    "method": "post",
+                    "url": "/service/warn/amis-warn-msg/deleteBatchIds",
+                    "dataType": "form"
+                  },
+                  "id": "u:77cbaccf5ec7"
+                },
+                {
+                  "type": "button",
+                  "level": "primary",
+                  "label": "批量发送",
+                  "actionType": "ajax",
+                  "confirmText": "确定要批量发送？",
+                  "api": {
+                    "method": "post",
+                    "url": "/service/warn/amis-warn-msg/sendBatchIds",
+                    "dataType": "form",
+                    "data": {
+                      "flag": 1,
+                      "ids": "${ids}"
+                    }
+                  },
+                  "id": "u:77cbaccf5ec7"
+                }
+              ],
+              "itemActions": [],
+              "features": ["create", "filter", "bulkDelete", "update", "delete"],
+              "filterColumnCount": 3,
+              "headerToolbar": [
+                {
+                  "type": "bulk-actions"
+                }
+              ],
+              "id": "u:e0986bb8473c",
+              "perPageAvailable": [10],
+              "messages": {},
+              "initFetch": true,
+              "loadDataOnce": true,
+              "footerToolbar": [
+                {
+                  "type": "statistics"
+                },
+                {
+                  "type": "pagination"
+                },
+                {
+                  "type": "filter-toggler",
+                  "tpl": "内容",
+                  "wrapperComponent": "",
+                  "id": "u:d28e3a7e699b"
+                }
+              ],
+              "alwaysShowPagination": true,
+              "autoFillHeight": true,
+              "mode": "table",
+              "columns": [
+                {
+                  "name": "id",
+                  "label": "ID",
+                  "type": "text",
+                  "id": "u:b6f07445a720",
+                  "visibleOn": "false"
+                },
+                {
+                  "name": "amisWarnRelationSyserror.typeAbbEn",
+                  "label": "类型简称",
+                  "type": "text",
+                  "id": "u:fee961086aac",
+                  "placeholder": "-",
+                  "fixed": ""
+                },
+                {
+                  "name": "amisWarnRelationSyserror.typeName",
+                  "label": "类型名称",
+                  "type": "text",
+                  "id": "u:fee961086aac",
+                  "placeholder": "-",
+                  "fixed": ""
+                },
+                {
+                  "name": "title",
+                  "label": "消息标题",
+                  "type": "text",
+                  "id": "u:28d0ccbfd676",
+                  "placeholder": "-",
+                  "fixed": ""
+                },
+                {
+                  "name": "contetnt",
+                  "label": "消息内容",
+                  "type": "text",
+                  "id": "u:28d0ccbfd686",
+                  "placeholder": "-",
+                  "fixed": ""
+                },
+                {
+                  "name": "sendSuccess",
+                  "label": "是否发送成功",
+                  "type": "text",
+                  "id": "u:28d0ccbfd686",
+                  "placeholder": "-",
+                  "fixed": "",
+                  "visibleOn": "false"
+                },
+                {
+                  "name": "sendSuccessName",
+                  "label": "是否发送成功",
+                  "type": "text",
+                  "id": "u:5d818bce34a6",
+                  "placeholder": "-",
+                  "fixed": ""
+                },
+                {
+                  "name": "amisWarnRelationSyserror.msgTypeName",
+                  "label": "发送方式",
+                  "type": "text",
+                  "id": "u:5d818bce34a6",
+                  "placeholder": "-",
+                  "fixed": ""
+                },
+                {
+                  "type": "operation",
+                  "label": "操作",
+                  "buttons": [
+                    {
+                      "label": "重新发送",
+                      "type": "button",
+                      "visibleOn": "sendSuccess == '0'",
+                      "level": "link",
+                      "actionType": "ajax",
+                      "confirmText": "确定要重新发送吗？",
+                      "api": {
+                        "method": "post",
+                        "url": "/service/warn/amis-warn-msg/send",
+                        "requestAdaptor": "",
+                        "adaptor": "",
+                        "data": {
+                          "flag": 1,
+                          "id": "${id}"
+                        },
+                        "messages": {},
+                        "dataType": "form"
+                      },
+                      "id": "u:d5c0babade5e"
+                    },
+                    {
+                      "type": "button",
+                      "label": "删除",
+                      "level": "link",
+                      "className": "text-danger",
+                      "actionType": "ajax",
+                      "confirmText": "确定要删除？",
+                      "api": {
+                        "method": "post",
+                        "url": "/service/warn/amis-warn-msg/delete",
+                        "requestAdaptor": "",
+                        "adaptor": "",
+                        "messages": {},
+                        "dataType": "form"
+                      },
+                      "id": "u:bf5fb9f355a2"
+                    }
+                  ],
+                  "id": "u:0ad7ded1fb93"
+                }
+              ],
+              "filter": {
+                "title": "查询条件",
+                "body": [
+                  {
+                    "type": "input-text",
+                    "label": "类型简称",
+                    "id": "u:4f88667255d4",
+                    "name": "typeAbbEn",
+                    "clearable": true,
+                    "size": "md",
+                    "validations": "matchRegexp:^[a-zA-Z]+$",
+                    "validationErrors": {
+                      "matchRegexp": "只能输入字母。"
+                    }
+                  },
+                  {
+                    "type": "input-text",
+                    "name": "typeName",
+                    "label": "类型名称",
+                    "size": "md",
+                    "id": "u:d351ddbde403",
+                    "clearable": true
+                  },
+                  {
+                    "type": "select",
+                    "label": "是否发送成功",
+                    "name": "sendSuccess",
+                    "id": "u:78669aa83a78",
+                    "multiple": false,
+                    "size": "md",
+                    "options": [
+                      {
+                        "label": "发送成功",
+                        "value": 1
+                      },
+                      {
+                        "label": "发送失败",
+                        "value": 0
+                      }
+                    ],
+                    "labelField": "label",
+                    "valueField": "value"
+                  }
+                ],
+                "id": "u:26246d4ad092",
+                "submitText": "查询",
+                "canAccessSuperData": false,
+                "type": "form",
+                "actionType": "reload"
+              },
+              "perPage": 12,
+              "onEvent": {}
+            }
+          ],
+          "id": "u:666bfa3cea1a"
+        }
+      ],
+      "id": "u:51fc3f3bf3c7"
+    }
+  ],
+  "id": "u:e688c795e5a5",
+  "toolbar": [],
+  "asideResizor": false,
+  "pullRefresh": {
+    "disabled": true
+  },
+  "regions": ["body"]
+}
+
+

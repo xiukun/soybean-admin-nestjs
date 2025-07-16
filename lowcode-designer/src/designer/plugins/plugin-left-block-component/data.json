@@ -1,0 +1,485 @@
+[
+  {
+    "id": 1,
+    "unitIcon": "fa fa-anchor",
+    "unitName": "船名航次",
+    "groupName": "功能组件",
+    "value": {
+      "type": "picker",
+      "name": "shipObject",
+      "joinValues": false,
+      "labelField": "name",
+      "label": "船名",
+      "placeholder": "选择船名",
+      "embed": false,
+      "source": {
+        "method": "get",
+        "url": "https://mock.apifox.com/m1/3546534-0-default/shipsList"
+      },
+      "multiple": false,
+      "pickerSchema": {
+        "mode": "table",
+        "name": "shipNameList",
+        "columns": [
+          {
+            "name": "id",
+            "label": "id",
+            "type": "text"
+          },
+          {
+            "name": "name",
+            "label": "name",
+            "type": "text"
+          },
+          {
+            "name": "englishName",
+            "label": "englishName",
+            "type": "text"
+          },
+          {
+            "label": "startDate",
+            "type": "text",
+            "name": "startDate"
+          },
+          {
+            "label": "endDate",
+            "type": "text",
+            "name": "endDate"
+          },
+          {
+            "label": "importFlightNo",
+            "type": "text",
+            "name": "importFlightNo"
+          },
+          {
+            "label": "exportFlightNo",
+            "type": "text",
+            "name": "exportFlightNo"
+          },
+          {
+            "type": "operation",
+            "label": "操作",
+            "buttons": []
+          }
+        ],
+        "features": ["filter"],
+        "filterColumnCount": 3,
+        "filterSettingSource": [
+          "id",
+          "name",
+          "englishName",
+          "startDate",
+          "endDate",
+          "importFlightNo",
+          "exportFlightNo"
+        ],
+        "filterEnabledList": [
+          {
+            "label": "name",
+            "value": "name"
+          },
+          {
+            "label": "startDate",
+            "value": "startDate"
+          },
+          {
+            "label": "endDate",
+            "value": "endDate"
+          }
+        ],
+        "bulkActions": [],
+        "filter": {
+          "title": "查询条件",
+          "columnCount": 3,
+          "mode": "horizontal",
+          "body": [
+            {
+              "type": "input-text",
+              "label": "船名",
+              "name": "name"
+            },
+            {
+              "type": "input-text",
+              "label": "startDate",
+              "name": "startDate"
+            },
+            {
+              "type": "input-text",
+              "label": "endDate",
+              "name": "endDate"
+            }
+          ],
+          "actions": [
+            {
+              "type": "submit",
+              "label": "搜索",
+              "primary": true
+            }
+          ]
+        }
+      },
+      "validateApiFromAPIHub": false,
+      "style": {
+        "boxShadow": "var(--shadows-shadow-none)"
+      },
+      "valueField": "id",
+      "inline": true,
+      "size": "md",
+      "inputClassName": "w-60"
+    }
+  },
+  {
+    "id": 2,
+    "unitIcon": "fa fa-pie-chart",
+    "unitName": "通用查询",
+    "groupName": "功能组件",
+    "value": {
+      "type": "form",
+      "title": "查询条件",
+      "body": [
+        {
+          "type": "picker",
+          "name": "shipObject",
+          "joinValues": false,
+          "labelField": "name",
+          "label": "船名",
+          "placeholder": "选择船名",
+          "embed": false,
+          "source": {
+            "method": "get",
+            "url": "https://mock.apifox.com/m1/3546534-0-default/shipsList"
+          },
+          "multiple": false,
+          "pickerSchema": {
+            "mode": "table",
+            "name": "shipNameList",
+            "columns": [
+              {
+                "name": "id",
+                "label": "id",
+                "type": "text"
+              },
+              {
+                "name": "name",
+                "label": "name",
+                "type": "text"
+              },
+              {
+                "name": "englishName",
+                "label": "englishName",
+                "type": "text"
+              },
+              {
+                "label": "startDate",
+                "type": "text",
+                "name": "startDate"
+              },
+              {
+                "label": "endDate",
+                "type": "text",
+                "name": "endDate"
+              },
+              {
+                "label": "importFlightNo",
+                "type": "text",
+                "name": "importFlightNo"
+              },
+              {
+                "label": "exportFlightNo",
+                "type": "text",
+                "name": "exportFlightNo"
+              },
+              {
+                "type": "operation",
+                "label": "操作",
+                "buttons": []
+              }
+            ],
+            "features": ["filter"],
+            "filterColumnCount": 3,
+            "filterSettingSource": [
+              "id",
+              "name",
+              "englishName",
+              "startDate",
+              "endDate",
+              "importFlightNo",
+              "exportFlightNo"
+            ],
+            "filterEnabledList": [
+              {
+                "label": "name",
+                "value": "name"
+              },
+              {
+                "label": "startDate",
+                "value": "startDate"
+              },
+              {
+                "label": "endDate",
+                "value": "endDate"
+              }
+            ],
+            "bulkActions": [],
+            "filter": {
+              "title": "查询条件",
+              "columnCount": 3,
+              "mode": "horizontal",
+              "body": [
+                {
+                  "type": "input-text",
+                  "label": "船名",
+                  "name": "name"
+                },
+                {
+                  "type": "input-text",
+                  "label": "startDate",
+                  "name": "startDate"
+                },
+                {
+                  "type": "input-text",
+                  "label": "endDate",
+                  "name": "endDate"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "submit",
+                  "label": "搜索",
+                  "primary": true
+                }
+              ]
+            }
+          },
+          "valueField": "id",
+          "size": "md",
+          "inputClassName": "w-60"
+        },
+        {
+          "type": "select",
+          "label": "流程ID",
+          "name": "flowId",
+          "multiple": false,
+          "options": [
+            {
+              "label": "agsecp20230910112034",
+              "value": "agsecp20230910112034"
+            },
+            {
+              "label": "agsecp20231012200043",
+              "value": "agsecp20231012200043"
+            },
+            {
+              "label": "agsecp20231111113345",
+              "value": "agsecp20231111113345"
+            },
+            {
+              "label": "agsecp20231120141203",
+              "value": "agsecp20231120141203"
+            }
+          ],
+          "labelField": "label",
+          "valueField": "value"
+        },
+        {
+          "type": "select",
+          "label": "是否发送成功",
+          "name": "sendSuccess",
+          "multiple": false,
+          "options": [
+            {
+              "label": "发送成功",
+              "value": 1
+            },
+            {
+              "label": "发送失败",
+              "value": 0
+            }
+          ],
+          "labelField": "label",
+          "valueField": "value"
+        }
+      ],
+      "submitText": "查询",
+      "canAccessSuperData": true,
+      "actionType": "reload",
+      "actions": [
+        {
+          "type": "submit",
+          "label": "查询",
+          "primary": true
+        }
+      ]
+    }
+  },
+  {
+    "id": 6,
+    "unitIcon": "fa fa-search",
+    "unitName": "通用查询2",
+    "groupName": "功能组件",
+    "value": {
+      "type": "form",
+      "title": "查询条件",
+      "body": [
+        {
+          "type": "picker",
+          "name": "shipObject",
+          "joinValues": false,
+          "labelField": "name",
+          "label": "船名",
+          "placeholder": "选择船名",
+          "embed": false,
+          "source": {
+            "method": "get",
+            "url": "https://mock.apifox.com/m1/3546534-0-default/shipsList"
+          },
+          "multiple": false,
+          "pickerSchema": {
+            "mode": "table",
+            "name": "shipNameList",
+            "columns": [
+              {
+                "name": "id",
+                "label": "id",
+                "type": "text"
+              },
+              {
+                "name": "name",
+                "label": "name",
+                "type": "text"
+              },
+              {
+                "name": "englishName",
+                "label": "englishName",
+                "type": "text"
+              },
+              {
+                "label": "startDate",
+                "type": "text",
+                "name": "startDate"
+              },
+              {
+                "label": "endDate",
+                "type": "text",
+                "name": "endDate"
+              },
+              {
+                "label": "importFlightNo",
+                "type": "text",
+                "name": "importFlightNo"
+              },
+              {
+                "label": "exportFlightNo",
+                "type": "text",
+                "name": "exportFlightNo"
+              },
+              {
+                "type": "operation",
+                "label": "操作",
+                "buttons": []
+              }
+            ],
+            "features": ["filter"],
+            "filterColumnCount": 3,
+            "filterSettingSource": [
+              "id",
+              "name",
+              "englishName",
+              "startDate",
+              "endDate",
+              "importFlightNo",
+              "exportFlightNo"
+            ],
+            "filterEnabledList": [
+              {
+                "label": "name",
+                "value": "name"
+              },
+              {
+                "label": "startDate",
+                "value": "startDate"
+              },
+              {
+                "label": "endDate",
+                "value": "endDate"
+              }
+            ],
+            "bulkActions": [],
+            "filter": {
+              "title": "查询条件",
+              "columnCount": 3,
+              "mode": "horizontal",
+              "body": [
+                {
+                  "type": "input-text",
+                  "label": "船名",
+                  "name": "name"
+                },
+                {
+                  "type": "input-text",
+                  "label": "startDate",
+                  "name": "startDate"
+                },
+                {
+                  "type": "input-text",
+                  "label": "endDate",
+                  "name": "endDate"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "submit",
+                  "label": "搜索",
+                  "primary": true
+                }
+              ]
+            }
+          },
+          "valueField": "id",
+          "size": "md",
+          "inputClassName": "w-60"
+        },
+        {
+          "type": "input-text",
+          "label": "航次",
+          "name": "flightNo",
+          "id": "u:adf9a527fa87",
+          "value": "${shipObject.importFlightNo}"
+        },
+        {
+          "type": "input-text",
+          "label": "提单号",
+          "name": "billNo",
+          "value": ""
+        },
+        {
+          "type": "select",
+          "label": "中转状态",
+          "name": "transferState",
+          "multiple": false,
+          "options": [
+            {
+              "label": "中转",
+              "value": "中转"
+            },
+            {
+              "label": "非中转",
+              "value": "非中转"
+            }
+          ],
+          "value": ""
+        }
+      ],
+      "submitText": "查询",
+      "canAccessSuperData": true,
+      "actionType": "reload",
+      "actions": [
+        {
+          "type": "submit",
+          "label": "查询",
+          "primary": true
+        }
+      ]
+    }
+  }
+]

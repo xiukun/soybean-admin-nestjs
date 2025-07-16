@@ -1,0 +1,26 @@
+
+body {
+    margin: 0;
+    overflow-x: hidden;
+    width: 100%;
+    height: 100%;   
+}
+
+#root {
+    width: 100%;
+    height: 100%;   
+}
+
+.editorPanel-tabs-header>li .plugin-left-menu-icon {
+  font-size: 18px;
+}
+.editorPanel-tabs-header>li .plugin-left-menu-icon>i {
+    color:#151b26;
+}
+.editorPanel-tabs-header>li.is-active .plugin-left-menu-icon>i{
+  color: #2468f2 ;
+  font-size: 16px;
+}
+.ae-ApiAdaptorControl.antd-Form-control  .ae-FunctionEditorControl-func-editor {
+  margin-top: 20px;
+}

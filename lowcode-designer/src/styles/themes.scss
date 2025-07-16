@@ -1,0 +1,33 @@
+@use 'sass:math';
+@use 'sass:list';
+
+$remFactor: 16px;
+
+// amis 相关主题的内容区滚动样式
+@mixin print-amisThemeByPageContentScroll($list) {
+  @each $item in $list {
+    .#{list.nth($item, 1)}-Page-content {
+      overflow: scroll !important;
+    }
+  }
+}
+// amis 相关主题的侧边栏宽度
+@mixin print-amisThemeByAside($list, $width) {
+  @each $item in $list {
+    .#{list.nth($item, 1)}-Page-aside {
+      width: $width !important;
+    }
+  }
+}
+
+@function px2rem($pixels, $context: $remFactor) {
+  @if (math.is-unitless($pixels)) {
+    $pixels: $pixels * 1px;
+  }
+
+  @if (math.is-unitless($context)) {
+    $context: $context * 1px;
+  }
+
+  @return math.div($pixels, $context) * 1rem ;
+}

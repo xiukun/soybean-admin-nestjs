@@ -1,0 +1,281 @@
+import BatchAdd from "./batch-add"
+import { ApiDB } from "@/db/api-db"
+
+export default {
+  "type": "page",
+  "body": [
+    {
+      "type": "flex",
+      "id": "u:b9404f57fe0f",
+      "items": [
+        {
+          "type": "container",
+          "body": [
+            {
+              "name": "batchAddApi",
+              "component": (props: any) => {
+                // props中没有找到doAction
+                return (<BatchAdd {...props} />)
+              }
+            },
+            {
+              "type": "button",
+              "label": "刷新",
+              "onEvent": {
+                "click": {
+                  "actions": [
+                    {
+                      "componentId": "u:84efffa4e68e",
+                      "groupType": "component",
+                      "actionType": "reload"
+                    }
+                  ]
+                }
+              },
+              "id": "u:fe81a0213f5d",
+              "className": "px-1"
+            }
+          ],
+          "size": "xs",
+          "style": {
+            "position": "static",
+            "display": "flex",
+            "flex": "1 1 auto",
+            "flexGrow": 1,
+            "flexBasis": "auto",
+            "flexWrap": "nowrap",
+            "justifyContent": "flex-end"
+          },
+          "wrapperBody": false,
+          "isFixedHeight": false,
+          "isFixedWidth": false,
+          "id": "u:746c9db55090"
+        }
+      ],
+      "style": {
+        "position": "relative"
+      }
+    },
+    {
+      "type": "service",
+      "body": [
+        {
+          "type": "table",
+          "columns": [
+            {
+              "name": "name",
+              "type": "text",
+              "placeholder": "-",
+              "id": "u:591c79806856"
+            }
+          ],
+          "id": "apiTableList",
+          "source": "$rows",
+          "itemActions": [
+            {
+              "label": "",
+              "type": "button",
+              "onEvent": {
+                "click": {
+                  "actions": [
+                    {
+                      "ignoreError": false,
+                      "actionType": "dialog",
+                      "dialog": {
+                        "type": "dialog",
+                        "title": "编辑接口",
+                        "body": [
+                          {
+                            "id": "u:746a8433bc75",
+                            "type": "form",
+                            "title": "表单",
+                            "mode": "horizontal",
+                            "dsType": "api",
+                            "feat": "Insert",
+                            "body": [
+                              {
+                                "type": "hidden",
+                                "name": "id",
+                                "id": "u:4eafe92453cb",
+                                "label": "ID",
+                                "required": true
+                              },
+                              {
+                                "name": "name",
+                                "label": "接口名称",
+                                "type": "input-text",
+                                "id": "u:352327914b99",
+                                "required": true
+                              },
+                              {
+                                "name": "apiPath",
+                                "label": "请求地址",
+                                "type": "input-text",
+                                "id": "u:949a982b0bce",
+                                "required": true
+                              },
+                              {
+                                "name": "method",
+                                "label": "请求方法",
+                                "type": "select",
+                                "id": "u:0b16cbf35814",
+                                "multiple": false,
+                                "required": true,
+                                "selectFirst": false,
+                                "creatable": false,
+                                "options": [
+                                  {
+                                    "label": "get",
+                                    "value": "get"
+                                  },
+                                  {
+                                    "label": "post",
+                                    "value": "post"
+                                  },
+                                  {
+                                    "label": "options",
+                                    "value": "options"
+                                  },
+                                  {
+                                    "label": "put",
+                                    "value": "put"
+                                  },
+                                  {
+                                    "label": "patch",
+                                    "value": "patch"
+                                  },
+                                  {
+                                    "label": "delete",
+                                    "value": "delete"
+                                  }
+                                ],
+                                "value": "get"
+                              }
+                            ],
+                            "actions": [],
+                            "resetAfterSubmit": false,
+                            "closeDialogOnSubmit": false,
+                            "preventEnterSubmit": true
+                          }
+                        ],
+                        "showCloseButton": true,
+                        "showErrorMsg": true,
+                        "showLoading": true,
+                        "className": "app-popover",
+                        "actions": [
+                          {
+                            "type": "button",
+                            "actionType": "cancel",
+                            "label": "取消",
+                            "id": "u:a890f5cc4c05"
+                          },
+                          {
+                            "type": "button",
+                            "actionType": "confirm",
+                            "label": "确认",
+                            "primary": true,
+                            "id": "u:fb2701d759bb",
+                            "onEvent": {
+                              "click": {
+                                "weight": 0,
+                                "actions": [
+                                  {
+                                    "ignoreError": false,
+                                    "actionType": "validate",
+                                    "componentId": "u:746a8433bc75",
+                                    "outputVar": "validateResult"
+                                  },
+                                  {
+                                    "ignoreError": false,
+                                    "actionType": "custom",
+                                    "script": async (context: any, doAction: any, event: any) => {
+                                      const validate = !event.data?.validateResult?.errors; if (!validate) { return false; };
+                                      const db = ApiDB.getInstance();
+                                      const apiList = await db.getApiData(); const index = apiList.findIndex(item => item.id == context.props.data?.id); if (index >= 0) {
+                                        const obj = context.props.data; apiList[index] = { ...context.props.data, id: obj.method + '::' + obj.apiPath }; await db.saveApiData(apiList); const myMsg = '编辑成功'; doAction({ actionType: 'toast', args: { msg: myMsg, level: 'success' } });
+                                        doAction({ actionType: 'closeDialog' });
+                                      } else {
+                                        const myMsg = '编辑失败';
+                                        doAction({ actionType: 'toast', args: { msg: myMsg, level: 'error' } });
+                                        return false;
+                                      };
+                                      return true;
+                                    },
+                                    "args": {}
+                                  },
+                                  {
+                                    "componentId": "u:84efffa4e68e",
+                                    "groupType": "component",
+                                    "actionType": "reload"
+                                  }
+                                ]
+                              }
+                            },
+                            "close": false,
+                            "hidden": false,
+                            "visible": true
+                          }
+                        ],
+                        "id": "u:3bf558606145",
+                        "closeOnOutside": false,
+                        "closeOnEsc": false,
+                        "actionType": "dialog",
+                        "draggable": true
+                      }
+                    }
+                  ]
+                }
+              },
+              "id": "u:3023bd139f44",
+              "icon": "fa fa-edit"
+            },
+            {
+              "label": "",
+              "type": "button",
+              "onEvent": {
+                "click": {
+                  "actions": [
+                    {
+                      "ignoreError": false,
+                      "script": async (context: any, doAction: any, event: any) => {
+                        const apiDB = ApiDB.getInstance();
+                        const apiList = await apiDB.getApiData(); const index = apiList.findIndex((item: any) => item.id == event.data?.id); apiList.splice(index, 1); await apiDB.saveApiData(apiList);
+                      },
+                      "actionType": "custom"
+                    },
+                    {
+                      "componentId": "u:84efffa4e68e",
+                      "ignoreError": false,
+                      "actionType": "reload"
+                    }
+                  ]
+                }
+              },
+              "id": "u:429c833a0aee",
+              "icon": "fa fa-trash-o"
+            }
+          ],
+          "showHeader": false,
+          "visible": true,
+          "placeholder": "暂无数据"
+        }
+      ],
+      "id": "u:84efffa4e68e",
+      "dsType": "api",
+      "dataProvider": async (data: any, setData: any) => {
+        const apiDB = ApiDB.getInstance();
+        const rows = await apiDB.getApiData();
+        setData({ rows });
+      },
+      "name": "loadApiDataService"
+    }
+  ],
+  "regions": ["body"],
+  "id": "u:39e3fa83567c",
+  "pullRefresh": {
+    "disabled": true
+  },
+  "definitions": {},
+  "className": "overflow-auto"
+}
+

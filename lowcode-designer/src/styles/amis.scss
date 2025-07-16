@@ -1,0 +1,213 @@
+@use "./themes.scss" as *;
+$themeList: cxd, antd, a, dark;
+
+:root,
+.AMISCSSWrapper {
+  --Page-aside-width: #{px2rem(224px)} !important;
+}
+
+.ag-bg-light-important {
+  background-color: #f8f9fa !important;
+}
+
+.ag-bg-light {
+  background-color: #f8f9fa;
+}
+
+.clearfix::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.antd-Form--inline.amis-form-search-box {
+  overflow: hidden;
+  padding: 0.5rem;
+  padding-bottom: 0;
+  padding-right: 0;
+  border-style: solid;
+  border-radius: 0.25rem;
+  border-color: var(--Panel-right-border-color);
+  border-width: 1px;
+  background-color: #f8f9fa;
+  .antd-Form-item {
+    margin-bottom: 0.5rem;
+  }
+}
+
+
+.antd-Form--horizontal.amis-form-search-box,
+.antd-Form--normal.amis-form-search-box,
+.antd-Form--flex.amis-form-search-box {
+  padding: 0.5rem;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 0.25rem;
+  border-color: var(--Panel-right-border-color);
+  background-color: #f8f9fa;
+}
+
+.crud-hidden-headerTool {
+  .antd-Table-headToolbar {
+    display: none;
+  }
+}
+
+.crud-hidden-footerTool {
+  .antd-Table-footToolbar {
+    display: none;
+  }
+}
+
+.amis-page-content-scroll {
+  overflow: hidden;
+
+  @include print-amisThemeByPageContentScroll($themeList);
+}
+
+.amis-page-aside-width {
+  @include print-amisThemeByAside($themeList, 220px);
+}
+
+.antd-Page-aside,
+.cxd-Page-aside,
+.dark-Page-aside {
+  flex-shrink: 0;
+  width: var(--Page-aside-width) !important;
+  border-right: var(--borderWidth) solid var(--borderColor);
+
+  &--withWidth {
+    min-width: var(--Page-aside-width) !important;
+    max-width: var(--Page-aside-maxWidth);
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: inherit;
+    top: 0;
+    bottom: 0;
+    z-index: -1;
+    background: inherit;
+    border: inherit;
+  }
+}
+
+.antd-Crud2-filter>.antd-Panel .antd-Panel-body {
+  padding-bottom: 2px;
+}
+
+.antd-Crud2-filter .antd-Form>.antd-Form-item {
+  margin-bottom: 0.75rem;
+
+  .antd-Form-feedback {
+    height: 0;
+    display: none;
+  }
+}
+
+.antd-Crud2-filter .antd-Form-group {
+  margin-bottom: 0.75rem !important;
+}
+
+.antd-Crud2-filter .antd-Form-group>.antd-Form-groupColumn>.antd-Form-item {
+  .antd-Form-feedback {
+    height: 0;
+    display: none;
+  }
+}
+
+.antd-Crud-filter>.antd-Panel-body {
+  padding-bottom: 2px;
+}
+
+.antd-Crud-filter .antd-Form>.antd-Form-item {
+  margin-bottom: 0.75rem;
+
+  .antd-Form-feedback {
+    height: 0;
+    display: none;
+  }
+}
+
+.antd-Crud-filter .antd-Form-group {
+  margin-bottom: 0.75rem !important;
+}
+
+.antd-Crud-filter .antd-Form-group>.antd-Form-groupColumn>.antd-Form-item {
+  .antd-Form-feedback {
+    height: 0;
+    display: none;
+  }
+}
+
+.antd-Crud2-filter>.antd-Panel .antd-Panel-btnToolbar {
+  border-width: 0;
+}
+
+.antd-Crud-filter>.antd-Panel .antd-Panel-btnToolbar {
+  border-width: 0;
+}
+
+.amis-crud-table-display-row td {
+
+  .antd-PlainField,
+  .antd-TplField,
+  .antd-DateField,
+  .antd-StatusField,
+  .antd-MappingField {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    overflow: hidden;
+  }
+}
+
+.antd-Modal-content {
+  padding-top: 1rem;
+
+  >.antd-Modal-header {
+    border-bottom: var(--Drawer-content-borderWidth) solid var(--Drawer-header-borderColor);
+    padding: 0.5rem 1rem;
+  }
+}
+
+.amis-antd-Form-item-mini .antd-Form-item,
+.amis-antd-Form-item-mini .antd-Form-group {
+  margin-bottom: 0.375rem;
+}
+
+.amis-crud-quick-edit-formula .antd-Table-table td > .antd-Form{
+  min-width: inherit ;
+}
+.amis-crud-quick-edit-formula .antd-Table-table td>.antd-Form-item>.antd-Form-control {
+  min-width: inherit;
+}
+
+.amis-drawer-content-scroll {
+  .antd-Drawer-body { 
+    overflow: hidden !important;
+  }
+}
+
+.amis-drag-handle {
+  height: 5px;
+  background-color: #ccc;
+  cursor: ns-resize;
+}
+
+// 修复 h5下 高度样式失调的问题
+.ae-PreviewIFrame {
+  pointer-events: all !important;
+  border: 0 !important;
+  // min-height: 100%;
+  width: 100%;
+  height: 100% !important;
+  min-height: calc(100% - 46px);
+  overflow: hidden;
+}
+
+.is-modalOpened {
+  overflow: auto !important;
+}

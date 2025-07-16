@@ -1,0 +1,104 @@
+{
+  "type": "button",
+  "label": "",
+  "onEvent": {
+    "click": {
+      "actions": [
+        {
+          "ignoreError": false,
+          "actionType": "dialog",
+          "dialog": {
+            "type": "dialog",
+            "title": "后端服务地址配置",
+            "body": [
+              {
+                "id": "u:883e4dc0d238",
+                "type": "form",
+                "title": "表单",
+                "labelAlign": "top",
+                "dsType": "api",
+                "feat": "Insert",
+                "body": [
+                  {
+                    "name": "apiBaseUrl",
+                    "label": "后端服务地址",
+                    "row": 0,
+                    "type": "input-text",
+                    "id": "u:1f68e731f498",
+                    "validations": {
+                      "isUrl": true
+                    },
+                    "required": true,
+                    "value": "${ls:__PRODUCTION__APP__CONF__API_BASE_URL || window:__PRODUCTION__APP__CONF__.VITE_APP_API_BASEURL}",
+                    "clearable": true,
+                    "placeholder": "http://url.com"
+                  }
+                ],
+                "actions": [
+                  {
+                    "type": "button",
+                    "label": "提交",
+                    "onEvent": {
+                      "click": {
+                        "actions": [
+                          {
+                            "actionType": "submit",
+                            "componentId": "u:883e4dc0d238"
+                          }
+                        ]
+                      }
+                    },
+                    "level": "primary"
+                  }
+                ],
+                "resetAfterSubmit": false,
+                "onEvent": {
+                  "submitSucc": {
+                    "weight": 0,
+                    "actions": [
+                      {
+                        "ignoreError": false,
+                        "script": "window.__PRODUCTION__APP__CONF__.VITE_APP_API_BASEURL = event.data.apiBaseUrl;\nlocalStorage.setItem('__PRODUCTION__APP__CONF__API_BASE_URL', event.data.apiBaseUrl);",
+                        "actionType": "custom",
+                        "args": {}
+                      }
+                    ]
+                  }
+                },
+                "closeDialogOnSubmit": true
+              }
+            ],
+            "id": "u:51ff5931c3ce",
+            "actions": [
+              {
+                "type": "button",
+                "actionType": "cancel",
+                "label": "取消",
+                "id": "u:e28da68a9c9e"
+              },
+              {
+                "type": "button",
+                "actionType": "confirm",
+                "label": "确定",
+                "primary": true,
+                "id": "u:5ed46b2aae89"
+              }
+            ],
+            "showCloseButton": true,
+            "closeOnOutside": false,
+            "closeOnEsc": false,
+            "showErrorMsg": true,
+            "showLoading": true,
+            "draggable": true,
+            "editorSetting": {
+              "displayName": "后端服务地址配置"
+            },
+            "actionType": "dialog"
+          }
+        }
+      ]
+    }
+  },
+  "id": "u:a831430914d5",
+  "icon": "fa fa-cog"
+}
