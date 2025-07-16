@@ -1,0 +1,1 @@
+import{b as n,c as t,d,L as o}from"./amis-WMe1Knp9.js";import{DateControlRenderer as a}from"./InputDate-o-Tw5IsD.js";import"./react-vendor-DeqkGhWy.js";var m=function(r){n(e,r);function e(){return r!==null&&r.apply(this,arguments)||this}return e.defaultProps=t(t({},a.defaultProps),{embed:!0}),e=d([o({type:"calendar"})],e),e}(a);export{m as CalendarRenderer};
