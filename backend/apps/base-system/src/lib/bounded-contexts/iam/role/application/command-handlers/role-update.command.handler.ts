@@ -30,18 +30,21 @@ export class RoleUpdateHandler
       );
     }
 
-    if (command.pid === command.id) {
+    // 如果pid为空或未定义，设置为根角色父ID
+    const pid = command.pid || ROOT_PID;
+
+    if (pid === command.id) {
       throw new BadRequestException(
-        `The parent role identifier '${command.pid}' cannot be the same as its own identifier.`,
+        `The parent role identifier '${pid}' cannot be the same as its own identifier.`,
       );
     }
 
-    if (command.pid !== ROOT_PID) {
-      const parentRole = await this.roleReadRepoPort.getRoleById(command.pid);
+    if (pid !== ROOT_PID) {
+      const parentRole = await this.roleReadRepoPort.getRoleById(pid);
 
       if (!parentRole) {
         throw new BadRequestException(
-          `Parent role with code ${command.pid} does not exist.`,
+          `Parent role with code ${pid} does not exist.`,
         );
       }
     }
@@ -50,7 +53,7 @@ export class RoleUpdateHandler
       id: command.id,
       code: command.code,
       name: command.name,
-      pid: command.pid,
+      pid: pid,
       status: command.status,
       description: command.description,
       updatedAt: new Date(),

@@ -48,7 +48,7 @@ function createDefaultModel(): RoleFormModel {
   return {
     name: '',
     code: '',
-    pid: '',
+    pid: '0', // 默认为根角色父ID
     description: '',
     status: 'ENABLED' as Api.Common.EnableStatus
   };

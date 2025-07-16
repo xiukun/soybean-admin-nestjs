@@ -14,9 +14,9 @@ export class RoleCreateDto {
   @IsNotEmpty({ message: 'name cannot be empty' })
   name: string;
 
-  @ApiProperty({ required: true })
+  @ApiProperty({ required: false })
   @IsString({ message: 'pid must be a string' })
-  @IsNotEmpty({ message: 'pid cannot be empty' })
+  @IsOptional()
   pid: string;
 
   @ApiProperty({ required: false })

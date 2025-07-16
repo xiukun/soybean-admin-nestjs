@@ -31,12 +31,15 @@ export class RoleCreateHandler
       );
     }
 
-    if (command.pid !== ROOT_PID) {
-      const parentRole = await this.roleReadRepoPort.getRoleById(command.pid);
+    // 如果pid为空或未定义，设置为根角色父ID
+    const pid = command.pid || ROOT_PID;
+
+    if (pid !== ROOT_PID) {
+      const parentRole = await this.roleReadRepoPort.getRoleById(pid);
 
       if (!parentRole) {
         throw new BadRequestException(
-          `Parent role with code ${command.pid} does not exist.`,
+          `Parent role with code ${pid} does not exist.`,
         );
       }
     }
@@ -45,7 +48,7 @@ export class RoleCreateHandler
       id: UlidGenerator.generate(),
       code: command.code,
       name: command.name,
-      pid: command.pid,
+      pid: pid,
       status: command.status,
       description: command.description,
       createdAt: new Date(),
