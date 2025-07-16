@@ -14,6 +14,21 @@ services:
     networks:
       - soybean-admin
 
+  lowcode-designer:
+    build:
+      context: .
+      dockerfile: lowcode-designer/Dockerfile
+    # image: soybean-admin-lowcode-designer:1.0.0
+    environment:
+      TZ: Asia/Shanghai
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - '9555:80'
+    networks:
+      - soybean-admin
+
   backend:
     build:
       context: backend/
@@ -36,7 +51,7 @@ services:
       REFRESH_TOKEN_EXPIRE_IN: 7200
       # CORS配置
       CORS_ENABLED: 'true'
-      CORS_ORIGIN: 'http://localhost:9527,http://127.0.0.1:9527,http://localhost:9528,http://127.0.0.1:9528,http://localhost:9529,http://127.0.0.1:9529'
+      CORS_ORIGIN: 'http://localhost:9527,http://127.0.0.1:9527,http://localhost:9528,http://127.0.0.1:9528,http://localhost:9529,http://127.0.0.1:9529,http://localhost:9555,http://127.0.0.1:9555'
       CORS_METHODS: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS'
       CORS_CREDENTIALS: 'true'
       CORS_MAX_AGE: 3600

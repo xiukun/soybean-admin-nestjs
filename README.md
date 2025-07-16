@@ -112,17 +112,47 @@ soybean-admin-nestjs/
 
 ### 快速开始（推荐方式）
 
+#### 🐳 Docker 部署（一键启动）
+
 使用 Docker Compose 一键启动所有服务（包含 PostgreSQL、Redis 等依赖）：
 
 ```bash
-docker-compose -p soybean-admin-nest up -d
+# 方式一：使用启动脚本（推荐）
+./start-services.sh
+
+# 方式二：手动启动
+docker-compose up --build -d
 ```
 
 启动后即可访问：
 
-- 前端页面：`http://localhost:9527`
-- 后端接口：`http://localhost:9528/v1`
-- Swagger文档：`http://127.0.0.1:9528/api-docs`
+- **前端管理系统**：`http://localhost:9527`
+- **低代码设计器**：`http://localhost:9555` 🎨
+- **后端 API**：`http://localhost:9528/v1`
+- **API 文档**：`http://localhost:9528/api-docs`
+- **PostgreSQL**：`localhost:25432`
+- **Redis**：`localhost:26379`
+
+**默认登录信息**：
+- 用户名：`admin`
+- 密码：`123456`
+
+**Docker 管理命令**：
+```bash
+# 查看服务状态
+docker-compose ps
+
+# 查看日志
+docker-compose logs -f [service_name]
+
+# 停止服务
+docker-compose down
+
+# 测试部署
+./test-docker-deployment.sh
+```
+
+详细的 Docker 部署说明请参考：[DOCKER_DEPLOYMENT.md](./DOCKER_DEPLOYMENT.md)
 
 ### 手动安装与配置
 

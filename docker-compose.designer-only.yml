@@ -1,0 +1,17 @@
+services:
+
+  lowcode-designer:
+    build:
+      context: .
+      dockerfile: lowcode-designer/Dockerfile
+    # image: soybean-admin-lowcode-designer:1.0.0
+    environment:
+      TZ: Asia/Shanghai
+    ports:
+      - '9555:80'
+    networks:
+      - soybean-admin
+
+networks:
+  soybean-admin:
+    external: true

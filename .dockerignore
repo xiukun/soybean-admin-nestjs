@@ -1,0 +1,74 @@
+# Docker ignore file for soybean-admin-nestjs project
+# 用于 lowcode-designer 服务的构建上下文
+
+# Node.js dependencies
+**/node_modules
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/pnpm-debug.log*
+
+# Build outputs (except static-designer)
+frontend/dist
+lowcode-designer/dist
+backend/dist
+
+# Environment variables
+**/.env
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+
+# IDE files
+**/.vscode
+**/.idea
+**/*.swp
+**/*.swo
+
+# OS files
+**/.DS_Store
+**/Thumbs.db
+
+# Git
+.git
+**/.gitignore
+
+# Logs
+**/logs
+**/*.log
+
+# Runtime data
+**/pids
+**/*.pid
+**/*.seed
+**/*.pid.lock
+
+# Coverage
+**/coverage
+**/.nyc_output
+
+# Cache directories
+**/.cache
+**/.parcel-cache
+**/.npm
+**/.eslintcache
+
+# Build tools cache
+**/.rpt2_cache/
+**/.rts2_cache_cjs/
+**/.rts2_cache_es/
+**/.rts2_cache_umd/
+
+# Temporary files
+**/tmp
+**/temp
+
+# Documentation (keep only essential)
+**/README.md
+**/CHANGELOG.md
+**/*.md
+
+# Keep only what's needed for lowcode-designer Docker build
+!static-designer/
+!lowcode-designer/nginx.conf
+!lowcode-designer/Dockerfile
