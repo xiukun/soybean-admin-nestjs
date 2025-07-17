@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { CreateEntityHandler } from './application/handlers/create-entity.handler';
 import { UpdateEntityHandler } from './application/handlers/update-entity.handler';
+import { DeleteEntityHandler } from './application/handlers/delete-entity.handler';
 import {
   GetEntityHandler,
   GetEntityByCodeHandler,
@@ -14,6 +15,7 @@ import { EntityPrismaRepository } from '../../../infra/bounded-contexts/entity/e
 const CommandHandlers = [
   CreateEntityHandler,
   UpdateEntityHandler,
+  DeleteEntityHandler,
 ];
 
 const QueryHandlers = [
