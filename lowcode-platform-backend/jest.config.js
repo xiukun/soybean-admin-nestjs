@@ -7,10 +7,31 @@ module.exports = {
   },
   collectCoverageFrom: [
     '**/*.(t|j)s',
+    '!**/*.spec.ts',
+    '!**/*.e2e-spec.ts',
+    '!**/node_modules/**',
+    '!**/dist/**',
+    '!**/coverage/**',
+    '!**/*.d.ts',
+    '!**/main.ts',
+    '!**/test/**',
   ],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
-  moduleNameMapping: {
+  coverageReporters: ['text', 'lcov', 'html', 'json'],
+  coverageThreshold: {
+    global: {
+      branches: 35,
+      functions: 30,
+      lines: 35,
+      statements: 35,
+    },
+  },
+  testTimeout: 10000,
+  verbose: true,
+  detectOpenHandles: true,
+  forceExit: true,
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '^@entity/(.*)$': '<rootDir>/lib/bounded-contexts/entity/$1',
     '^@api/(.*)$': '<rootDir>/lib/bounded-contexts/api/$1',
