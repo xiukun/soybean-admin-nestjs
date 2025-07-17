@@ -9,9 +9,12 @@ import { EntityModule } from './lib/bounded-contexts/entity/entity.module';
 import { ApiModule } from './lib/bounded-contexts/api/api.module';
 import { ProjectModule } from './lib/bounded-contexts/project/project.module';
 import { RelationshipModule } from './lib/bounded-contexts/relationship/relationship.module';
+import { ApiConfigModule } from './lib/bounded-contexts/api-config/api-config.module';
 import { EntityController } from './api/lowcode/entity.controller';
 import { ProjectController } from './api/lowcode/project.controller';
 import { RelationshipController } from './api/lowcode/relationship.controller';
+import { ApiConfigController } from './api/lowcode/api-config.controller';
+import { AmisDemoController } from './api/lowcode/amis-demo.controller';
 
 @Module({
   imports: [
@@ -35,8 +38,9 @@ import { RelationshipController } from './api/lowcode/relationship.controller';
     ApiModule,
     ProjectModule,
     RelationshipModule,
+    ApiConfigModule,
   ],
-  controllers: [AppController, EntityController, ProjectController, RelationshipController],
+  controllers: [AppController, EntityController, ProjectController, RelationshipController, ApiConfigController, AmisDemoController],
   providers: [
     AppService,
   ],
