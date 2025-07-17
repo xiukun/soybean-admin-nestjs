@@ -3,7 +3,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as chokidar from 'chokidar';
-import { PrismaService } from '../../shared/prisma/prisma.service';
+import { PrismaService } from '@prisma/prisma.service';
 
 export interface HotUpdateEvent {
   type: 'file_changed' | 'file_added' | 'file_deleted' | 'schema_updated' | 'template_updated';

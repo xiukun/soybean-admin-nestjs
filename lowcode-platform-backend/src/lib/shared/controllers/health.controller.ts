@@ -1,9 +1,9 @@
 import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { FastifyReply } from 'fastify';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { PerformanceMiddleware } from '../middleware/performance.middleware';
-import { Public } from '../decorators/public.decorator';
+import { PrismaService } from '@prisma/prisma.service';
+import { PerformanceMiddleware } from '@middleware/performance.middleware';
+import { Public } from '@decorators/public.decorator';
 
 interface HealthStatus {
   status: 'healthy' | 'unhealthy' | 'degraded';

@@ -1,0 +1,62 @@
+{
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "typescript.suggest.autoImports": true,
+  "typescript.suggest.paths": true,
+  "typescript.preferences.importModuleSpecifier": "shortest",
+  "typescript.preferences.importModuleSpecifierEnding": "minimal",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.workspaceSymbols.scope": "allOpenProjects",
+  
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true,
+    "source.fixAll": true
+  },
+  
+  "files.associations": {
+    "*.ts": "typescript"
+  },
+  
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/coverage": true,
+    "**/.git": true
+  },
+  
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/coverage": true
+  },
+  
+  "typescript.suggest.includeAutomaticOptionalChainCompletions": true,
+  "typescript.suggest.includeCompletionsForImportStatements": true,
+  
+  "path-intellisense.mappings": {
+    "@src": "${workspaceRoot}/src",
+    "@": "${workspaceRoot}/src",
+    "@app": "${workspaceRoot}/src/app",
+    "@api": "${workspaceRoot}/src/api",
+    "@lib": "${workspaceRoot}/src/lib",
+    "@infra": "${workspaceRoot}/src/infra",
+    "@views": "${workspaceRoot}/src/views",
+    "@resources": "${workspaceRoot}/src/resources",
+    "@entity": "${workspaceRoot}/src/lib/bounded-contexts/entity",
+    "@api-context": "${workspaceRoot}/src/lib/bounded-contexts/api",
+    "@codegen": "${workspaceRoot}/src/lib/bounded-contexts/codegen",
+    "@project": "${workspaceRoot}/src/lib/bounded-contexts/project",
+    "@code-generation": "${workspaceRoot}/src/lib/code-generation",
+    "@shared": "${workspaceRoot}/src/lib/shared",
+    "@config": "${workspaceRoot}/src/lib/config",
+    "@utils": "${workspaceRoot}/src/lib/utils",
+    "@controllers": "${workspaceRoot}/src/lib/shared/controllers",
+    "@services": "${workspaceRoot}/src/lib/shared/services",
+    "@middleware": "${workspaceRoot}/src/lib/shared/middleware",
+    "@decorators": "${workspaceRoot}/src/lib/shared/decorators",
+    "@interceptors": "${workspaceRoot}/src/lib/shared/interceptors",
+    "@dto": "${workspaceRoot}/src/lib/shared/dto",
+    "@prisma": "${workspaceRoot}/src/lib/shared/prisma",
+    "@test": "${workspaceRoot}/test",
+    "@test-utils": "${workspaceRoot}/test/utils"
+  }
+}

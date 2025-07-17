@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import * as request from 'supertest';
-import { AppModule } from '../../lowcode-platform-backend/src/app.module';
-import { PrismaService } from '../../lowcode-platform-backend/src/lib/shared/prisma/prisma.service';
+import { AppModule } from '@src/app.module';
+import { PrismaService } from '@prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as fs from 'fs';
 import * as path from 'path';

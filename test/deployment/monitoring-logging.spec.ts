@@ -1,14 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import * as request from 'supertest';
-import { AppModule } from '../../lowcode-platform-backend/src/app.module';
-import { PerformanceMiddleware } from '../../lowcode-platform-backend/src/lib/shared/middleware/performance.middleware';
-import { HealthService } from '../../lowcode-platform-backend/src/lib/shared/controllers/health.controller';
+import { AppModule } from '@src/app.module';
+import { PerformanceMiddleware } from '@middleware/performance.middleware';
+import { HealthService } from '@controllers/health.controller';
 import * as fs from 'fs';
 import * as path from 'path';
 
 describe('Monitoring and Logging Tests', () => {
-  let app: INestApplication;
+  let app: NestFastifyApplication;
   let performanceMiddleware: PerformanceMiddleware;
   let healthService: HealthService;
 

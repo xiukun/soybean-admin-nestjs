@@ -35,6 +35,7 @@
 - **缓存**: Redis (可选)
 - **监控**: Prometheus + Grafana
 - **性能**: 内置性能监控和指标收集
+- **开发体验**: TypeScript 路径别名，优化导入路径
 
 ## 🏛️ 架构设计
 
@@ -585,6 +586,47 @@ pm2 start ecosystem.config.js
    - 集成APM工具
    - 结构化日志
    - 性能指标监控
+
+## 🛠️ 开发体验优化
+
+### TypeScript 路径别名
+
+项目配置了 TypeScript 路径别名，简化导入路径：
+
+```typescript
+// 之前的复杂导入
+import { PrismaService } from '../../../lib/shared/prisma/prisma.service';
+import { PerformanceMiddleware } from '../../../lib/shared/middleware/performance.middleware';
+
+// 使用路径别名后
+import { PrismaService } from '@prisma/prisma.service';
+import { PerformanceMiddleware } from '@middleware/performance.middleware';
+```
+
+**主要别名：**
+- `@src/*` - 源代码根目录
+- `@prisma/*` - Prisma 相关文件
+- `@controllers/*` - 控制器
+- `@services/*` - 服务
+- `@middleware/*` - 中间件
+- `@decorators/*` - 装饰器
+- `@dto/*` - 数据传输对象
+- `@shared/*` - 共享模块
+- `@test/*` - 测试文件
+
+**相关命令：**
+```bash
+# 自动更新现有文件的导入路径
+npm run update-imports
+
+# 检查导入路径是否正确
+npm run check-imports
+
+# 检测循环依赖
+npx madge --circular --extensions ts src/
+```
+
+详细配置请参考 [PATH_ALIASES.md](./PATH_ALIASES.md)
 
 ## 🤝 贡献指南
 
