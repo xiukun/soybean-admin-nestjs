@@ -1,0 +1,67 @@
+{
+  "name": "项目管理系统",
+  "code": "project_management",
+  "description": "完整的项目管理系统，包含项目规划、任务管理、团队协作、时间跟踪、进度报告等功能",
+  "version": "1.0.0",
+  "status": "ACTIVE",
+  "category": "project",
+  "tags": ["project", "task", "team", "collaboration", "tracking"],
+  "config": {
+    "database": {
+      "type": "postgresql",
+      "schema": "project_management"
+    },
+    "features": {
+      "authentication": true,
+      "authorization": true,
+      "audit": true,
+      "softDelete": true,
+      "timestamps": true,
+      "fileUpload": true,
+      "search": true,
+      "caching": true,
+      "notifications": true,
+      "reporting": true,
+      "workflow": true,
+      "timeTracking": true,
+      "ganttChart": true
+    },
+    "api": {
+      "prefix": "/api/v1",
+      "versioning": true,
+      "rateLimit": {
+        "enabled": true,
+        "requests": 200,
+        "window": 60
+      }
+    },
+    "project": {
+      "statuses": ["PLANNING", "ACTIVE", "ON_HOLD", "COMPLETED", "CANCELLED"],
+      "priorities": ["LOW", "MEDIUM", "HIGH", "URGENT"],
+      "types": ["INTERNAL", "CLIENT", "RESEARCH", "MAINTENANCE"],
+      "methodologies": ["AGILE", "WATERFALL", "SCRUM", "KANBAN"]
+    },
+    "task": {
+      "statuses": ["TODO", "IN_PROGRESS", "REVIEW", "TESTING", "DONE", "CANCELLED"],
+      "priorities": ["LOW", "MEDIUM", "HIGH", "URGENT"],
+      "types": ["FEATURE", "BUG", "IMPROVEMENT", "DOCUMENTATION", "TESTING"]
+    },
+    "timeTracking": {
+      "enabled": true,
+      "roundingMinutes": 15,
+      "maxHoursPerDay": 12,
+      "requireDescription": true
+    }
+  },
+  "metadata": {
+    "author": "Low-code Platform Team",
+    "license": "MIT",
+    "complexity": "advanced",
+    "estimatedTime": "5-7 hours",
+    "prerequisites": [
+      "Understanding of project management concepts",
+      "Knowledge of agile methodologies",
+      "Familiarity with team collaboration tools"
+    ]
+  }
+}

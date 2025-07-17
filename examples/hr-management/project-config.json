@@ -1,0 +1,63 @@
+{
+  "name": "人力资源管理系统",
+  "code": "hr_management",
+  "description": "完整的人力资源管理系统，包含员工管理、部门组织、考勤管理、薪资计算等功能",
+  "version": "1.0.0",
+  "status": "ACTIVE",
+  "category": "enterprise",
+  "tags": ["hr", "employee", "attendance", "payroll", "organization"],
+  "config": {
+    "database": {
+      "type": "postgresql",
+      "schema": "hr_management"
+    },
+    "features": {
+      "authentication": true,
+      "authorization": true,
+      "audit": true,
+      "softDelete": true,
+      "timestamps": true,
+      "fileUpload": true,
+      "search": true,
+      "caching": true,
+      "notifications": true,
+      "reporting": true,
+      "workflow": true
+    },
+    "api": {
+      "prefix": "/api/v1",
+      "versioning": true,
+      "rateLimit": {
+        "enabled": true,
+        "requests": 150,
+        "window": 60
+      }
+    },
+    "hr": {
+      "workingHours": {
+        "standard": 8,
+        "overtime": 1.5,
+        "holiday": 2.0
+      },
+      "leaveTypes": ["ANNUAL", "SICK", "MATERNITY", "PATERNITY", "PERSONAL"],
+      "payrollCycle": "MONTHLY",
+      "probationPeriod": 90
+    },
+    "organization": {
+      "maxLevels": 10,
+      "autoApproval": false,
+      "hierarchyValidation": true
+    }
+  },
+  "metadata": {
+    "author": "Low-code Platform Team",
+    "license": "MIT",
+    "complexity": "advanced",
+    "estimatedTime": "6-8 hours",
+    "prerequisites": [
+      "Understanding of HR processes",
+      "Knowledge of organizational structures",
+      "Familiarity with payroll concepts"
+    ]
+  }
+}

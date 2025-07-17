@@ -2,7 +2,7 @@
 
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { PrismaService } from '../src/lib/shared/prisma/prisma.service';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Command } from 'commander';

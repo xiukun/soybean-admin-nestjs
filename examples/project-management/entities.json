@@ -1,0 +1,810 @@
+[
+  {
+    "name": "项目",
+    "code": "project",
+    "tableName": "projects",
+    "description": "项目基本信息管理",
+    "category": "core",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "项目编号",
+        "code": "projectCode",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "unique": true,
+        "order": 2
+      },
+      {
+        "name": "项目名称",
+        "code": "name",
+        "type": "VARCHAR",
+        "length": 200,
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "项目描述",
+        "code": "description",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 4
+      },
+      {
+        "name": "项目类型",
+        "code": "type",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "INTERNAL",
+        "order": 5
+      },
+      {
+        "name": "项目方法论",
+        "code": "methodology",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "AGILE",
+        "order": 6
+      },
+      {
+        "name": "优先级",
+        "code": "priority",
+        "type": "VARCHAR",
+        "length": 10,
+        "nullable": false,
+        "defaultValue": "MEDIUM",
+        "order": 7
+      },
+      {
+        "name": "项目经理ID",
+        "code": "managerId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 8
+      },
+      {
+        "name": "客户ID",
+        "code": "clientId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 9
+      },
+      {
+        "name": "预算",
+        "code": "budget",
+        "type": "DECIMAL",
+        "precision": 15,
+        "scale": 2,
+        "nullable": true,
+        "order": 10
+      },
+      {
+        "name": "货币",
+        "code": "currency",
+        "type": "VARCHAR",
+        "length": 3,
+        "nullable": false,
+        "defaultValue": "USD",
+        "order": 11
+      },
+      {
+        "name": "计划开始日期",
+        "code": "plannedStartDate",
+        "type": "DATE",
+        "nullable": false,
+        "order": 12
+      },
+      {
+        "name": "计划结束日期",
+        "code": "plannedEndDate",
+        "type": "DATE",
+        "nullable": false,
+        "order": 13
+      },
+      {
+        "name": "实际开始日期",
+        "code": "actualStartDate",
+        "type": "DATE",
+        "nullable": true,
+        "order": 14
+      },
+      {
+        "name": "实际结束日期",
+        "code": "actualEndDate",
+        "type": "DATE",
+        "nullable": true,
+        "order": 15
+      },
+      {
+        "name": "进度百分比",
+        "code": "progressPercentage",
+        "type": "INTEGER",
+        "nullable": false,
+        "defaultValue": "0",
+        "order": 16
+      },
+      {
+        "name": "项目状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "PLANNING",
+        "order": 17
+      }
+    ]
+  },
+  {
+    "name": "任务",
+    "code": "task",
+    "tableName": "tasks",
+    "description": "项目任务管理",
+    "category": "task",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "任务编号",
+        "code": "taskNumber",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "unique": true,
+        "order": 2
+      },
+      {
+        "name": "任务标题",
+        "code": "title",
+        "type": "VARCHAR",
+        "length": 200,
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "任务描述",
+        "code": "description",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 4
+      },
+      {
+        "name": "项目ID",
+        "code": "projectId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 5
+      },
+      {
+        "name": "父任务ID",
+        "code": "parentTaskId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 6
+      },
+      {
+        "name": "任务类型",
+        "code": "type",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "FEATURE",
+        "order": 7
+      },
+      {
+        "name": "优先级",
+        "code": "priority",
+        "type": "VARCHAR",
+        "length": 10,
+        "nullable": false,
+        "defaultValue": "MEDIUM",
+        "order": 8
+      },
+      {
+        "name": "负责人ID",
+        "code": "assigneeId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 9
+      },
+      {
+        "name": "创建人ID",
+        "code": "reporterId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 10
+      },
+      {
+        "name": "预估工时",
+        "code": "estimatedHours",
+        "type": "DECIMAL",
+        "precision": 6,
+        "scale": 2,
+        "nullable": true,
+        "order": 11
+      },
+      {
+        "name": "实际工时",
+        "code": "actualHours",
+        "type": "DECIMAL",
+        "precision": 6,
+        "scale": 2,
+        "nullable": false,
+        "defaultValue": "0.00",
+        "order": 12
+      },
+      {
+        "name": "剩余工时",
+        "code": "remainingHours",
+        "type": "DECIMAL",
+        "precision": 6,
+        "scale": 2,
+        "nullable": true,
+        "order": 13
+      },
+      {
+        "name": "计划开始日期",
+        "code": "plannedStartDate",
+        "type": "DATE",
+        "nullable": true,
+        "order": 14
+      },
+      {
+        "name": "计划结束日期",
+        "code": "plannedEndDate",
+        "type": "DATE",
+        "nullable": true,
+        "order": 15
+      },
+      {
+        "name": "实际开始日期",
+        "code": "actualStartDate",
+        "type": "DATE",
+        "nullable": true,
+        "order": 16
+      },
+      {
+        "name": "实际结束日期",
+        "code": "actualEndDate",
+        "type": "DATE",
+        "nullable": true,
+        "order": 17
+      },
+      {
+        "name": "进度百分比",
+        "code": "progressPercentage",
+        "type": "INTEGER",
+        "nullable": false,
+        "defaultValue": "0",
+        "order": 18
+      },
+      {
+        "name": "任务状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "TODO",
+        "order": 19
+      }
+    ]
+  },
+  {
+    "name": "团队成员",
+    "code": "team_member",
+    "tableName": "team_members",
+    "description": "项目团队成员管理",
+    "category": "team",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "项目ID",
+        "code": "projectId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "用户ID",
+        "code": "userId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "角色",
+        "code": "role",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "order": 4
+      },
+      {
+        "name": "权限级别",
+        "code": "permissionLevel",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "MEMBER",
+        "order": 5
+      },
+      {
+        "name": "加入日期",
+        "code": "joinedDate",
+        "type": "DATE",
+        "nullable": false,
+        "order": 6
+      },
+      {
+        "name": "离开日期",
+        "code": "leftDate",
+        "type": "DATE",
+        "nullable": true,
+        "order": 7
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "ACTIVE",
+        "order": 8
+      }
+    ]
+  },
+  {
+    "name": "时间记录",
+    "code": "time_entry",
+    "tableName": "time_entries",
+    "description": "工作时间记录",
+    "category": "time",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "项目ID",
+        "code": "projectId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "任务ID",
+        "code": "taskId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 3
+      },
+      {
+        "name": "用户ID",
+        "code": "userId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 4
+      },
+      {
+        "name": "工作日期",
+        "code": "workDate",
+        "type": "DATE",
+        "nullable": false,
+        "order": 5
+      },
+      {
+        "name": "开始时间",
+        "code": "startTime",
+        "type": "TIME",
+        "nullable": true,
+        "order": 6
+      },
+      {
+        "name": "结束时间",
+        "code": "endTime",
+        "type": "TIME",
+        "nullable": true,
+        "order": 7
+      },
+      {
+        "name": "工作时长",
+        "code": "duration",
+        "type": "DECIMAL",
+        "precision": 4,
+        "scale": 2,
+        "nullable": false,
+        "order": 8
+      },
+      {
+        "name": "工作描述",
+        "code": "description",
+        "type": "TEXT",
+        "nullable": false,
+        "order": 9
+      },
+      {
+        "name": "是否计费",
+        "code": "billable",
+        "type": "BOOLEAN",
+        "nullable": false,
+        "defaultValue": "true",
+        "order": 10
+      },
+      {
+        "name": "小时费率",
+        "code": "hourlyRate",
+        "type": "DECIMAL",
+        "precision": 8,
+        "scale": 2,
+        "nullable": true,
+        "order": 11
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "DRAFT",
+        "order": 12
+      }
+    ]
+  },
+  {
+    "name": "里程碑",
+    "code": "milestone",
+    "tableName": "milestones",
+    "description": "项目里程碑管理",
+    "category": "project",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "项目ID",
+        "code": "projectId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "里程碑名称",
+        "code": "name",
+        "type": "VARCHAR",
+        "length": 200,
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "描述",
+        "code": "description",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 4
+      },
+      {
+        "name": "计划日期",
+        "code": "plannedDate",
+        "type": "DATE",
+        "nullable": false,
+        "order": 5
+      },
+      {
+        "name": "实际日期",
+        "code": "actualDate",
+        "type": "DATE",
+        "nullable": true,
+        "order": 6
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "PLANNED",
+        "order": 7
+      },
+      {
+        "name": "排序",
+        "code": "sort",
+        "type": "INTEGER",
+        "nullable": false,
+        "defaultValue": "0",
+        "order": 8
+      }
+    ]
+  },
+  {
+    "name": "文档",
+    "code": "document",
+    "tableName": "documents",
+    "description": "项目文档管理",
+    "category": "document",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "项目ID",
+        "code": "projectId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "任务ID",
+        "code": "taskId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 3
+      },
+      {
+        "name": "文档名称",
+        "code": "name",
+        "type": "VARCHAR",
+        "length": 200,
+        "nullable": false,
+        "order": 4
+      },
+      {
+        "name": "文档类型",
+        "code": "type",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "order": 5
+      },
+      {
+        "name": "文件路径",
+        "code": "filePath",
+        "type": "VARCHAR",
+        "length": 500,
+        "nullable": false,
+        "order": 6
+      },
+      {
+        "name": "文件大小",
+        "code": "fileSize",
+        "type": "BIGINT",
+        "nullable": false,
+        "order": 7
+      },
+      {
+        "name": "MIME类型",
+        "code": "mimeType",
+        "type": "VARCHAR",
+        "length": 100,
+        "nullable": false,
+        "order": 8
+      },
+      {
+        "name": "上传者ID",
+        "code": "uploadedById",
+        "type": "UUID",
+        "nullable": false,
+        "order": 9
+      },
+      {
+        "name": "版本号",
+        "code": "version",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "1.0",
+        "order": 10
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "ACTIVE",
+        "order": 11
+      }
+    ]
+  },
+  {
+    "name": "评论",
+    "code": "comment",
+    "tableName": "comments",
+    "description": "任务和项目评论",
+    "category": "communication",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "项目ID",
+        "code": "projectId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 2
+      },
+      {
+        "name": "任务ID",
+        "code": "taskId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 3
+      },
+      {
+        "name": "父评论ID",
+        "code": "parentCommentId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 4
+      },
+      {
+        "name": "评论内容",
+        "code": "content",
+        "type": "TEXT",
+        "nullable": false,
+        "order": 5
+      },
+      {
+        "name": "作者ID",
+        "code": "authorId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 6
+      },
+      {
+        "name": "是否已编辑",
+        "code": "isEdited",
+        "type": "BOOLEAN",
+        "nullable": false,
+        "defaultValue": "false",
+        "order": 7
+      },
+      {
+        "name": "编辑时间",
+        "code": "editedAt",
+        "type": "TIMESTAMP",
+        "nullable": true,
+        "order": 8
+      }
+    ]
+  },
+  {
+    "name": "通知",
+    "code": "notification",
+    "tableName": "notifications",
+    "description": "项目通知管理",
+    "category": "communication",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "接收者ID",
+        "code": "recipientId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "发送者ID",
+        "code": "senderId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 3
+      },
+      {
+        "name": "项目ID",
+        "code": "projectId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 4
+      },
+      {
+        "name": "任务ID",
+        "code": "taskId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 5
+      },
+      {
+        "name": "通知类型",
+        "code": "type",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "order": 6
+      },
+      {
+        "name": "标题",
+        "code": "title",
+        "type": "VARCHAR",
+        "length": 200,
+        "nullable": false,
+        "order": 7
+      },
+      {
+        "name": "内容",
+        "code": "content",
+        "type": "TEXT",
+        "nullable": false,
+        "order": 8
+      },
+      {
+        "name": "是否已读",
+        "code": "isRead",
+        "type": "BOOLEAN",
+        "nullable": false,
+        "defaultValue": "false",
+        "order": 9
+      },
+      {
+        "name": "阅读时间",
+        "code": "readAt",
+        "type": "TIMESTAMP",
+        "nullable": true,
+        "order": 10
+      }
+    ]
+  }
+]

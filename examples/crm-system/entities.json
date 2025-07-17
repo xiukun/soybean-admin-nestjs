@@ -1,0 +1,860 @@
+[
+  {
+    "name": "客户",
+    "code": "customer",
+    "tableName": "customers",
+    "description": "客户基本信息管理",
+    "category": "core",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "客户编号",
+        "code": "customerNumber",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "unique": true,
+        "order": 2
+      },
+      {
+        "name": "客户名称",
+        "code": "name",
+        "type": "VARCHAR",
+        "length": 200,
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "客户类型",
+        "code": "type",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "INDIVIDUAL",
+        "order": 4
+      },
+      {
+        "name": "行业",
+        "code": "industry",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": true,
+        "order": 5
+      },
+      {
+        "name": "公司规模",
+        "code": "companySize",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": true,
+        "order": 6
+      },
+      {
+        "name": "联系人",
+        "code": "contactPerson",
+        "type": "VARCHAR",
+        "length": 100,
+        "nullable": true,
+        "order": 7
+      },
+      {
+        "name": "电话",
+        "code": "phone",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": true,
+        "order": 8
+      },
+      {
+        "name": "邮箱",
+        "code": "email",
+        "type": "VARCHAR",
+        "length": 255,
+        "nullable": true,
+        "order": 9
+      },
+      {
+        "name": "地址",
+        "code": "address",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 10
+      },
+      {
+        "name": "网站",
+        "code": "website",
+        "type": "VARCHAR",
+        "length": 255,
+        "nullable": true,
+        "order": 11
+      },
+      {
+        "name": "客户来源",
+        "code": "source",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": true,
+        "order": 12
+      },
+      {
+        "name": "客户状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "ACTIVE",
+        "order": 13
+      },
+      {
+        "name": "负责人ID",
+        "code": "ownerId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 14
+      },
+      {
+        "name": "备注",
+        "code": "notes",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 15
+      }
+    ]
+  },
+  {
+    "name": "销售机会",
+    "code": "opportunity",
+    "tableName": "opportunities",
+    "description": "销售机会管理",
+    "category": "sales",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "机会名称",
+        "code": "name",
+        "type": "VARCHAR",
+        "length": 200,
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "客户ID",
+        "code": "customerId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "销售阶段",
+        "code": "stage",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "LEAD",
+        "order": 4
+      },
+      {
+        "name": "预计金额",
+        "code": "expectedAmount",
+        "type": "DECIMAL",
+        "precision": 15,
+        "scale": 2,
+        "nullable": true,
+        "order": 5
+      },
+      {
+        "name": "货币",
+        "code": "currency",
+        "type": "VARCHAR",
+        "length": 3,
+        "nullable": false,
+        "defaultValue": "USD",
+        "order": 6
+      },
+      {
+        "name": "成交概率",
+        "code": "probability",
+        "type": "INTEGER",
+        "nullable": false,
+        "defaultValue": "0",
+        "order": 7
+      },
+      {
+        "name": "预计成交日期",
+        "code": "expectedCloseDate",
+        "type": "DATE",
+        "nullable": true,
+        "order": 8
+      },
+      {
+        "name": "实际成交日期",
+        "code": "actualCloseDate",
+        "type": "DATE",
+        "nullable": true,
+        "order": 9
+      },
+      {
+        "name": "负责人ID",
+        "code": "ownerId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 10
+      },
+      {
+        "name": "优先级",
+        "code": "priority",
+        "type": "VARCHAR",
+        "length": 10,
+        "nullable": false,
+        "defaultValue": "MEDIUM",
+        "order": 11
+      },
+      {
+        "name": "描述",
+        "code": "description",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 12
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "OPEN",
+        "order": 13
+      }
+    ]
+  },
+  {
+    "name": "联系人",
+    "code": "contact",
+    "tableName": "contacts",
+    "description": "客户联系人管理",
+    "category": "customer",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "姓名",
+        "code": "name",
+        "type": "VARCHAR",
+        "length": 100,
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "客户ID",
+        "code": "customerId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "职位",
+        "code": "title",
+        "type": "VARCHAR",
+        "length": 100,
+        "nullable": true,
+        "order": 4
+      },
+      {
+        "name": "部门",
+        "code": "department",
+        "type": "VARCHAR",
+        "length": 100,
+        "nullable": true,
+        "order": 5
+      },
+      {
+        "name": "电话",
+        "code": "phone",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": true,
+        "order": 6
+      },
+      {
+        "name": "手机",
+        "code": "mobile",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": true,
+        "order": 7
+      },
+      {
+        "name": "邮箱",
+        "code": "email",
+        "type": "VARCHAR",
+        "length": 255,
+        "nullable": true,
+        "order": 8
+      },
+      {
+        "name": "是否主要联系人",
+        "code": "isPrimary",
+        "type": "BOOLEAN",
+        "nullable": false,
+        "defaultValue": "false",
+        "order": 9
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "ACTIVE",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "name": "销售活动",
+    "code": "activity",
+    "tableName": "activities",
+    "description": "销售活动记录",
+    "category": "sales",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "活动类型",
+        "code": "type",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "主题",
+        "code": "subject",
+        "type": "VARCHAR",
+        "length": 200,
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "描述",
+        "code": "description",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 4
+      },
+      {
+        "name": "客户ID",
+        "code": "customerId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 5
+      },
+      {
+        "name": "销售机会ID",
+        "code": "opportunityId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 6
+      },
+      {
+        "name": "联系人ID",
+        "code": "contactId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 7
+      },
+      {
+        "name": "负责人ID",
+        "code": "ownerId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 8
+      },
+      {
+        "name": "开始时间",
+        "code": "startTime",
+        "type": "TIMESTAMP",
+        "nullable": false,
+        "order": 9
+      },
+      {
+        "name": "结束时间",
+        "code": "endTime",
+        "type": "TIMESTAMP",
+        "nullable": true,
+        "order": 10
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "PLANNED",
+        "order": 11
+      },
+      {
+        "name": "优先级",
+        "code": "priority",
+        "type": "VARCHAR",
+        "length": 10,
+        "nullable": false,
+        "defaultValue": "MEDIUM",
+        "order": 12
+      }
+    ]
+  },
+  {
+    "name": "合同",
+    "code": "contract",
+    "tableName": "contracts",
+    "description": "合同管理",
+    "category": "contract",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "合同编号",
+        "code": "contractNumber",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "unique": true,
+        "order": 2
+      },
+      {
+        "name": "合同名称",
+        "code": "name",
+        "type": "VARCHAR",
+        "length": 200,
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "客户ID",
+        "code": "customerId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 4
+      },
+      {
+        "name": "销售机会ID",
+        "code": "opportunityId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 5
+      },
+      {
+        "name": "合同类型",
+        "code": "type",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "order": 6
+      },
+      {
+        "name": "合同金额",
+        "code": "amount",
+        "type": "DECIMAL",
+        "precision": 15,
+        "scale": 2,
+        "nullable": false,
+        "order": 7
+      },
+      {
+        "name": "货币",
+        "code": "currency",
+        "type": "VARCHAR",
+        "length": 3,
+        "nullable": false,
+        "defaultValue": "USD",
+        "order": 8
+      },
+      {
+        "name": "签署日期",
+        "code": "signedDate",
+        "type": "DATE",
+        "nullable": true,
+        "order": 9
+      },
+      {
+        "name": "开始日期",
+        "code": "startDate",
+        "type": "DATE",
+        "nullable": false,
+        "order": 10
+      },
+      {
+        "name": "结束日期",
+        "code": "endDate",
+        "type": "DATE",
+        "nullable": false,
+        "order": 11
+      },
+      {
+        "name": "续约提醒天数",
+        "code": "renewalNoticeDays",
+        "type": "INTEGER",
+        "nullable": false,
+        "defaultValue": "30",
+        "order": 12
+      },
+      {
+        "name": "负责人ID",
+        "code": "ownerId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 13
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "DRAFT",
+        "order": 14
+      },
+      {
+        "name": "备注",
+        "code": "notes",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 15
+      }
+    ]
+  },
+  {
+    "name": "产品",
+    "code": "product",
+    "tableName": "products",
+    "description": "产品信息管理",
+    "category": "product",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "产品代码",
+        "code": "code",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "unique": true,
+        "order": 2
+      },
+      {
+        "name": "产品名称",
+        "code": "name",
+        "type": "VARCHAR",
+        "length": 200,
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "产品分类",
+        "code": "category",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": true,
+        "order": 4
+      },
+      {
+        "name": "描述",
+        "code": "description",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 5
+      },
+      {
+        "name": "单价",
+        "code": "unitPrice",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "order": 6
+      },
+      {
+        "name": "成本价",
+        "code": "costPrice",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": true,
+        "order": 7
+      },
+      {
+        "name": "货币",
+        "code": "currency",
+        "type": "VARCHAR",
+        "length": 3,
+        "nullable": false,
+        "defaultValue": "USD",
+        "order": 8
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "ACTIVE",
+        "order": 9
+      }
+    ]
+  },
+  {
+    "name": "报价",
+    "code": "quote",
+    "tableName": "quotes",
+    "description": "销售报价管理",
+    "category": "sales",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "报价编号",
+        "code": "quoteNumber",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "unique": true,
+        "order": 2
+      },
+      {
+        "name": "客户ID",
+        "code": "customerId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "销售机会ID",
+        "code": "opportunityId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 4
+      },
+      {
+        "name": "报价日期",
+        "code": "quoteDate",
+        "type": "DATE",
+        "nullable": false,
+        "order": 5
+      },
+      {
+        "name": "有效期至",
+        "code": "validUntil",
+        "type": "DATE",
+        "nullable": false,
+        "order": 6
+      },
+      {
+        "name": "小计",
+        "code": "subtotal",
+        "type": "DECIMAL",
+        "precision": 15,
+        "scale": 2,
+        "nullable": false,
+        "order": 7
+      },
+      {
+        "name": "折扣金额",
+        "code": "discountAmount",
+        "type": "DECIMAL",
+        "precision": 15,
+        "scale": 2,
+        "nullable": false,
+        "defaultValue": "0.00",
+        "order": 8
+      },
+      {
+        "name": "税额",
+        "code": "taxAmount",
+        "type": "DECIMAL",
+        "precision": 15,
+        "scale": 2,
+        "nullable": false,
+        "defaultValue": "0.00",
+        "order": 9
+      },
+      {
+        "name": "总金额",
+        "code": "totalAmount",
+        "type": "DECIMAL",
+        "precision": 15,
+        "scale": 2,
+        "nullable": false,
+        "order": 10
+      },
+      {
+        "name": "货币",
+        "code": "currency",
+        "type": "VARCHAR",
+        "length": 3,
+        "nullable": false,
+        "defaultValue": "USD",
+        "order": 11
+      },
+      {
+        "name": "负责人ID",
+        "code": "ownerId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 12
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "DRAFT",
+        "order": 13
+      },
+      {
+        "name": "备注",
+        "code": "notes",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 14
+      }
+    ]
+  },
+  {
+    "name": "报价明细",
+    "code": "quote_item",
+    "tableName": "quote_items",
+    "description": "报价明细项",
+    "category": "sales",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "报价ID",
+        "code": "quoteId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "产品ID",
+        "code": "productId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "产品名称",
+        "code": "productName",
+        "type": "VARCHAR",
+        "length": 200,
+        "nullable": false,
+        "order": 4
+      },
+      {
+        "name": "数量",
+        "code": "quantity",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "order": 5
+      },
+      {
+        "name": "单价",
+        "code": "unitPrice",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "order": 6
+      },
+      {
+        "name": "折扣率",
+        "code": "discountRate",
+        "type": "DECIMAL",
+        "precision": 5,
+        "scale": 2,
+        "nullable": false,
+        "defaultValue": "0.00",
+        "order": 7
+      },
+      {
+        "name": "小计",
+        "code": "subtotal",
+        "type": "DECIMAL",
+        "precision": 15,
+        "scale": 2,
+        "nullable": false,
+        "order": 8
+      }
+    ]
+  }
+]

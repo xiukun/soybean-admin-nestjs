@@ -27,12 +27,14 @@
 
 ### 技术栈
 
-- **框架**: NestJS 11.x
+- **框架**: NestJS 11.x + Fastify (高性能 HTTP 服务器)
 - **数据库**: PostgreSQL + Prisma ORM
 - **架构**: CQRS + Event Sourcing + DDD
 - **文档**: Swagger/OpenAPI
 - **模板引擎**: Handlebars
 - **缓存**: Redis (可选)
+- **监控**: Prometheus + Grafana
+- **性能**: 内置性能监控和指标收集
 
 ## 🏛️ 架构设计
 

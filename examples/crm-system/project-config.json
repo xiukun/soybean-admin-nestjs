@@ -1,0 +1,66 @@
+{
+  "name": "客户关系管理系统",
+  "code": "crm_system",
+  "description": "完整的CRM客户关系管理系统，包含客户管理、销售机会跟踪、合同管理、报表分析等功能",
+  "version": "1.0.0",
+  "status": "ACTIVE",
+  "category": "sales",
+  "tags": ["crm", "customer", "sales", "opportunity", "contract"],
+  "config": {
+    "database": {
+      "type": "postgresql",
+      "schema": "crm_system"
+    },
+    "features": {
+      "authentication": true,
+      "authorization": true,
+      "audit": true,
+      "softDelete": true,
+      "timestamps": true,
+      "fileUpload": true,
+      "search": true,
+      "caching": true,
+      "notifications": true,
+      "reporting": true,
+      "workflow": true,
+      "analytics": true
+    },
+    "api": {
+      "prefix": "/api/v1",
+      "versioning": true,
+      "rateLimit": {
+        "enabled": true,
+        "requests": 200,
+        "window": 60
+      }
+    },
+    "sales": {
+      "stages": ["LEAD", "QUALIFIED", "PROPOSAL", "NEGOTIATION", "CLOSED_WON", "CLOSED_LOST"],
+      "priorities": ["LOW", "MEDIUM", "HIGH", "URGENT"],
+      "sources": ["WEBSITE", "REFERRAL", "COLD_CALL", "EMAIL", "SOCIAL_MEDIA", "TRADE_SHOW"],
+      "currencies": ["USD", "EUR", "CNY", "JPY"],
+      "defaultCurrency": "USD"
+    },
+    "customer": {
+      "types": ["INDIVIDUAL", "COMPANY"],
+      "industries": ["TECHNOLOGY", "FINANCE", "HEALTHCARE", "EDUCATION", "RETAIL", "MANUFACTURING"],
+      "sizes": ["STARTUP", "SMALL", "MEDIUM", "LARGE", "ENTERPRISE"]
+    },
+    "contract": {
+      "statuses": ["DRAFT", "PENDING", "ACTIVE", "EXPIRED", "TERMINATED"],
+      "types": ["SERVICE", "PRODUCT", "SUBSCRIPTION", "MAINTENANCE"],
+      "renewalNotice": 30
+    }
+  },
+  "metadata": {
+    "author": "Low-code Platform Team",
+    "license": "MIT",
+    "complexity": "advanced",
+    "estimatedTime": "5-7 hours",
+    "prerequisites": [
+      "Understanding of sales processes",
+      "Knowledge of CRM concepts",
+      "Familiarity with customer lifecycle"
+    ]
+  }
+}

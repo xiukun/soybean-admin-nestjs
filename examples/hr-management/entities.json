@@ -1,0 +1,803 @@
+[
+  {
+    "name": "部门",
+    "code": "department",
+    "tableName": "departments",
+    "description": "组织部门管理",
+    "category": "organization",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "部门名称",
+        "code": "name",
+        "type": "VARCHAR",
+        "length": 100,
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "部门代码",
+        "code": "code",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "unique": true,
+        "order": 3
+      },
+      {
+        "name": "描述",
+        "code": "description",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 4
+      },
+      {
+        "name": "父部门ID",
+        "code": "parentId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 5
+      },
+      {
+        "name": "部门负责人ID",
+        "code": "managerId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 6
+      },
+      {
+        "name": "层级",
+        "code": "level",
+        "type": "INTEGER",
+        "nullable": false,
+        "defaultValue": "1",
+        "order": 7
+      },
+      {
+        "name": "排序",
+        "code": "sort",
+        "type": "INTEGER",
+        "nullable": false,
+        "defaultValue": "0",
+        "order": 8
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "ACTIVE",
+        "order": 9
+      }
+    ]
+  },
+  {
+    "name": "职位",
+    "code": "position",
+    "tableName": "positions",
+    "description": "职位信息管理",
+    "category": "organization",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "职位名称",
+        "code": "name",
+        "type": "VARCHAR",
+        "length": 100,
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "职位代码",
+        "code": "code",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "unique": true,
+        "order": 3
+      },
+      {
+        "name": "职位描述",
+        "code": "description",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 4
+      },
+      {
+        "name": "部门ID",
+        "code": "departmentId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 5
+      },
+      {
+        "name": "职级",
+        "code": "level",
+        "type": "INTEGER",
+        "nullable": false,
+        "order": 6
+      },
+      {
+        "name": "基本薪资",
+        "code": "baseSalary",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": true,
+        "order": 7
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "ACTIVE",
+        "order": 8
+      }
+    ]
+  },
+  {
+    "name": "员工",
+    "code": "employee",
+    "tableName": "employees",
+    "description": "员工基本信息管理",
+    "category": "core",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "员工编号",
+        "code": "employeeNumber",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "unique": true,
+        "order": 2
+      },
+      {
+        "name": "姓名",
+        "code": "name",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "英文名",
+        "code": "englishName",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": true,
+        "order": 4
+      },
+      {
+        "name": "性别",
+        "code": "gender",
+        "type": "VARCHAR",
+        "length": 10,
+        "nullable": false,
+        "order": 5
+      },
+      {
+        "name": "出生日期",
+        "code": "birthDate",
+        "type": "DATE",
+        "nullable": true,
+        "order": 6
+      },
+      {
+        "name": "身份证号",
+        "code": "idCard",
+        "type": "VARCHAR",
+        "length": 18,
+        "nullable": true,
+        "unique": true,
+        "order": 7
+      },
+      {
+        "name": "手机号",
+        "code": "phone",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "order": 8
+      },
+      {
+        "name": "邮箱",
+        "code": "email",
+        "type": "VARCHAR",
+        "length": 255,
+        "nullable": false,
+        "unique": true,
+        "order": 9
+      },
+      {
+        "name": "部门ID",
+        "code": "departmentId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 10
+      },
+      {
+        "name": "职位ID",
+        "code": "positionId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 11
+      },
+      {
+        "name": "直属上级ID",
+        "code": "supervisorId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 12
+      },
+      {
+        "name": "入职日期",
+        "code": "hireDate",
+        "type": "DATE",
+        "nullable": false,
+        "order": 13
+      },
+      {
+        "name": "试用期结束日期",
+        "code": "probationEndDate",
+        "type": "DATE",
+        "nullable": true,
+        "order": 14
+      },
+      {
+        "name": "员工状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "ACTIVE",
+        "order": 15
+      },
+      {
+        "name": "头像",
+        "code": "avatar",
+        "type": "VARCHAR",
+        "length": 500,
+        "nullable": true,
+        "order": 16
+      }
+    ]
+  },
+  {
+    "name": "考勤记录",
+    "code": "attendance",
+    "tableName": "attendances",
+    "description": "员工考勤记录管理",
+    "category": "attendance",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "员工ID",
+        "code": "employeeId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "考勤日期",
+        "code": "attendanceDate",
+        "type": "DATE",
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "上班时间",
+        "code": "checkInTime",
+        "type": "TIME",
+        "nullable": true,
+        "order": 4
+      },
+      {
+        "name": "下班时间",
+        "code": "checkOutTime",
+        "type": "TIME",
+        "nullable": true,
+        "order": 5
+      },
+      {
+        "name": "工作时长",
+        "code": "workHours",
+        "type": "DECIMAL",
+        "precision": 4,
+        "scale": 2,
+        "nullable": true,
+        "order": 6
+      },
+      {
+        "name": "加班时长",
+        "code": "overtimeHours",
+        "type": "DECIMAL",
+        "precision": 4,
+        "scale": 2,
+        "nullable": false,
+        "defaultValue": "0.00",
+        "order": 7
+      },
+      {
+        "name": "迟到分钟",
+        "code": "lateMinutes",
+        "type": "INTEGER",
+        "nullable": false,
+        "defaultValue": "0",
+        "order": 8
+      },
+      {
+        "name": "早退分钟",
+        "code": "earlyLeaveMinutes",
+        "type": "INTEGER",
+        "nullable": false,
+        "defaultValue": "0",
+        "order": 9
+      },
+      {
+        "name": "考勤状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "NORMAL",
+        "order": 10
+      },
+      {
+        "name": "备注",
+        "code": "remarks",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 11
+      }
+    ]
+  },
+  {
+    "name": "请假申请",
+    "code": "leave_request",
+    "tableName": "leave_requests",
+    "description": "员工请假申请管理",
+    "category": "leave",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "员工ID",
+        "code": "employeeId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "请假类型",
+        "code": "leaveType",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "开始日期",
+        "code": "startDate",
+        "type": "DATE",
+        "nullable": false,
+        "order": 4
+      },
+      {
+        "name": "结束日期",
+        "code": "endDate",
+        "type": "DATE",
+        "nullable": false,
+        "order": 5
+      },
+      {
+        "name": "请假天数",
+        "code": "days",
+        "type": "DECIMAL",
+        "precision": 4,
+        "scale": 1,
+        "nullable": false,
+        "order": 6
+      },
+      {
+        "name": "请假原因",
+        "code": "reason",
+        "type": "TEXT",
+        "nullable": false,
+        "order": 7
+      },
+      {
+        "name": "申请状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "PENDING",
+        "order": 8
+      },
+      {
+        "name": "审批人ID",
+        "code": "approverId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 9
+      },
+      {
+        "name": "审批时间",
+        "code": "approvedAt",
+        "type": "TIMESTAMP",
+        "nullable": true,
+        "order": 10
+      },
+      {
+        "name": "审批意见",
+        "code": "approvalComments",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 11
+      },
+      {
+        "name": "申请时间",
+        "code": "appliedAt",
+        "type": "TIMESTAMP",
+        "nullable": false,
+        "order": 12
+      }
+    ]
+  },
+  {
+    "name": "薪资记录",
+    "code": "salary",
+    "tableName": "salaries",
+    "description": "员工薪资记录管理",
+    "category": "payroll",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "员工ID",
+        "code": "employeeId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "薪资月份",
+        "code": "salaryMonth",
+        "type": "VARCHAR",
+        "length": 7,
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "基本工资",
+        "code": "baseSalary",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "order": 4
+      },
+      {
+        "name": "绩效奖金",
+        "code": "performanceBonus",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "defaultValue": "0.00",
+        "order": 5
+      },
+      {
+        "name": "加班费",
+        "code": "overtimePay",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "defaultValue": "0.00",
+        "order": 6
+      },
+      {
+        "name": "津贴补助",
+        "code": "allowances",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "defaultValue": "0.00",
+        "order": 7
+      },
+      {
+        "name": "应发工资",
+        "code": "grossSalary",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "order": 8
+      },
+      {
+        "name": "社保扣除",
+        "code": "socialInsurance",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "defaultValue": "0.00",
+        "order": 9
+      },
+      {
+        "name": "公积金扣除",
+        "code": "housingFund",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "defaultValue": "0.00",
+        "order": 10
+      },
+      {
+        "name": "个人所得税",
+        "code": "incomeTax",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "defaultValue": "0.00",
+        "order": 11
+      },
+      {
+        "name": "其他扣除",
+        "code": "otherDeductions",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "defaultValue": "0.00",
+        "order": 12
+      },
+      {
+        "name": "实发工资",
+        "code": "netSalary",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "order": 13
+      },
+      {
+        "name": "发放状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "PENDING",
+        "order": 14
+      },
+      {
+        "name": "发放时间",
+        "code": "paidAt",
+        "type": "TIMESTAMP",
+        "nullable": true,
+        "order": 15
+      }
+    ]
+  },
+  {
+    "name": "培训记录",
+    "code": "training",
+    "tableName": "trainings",
+    "description": "员工培训记录管理",
+    "category": "training",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "培训名称",
+        "code": "name",
+        "type": "VARCHAR",
+        "length": 200,
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "培训类型",
+        "code": "type",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "培训描述",
+        "code": "description",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 4
+      },
+      {
+        "name": "开始时间",
+        "code": "startTime",
+        "type": "TIMESTAMP",
+        "nullable": false,
+        "order": 5
+      },
+      {
+        "name": "结束时间",
+        "code": "endTime",
+        "type": "TIMESTAMP",
+        "nullable": false,
+        "order": 6
+      },
+      {
+        "name": "培训地点",
+        "code": "location",
+        "type": "VARCHAR",
+        "length": 200,
+        "nullable": true,
+        "order": 7
+      },
+      {
+        "name": "讲师",
+        "code": "instructor",
+        "type": "VARCHAR",
+        "length": 100,
+        "nullable": true,
+        "order": 8
+      },
+      {
+        "name": "培训状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "PLANNED",
+        "order": 9
+      },
+      {
+        "name": "最大参与人数",
+        "code": "maxParticipants",
+        "type": "INTEGER",
+        "nullable": true,
+        "order": 10
+      }
+    ]
+  },
+  {
+    "name": "培训参与记录",
+    "code": "training_participant",
+    "tableName": "training_participants",
+    "description": "员工培训参与记录",
+    "category": "training",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "培训ID",
+        "code": "trainingId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "员工ID",
+        "code": "employeeId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "参与状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "REGISTERED",
+        "order": 4
+      },
+      {
+        "name": "出勤状态",
+        "code": "attendanceStatus",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": true,
+        "order": 5
+      },
+      {
+        "name": "成绩",
+        "code": "score",
+        "type": "DECIMAL",
+        "precision": 5,
+        "scale": 2,
+        "nullable": true,
+        "order": 6
+      },
+      {
+        "name": "评价",
+        "code": "feedback",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 7
+      },
+      {
+        "name": "注册时间",
+        "code": "registeredAt",
+        "type": "TIMESTAMP",
+        "nullable": false,
+        "order": 8
+      }
+    ]
+  }
+]

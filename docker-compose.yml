@@ -88,6 +88,11 @@ services:
       REDIS_DB: 2
       JWT_SECRET: 'JWT_SECRET-soybean-admin-nest@123456!@#.'
       BASE_SYSTEM_URL: 'http://backend:9528'
+      # 性能和监控配置
+      METRICS_ENABLED: 'true'
+      HEALTH_CHECK_ENABLED: 'true'
+      PERFORMANCE_MONITORING: 'true'
+      LOG_LEVEL: 'info'
       # CORS配置
       CORS_ENABLED: 'true'
       CORS_ORIGIN: 'http://localhost:9527,http://127.0.0.1:9527,http://localhost:9528,http://127.0.0.1:9528'
@@ -107,13 +112,22 @@ services:
     volumes:
       - ./generated-code:/app/generated
       - ./logs:/app/logs
+      - ./uploads:/app/uploads
+      - ./examples:/app/examples:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://lowcode-platform:3000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
-    cpus: 2
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
 
   postgres:
     image: postgres:16.3
