@@ -1,4 +1,4 @@
-import { request } from '../request';
+import { lowcodeRequest as request } from '../request';
 
 /**
  * get entity list by project
@@ -100,13 +100,57 @@ export function fetchDeleteEntity(id: string) {
  * @param projectId - project id
  */
 export function fetchGetEntityStats(projectId: string) {
-  return request<{
-    total: number;
-    draft: number;
-    published: number;
-    deprecated: number;
-  }>({
+  return request<Api.Lowcode.EntityStats>({
     url: `/entities/project/${projectId}/stats`,
     method: 'get'
+  });
+}
+
+/**
+ * publish entity
+ *
+ * @param id - entity id
+ */
+export function fetchPublishEntity(id: string) {
+  return request<Api.Lowcode.Entity>({
+    url: `/entities/${id}/publish`,
+    method: 'post'
+  });
+}
+
+/**
+ * deprecate entity
+ *
+ * @param id - entity id
+ */
+export function fetchDeprecateEntity(id: string) {
+  return request<Api.Lowcode.Entity>({
+    url: `/entities/${id}/deprecate`,
+    method: 'post'
+  });
+}
+
+/**
+ * generate table for entity
+ *
+ * @param id - entity id
+ */
+export function fetchGenerateEntityTable(id: string) {
+  return request<{ success: boolean; message: string }>({
+    url: `/entities/${id}/generate-table`,
+    method: 'post'
+  });
+}
+
+/**
+ * validate entity
+ *
+ * @param data - entity data
+ */
+export function fetchValidateEntity(data: Api.Lowcode.EntityEdit) {
+  return request<{ valid: boolean; errors: string[] }>({
+    url: '/entities/validate',
+    method: 'post',
+    data
   });
 }

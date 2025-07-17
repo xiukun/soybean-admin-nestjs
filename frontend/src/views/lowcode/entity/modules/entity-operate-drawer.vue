@@ -18,6 +18,13 @@
             :placeholder="$t('page.lowcode.entity.form.tableName.placeholder')"
           />
         </NFormItem>
+        <NFormItem :label="$t('page.lowcode.entity.category')" path="category">
+          <NSelect
+            v-model:value="formModel.category"
+            :placeholder="$t('page.lowcode.entity.form.category.placeholder')"
+            :options="categoryOptions"
+          />
+        </NFormItem>
         <NFormItem :label="$t('page.lowcode.entity.description')" path="description">
           <NInput
             v-model:value="formModel.description"
@@ -110,15 +117,24 @@ function createDefaultFormModel(): Api.Lowcode.EntityEdit {
     name: '',
     code: '',
     tableName: '',
+    category: 'core',
     description: '',
     status: 'DRAFT'
   };
 }
 
+const categoryOptions = [
+  { label: $t('page.lowcode.entity.category.core'), value: 'core' },
+  { label: $t('page.lowcode.entity.category.business'), value: 'business' },
+  { label: $t('page.lowcode.entity.category.system'), value: 'system' },
+  { label: $t('page.lowcode.entity.category.config'), value: 'config' }
+];
+
 const rules: FormRules = {
   name: createRequiredFormRule($t('page.lowcode.entity.form.name.required')),
   code: createRequiredFormRule($t('page.lowcode.entity.form.code.required')),
-  tableName: createRequiredFormRule($t('page.lowcode.entity.form.tableName.required'))
+  tableName: createRequiredFormRule($t('page.lowcode.entity.form.tableName.required')),
+  category: createRequiredFormRule($t('page.lowcode.entity.form.category.required'))
 };
 
 const submitLoading = ref(false);

@@ -27,7 +27,7 @@ RUN pnpm build
 FROM node:18-alpine AS production
 
 # 安装必要的系统依赖
-RUN apk add --no-cache dumb-init
+RUN apk add --no-cache dumb-init curl
 
 # 创建应用用户
 RUN addgroup -g 1001 -S nodejs
@@ -51,6 +51,14 @@ COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma
 
+# 创建必要的目录
+RUN mkdir -p /app/logs /app/generated && \
+    chown -R nestjs:nodejs /app/logs /app/generated
+
+# 复制启动脚本
+COPY --chown=nestjs:nodejs docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # 切换到应用用户
 USER nestjs
 
@@ -58,8 +66,8 @@ USER nestjs
 EXPOSE 3000
 
 # 健康检查
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node healthcheck.js
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
 
 # 启动应用
-CMD ["dumb-init", "node", "dist/src/main"]
+CMD ["dumb-init", "docker-entrypoint.sh"]

@@ -13,6 +13,14 @@
             clearable
           />
         </NFormItemGi>
+        <NFormItemGi span="24 s:12 m:6" :label="$t('page.lowcode.entity.category')" path="category" class="pr-24px">
+          <NSelect
+            v-model:value="model.category"
+            :placeholder="$t('page.lowcode.entity.form.category.placeholder')"
+            :options="categoryOptions"
+            clearable
+          />
+        </NFormItemGi>
         <NFormItemGi span="24 s:12 m:6" class="pr-24px">
           <NSpace class="w-full" justify="end">
             <NButton @click="reset">
@@ -70,6 +78,25 @@ const statusOptions = computed(() => [
   {
     label: $t('page.lowcode.entity.status.DEPRECATED'),
     value: 'DEPRECATED'
+  }
+]);
+
+const categoryOptions = computed(() => [
+  {
+    label: $t('page.lowcode.entity.category.core'),
+    value: 'core'
+  },
+  {
+    label: $t('page.lowcode.entity.category.business'),
+    value: 'business'
+  },
+  {
+    label: $t('page.lowcode.entity.category.system'),
+    value: 'system'
+  },
+  {
+    label: $t('page.lowcode.entity.category.config'),
+    value: 'config'
   }
 ]);
 

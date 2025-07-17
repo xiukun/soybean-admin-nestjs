@@ -1,0 +1,684 @@
+[
+  {
+    "name": "用户",
+    "code": "user",
+    "tableName": "users",
+    "description": "系统用户，包括客户和管理员",
+    "category": "core",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "用户名",
+        "code": "username",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "unique": true,
+        "order": 2
+      },
+      {
+        "name": "邮箱",
+        "code": "email",
+        "type": "VARCHAR",
+        "length": 255,
+        "nullable": false,
+        "unique": true,
+        "order": 3
+      },
+      {
+        "name": "密码",
+        "code": "password",
+        "type": "VARCHAR",
+        "length": 255,
+        "nullable": false,
+        "order": 4
+      },
+      {
+        "name": "手机号",
+        "code": "phone",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": true,
+        "order": 5
+      },
+      {
+        "name": "角色",
+        "code": "role",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "CUSTOMER",
+        "order": 6
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "ACTIVE",
+        "order": 7
+      }
+    ]
+  },
+  {
+    "name": "商品分类",
+    "code": "category",
+    "tableName": "categories",
+    "description": "商品分类管理",
+    "category": "product",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "名称",
+        "code": "name",
+        "type": "VARCHAR",
+        "length": 100,
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "代码",
+        "code": "code",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "unique": true,
+        "order": 3
+      },
+      {
+        "name": "描述",
+        "code": "description",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 4
+      },
+      {
+        "name": "父分类ID",
+        "code": "parentId",
+        "type": "UUID",
+        "nullable": true,
+        "order": 5
+      },
+      {
+        "name": "排序",
+        "code": "sort",
+        "type": "INTEGER",
+        "nullable": false,
+        "defaultValue": "0",
+        "order": 6
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "ACTIVE",
+        "order": 7
+      }
+    ]
+  },
+  {
+    "name": "商品",
+    "code": "product",
+    "tableName": "products",
+    "description": "商品信息管理",
+    "category": "product",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "商品名称",
+        "code": "name",
+        "type": "VARCHAR",
+        "length": 200,
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "商品代码",
+        "code": "sku",
+        "type": "VARCHAR",
+        "length": 100,
+        "nullable": false,
+        "unique": true,
+        "order": 3
+      },
+      {
+        "name": "描述",
+        "code": "description",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 4
+      },
+      {
+        "name": "分类ID",
+        "code": "categoryId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 5
+      },
+      {
+        "name": "价格",
+        "code": "price",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "order": 6
+      },
+      {
+        "name": "成本价",
+        "code": "costPrice",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": true,
+        "order": 7
+      },
+      {
+        "name": "库存数量",
+        "code": "stockQuantity",
+        "type": "INTEGER",
+        "nullable": false,
+        "defaultValue": "0",
+        "order": 8
+      },
+      {
+        "name": "最小库存",
+        "code": "minStock",
+        "type": "INTEGER",
+        "nullable": false,
+        "defaultValue": "0",
+        "order": 9
+      },
+      {
+        "name": "重量",
+        "code": "weight",
+        "type": "DECIMAL",
+        "precision": 8,
+        "scale": 2,
+        "nullable": true,
+        "order": 10
+      },
+      {
+        "name": "尺寸",
+        "code": "dimensions",
+        "type": "VARCHAR",
+        "length": 100,
+        "nullable": true,
+        "order": 11
+      },
+      {
+        "name": "主图",
+        "code": "mainImage",
+        "type": "VARCHAR",
+        "length": 500,
+        "nullable": true,
+        "order": 12
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "ACTIVE",
+        "order": 13
+      }
+    ]
+  },
+  {
+    "name": "订单",
+    "code": "order",
+    "tableName": "orders",
+    "description": "订单信息管理",
+    "category": "order",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "订单号",
+        "code": "orderNumber",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "unique": true,
+        "order": 2
+      },
+      {
+        "name": "用户ID",
+        "code": "userId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "订单状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "PENDING",
+        "order": 4
+      },
+      {
+        "name": "商品总额",
+        "code": "subtotal",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "order": 5
+      },
+      {
+        "name": "运费",
+        "code": "shippingFee",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "defaultValue": "0.00",
+        "order": 6
+      },
+      {
+        "name": "税费",
+        "code": "taxAmount",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "defaultValue": "0.00",
+        "order": 7
+      },
+      {
+        "name": "折扣金额",
+        "code": "discountAmount",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "defaultValue": "0.00",
+        "order": 8
+      },
+      {
+        "name": "总金额",
+        "code": "totalAmount",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "order": 9
+      },
+      {
+        "name": "货币",
+        "code": "currency",
+        "type": "VARCHAR",
+        "length": 3,
+        "nullable": false,
+        "defaultValue": "USD",
+        "order": 10
+      },
+      {
+        "name": "支付状态",
+        "code": "paymentStatus",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "PENDING",
+        "order": 11
+      },
+      {
+        "name": "支付方式",
+        "code": "paymentMethod",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": true,
+        "order": 12
+      },
+      {
+        "name": "备注",
+        "code": "notes",
+        "type": "TEXT",
+        "nullable": true,
+        "order": 13
+      },
+      {
+        "name": "下单时间",
+        "code": "orderedAt",
+        "type": "TIMESTAMP",
+        "nullable": false,
+        "order": 14
+      }
+    ]
+  },
+  {
+    "name": "订单项",
+    "code": "order_item",
+    "tableName": "order_items",
+    "description": "订单商品明细",
+    "category": "order",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "订单ID",
+        "code": "orderId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "商品ID",
+        "code": "productId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "商品名称",
+        "code": "productName",
+        "type": "VARCHAR",
+        "length": 200,
+        "nullable": false,
+        "order": 4
+      },
+      {
+        "name": "商品代码",
+        "code": "productSku",
+        "type": "VARCHAR",
+        "length": 100,
+        "nullable": false,
+        "order": 5
+      },
+      {
+        "name": "单价",
+        "code": "unitPrice",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "order": 6
+      },
+      {
+        "name": "数量",
+        "code": "quantity",
+        "type": "INTEGER",
+        "nullable": false,
+        "order": 7
+      },
+      {
+        "name": "小计",
+        "code": "subtotal",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "order": 8
+      }
+    ]
+  },
+  {
+    "name": "购物车",
+    "code": "cart",
+    "tableName": "carts",
+    "description": "用户购物车",
+    "category": "order",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "用户ID",
+        "code": "userId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "商品ID",
+        "code": "productId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "数量",
+        "code": "quantity",
+        "type": "INTEGER",
+        "nullable": false,
+        "order": 4
+      },
+      {
+        "name": "添加时间",
+        "code": "addedAt",
+        "type": "TIMESTAMP",
+        "nullable": false,
+        "order": 5
+      }
+    ]
+  },
+  {
+    "name": "地址",
+    "code": "address",
+    "tableName": "addresses",
+    "description": "用户地址管理",
+    "category": "user",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "用户ID",
+        "code": "userId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "收件人",
+        "code": "recipientName",
+        "type": "VARCHAR",
+        "length": 100,
+        "nullable": false,
+        "order": 3
+      },
+      {
+        "name": "电话",
+        "code": "phone",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "order": 4
+      },
+      {
+        "name": "国家",
+        "code": "country",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "order": 5
+      },
+      {
+        "name": "省/州",
+        "code": "state",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "order": 6
+      },
+      {
+        "name": "城市",
+        "code": "city",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "order": 7
+      },
+      {
+        "name": "详细地址",
+        "code": "addressLine",
+        "type": "VARCHAR",
+        "length": 255,
+        "nullable": false,
+        "order": 8
+      },
+      {
+        "name": "邮编",
+        "code": "postalCode",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": true,
+        "order": 9
+      },
+      {
+        "name": "是否默认",
+        "code": "isDefault",
+        "type": "BOOLEAN",
+        "nullable": false,
+        "defaultValue": "false",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "name": "支付记录",
+    "code": "payment",
+    "tableName": "payments",
+    "description": "支付记录管理",
+    "category": "payment",
+    "status": "PUBLISHED",
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "order": 1
+      },
+      {
+        "name": "订单ID",
+        "code": "orderId",
+        "type": "UUID",
+        "nullable": false,
+        "order": 2
+      },
+      {
+        "name": "支付流水号",
+        "code": "transactionId",
+        "type": "VARCHAR",
+        "length": 100,
+        "nullable": false,
+        "unique": true,
+        "order": 3
+      },
+      {
+        "name": "支付方式",
+        "code": "paymentMethod",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "order": 4
+      },
+      {
+        "name": "支付金额",
+        "code": "amount",
+        "type": "DECIMAL",
+        "precision": 10,
+        "scale": 2,
+        "nullable": false,
+        "order": 5
+      },
+      {
+        "name": "货币",
+        "code": "currency",
+        "type": "VARCHAR",
+        "length": 3,
+        "nullable": false,
+        "order": 6
+      },
+      {
+        "name": "支付状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "order": 7
+      },
+      {
+        "name": "第三方交易ID",
+        "code": "externalTransactionId",
+        "type": "VARCHAR",
+        "length": 255,
+        "nullable": true,
+        "order": 8
+      },
+      {
+        "name": "支付时间",
+        "code": "paidAt",
+        "type": "TIMESTAMP",
+        "nullable": true,
+        "order": 9
+      }
+    ]
+  }
+]

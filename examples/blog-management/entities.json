@@ -1,0 +1,623 @@
+[
+  {
+    "name": "用户",
+    "code": "user",
+    "tableName": "users",
+    "description": "博客系统用户，包括管理员、作者和普通用户",
+    "category": "core",
+    "status": "PUBLISHED",
+    "config": {
+      "softDelete": true,
+      "timestamps": true,
+      "audit": true
+    },
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "comment": "用户唯一标识",
+        "order": 1
+      },
+      {
+        "name": "用户名",
+        "code": "username",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "unique": true,
+        "comment": "用户登录名",
+        "order": 2
+      },
+      {
+        "name": "邮箱",
+        "code": "email",
+        "type": "VARCHAR",
+        "length": 255,
+        "nullable": false,
+        "unique": true,
+        "comment": "用户邮箱地址",
+        "order": 3
+      },
+      {
+        "name": "密码",
+        "code": "password",
+        "type": "VARCHAR",
+        "length": 255,
+        "nullable": false,
+        "comment": "加密后的密码",
+        "order": 4
+      },
+      {
+        "name": "昵称",
+        "code": "nickname",
+        "type": "VARCHAR",
+        "length": 100,
+        "nullable": true,
+        "comment": "用户显示名称",
+        "order": 5
+      },
+      {
+        "name": "头像",
+        "code": "avatar",
+        "type": "VARCHAR",
+        "length": 500,
+        "nullable": true,
+        "comment": "用户头像URL",
+        "order": 6
+      },
+      {
+        "name": "角色",
+        "code": "role",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "USER",
+        "comment": "用户角色：ADMIN, AUTHOR, USER",
+        "order": 7
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "ACTIVE",
+        "comment": "用户状态：ACTIVE, INACTIVE, BANNED",
+        "order": 8
+      },
+      {
+        "name": "最后登录时间",
+        "code": "lastLoginAt",
+        "type": "TIMESTAMP",
+        "nullable": true,
+        "comment": "用户最后登录时间",
+        "order": 9
+      }
+    ]
+  },
+  {
+    "name": "分类",
+    "code": "category",
+    "tableName": "categories",
+    "description": "文章分类管理",
+    "category": "content",
+    "status": "PUBLISHED",
+    "config": {
+      "softDelete": true,
+      "timestamps": true
+    },
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "comment": "分类唯一标识",
+        "order": 1
+      },
+      {
+        "name": "名称",
+        "code": "name",
+        "type": "VARCHAR",
+        "length": 100,
+        "nullable": false,
+        "unique": true,
+        "comment": "分类名称",
+        "order": 2
+      },
+      {
+        "name": "代码",
+        "code": "code",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "unique": true,
+        "comment": "分类代码",
+        "order": 3
+      },
+      {
+        "name": "描述",
+        "code": "description",
+        "type": "TEXT",
+        "nullable": true,
+        "comment": "分类描述",
+        "order": 4
+      },
+      {
+        "name": "父分类ID",
+        "code": "parentId",
+        "type": "UUID",
+        "nullable": true,
+        "comment": "父分类ID，支持层级分类",
+        "order": 5
+      },
+      {
+        "name": "排序",
+        "code": "sort",
+        "type": "INTEGER",
+        "nullable": false,
+        "defaultValue": "0",
+        "comment": "分类排序",
+        "order": 6
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "ACTIVE",
+        "comment": "分类状态：ACTIVE, INACTIVE",
+        "order": 7
+      }
+    ]
+  },
+  {
+    "name": "标签",
+    "code": "tag",
+    "tableName": "tags",
+    "description": "文章标签管理",
+    "category": "content",
+    "status": "PUBLISHED",
+    "config": {
+      "softDelete": true,
+      "timestamps": true
+    },
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "comment": "标签唯一标识",
+        "order": 1
+      },
+      {
+        "name": "名称",
+        "code": "name",
+        "type": "VARCHAR",
+        "length": 50,
+        "nullable": false,
+        "unique": true,
+        "comment": "标签名称",
+        "order": 2
+      },
+      {
+        "name": "颜色",
+        "code": "color",
+        "type": "VARCHAR",
+        "length": 7,
+        "nullable": true,
+        "defaultValue": "#007bff",
+        "comment": "标签颜色",
+        "order": 3
+      },
+      {
+        "name": "使用次数",
+        "code": "usageCount",
+        "type": "INTEGER",
+        "nullable": false,
+        "defaultValue": "0",
+        "comment": "标签使用次数",
+        "order": 4
+      }
+    ]
+  },
+  {
+    "name": "文章",
+    "code": "article",
+    "tableName": "articles",
+    "description": "博客文章内容管理",
+    "category": "content",
+    "status": "PUBLISHED",
+    "config": {
+      "softDelete": true,
+      "timestamps": true,
+      "audit": true
+    },
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "comment": "文章唯一标识",
+        "order": 1
+      },
+      {
+        "name": "标题",
+        "code": "title",
+        "type": "VARCHAR",
+        "length": 200,
+        "nullable": false,
+        "comment": "文章标题",
+        "order": 2
+      },
+      {
+        "name": "摘要",
+        "code": "summary",
+        "type": "TEXT",
+        "nullable": true,
+        "comment": "文章摘要",
+        "order": 3
+      },
+      {
+        "name": "内容",
+        "code": "content",
+        "type": "TEXT",
+        "nullable": false,
+        "comment": "文章内容",
+        "order": 4
+      },
+      {
+        "name": "封面图",
+        "code": "coverImage",
+        "type": "VARCHAR",
+        "length": 500,
+        "nullable": true,
+        "comment": "文章封面图URL",
+        "order": 5
+      },
+      {
+        "name": "作者ID",
+        "code": "authorId",
+        "type": "UUID",
+        "nullable": false,
+        "comment": "文章作者ID",
+        "order": 6
+      },
+      {
+        "name": "分类ID",
+        "code": "categoryId",
+        "type": "UUID",
+        "nullable": false,
+        "comment": "文章分类ID",
+        "order": 7
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "DRAFT",
+        "comment": "文章状态：DRAFT, PUBLISHED, ARCHIVED",
+        "order": 8
+      },
+      {
+        "name": "是否置顶",
+        "code": "isTop",
+        "type": "BOOLEAN",
+        "nullable": false,
+        "defaultValue": "false",
+        "comment": "是否置顶文章",
+        "order": 9
+      },
+      {
+        "name": "浏览次数",
+        "code": "viewCount",
+        "type": "INTEGER",
+        "nullable": false,
+        "defaultValue": "0",
+        "comment": "文章浏览次数",
+        "order": 10
+      },
+      {
+        "name": "点赞次数",
+        "code": "likeCount",
+        "type": "INTEGER",
+        "nullable": false,
+        "defaultValue": "0",
+        "comment": "文章点赞次数",
+        "order": 11
+      },
+      {
+        "name": "发布时间",
+        "code": "publishedAt",
+        "type": "TIMESTAMP",
+        "nullable": true,
+        "comment": "文章发布时间",
+        "order": 12
+      }
+    ]
+  },
+  {
+    "name": "文章标签关联",
+    "code": "article_tag",
+    "tableName": "article_tags",
+    "description": "文章和标签的多对多关联表",
+    "category": "relation",
+    "status": "PUBLISHED",
+    "config": {
+      "timestamps": true
+    },
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "comment": "关联唯一标识",
+        "order": 1
+      },
+      {
+        "name": "文章ID",
+        "code": "articleId",
+        "type": "UUID",
+        "nullable": false,
+        "comment": "文章ID",
+        "order": 2
+      },
+      {
+        "name": "标签ID",
+        "code": "tagId",
+        "type": "UUID",
+        "nullable": false,
+        "comment": "标签ID",
+        "order": 3
+      }
+    ]
+  },
+  {
+    "name": "评论",
+    "code": "comment",
+    "tableName": "comments",
+    "description": "文章评论管理",
+    "category": "interaction",
+    "status": "PUBLISHED",
+    "config": {
+      "softDelete": true,
+      "timestamps": true,
+      "audit": true
+    },
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "comment": "评论唯一标识",
+        "order": 1
+      },
+      {
+        "name": "文章ID",
+        "code": "articleId",
+        "type": "UUID",
+        "nullable": false,
+        "comment": "评论所属文章ID",
+        "order": 2
+      },
+      {
+        "name": "用户ID",
+        "code": "userId",
+        "type": "UUID",
+        "nullable": false,
+        "comment": "评论用户ID",
+        "order": 3
+      },
+      {
+        "name": "父评论ID",
+        "code": "parentId",
+        "type": "UUID",
+        "nullable": true,
+        "comment": "父评论ID，支持回复",
+        "order": 4
+      },
+      {
+        "name": "内容",
+        "code": "content",
+        "type": "TEXT",
+        "nullable": false,
+        "comment": "评论内容",
+        "order": 5
+      },
+      {
+        "name": "状态",
+        "code": "status",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "PENDING",
+        "comment": "评论状态：PENDING, APPROVED, REJECTED",
+        "order": 6
+      },
+      {
+        "name": "点赞次数",
+        "code": "likeCount",
+        "type": "INTEGER",
+        "nullable": false,
+        "defaultValue": "0",
+        "comment": "评论点赞次数",
+        "order": 7
+      }
+    ]
+  },
+  {
+    "name": "文件",
+    "code": "file",
+    "tableName": "files",
+    "description": "文件管理，包括图片、文档等",
+    "category": "media",
+    "status": "PUBLISHED",
+    "config": {
+      "softDelete": true,
+      "timestamps": true
+    },
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "comment": "文件唯一标识",
+        "order": 1
+      },
+      {
+        "name": "原始名称",
+        "code": "originalName",
+        "type": "VARCHAR",
+        "length": 255,
+        "nullable": false,
+        "comment": "文件原始名称",
+        "order": 2
+      },
+      {
+        "name": "文件名",
+        "code": "filename",
+        "type": "VARCHAR",
+        "length": 255,
+        "nullable": false,
+        "comment": "存储文件名",
+        "order": 3
+      },
+      {
+        "name": "文件路径",
+        "code": "path",
+        "type": "VARCHAR",
+        "length": 500,
+        "nullable": false,
+        "comment": "文件存储路径",
+        "order": 4
+      },
+      {
+        "name": "文件大小",
+        "code": "size",
+        "type": "INTEGER",
+        "nullable": false,
+        "comment": "文件大小（字节）",
+        "order": 5
+      },
+      {
+        "name": "MIME类型",
+        "code": "mimeType",
+        "type": "VARCHAR",
+        "length": 100,
+        "nullable": false,
+        "comment": "文件MIME类型",
+        "order": 6
+      },
+      {
+        "name": "上传者ID",
+        "code": "uploaderId",
+        "type": "UUID",
+        "nullable": false,
+        "comment": "文件上传者ID",
+        "order": 7
+      },
+      {
+        "name": "使用次数",
+        "code": "usageCount",
+        "type": "INTEGER",
+        "nullable": false,
+        "defaultValue": "0",
+        "comment": "文件使用次数",
+        "order": 8
+      }
+    ]
+  },
+  {
+    "name": "系统配置",
+    "code": "setting",
+    "tableName": "settings",
+    "description": "系统配置管理",
+    "category": "system",
+    "status": "PUBLISHED",
+    "config": {
+      "timestamps": true
+    },
+    "fields": [
+      {
+        "name": "ID",
+        "code": "id",
+        "type": "UUID",
+        "nullable": false,
+        "unique": true,
+        "primaryKey": true,
+        "comment": "配置唯一标识",
+        "order": 1
+      },
+      {
+        "name": "键",
+        "code": "key",
+        "type": "VARCHAR",
+        "length": 100,
+        "nullable": false,
+        "unique": true,
+        "comment": "配置键",
+        "order": 2
+      },
+      {
+        "name": "值",
+        "code": "value",
+        "type": "TEXT",
+        "nullable": true,
+        "comment": "配置值",
+        "order": 3
+      },
+      {
+        "name": "描述",
+        "code": "description",
+        "type": "VARCHAR",
+        "length": 255,
+        "nullable": true,
+        "comment": "配置描述",
+        "order": 4
+      },
+      {
+        "name": "类型",
+        "code": "type",
+        "type": "VARCHAR",
+        "length": 20,
+        "nullable": false,
+        "defaultValue": "STRING",
+        "comment": "配置类型：STRING, NUMBER, BOOLEAN, JSON",
+        "order": 5
+      },
+      {
+        "name": "是否公开",
+        "code": "isPublic",
+        "type": "BOOLEAN",
+        "nullable": false,
+        "defaultValue": "false",
+        "comment": "是否为公开配置",
+        "order": 6
+      }
+    ]
+  }
+]

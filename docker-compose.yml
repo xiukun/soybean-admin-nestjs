@@ -51,7 +51,7 @@ services:
       REFRESH_TOKEN_EXPIRE_IN: 7200
       # CORS配置
       CORS_ENABLED: 'true'
-      CORS_ORIGIN: 'http://localhost:9527,http://127.0.0.1:9527,http://localhost:9528,http://127.0.0.1:9528,http://localhost:9529,http://127.0.0.1:9529,http://localhost:9555,http://127.0.0.1:9555'
+      CORS_ORIGIN: 'http://localhost:9527,http://127.0.0.1:9527,http://localhost:9528,http://127.0.0.1:9528,http://localhost:9529,http://127.0.0.1:9529,http://localhost:9555,http://127.0.0.1:9555,http://localhost:3000,http://127.0.0.1:3000'
       CORS_METHODS: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS'
       CORS_CREDENTIALS: 'true'
       CORS_MAX_AGE: 3600
@@ -66,6 +66,49 @@ services:
       - soybean-admin
     healthcheck:
       test: ["CMD", "curl", "-f", "http://backend:9528/v1/route/getConstantRoutes"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    cpus: 2
+
+  # Low-code Platform Backend (3000)
+  lowcode-platform:
+    build:
+      context: lowcode-platform-backend/
+    # image: lowcode-platform-backend:1.0.0
+    environment:
+      TZ: Asia/Shanghai
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: 'postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend?schema=public'
+      REDIS_HOST: 'redis'
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: '123456'
+      REDIS_DB: 2
+      JWT_SECRET: 'JWT_SECRET-soybean-admin-nest@123456!@#.'
+      BASE_SYSTEM_URL: 'http://backend:9528'
+      # CORS配置
+      CORS_ENABLED: 'true'
+      CORS_ORIGIN: 'http://localhost:9527,http://127.0.0.1:9527,http://localhost:9528,http://127.0.0.1:9528'
+      CORS_METHODS: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS'
+      CORS_CREDENTIALS: 'true'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    ports:
+      - '3000:3000'
+    networks:
+      - soybean-admin
+    volumes:
+      - ./generated-code:/app/generated
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://lowcode-platform:3000/health"]
       interval: 10s
       timeout: 5s
       retries: 5

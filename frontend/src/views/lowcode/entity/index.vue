@@ -57,6 +57,14 @@ interface Props {
 
 const props = defineProps<Props>();
 
+// Create a wrapper function for the API call
+const getEntityListApi = (params: any) => {
+  return fetchGetEntityList({
+    ...params,
+    projectId: props.projectId
+  });
+};
+
 const {
   columns,
   columnChecks,
@@ -68,11 +76,10 @@ const {
   searchParams,
   resetSearchParams
 } = useTable({
-  apiFn: fetchGetEntityList,
+  apiFn: getEntityListApi,
   apiParams: {
-    projectId: props.projectId,
-    page: 1,
-    limit: 10,
+    current: 1,
+    size: 10,
     status: null,
     search: null
   },
@@ -107,6 +114,23 @@ const {
       minWidth: 120
     },
     {
+      key: 'category',
+      title: $t('page.lowcode.entity.category'),
+      align: 'center',
+      width: 100,
+      render: row => {
+        const categoryMap: Record<string, NaiveUI.ThemeColor> = {
+          core: 'primary',
+          business: 'info',
+          system: 'warning',
+          config: 'success'
+        };
+
+        const label = $t(`page.lowcode.entity.category.${row.category}`);
+        return <NTag type={categoryMap[row.category] || 'default'}>{label}</NTag>;
+      }
+    },
+    {
       key: 'description',
       title: $t('page.lowcode.entity.description'),
       align: 'center',
@@ -122,7 +146,7 @@ const {
           return null;
         }
 
-        const tagMap: Record<Api.Common.EnableStatus, NaiveUI.ThemeColor> = {
+        const tagMap: Record<Api.Lowcode.EntityStatus, NaiveUI.ThemeColor> = {
           DRAFT: 'warning',
           PUBLISHED: 'success',
           DEPRECATED: 'error'

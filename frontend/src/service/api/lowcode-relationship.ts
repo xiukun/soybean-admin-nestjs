@@ -1,4 +1,4 @@
-import { request } from '../request';
+import { lowcodeRequest as request } from '../request';
 
 /**
  * get relationship list by project

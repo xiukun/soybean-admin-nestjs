@@ -1,0 +1,63 @@
+{
+  "name": "电商订单系统",
+  "code": "ecommerce_orders",
+  "description": "完整的电商订单管理系统，包含商品管理、订单处理、库存管理、支付集成等功能",
+  "version": "1.0.0",
+  "status": "ACTIVE",
+  "category": "ecommerce",
+  "tags": ["ecommerce", "orders", "inventory", "payment"],
+  "config": {
+    "database": {
+      "type": "postgresql",
+      "schema": "ecommerce_orders"
+    },
+    "features": {
+      "authentication": true,
+      "authorization": true,
+      "audit": true,
+      "softDelete": true,
+      "timestamps": true,
+      "fileUpload": true,
+      "search": true,
+      "caching": true,
+      "notifications": true,
+      "payments": true,
+      "inventory": true
+    },
+    "api": {
+      "prefix": "/api/v1",
+      "versioning": true,
+      "rateLimit": {
+        "enabled": true,
+        "requests": 200,
+        "window": 60
+      }
+    },
+    "payments": {
+      "providers": ["stripe", "paypal", "alipay", "wechat"],
+      "currencies": ["USD", "EUR", "CNY"],
+      "defaultCurrency": "USD"
+    },
+    "inventory": {
+      "trackStock": true,
+      "lowStockThreshold": 10,
+      "autoReorder": false
+    },
+    "orders": {
+      "statuses": ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED", "REFUNDED"],
+      "autoConfirm": false,
+      "cancelTimeout": 30
+    }
+  },
+  "metadata": {
+    "author": "Low-code Platform Team",
+    "license": "MIT",
+    "complexity": "advanced",
+    "estimatedTime": "4-6 hours",
+    "prerequisites": [
+      "Understanding of e-commerce concepts",
+      "Knowledge of payment processing",
+      "Familiarity with inventory management"
+    ]
+  }
+}

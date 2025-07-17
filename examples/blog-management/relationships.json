@@ -1,0 +1,137 @@
+[
+  {
+    "name": "用户文章关系",
+    "code": "user_articles",
+    "description": "一个用户可以写多篇文章",
+    "type": "ONE_TO_MANY",
+    "sourceEntity": "user",
+    "targetEntity": "article",
+    "sourceField": "id",
+    "targetField": "authorId",
+    "onDelete": "CASCADE",
+    "onUpdate": "CASCADE",
+    "config": {
+      "foreignKeyName": "fk_article_author",
+      "indexName": "idx_article_author"
+    }
+  },
+  {
+    "name": "分类文章关系",
+    "code": "category_articles",
+    "description": "一个分类可以包含多篇文章",
+    "type": "ONE_TO_MANY",
+    "sourceEntity": "category",
+    "targetEntity": "article",
+    "sourceField": "id",
+    "targetField": "categoryId",
+    "onDelete": "RESTRICT",
+    "onUpdate": "CASCADE",
+    "config": {
+      "foreignKeyName": "fk_article_category",
+      "indexName": "idx_article_category"
+    }
+  },
+  {
+    "name": "分类层级关系",
+    "code": "category_hierarchy",
+    "description": "分类的父子关系，支持多级分类",
+    "type": "ONE_TO_MANY",
+    "sourceEntity": "category",
+    "targetEntity": "category",
+    "sourceField": "id",
+    "targetField": "parentId",
+    "onDelete": "SET_NULL",
+    "onUpdate": "CASCADE",
+    "config": {
+      "foreignKeyName": "fk_category_parent",
+      "indexName": "idx_category_parent",
+      "selfReferencing": true
+    }
+  },
+  {
+    "name": "文章标签关系",
+    "code": "article_tag_relation",
+    "description": "文章和标签的多对多关系",
+    "type": "MANY_TO_MANY",
+    "sourceEntity": "article",
+    "targetEntity": "tag",
+    "throughEntity": "article_tag",
+    "sourceField": "id",
+    "targetField": "id",
+    "throughSourceField": "articleId",
+    "throughTargetField": "tagId",
+    "onDelete": "CASCADE",
+    "onUpdate": "CASCADE",
+    "config": {
+      "throughTable": "article_tags",
+      "sourceIndexName": "idx_article_tag_article",
+      "targetIndexName": "idx_article_tag_tag",
+      "uniqueConstraint": "uk_article_tag"
+    }
+  },
+  {
+    "name": "文章评论关系",
+    "code": "article_comments",
+    "description": "一篇文章可以有多个评论",
+    "type": "ONE_TO_MANY",
+    "sourceEntity": "article",
+    "targetEntity": "comment",
+    "sourceField": "id",
+    "targetField": "articleId",
+    "onDelete": "CASCADE",
+    "onUpdate": "CASCADE",
+    "config": {
+      "foreignKeyName": "fk_comment_article",
+      "indexName": "idx_comment_article"
+    }
+  },
+  {
+    "name": "用户评论关系",
+    "code": "user_comments",
+    "description": "一个用户可以发表多个评论",
+    "type": "ONE_TO_MANY",
+    "sourceEntity": "user",
+    "targetEntity": "comment",
+    "sourceField": "id",
+    "targetField": "userId",
+    "onDelete": "CASCADE",
+    "onUpdate": "CASCADE",
+    "config": {
+      "foreignKeyName": "fk_comment_user",
+      "indexName": "idx_comment_user"
+    }
+  },
+  {
+    "name": "评论回复关系",
+    "code": "comment_replies",
+    "description": "评论的回复关系，支持多级回复",
+    "type": "ONE_TO_MANY",
+    "sourceEntity": "comment",
+    "targetEntity": "comment",
+    "sourceField": "id",
+    "targetField": "parentId",
+    "onDelete": "CASCADE",
+    "onUpdate": "CASCADE",
+    "config": {
+      "foreignKeyName": "fk_comment_parent",
+      "indexName": "idx_comment_parent",
+      "selfReferencing": true
+    }
+  },
+  {
+    "name": "用户文件关系",
+    "code": "user_files",
+    "description": "一个用户可以上传多个文件",
+    "type": "ONE_TO_MANY",
+    "sourceEntity": "user",
+    "targetEntity": "file",
+    "sourceField": "id",
+    "targetField": "uploaderId",
+    "onDelete": "SET_NULL",
+    "onUpdate": "CASCADE",
+    "config": {
+      "foreignKeyName": "fk_file_uploader",
+      "indexName": "idx_file_uploader"
+    }
+  }
+]

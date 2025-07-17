@@ -1,4 +1,6 @@
-import { request } from '../request';
+import { lowcodeRequest as request } from '../request';
+// Alternative: use smart router for automatic service detection
+// import { lowcodeSmartRequest as request } from '../request/router';
 
 /**
  * get project list

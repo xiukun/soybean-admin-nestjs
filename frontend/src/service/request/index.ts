@@ -175,3 +175,69 @@ export const amisRequest = createRequest<App.Service.DemoResponse>(
     }
   }
 );
+
+export const lowcodeRequest = createFlatRequest<App.Service.Response, RequestInstanceState>(
+  {
+    baseURL: otherBaseURL.lowcodeService,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  },
+  {
+    async onRequest(config) {
+      const Authorization = getAuthorization();
+      Object.assign(config.headers, { Authorization });
+
+      return config;
+    },
+    isBackendSuccess(response) {
+      // Low-code platform uses standard HTTP status codes
+      return response.status >= 200 && response.status < 300;
+    },
+    async onBackendFail(response, instance) {
+      const authStore = useAuthStore();
+
+      // Handle 401 Unauthorized
+      if (response.status === 401) {
+        authStore.resetStore();
+        return null;
+      }
+
+      // Handle 403 Forbidden
+      if (response.status === 403) {
+        window.$message?.error($t('common.noPermission'));
+        return null;
+      }
+
+      return null;
+    },
+    transformBackendResponse(response) {
+      // For low-code platform, return the response data directly
+      return response.data;
+    },
+    onError(error) {
+      let message = error.message;
+
+      // Handle different error types
+      if (error.code === BACKEND_ERROR_CODE) {
+        const errorData = error.response?.data;
+        if (errorData) {
+          // Handle validation errors
+          if (errorData.message === 'Validation failed' && errorData.errors) {
+            const validationErrors = Object.values(errorData.errors).flat();
+            message = validationErrors.join(', ');
+          } else {
+            message = errorData.message || errorData.error || message;
+          }
+        }
+      }
+
+      // Don't show error for 401/403 as they are handled in onBackendFail
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        return;
+      }
+
+      showErrorMsg(lowcodeRequest.state, message);
+    }
+  }
+);

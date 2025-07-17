@@ -1,0 +1,110 @@
+{
+  "name": "博客管理系统",
+  "code": "blog_management",
+  "description": "一个完整的博客内容管理系统，包含用户管理、文章发布、分类标签、评论互动等功能",
+  "version": "1.0.0",
+  "status": "ACTIVE",
+  "category": "content-management",
+  "tags": ["blog", "cms", "content", "management"],
+  "config": {
+    "database": {
+      "type": "postgresql",
+      "schema": "blog_management"
+    },
+    "features": {
+      "authentication": true,
+      "authorization": true,
+      "audit": true,
+      "softDelete": true,
+      "timestamps": true,
+      "fileUpload": true,
+      "search": true,
+      "caching": true
+    },
+    "api": {
+      "prefix": "/api/v1",
+      "versioning": true,
+      "rateLimit": {
+        "enabled": true,
+        "requests": 100,
+        "window": 60
+      },
+      "cors": {
+        "enabled": true,
+        "origins": ["http://localhost:3000", "https://blog.example.com"]
+      }
+    },
+    "security": {
+      "jwt": {
+        "expiresIn": "24h",
+        "refreshExpiresIn": "7d"
+      },
+      "bcrypt": {
+        "rounds": 12
+      },
+      "validation": {
+        "whitelist": true,
+        "forbidNonWhitelisted": true
+      }
+    },
+    "storage": {
+      "type": "local",
+      "path": "./uploads",
+      "maxFileSize": "10MB",
+      "allowedTypes": ["image/jpeg", "image/png", "image/gif", "image/webp"]
+    }
+  },
+  "metadata": {
+    "author": "Low-code Platform Team",
+    "license": "MIT",
+    "documentation": "https://docs.example.com/blog-management",
+    "repository": "https://github.com/example/blog-management",
+    "keywords": ["blog", "cms", "nestjs", "vue", "typescript"],
+    "complexity": "intermediate",
+    "estimatedTime": "2-3 hours",
+    "prerequisites": [
+      "Basic understanding of REST APIs",
+      "Familiarity with relational databases",
+      "Knowledge of web development concepts"
+    ]
+  },
+  "deployment": {
+    "environments": {
+      "development": {
+        "database": "postgresql://localhost:5432/blog_dev",
+        "redis": "redis://localhost:6379/0",
+        "baseUrl": "http://localhost:3000"
+      },
+      "staging": {
+        "database": "postgresql://staging-db:5432/blog_staging",
+        "redis": "redis://staging-redis:6379/0",
+        "baseUrl": "https://staging-blog.example.com"
+      },
+      "production": {
+        "database": "postgresql://prod-db:5432/blog_prod",
+        "redis": "redis://prod-redis:6379/0",
+        "baseUrl": "https://blog.example.com"
+      }
+    },
+    "docker": {
+      "enabled": true,
+      "services": ["app", "database", "redis", "nginx"]
+    }
+  },
+  "monitoring": {
+    "healthCheck": {
+      "enabled": true,
+      "endpoint": "/health",
+      "interval": 30
+    },
+    "metrics": {
+      "enabled": true,
+      "endpoint": "/metrics"
+    },
+    "logging": {
+      "level": "info",
+      "format": "json",
+      "destinations": ["console", "file"]
+    }
+  }
+}
