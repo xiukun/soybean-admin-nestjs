@@ -1,0 +1,83 @@
+import { AggregateRoot } from '@nestjs/cqrs';
+
+{{#if entity.description}}
+/**
+ * {{entity.description}}
+ */
+{{/if}}
+export interface {{pascalCase entity.code}}Properties {
+  id?: string;
+{{#each fields}}
+  {{camelCase code}}{{#if nullable}}?{{/if}}: {{typescriptType}}{{#if nullable}} | null{{/if}};
+{{/each}}
+  createdBy: string;
+  createdAt?: Date;
+  updatedBy?: string;
+  updatedAt?: Date;
+}
+
+export interface {{pascalCase entity.code}}CreateProperties extends Omit<{{pascalCase entity.code}}Properties, 'id' | 'createdAt' | 'updatedAt'> {
+  createdAt?: Date;
+}
+
+export interface {{pascalCase entity.code}}UpdateProperties extends Partial<Omit<{{pascalCase entity.code}}Properties, 'id' | 'createdBy' | 'createdAt'>> {
+  updatedBy: string;
+  updatedAt?: Date;
+}
+
+export class {{pascalCase entity.code}} extends AggregateRoot {
+  private constructor(private props: {{pascalCase entity.code}}Properties) {
+    super();
+  }
+
+  static create(props: {{pascalCase entity.code}}CreateProperties): {{pascalCase entity.code}} {
+    // 业务规则验证
+    {{pascalCase entity.code}}.validateBusinessRules(props);
+    
+    const {{camelCase entity.code}}Props: {{pascalCase entity.code}}Properties = {
+      ...props,
+      createdAt: props.createdAt || new Date(),
+    };
+
+    return new {{pascalCase entity.code}}({{camelCase entity.code}}Props);
+  }
+
+  static fromPersistence(props: {{pascalCase entity.code}}Properties): {{pascalCase entity.code}} {
+    return new {{pascalCase entity.code}}(props);
+  }
+
+  update(props: {{pascalCase entity.code}}UpdateProperties): void {
+    Object.assign(this.props, {
+      ...props,
+      updatedAt: props.updatedAt || new Date(),
+    });
+  }
+
+  private static validateBusinessRules(props: {{pascalCase entity.code}}CreateProperties): void {
+{{#each fields}}
+{{#unless nullable}}
+    if (!props.{{camelCase code}}) {
+      throw new Error('{{name}} is required');
+    }
+{{/unless}}
+{{/each}}
+    
+    if (!props.createdBy) {
+      throw new Error('Created by is required');
+    }
+  }
+
+  // Getters
+  get id(): string | undefined { return this.props.id; }
+{{#each fields}}
+  get {{camelCase code}}(): {{typescriptType}}{{#if nullable}} | null{{/if}} { return this.props.{{camelCase code}}; }
+{{/each}}
+  get createdBy(): string { return this.props.createdBy; }
+  get createdAt(): Date | undefined { return this.props.createdAt; }
+  get updatedBy(): string | undefined { return this.props.updatedBy; }
+  get updatedAt(): Date | undefined { return this.props.updatedAt; }
+
+  toJSON(): {{pascalCase entity.code}}Properties {
+    return { ...this.props };
+  }
+}

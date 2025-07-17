@@ -1,0 +1,174 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsOptional, IsNumber, IsBoolean, IsDate, IsUUID, IsEnum } from 'class-validator';
+
+{{#if entity.description}}
+/**
+ * {{entity.description}} - 创建DTO
+ */
+{{/if}}
+export class Create{{pascalCase entity.code}}Dto {
+{{#each fields}}
+{{#unless primaryKey}}
+{{#if nullable}}
+  @ApiPropertyOptional({ description: '{{name}}' })
+  @IsOptional()
+{{else}}
+  @ApiProperty({ description: '{{name}}' })
+{{/if}}
+{{#if (eq type 'STRING')}}
+  @IsString()
+{{else if (eq type 'INTEGER')}}
+  @IsNumber()
+{{else if (eq type 'DECIMAL')}}
+  @IsNumber()
+{{else if (eq type 'BOOLEAN')}}
+  @IsBoolean()
+{{else if (eq type 'DATE')}}
+  @IsDate()
+{{else if (eq type 'DATETIME')}}
+  @IsDate()
+{{else if (eq type 'UUID')}}
+  @IsUUID()
+{{else}}
+  @IsString()
+{{/if}}
+  {{camelCase code}}{{#if nullable}}?{{/if}}: {{typescriptType}};
+
+{{/unless}}
+{{/each}}
+}
+
+{{#if entity.description}}
+/**
+ * {{entity.description}} - 更新DTO
+ */
+{{/if}}
+export class Update{{pascalCase entity.code}}Dto {
+{{#each fields}}
+{{#unless primaryKey}}
+  @ApiPropertyOptional({ description: '{{name}}' })
+  @IsOptional()
+{{#if (eq type 'STRING')}}
+  @IsString()
+{{else if (eq type 'INTEGER')}}
+  @IsNumber()
+{{else if (eq type 'DECIMAL')}}
+  @IsNumber()
+{{else if (eq type 'BOOLEAN')}}
+  @IsBoolean()
+{{else if (eq type 'DATE')}}
+  @IsDate()
+{{else if (eq type 'DATETIME')}}
+  @IsDate()
+{{else if (eq type 'UUID')}}
+  @IsUUID()
+{{else}}
+  @IsString()
+{{/if}}
+  {{camelCase code}}?: {{typescriptType}};
+
+{{/unless}}
+{{/each}}
+}
+
+{{#if entity.description}}
+/**
+ * {{entity.description}} - 查询DTO
+ */
+{{/if}}
+export class Query{{pascalCase entity.code}}Dto {
+  @ApiPropertyOptional({ description: '页码', default: 1 })
+  @IsOptional()
+  @IsNumber()
+  page?: number = 1;
+
+  @ApiPropertyOptional({ description: '每页数量', default: 10 })
+  @IsOptional()
+  @IsNumber()
+  limit?: number = 10;
+
+{{#each fields}}
+{{#if indexed}}
+  @ApiPropertyOptional({ description: '按{{name}}筛选' })
+  @IsOptional()
+{{#if (eq type 'STRING')}}
+  @IsString()
+{{else if (eq type 'INTEGER')}}
+  @IsNumber()
+{{else if (eq type 'DECIMAL')}}
+  @IsNumber()
+{{else if (eq type 'BOOLEAN')}}
+  @IsBoolean()
+{{else if (eq type 'DATE')}}
+  @IsDate()
+{{else if (eq type 'DATETIME')}}
+  @IsDate()
+{{else if (eq type 'UUID')}}
+  @IsUUID()
+{{else}}
+  @IsString()
+{{/if}}
+  {{camelCase code}}?: {{typescriptType}};
+
+{{/if}}
+{{/each}}
+  @ApiPropertyOptional({ description: '搜索关键词' })
+  @IsOptional()
+  @IsString()
+  search?: string;
+}
+
+{{#if entity.description}}
+/**
+ * {{entity.description}} - 响应DTO
+ */
+{{/if}}
+export class {{pascalCase entity.code}}ResponseDto {
+  @ApiProperty({ description: 'ID' })
+  id: string;
+
+{{#each fields}}
+{{#unless primaryKey}}
+{{#if nullable}}
+  @ApiPropertyOptional({ description: '{{name}}' })
+{{else}}
+  @ApiProperty({ description: '{{name}}' })
+{{/if}}
+  {{camelCase code}}{{#if nullable}}?{{/if}}: {{typescriptType}};
+
+{{/unless}}
+{{/each}}
+  @ApiProperty({ description: '创建者' })
+  createdBy: string;
+
+  @ApiProperty({ description: '创建时间' })
+  createdAt: Date;
+
+  @ApiPropertyOptional({ description: '更新者' })
+  updatedBy?: string;
+
+  @ApiPropertyOptional({ description: '更新时间' })
+  updatedAt?: Date;
+}
+
+{{#if entity.description}}
+/**
+ * {{entity.description}} - 列表响应DTO
+ */
+{{/if}}
+export class {{pascalCase entity.code}}ListResponseDto {
+  @ApiProperty({ description: '{{entity.name}}列表', type: [{{pascalCase entity.code}}ResponseDto] })
+  data: {{pascalCase entity.code}}ResponseDto[];
+
+  @ApiProperty({ description: '总数' })
+  total: number;
+
+  @ApiProperty({ description: '当前页' })
+  page: number;
+
+  @ApiProperty({ description: '每页数量' })
+  limit: number;
+
+  @ApiProperty({ description: '总页数' })
+  totalPages: number;
+}

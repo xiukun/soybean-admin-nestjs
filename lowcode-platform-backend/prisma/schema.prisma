@@ -1,0 +1,232 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 项目管理表
+model Project {
+  id          String  @id @default(uuid())
+  name        String  @db.VarChar(100)
+  code        String  @unique @db.VarChar(100)
+  description String? @db.Text
+  version     String  @default("1.0.0") @db.VarChar(20)
+  
+  // 项目配置
+  config Json @default("{}")
+  
+  // 状态管理
+  status String @default("ACTIVE") @db.VarChar(20) // ACTIVE, INACTIVE, ARCHIVED
+  
+  // 审计字段
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedBy String?  @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // 关联关系
+  entities  Entity[]
+  apis      Api[]
+  relations Relation[]
+  
+  @@map("lowcode_projects")
+}
+
+// 实体管理表
+model Entity {
+  id          String  @id @default(uuid())
+  projectId   String  @map("project_id")
+  name        String  @db.VarChar(100)
+  code        String  @db.VarChar(100)
+  tableName   String  @map("table_name") @db.VarChar(100)
+  description String? @db.Text
+  category    String? @db.VarChar(50)
+  
+  // ER图位置信息
+  diagramPosition Json? @map("diagram_position")
+  
+  // 实体配置
+  config Json @default("{}")
+  
+  // 版本控制
+  version String @default("1.0.0") @db.VarChar(20)
+  
+  // 状态管理
+  status String @default("DRAFT") @db.VarChar(20) // DRAFT, PUBLISHED, DEPRECATED
+  
+  // 审计字段
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedBy String?  @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // 关联关系
+  project         Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  fields          Field[]
+  sourceRelations Relation[] @relation("SourceEntity")
+  targetRelations Relation[] @relation("TargetEntity")
+  apis            Api[]
+  
+  @@unique([projectId, code])
+  @@unique([projectId, tableName])
+  @@map("lowcode_entities")
+}
+
+// 字段管理表
+model Field {
+  id               String  @id @default(uuid())
+  entityId         String  @map("entity_id")
+  name             String  @db.VarChar(100)
+  code             String  @db.VarChar(100)
+  type             String  @db.VarChar(50) // STRING, INTEGER, DECIMAL, BOOLEAN, DATE, DATETIME, TIME, UUID, JSON, TEXT
+  length           Int?
+  precision        Int?
+  scale            Int?
+  nullable         Boolean @default(true)
+  uniqueConstraint Boolean @default(false) @map("unique_constraint")
+  indexed          Boolean @default(false)
+  primaryKey       Boolean @default(false) @map("primary_key")
+  defaultValue     String? @map("default_value") @db.Text
+  validationRules  Json?   @map("validation_rules")
+  referenceConfig  Json?   @map("reference_config")
+  enumOptions      Json?   @map("enum_options")
+  comment          String? @db.Text
+  sortOrder        Int     @default(0) @map("sort_order")
+  
+  // 审计字段
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedBy String?  @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // 关联关系
+  entity          Entity     @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  sourceRelations Relation[] @relation("SourceField")
+  targetRelations Relation[] @relation("TargetField")
+  
+  @@unique([entityId, code])
+  @@map("lowcode_fields")
+}
+
+// 关系管理表
+model Relation {
+  id               String  @id @default(uuid())
+  projectId        String  @map("project_id")
+  name             String  @db.VarChar(100)
+  type             String  @db.VarChar(50) // ONE_TO_ONE, ONE_TO_MANY, MANY_TO_MANY
+  sourceEntityId   String  @map("source_entity_id")
+  sourceFieldId    String  @map("source_field_id")
+  targetEntityId   String  @map("target_entity_id")
+  targetFieldId    String  @map("target_field_id")
+  joinTableConfig  Json?   @map("join_table_config")
+  onDelete         String? @default("RESTRICT") @map("on_delete") @db.VarChar(20) // CASCADE, SET_NULL, RESTRICT, NO_ACTION
+  onUpdate         String? @default("RESTRICT") @map("on_update") @db.VarChar(20)
+  indexed          Boolean @default(true)
+  indexName        String? @map("index_name") @db.VarChar(100)
+  
+  // 审计字段
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  // 关联关系
+  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sourceEntity Entity  @relation("SourceEntity", fields: [sourceEntityId], references: [id], onDelete: Cascade)
+  sourceField  Field   @relation("SourceField", fields: [sourceFieldId], references: [id], onDelete: Cascade)
+  targetEntity Entity  @relation("TargetEntity", fields: [targetEntityId], references: [id], onDelete: Cascade)
+  targetField  Field   @relation("TargetField", fields: [targetFieldId], references: [id], onDelete: Cascade)
+  
+  @@map("lowcode_relations")
+}
+
+// API管理表
+model Api {
+  id          String  @id @default(uuid())
+  projectId   String  @map("project_id")
+  entityId    String? @map("entity_id")
+  name        String  @db.VarChar(100)
+  code        String  @db.VarChar(100)
+  path        String  @db.VarChar(200)
+  method      String  @db.VarChar(10) // GET, POST, PUT, DELETE, PATCH
+  description String? @db.Text
+  
+  // API配置
+  requestConfig  Json? @map("request_config")
+  responseConfig Json? @map("response_config")
+  queryConfig    Json? @map("query_config")
+  authConfig     Json? @map("auth_config")
+  
+  // 版本控制
+  version String @default("1.0.0") @db.VarChar(20)
+  
+  // 状态管理
+  status String @default("DRAFT") @db.VarChar(20) // DRAFT, PUBLISHED, DEPRECATED
+  
+  // 审计字段
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedBy String?  @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // 关联关系
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  entity  Entity? @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  
+  @@unique([projectId, code])
+  @@unique([projectId, path, method])
+  @@map("lowcode_apis")
+}
+
+// 代码生成任务表
+model CodegenTask {
+  id          String  @id @default(uuid())
+  projectId   String  @map("project_id")
+  name        String  @db.VarChar(100)
+  type        String  @db.VarChar(50) // ENTITY, API, FULL_PROJECT
+  config      Json    @default("{}")
+  status      String  @default("PENDING") @db.VarChar(20) // PENDING, RUNNING, COMPLETED, FAILED
+  progress    Int     @default(0)
+  result      Json?
+  errorMsg    String? @map("error_msg") @db.Text
+  outputPath  String? @map("output_path") @db.VarChar(500)
+  
+  // 审计字段
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  @@map("lowcode_codegen_tasks")
+}
+
+// 代码模板表
+model CodeTemplate {
+  id          String  @id @default(uuid())
+  name        String  @db.VarChar(100)
+  code        String  @unique @db.VarChar(100)
+  type        String  @db.VarChar(50) // ENTITY_MODEL, ENTITY_DTO, ENTITY_SERVICE, ENTITY_CONTROLLER, API_CONTROLLER
+  language    String  @db.VarChar(20) // TYPESCRIPT, JAVASCRIPT, JAVA, PYTHON
+  framework   String  @db.VarChar(50) // NESTJS, EXPRESS, SPRING_BOOT, FASTAPI
+  description String? @db.Text
+  template    String  @db.Text
+  variables   Json?   @default("[]")
+  
+  // 版本控制
+  version String @default("1.0.0") @db.VarChar(20)
+  
+  // 状态管理
+  status String @default("ACTIVE") @db.VarChar(20) // ACTIVE, INACTIVE
+  
+  // 审计字段
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedBy String?  @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  @@map("lowcode_code_templates")
+}

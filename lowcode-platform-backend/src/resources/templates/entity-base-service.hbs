@@ -1,0 +1,174 @@
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { {{pascalCase entity.code}} } from './{{kebabCase entity.code}}.model';
+import { {{pascalCase entity.code}}Repository } from './{{kebabCase entity.code}}.repository';
+import { 
+  Create{{pascalCase entity.code}}Dto, 
+  Update{{pascalCase entity.code}}Dto, 
+  Query{{pascalCase entity.code}}Dto 
+} from './{{kebabCase entity.code}}.dto';
+
+export interface PaginatedResult<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+{{#if entity.description}}
+/**
+ * {{entity.description}} - 基础服务类
+ * 
+ * 此类由代码生成器自动生成，请勿手动修改
+ * 如需扩展功能，请在 biz 目录下的对应服务类中继承此类
+ */
+{{/if}}
+@Injectable()
+export abstract class {{pascalCase entity.code}}BaseService {
+  constructor(
+    @Inject('{{pascalCase entity.code}}Repository')
+    protected readonly repository: {{pascalCase entity.code}}Repository,
+  ) {}
+
+  /**
+   * 创建{{entity.name}}
+   */
+  async create(data: Create{{pascalCase entity.code}}Dto, createdBy: string = 'system'): Promise<{{pascalCase entity.code}}> {
+    const {{camelCase entity.code}} = {{pascalCase entity.code}}.create({
+      ...data,
+      createdBy,
+    });
+
+    return await this.repository.save({{camelCase entity.code}});
+  }
+
+  /**
+   * 根据ID查找{{entity.name}}
+   */
+  async findById(id: string): Promise<{{pascalCase entity.code}} | null> {
+    return await this.repository.findById(id);
+  }
+
+  /**
+   * 根据ID获取{{entity.name}}（不存在时抛出异常）
+   */
+  async getById(id: string): Promise<{{pascalCase entity.code}}> {
+    const {{camelCase entity.code}} = await this.findById(id);
+    if (!{{camelCase entity.code}}) {
+      throw new NotFoundException(`{{entity.name}} with id '${id}' not found`);
+    }
+    return {{camelCase entity.code}};
+  }
+
+  /**
+   * 分页查询{{entity.name}}
+   */
+  async findPaginated(query: Query{{pascalCase entity.code}}Dto): Promise<PaginatedResult<{{pascalCase entity.code}}>> {
+    const { page = 1, limit = 10, search, ...filters } = query;
+    
+    return await this.repository.findPaginated(page, limit, {
+      ...filters,
+      search,
+    });
+  }
+
+  /**
+   * 查询所有{{entity.name}}
+   */
+  async findAll(filters?: any): Promise<{{pascalCase entity.code}}[]> {
+    return await this.repository.findAll(filters);
+  }
+
+  /**
+   * 更新{{entity.name}}
+   */
+  async update(id: string, data: Update{{pascalCase entity.code}}Dto, updatedBy: string = 'system'): Promise<{{pascalCase entity.code}}> {
+    const {{camelCase entity.code}} = await this.getById(id);
+    
+    {{camelCase entity.code}}.update({
+      ...data,
+      updatedBy,
+    });
+
+    return await this.repository.update({{camelCase entity.code}});
+  }
+
+  /**
+   * 删除{{entity.name}}
+   */
+  async delete(id: string): Promise<void> {
+    const {{camelCase entity.code}} = await this.getById(id);
+    await this.repository.delete(id);
+  }
+
+  /**
+   * 批量删除{{entity.name}}
+   */
+  async batchDelete(ids: string[]): Promise<void> {
+    for (const id of ids) {
+      await this.delete(id);
+    }
+  }
+
+  /**
+   * 统计{{entity.name}}数量
+   */
+  async count(filters?: any): Promise<number> {
+    return await this.repository.count(filters);
+  }
+
+{{#each fields}}
+{{#if uniqueConstraint}}
+  /**
+   * 根据{{name}}查找{{../entity.name}}
+   */
+  async findBy{{pascalCase code}}({{camelCase code}}: {{typescriptType}}): Promise<{{pascalCase ../entity.code}} | null> {
+    return await this.repository.findBy{{pascalCase code}}({{camelCase code}});
+  }
+
+  /**
+   * 检查{{name}}是否存在
+   */
+  async existsBy{{pascalCase code}}({{camelCase code}}: {{typescriptType}}, excludeId?: string): Promise<boolean> {
+    return await this.repository.existsBy{{pascalCase code}}({{camelCase code}}, excludeId);
+  }
+
+{{/if}}
+{{/each}}
+  /**
+   * 验证{{entity.name}}是否存在
+   */
+  async validateExists(id: string): Promise<void> {
+    const exists = await this.repository.existsById(id);
+    if (!exists) {
+      throw new NotFoundException(`{{entity.name}} with id '${id}' not found`);
+    }
+  }
+
+  /**
+   * 软删除{{entity.name}}（如果支持）
+   */
+  async softDelete(id: string, deletedBy: string = 'system'): Promise<void> {
+    const {{camelCase entity.code}} = await this.getById(id);
+    
+    // 如果实体支持软删除，在这里实现
+    // {{camelCase entity.code}}.softDelete(deletedBy);
+    // await this.repository.update({{camelCase entity.code}});
+    
+    // 否则执行硬删除
+    await this.delete(id);
+  }
+
+  /**
+   * 恢复软删除的{{entity.name}}（如果支持）
+   */
+  async restore(id: string, restoredBy: string = 'system'): Promise<{{pascalCase entity.code}}> {
+    const {{camelCase entity.code}} = await this.getById(id);
+    
+    // 如果实体支持软删除恢复，在这里实现
+    // {{camelCase entity.code}}.restore(restoredBy);
+    // return await this.repository.update({{camelCase entity.code}});
+    
+    return {{camelCase entity.code}};
+  }
+}
