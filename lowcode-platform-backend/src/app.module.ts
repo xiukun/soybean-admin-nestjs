@@ -8,8 +8,10 @@ import { PrismaModule } from './lib/shared/prisma/prisma.module';
 import { EntityModule } from './lib/bounded-contexts/entity/entity.module';
 import { ApiModule } from './lib/bounded-contexts/api/api.module';
 import { ProjectModule } from './lib/bounded-contexts/project/project.module';
+import { RelationshipModule } from './lib/bounded-contexts/relationship/relationship.module';
 import { EntityController } from './api/lowcode/entity.controller';
 import { ProjectController } from './api/lowcode/project.controller';
+import { RelationshipController } from './api/lowcode/relationship.controller';
 
 @Module({
   imports: [
@@ -32,8 +34,9 @@ import { ProjectController } from './api/lowcode/project.controller';
     EntityModule,
     ApiModule,
     ProjectModule,
+    RelationshipModule,
   ],
-  controllers: [AppController, EntityController, ProjectController],
+  controllers: [AppController, EntityController, ProjectController, RelationshipController],
   providers: [
     AppService,
   ],

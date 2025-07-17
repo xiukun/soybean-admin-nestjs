@@ -120,28 +120,36 @@ model Relation {
   id               String  @id @default(uuid())
   projectId        String  @map("project_id")
   name             String  @db.VarChar(100)
-  type             String  @db.VarChar(50) // ONE_TO_ONE, ONE_TO_MANY, MANY_TO_MANY
+  code             String  @db.VarChar(100)
+  description      String? @db.Text
+  type             String  @db.VarChar(50) // ONE_TO_ONE, ONE_TO_MANY, MANY_TO_ONE, MANY_TO_MANY
   sourceEntityId   String  @map("source_entity_id")
-  sourceFieldId    String  @map("source_field_id")
+  sourceFieldId    String? @map("source_field_id")
   targetEntityId   String  @map("target_entity_id")
-  targetFieldId    String  @map("target_field_id")
+  targetFieldId    String? @map("target_field_id")
+  foreignKeyName   String? @map("foreign_key_name") @db.VarChar(100)
   joinTableConfig  Json?   @map("join_table_config")
   onDelete         String? @default("RESTRICT") @map("on_delete") @db.VarChar(20) // CASCADE, SET_NULL, RESTRICT, NO_ACTION
   onUpdate         String? @default("RESTRICT") @map("on_update") @db.VarChar(20)
+  config           Json    @default("{}")
+  status           String  @default("ACTIVE") @db.VarChar(20) // ACTIVE, INACTIVE
   indexed          Boolean @default(true)
   indexName        String? @map("index_name") @db.VarChar(100)
-  
+
   // 审计字段
   createdBy String   @map("created_by")
   createdAt DateTime @default(now()) @map("created_at")
-  
+  updatedBy String?  @map("updated_by")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
   // 关联关系
   project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   sourceEntity Entity  @relation("SourceEntity", fields: [sourceEntityId], references: [id], onDelete: Cascade)
-  sourceField  Field   @relation("SourceField", fields: [sourceFieldId], references: [id], onDelete: Cascade)
+  sourceField  Field?  @relation("SourceField", fields: [sourceFieldId], references: [id], onDelete: Cascade)
   targetEntity Entity  @relation("TargetEntity", fields: [targetEntityId], references: [id], onDelete: Cascade)
-  targetField  Field   @relation("TargetField", fields: [targetFieldId], references: [id], onDelete: Cascade)
-  
+  targetField  Field?  @relation("TargetField", fields: [targetFieldId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, code])
   @@map("lowcode_relations")
 }
 
