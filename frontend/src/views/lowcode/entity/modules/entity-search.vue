@@ -72,30 +72,30 @@ const statusOptions = computed(() => [
     value: 'DRAFT'
   },
   {
-    label: $t('page.lowcode.entity.status.PUBLISHED'),
+    label: $t('page.lowcode.api.status.PUBLISHED'),
     value: 'PUBLISHED'
   },
   {
-    label: $t('page.lowcode.entity.status.DEPRECATED'),
+    label: $t('page.lowcode.api.status.DEPRECATED'),
     value: 'DEPRECATED'
   }
 ]);
 
 const categoryOptions = computed(() => [
   {
-    label: $t('page.lowcode.entity.category.core'),
+    label: $t('page.lowcode.entity.categories.core'),
     value: 'core'
   },
   {
-    label: $t('page.lowcode.entity.category.business'),
+    label: $t('page.lowcode.entity.categories.business'),
     value: 'business'
   },
   {
-    label: $t('page.lowcode.entity.category.system'),
+    label: $t('page.lowcode.entity.categories.system'),
     value: 'system'
   },
   {
-    label: $t('page.lowcode.entity.category.config'),
+    label: $t('page.lowcode.entity.categories.config'),
     value: 'config'
   }
 ]);

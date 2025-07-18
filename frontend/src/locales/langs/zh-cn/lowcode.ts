@@ -71,7 +71,8 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
         required: '请输入表名'
       },
       category: {
-        placeholder: '请选择实体分类'
+        placeholder: '请选择实体分类',
+        required: '请选择实体分类'
       },
       status: {
         placeholder: '请选择实体状态'
@@ -128,7 +129,8 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
         placeholder: '请输入默认值'
       },
       displayOrder: {
-        placeholder: '请输入显示顺序'
+        placeholder: '请输入显示顺序',
+        required: '请输入显示顺序'
       }
     }
   },

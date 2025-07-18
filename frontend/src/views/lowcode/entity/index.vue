@@ -1,5 +1,21 @@
 <template>
   <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
+    <!-- 项目选择器 -->
+    <NCard v-if="!props.projectId" :bordered="false" size="small">
+      <NSpace align="center">
+        <span>选择项目：</span>
+        <NSelect
+          v-model:value="selectedProjectId"
+          :options="projectOptions"
+          placeholder="请选择项目"
+          style="width: 300px"
+          :loading="projectLoading"
+          clearable
+          @update:value="handleProjectChange"
+        />
+      </NSpace>
+    </NCard>
+
     <EntitySearch v-model:model="searchParams" @reset="resetSearchParams" @search="getTableData" />
     <NCard :title="$t('page.lowcode.entity.title')" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
       <template #header-extra>
@@ -37,11 +53,11 @@
 </template>
 
 <script setup lang="tsx">
-import { reactive, ref, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import type { Ref } from 'vue';
-import { NButton, NPopconfirm, NSpace, NTag } from 'naive-ui';
+import { NButton, NCard, NPopconfirm, NSelect, NSpace, NTag } from 'naive-ui';
 import type { DataTableColumns, PaginationProps } from 'naive-ui';
-import { fetchDeleteEntity, fetchGetEntityList } from '@/service/api';
+import { fetchDeleteEntity, fetchGetEntityList, fetchGetAllProjects } from '@/service/api';
 import { $t } from '@/locales';
 import { useAppStore } from '@/store/modules/app';
 import { useTable, useTableOperate } from '@/hooks/common/table';
@@ -52,16 +68,35 @@ import TableHeaderOperation from '@/components/advanced/table-header-operation.v
 const appStore = useAppStore();
 
 interface Props {
-  projectId: string;
+  projectId?: string;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  projectId: ''
+});
+
+// 项目选择相关状态
+const selectedProjectId = ref<string>(props.projectId || '');
+const projectOptions = ref<Array<{ label: string; value: string }>>([]);
+const projectLoading = ref(false);
+
+// 当前有效的项目ID
+const currentProjectId = computed(() => props.projectId || selectedProjectId.value);
 
 // Create a wrapper function for the API call
 const getEntityListApi = (params: any) => {
+  const projectId = currentProjectId.value;
+  if (!projectId) {
+    return Promise.resolve({
+      records: [] as Api.Lowcode.Entity[],
+      total: 0,
+      current: 1,
+      size: 10
+    } as Api.Lowcode.EntityList);
+  }
   return fetchGetEntityList({
     ...params,
-    projectId: props.projectId
+    projectId
   });
 };
 
@@ -79,10 +114,8 @@ const {
   apiFn: getEntityListApi,
   apiParams: {
     current: 1,
-    size: 10,
-    status: null,
-    search: null
-  },
+    size: 10
+  } as any,
   columns: () => [
     {
       type: 'selection',
@@ -126,7 +159,7 @@ const {
           config: 'success'
         };
 
-        const label = $t(`page.lowcode.entity.category.${row.category}`);
+        const label = row.category || '未知';
         return <NTag type={categoryMap[row.category] || 'default'}>{label}</NTag>;
       }
     },
@@ -152,14 +185,14 @@ const {
           DEPRECATED: 'error'
         };
 
-        const label = $t(`page.lowcode.entity.status.${row.status}`);
+        const label = row.status || '未知';
 
-        return <NTag type={tagMap[row.status]}>{label}</NTag>;
+        return <NTag type={tagMap[row.status] || 'default'}>{label}</NTag>;
       }
     },
     {
       key: 'createdAt',
-      title: $t('common.createTime'),
+      title: $t('common.createdAt'),
       align: 'center',
       width: 180,
       render: row => {
@@ -219,7 +252,7 @@ async function handleDelete(id: string) {
   onDeleted();
 }
 
-function openDrawer(operateType: AnyObject.OperateType) {
+function openDrawer(operateType: any) {
   handleAdd();
 }
 
@@ -227,17 +260,61 @@ function getTableData() {
   getData();
 }
 
+// 加载项目列表
+async function loadProjects() {
+  if (props.projectId) return; // 如果已经有项目ID，不需要加载
+
+  try {
+    projectLoading.value = true;
+    const response = await fetchGetAllProjects();
+
+    // Handle different response structures
+    let projects: any[] = [];
+    if (Array.isArray(response)) {
+      projects = response;
+    } else if (response && Array.isArray((response as any).data)) {
+      projects = (response as any).data;
+    } else if (response && Array.isArray((response as any).records)) {
+      projects = (response as any).records;
+    } else {
+      console.warn('Unexpected response structure:', response);
+      projects = [];
+    }
+
+    projectOptions.value = projects.map((project: any) => ({
+      label: project.name,
+      value: project.id
+    }));
+  } catch (error) {
+    console.error('Failed to load projects:', error);
+  } finally {
+    projectLoading.value = false;
+  }
+}
+
+// 处理项目选择变化
+function handleProjectChange(projectId: string | null) {
+  selectedProjectId.value = projectId || '';
+  if (projectId) {
+    (searchParams as any).projectId = projectId;
+    getTableData();
+  }
+}
+
 // 监听项目ID变化，重新获取数据
 watch(
   () => props.projectId,
   () => {
     if (props.projectId) {
-      searchParams.projectId = props.projectId;
+      (searchParams as any).projectId = props.projectId;
       getTableData();
     }
   },
   { immediate: true }
 );
+
+// 组件挂载时加载项目列表
+loadProjects();
 </script>
 
 <style scoped></style>

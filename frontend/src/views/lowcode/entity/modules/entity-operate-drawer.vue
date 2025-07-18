@@ -59,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch } from 'vue';
+import { computed, reactive, watch, ref } from 'vue';
 import type { FormInst, FormRules } from 'naive-ui';
 import { fetchAddEntity, fetchGetEntity, fetchUpdateEntity } from '@/service/api';
 import { $t } from '@/locales';
@@ -124,10 +124,10 @@ function createDefaultFormModel(): Api.Lowcode.EntityEdit {
 }
 
 const categoryOptions = [
-  { label: $t('page.lowcode.entity.category.core'), value: 'core' },
-  { label: $t('page.lowcode.entity.category.business'), value: 'business' },
-  { label: $t('page.lowcode.entity.category.system'), value: 'system' },
-  { label: $t('page.lowcode.entity.category.config'), value: 'config' }
+  { label: $t('page.lowcode.entity.categories.core'), value: 'core' },
+  { label: $t('page.lowcode.entity.categories.business'), value: 'business' },
+  { label: $t('page.lowcode.entity.categories.system'), value: 'system' },
+  { label: $t('page.lowcode.entity.categories.config'), value: 'config' }
 ];
 
 const rules: FormRules = {

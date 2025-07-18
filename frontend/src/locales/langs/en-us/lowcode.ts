@@ -41,10 +41,18 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     code: 'Entity Code',
     description: 'Description',
     tableName: 'Table Name',
+    category: 'Category',
     status: {
+      DRAFT: 'Draft',
       ACTIVE: 'Active',
       INACTIVE: 'Inactive',
       ARCHIVED: 'Archived'
+    },
+    categories: {
+      core: 'Core',
+      business: 'Business',
+      system: 'System',
+      config: 'Config'
     },
     form: {
       name: {
@@ -61,6 +69,10 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       tableName: {
         placeholder: 'Please enter table name',
         required: 'Please enter table name'
+      },
+      category: {
+        placeholder: 'Please select category',
+        required: 'Please select category'
       },
       status: {
         placeholder: 'Please select status'

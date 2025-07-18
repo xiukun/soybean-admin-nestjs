@@ -748,6 +748,7 @@ declare namespace App {
               };
               category: {
                 placeholder: string;
+                required: string;
               };
               status: {
                 placeholder: string;
@@ -805,6 +806,7 @@ declare namespace App {
               };
               displayOrder: {
                 placeholder: string;
+                required: string;
               };
             };
           };
