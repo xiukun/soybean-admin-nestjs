@@ -1,4 +1,4 @@
-import { Project, ProjectStatus } from '../domain/project.model';
+import { Project, ProjectStatus } from '@project/domain/project.model';
 
 describe('Project Model', () => {
   describe('create', () => {

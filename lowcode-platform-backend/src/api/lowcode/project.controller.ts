@@ -25,16 +25,16 @@ import {
   ProjectListQueryDto,
   ProjectListResponseDto,
   ProjectStatsResponseDto,
-} from './dto/project.dto';
-import { CreateProjectCommand } from '../../lib/bounded-contexts/project/application/commands/create-project.command';
-import { UpdateProjectCommand } from '../../lib/bounded-contexts/project/application/commands/update-project.command';
-import { DeleteProjectCommand } from '../../lib/bounded-contexts/project/application/commands/delete-project.command';
+} from '@api/lowcode/dto/project.dto';
+import { CreateProjectCommand } from '@project/application/commands/create-project.command';
+import { UpdateProjectCommand } from '@project/application/commands/update-project.command';
+import { DeleteProjectCommand } from '@project/application/commands/delete-project.command';
 import {
   GetProjectQuery,
   GetProjectByCodeQuery,
   GetProjectsQuery,
   GetProjectsPaginatedQuery,
-} from '../../lib/bounded-contexts/project/application/queries/get-project.query';
+} from '@project/application/queries/get-project.query';
 
 @ApiTags('projects')
 @ApiBearerAuth()

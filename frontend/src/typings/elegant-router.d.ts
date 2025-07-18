@@ -30,6 +30,16 @@ declare module "@elegant-router/types" {
     "log_login": "/log/login";
     "log_operation": "/log/operation";
     "login": "/login/:module(pwd-login|code-login|register|reset-pwd|bind-wechat)?";
+    "lowcode": "/lowcode";
+    "lowcode_api-config": "/lowcode/api-config";
+    "lowcode_api-test": "/lowcode/api-test";
+    "lowcode_code-generation": "/lowcode/code-generation";
+    "lowcode_entity": "/lowcode/entity";
+    "lowcode_field": "/lowcode/field";
+    "lowcode_project": "/lowcode/project";
+    "lowcode_query": "/lowcode/query";
+    "lowcode_relationship": "/lowcode/relationship";
+    "lowcode_template": "/lowcode/template";
     "manage": "/manage";
     "manage_menu": "/manage/menu";
     "manage_role": "/manage/role";
@@ -77,6 +87,7 @@ declare module "@elegant-router/types" {
     | "iframe-page"
     | "log"
     | "login"
+    | "lowcode"
     | "manage"
     | "reload"
   >;
@@ -107,6 +118,15 @@ declare module "@elegant-router/types" {
     | "home"
     | "log_login"
     | "log_operation"
+    | "lowcode_api-config"
+    | "lowcode_api-test"
+    | "lowcode_code-generation"
+    | "lowcode_entity"
+    | "lowcode_field"
+    | "lowcode_project"
+    | "lowcode_query"
+    | "lowcode_relationship"
+    | "lowcode_template"
     | "manage_menu"
     | "manage_role"
     | "manage_user-detail"

@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject, NotFoundException, ConflictException } from '@nestjs/common';
-import { UpdateEntityCommand } from '../commands/update-entity.command';
-import { Entity } from '../../domain/entity.model';
-import { EntityRepository } from '../../domain/entity.repository';
+import { UpdateEntityCommand } from '@entity/application/commands/update-entity.command';
+import { Entity } from '@entity/domain/entity.model';
+import { EntityRepository } from '@entity/domain/entity.repository';
 
 @CommandHandler(UpdateEntityCommand)
 export class UpdateEntityHandler implements ICommandHandler<UpdateEntityCommand> {

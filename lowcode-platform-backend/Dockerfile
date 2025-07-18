@@ -1,73 +1,95 @@
-# 多阶段构建
-FROM node:18-alpine AS builder
+# syntax=docker/dockerfile:1
 
-# 设置工作目录
-WORKDIR /app
+ARG NODE_VERSION=20.11.1
+ARG PNPM_VERSION=9.1.2
 
-# 复制package文件
-COPY package*.json ./
-COPY pnpm-lock.yaml ./
+################################################################################
+# Use node image for base image for all stages.
+FROM node:${NODE_VERSION}-alpine AS base
 
-# 安装pnpm
-RUN npm install -g pnpm
+# Set working directory for all build stages.
+WORKDIR /usr/src/app/lowcode-platform
 
-# 安装依赖
-RUN pnpm install --frozen-lockfile
+# Install system dependencies
+RUN apk --no-cache add curl dumb-init
 
-# 复制源代码
+# Install pnpm.
+RUN --mount=type=cache,target=/root/.npm \
+    npm install -g pnpm@${PNPM_VERSION}
+
+################################################################################
+# Create a stage for installing production dependencies.
+FROM base AS deps
+
+# Download dependencies as a separate step to take advantage of Docker's caching.
+# Leverage a cache mount to /root/.local/share/pnpm/store to speed up subsequent builds.
+# Leverage bind mounts to package.json and pnpm-lock.yaml to avoid having to copy them
+# into this layer.
+RUN --mount=type=bind,source=package.json,target=package.json \
+    --mount=type=bind,source=pnpm-lock.yaml,target=pnpm-lock.yaml \
+    --mount=type=cache,target=/root/.local/share/pnpm/store/lowcode-platform \
+    pnpm install --prod --frozen-lockfile
+
+################################################################################
+# Create a stage for building the application.
+FROM deps AS build
+
+# Download additional development dependencies before building, as some projects require
+# "devDependencies" to be installed to build. If you don't need this, remove this step.
+RUN --mount=type=bind,source=package.json,target=package.json \
+    --mount=type=bind,source=pnpm-lock.yaml,target=pnpm-lock.yaml \
+    --mount=type=cache,target=/root/.local/share/pnpm/store/lowcode-platform \
+    pnpm install --frozen-lockfile
+
+# Copy the rest of the source files into the image.
 COPY . .
 
-# 生成Prisma客户端
-RUN pnpm prisma:generate
+# Generate Prisma client and build the application
+RUN pnpm prisma:generate && pnpm build
 
-# 构建应用
-RUN pnpm build
+################################################################################
+# Create a new stage to run the application with minimal runtime dependencies
+# where the necessary files are copied from the build stage.
+FROM base AS final
 
-# 生产阶段
-FROM node:18-alpine AS production
+# Use production node environment by default.
+ENV NODE_ENV=production
 
-# 安装必要的系统依赖
-RUN apk add --no-cache dumb-init curl
+# Create application user
+RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001
 
-# 创建应用用户
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nestjs -u 1001
+# Create log directory and set permissions
+USER root
+RUN mkdir -p /usr/src/app/lowcode-platform/logs \
+             /usr/src/app/lowcode-platform/generated \
+             /usr/src/app/lowcode-platform/uploads && \
+    chown -R nestjs:nodejs /usr/src/app/lowcode-platform
 
-# 设置工作目录
-WORKDIR /app
-
-# 复制package文件
-COPY package*.json ./
-COPY pnpm-lock.yaml ./
-
-# 安装pnpm
-RUN npm install -g pnpm
-
-# 只安装生产依赖
-RUN pnpm install --frozen-lockfile --prod
-
-# 从构建阶段复制构建产物
-COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
-COPY --from=builder --chown=nestjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma
-
-# 创建必要的目录
-RUN mkdir -p /app/logs /app/generated && \
-    chown -R nestjs:nodejs /app/logs /app/generated
-
-# 复制启动脚本
-COPY --chown=nestjs:nodejs docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-# 切换到应用用户
+# Run the application as a non-root user.
 USER nestjs
 
-# 暴露端口
+# Copy package.json so that package manager commands can be used.
+COPY package.json .
+
+# Copy the production dependencies from the deps stage and also
+# the built application from the build stage into the image.
+COPY --from=build --chown=nestjs:nodejs /usr/src/app/lowcode-platform/node_modules ./node_modules
+COPY --from=build --chown=nestjs:nodejs /usr/src/app/lowcode-platform/dist ./dist
+COPY --from=build --chown=nestjs:nodejs /usr/src/app/lowcode-platform/prisma ./prisma
+
+# Copy startup script
+COPY --chown=nestjs:nodejs docker-entrypoint.sh ./
+USER root
+RUN chmod +x docker-entrypoint.sh && \
+    chown -R nestjs:nodejs /usr/src/app/lowcode-platform
+USER nestjs
+
+# Expose the port that the application listens on.
 EXPOSE 3000
 
-# 健康检查 (Fastify)
+# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:3000/health || exit 1
 
-# 启动应用
-CMD ["dumb-init", "docker-entrypoint.sh"]
+# Run the application.
+CMD ["dumb-init", "./docker-entrypoint.sh"]

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../lib/shared/prisma/prisma.service';
-import { ProjectRepository } from '../../../lib/bounded-contexts/project/domain/project.repository';
-import { Project, ProjectStatus } from '../../../lib/bounded-contexts/project/domain/project.model';
+import { PrismaService } from '@prisma/prisma.service';
+import { ProjectRepository } from '@project/domain/project.repository';
+import { Project, ProjectStatus } from '@project/domain/project.model';
 
 @Injectable()
 export class ProjectPrismaRepository implements ProjectRepository {

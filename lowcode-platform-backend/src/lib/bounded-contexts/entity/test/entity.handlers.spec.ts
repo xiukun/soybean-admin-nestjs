@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CreateEntityHandler } from '../application/handlers/create-entity.handler';
-import { GetEntityHandler, GetEntitiesByProjectHandler, GetEntitiesPaginatedHandler } from '../application/handlers/get-entity.handler';
-import { UpdateEntityHandler } from '../application/handlers/update-entity.handler';
-import { DeleteEntityHandler } from '../application/handlers/delete-entity.handler';
-import { CreateEntityCommand } from '../application/commands/create-entity.command';
-import { GetEntityQuery, GetEntitiesByProjectQuery, GetEntitiesPaginatedQuery } from '../application/queries/get-entity.query';
-import { UpdateEntityCommand } from '../application/commands/update-entity.command';
-import { DeleteEntityCommand } from '../application/commands/delete-entity.command';
-import { Entity, EntityStatus } from '../domain/entity.model';
+import { CreateEntityHandler } from '@entity/application/handlers/create-entity.handler';
+import { GetEntityHandler, GetEntitiesByProjectHandler, GetEntitiesPaginatedHandler } from '@entity/application/handlers/get-entity.handler';
+import { UpdateEntityHandler } from '@entity/application/handlers/update-entity.handler';
+import { DeleteEntityHandler } from '@entity/application/handlers/delete-entity.handler';
+import { CreateEntityCommand } from '@entity/application/commands/create-entity.command';
+import { GetEntityQuery, GetEntitiesByProjectQuery, GetEntitiesPaginatedQuery } from '@entity/application/queries/get-entity.query';
+import { UpdateEntityCommand } from '@entity/application/commands/update-entity.command';
+import { DeleteEntityCommand } from '@entity/application/commands/delete-entity.command';
+import { Entity, EntityStatus } from '@entity/domain/entity.model';
 
 describe('Entity Handlers', () => {
   let createHandler: CreateEntityHandler;

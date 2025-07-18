@@ -1,4 +1,4 @@
-import { ApiParameter, ApiResponse, ApiSecurity, ApiStatus } from '../../domain/api-config.model';
+import { ApiParameter, ApiResponse, ApiSecurity, ApiStatus } from '@lib/bounded-contexts/api-config/domain/api-config.model';
 
 export class UpdateApiConfigCommand {
   constructor(

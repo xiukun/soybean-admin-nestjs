@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject, NotFoundException, BadRequestException } from '@nestjs/common';
-import { DeleteEntityCommand } from '../commands/delete-entity.command';
-import { EntityRepository } from '../../domain/entity.repository';
+import { DeleteEntityCommand } from '@entity/application/commands/delete-entity.command';
+import { EntityRepository } from '@entity/domain/entity.repository';
 
 @CommandHandler(DeleteEntityCommand)
 export class DeleteEntityHandler implements ICommandHandler<DeleteEntityCommand> {

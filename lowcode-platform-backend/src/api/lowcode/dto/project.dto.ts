@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsOptional, IsObject, IsEnum } from 'class-validator';
-import { ProjectStatus } from '../../../lib/bounded-contexts/project/domain/project.model';
+import { ProjectStatus } from '@project/domain/project.model';
 
 export class CreateProjectDto {
   @ApiProperty({ description: 'Project name' })

@@ -5,7 +5,7 @@ import {
   FilterCondition, 
   SortConfig, 
   FieldSelection 
-} from './multi-table-query.model';
+} from '@lib/bounded-contexts/query/domain/multi-table-query.model';
 
 export interface EntityMetadata {
   id: string;

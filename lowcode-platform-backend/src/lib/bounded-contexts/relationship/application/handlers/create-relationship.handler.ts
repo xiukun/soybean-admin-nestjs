@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject, ConflictException, BadRequestException } from '@nestjs/common';
-import { CreateRelationshipCommand } from '../commands/create-relationship.command';
-import { Relationship } from '../../domain/relationship.model';
-import { RelationshipRepository } from '../../domain/relationship.repository';
+import { CreateRelationshipCommand } from '@lib/bounded-contexts/relationship/application/commands/create-relationship.command';
+import { Relationship } from '@lib/bounded-contexts/relationship/domain/relationship.model';
+import { RelationshipRepository } from '@lib/bounded-contexts/relationship/domain/relationship.repository';
 
 @CommandHandler(CreateRelationshipCommand)
 export class CreateRelationshipHandler implements ICommandHandler<CreateRelationshipCommand> {

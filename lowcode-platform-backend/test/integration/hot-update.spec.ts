@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as fs from 'fs';
 import * as path from 'path';
-import { HotUpdateService, HotUpdateEvent } from '../../src/lib/code-generation/services/hot-update.service';
-import { PrismaService } from '../../src/prisma/prisma.service';
+import { HotUpdateService, HotUpdateEvent } from '@code-generation/services/hot-update.service';
+import { PrismaService } from '@prisma/prisma.service';
 
 describe('Hot Update Service Tests', () => {
   let service: HotUpdateService;

@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject, NotFoundException, BadRequestException } from '@nestjs/common';
-import { DeleteProjectCommand } from '../commands/delete-project.command';
-import { ProjectRepository } from '../../domain/project.repository';
+import { DeleteProjectCommand } from '@project/application/commands/delete-project.command';
+import { ProjectRepository } from '@project/domain/project.repository';
 
 @CommandHandler(DeleteProjectCommand)
 export class DeleteProjectHandler implements ICommandHandler<DeleteProjectCommand> {

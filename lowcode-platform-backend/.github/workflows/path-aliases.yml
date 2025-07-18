@@ -1,0 +1,106 @@
+name: Path Aliases Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**/*.ts'
+      - 'test/**/*.ts'
+      - 'tsconfig.json'
+      - 'jest.config.js'
+      - 'package.json'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**/*.ts'
+      - 'test/**/*.ts'
+      - 'tsconfig.json'
+      - 'jest.config.js'
+      - 'package.json'
+
+jobs:
+  validate-path-aliases:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Validate TypeScript compilation
+      run: npm run check-imports
+      
+    - name: Check for circular dependencies
+      run: npm run check-circular
+      
+    - name: Validate path aliases configuration
+      run: npm run validate-aliases
+      
+    - name: Run ESLint
+      run: npm run lint:check
+      
+    - name: Check code formatting
+      run: npx prettier --check "src/**/*.ts" "test/**/*.ts"
+      
+    - name: Run tests
+      run: npm test
+      
+    - name: Upload path aliases report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: path-aliases-report-${{ matrix.node-version }}
+        path: path-aliases-report.md
+        retention-days: 7
+
+  check-import-consistency:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Check for complex relative paths
+      run: |
+        echo "Checking for complex relative paths..."
+        if grep -r "from ['\"]\.\.\/\.\.\/\.\." src/ test/ || true; then
+          echo "❌ Found complex relative paths that should use path aliases"
+          echo "Run 'npm run update-imports' to fix automatically"
+          exit 1
+        else
+          echo "✅ No complex relative paths found"
+        fi
+        
+    - name: Verify all imports use path aliases where appropriate
+      run: |
+        echo "Checking import patterns..."
+        # Check for imports that could use path aliases
+        COMPLEX_IMPORTS=$(grep -r "from ['\"]\.\.\/\.\." src/ test/ | wc -l || echo "0")
+        if [ "$COMPLEX_IMPORTS" -gt 0 ]; then
+          echo "❌ Found $COMPLEX_IMPORTS imports that could use path aliases"
+          grep -r "from ['\"]\.\.\/\.\." src/ test/ || true
+          exit 1
+        else
+          echo "✅ All imports follow path alias conventions"
+        fi

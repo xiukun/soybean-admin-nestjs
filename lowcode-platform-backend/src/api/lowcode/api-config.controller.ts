@@ -18,7 +18,7 @@ import {
   ApiParam,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { CreateApiConfigCommand } from '../../lib/bounded-contexts/api-config/application/commands/create-api-config.command';
+import { CreateApiConfigCommand } from '@lib/bounded-contexts/api-config/application/commands/create-api-config.command';
 import {
   GetApiConfigQuery,
   GetApiConfigByCodeQuery,
@@ -28,8 +28,8 @@ import {
   GetApiConfigStatsQuery,
   GetPublishedApiConfigsQuery,
   GetApiConfigVersionsQuery,
-} from '../../lib/bounded-contexts/api-config/application/queries/get-api-config.query';
-import { PaginationParamsDto } from '../../lib/shared/dto/pagination.dto';
+} from '@lib/bounded-contexts/api-config/application/queries/get-api-config.query';
+import { PaginationParamsDto } from '@dto/pagination.dto';
 
 @ApiTags('api-configs')
 @ApiBearerAuth()

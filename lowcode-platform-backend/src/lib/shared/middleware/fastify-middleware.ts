@@ -142,14 +142,17 @@ export class FastifyResponseUtils {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict' as const,
+      path: '/',
       ...options,
     };
 
-    res.setCookie(name, value, cookieOptions);
+    // Use the raw response for cookie operations
+    res.raw.setHeader('Set-Cookie', `${name}=${value}; ${Object.entries(cookieOptions).map(([k, v]) => `${k}=${v}`).join('; ')}`);
   }
 
   static clearCookie(res: FastifyReply, name: string, path = '/'): void {
-    res.clearCookie(name, { path });
+    // Clear cookie by setting it with past expiration
+    res.raw.setHeader('Set-Cookie', `${name}=; path=${path}; expires=Thu, 01 Jan 1970 00:00:00 GMT`);
   }
 }
 
@@ -159,8 +162,12 @@ export class FastifyResponseUtils {
 export class FastifyFileUtils {
   static async handleMultipartFile(req: FastifyRequest): Promise<any> {
     try {
-      const data = await req.file();
-      return data;
+      // Check if multipart plugin is available
+      if (typeof (req as any).file === 'function') {
+        const data = await (req as any).file();
+        return data;
+      }
+      throw new Error('Multipart plugin not available');
     } catch (error) {
       throw new Error(`File upload failed: ${error.message}`);
     }
@@ -168,14 +175,18 @@ export class FastifyFileUtils {
 
   static async handleMultipartFiles(req: FastifyRequest): Promise<any[]> {
     try {
-      const files = await req.files();
-      const results = [];
-      
-      for await (const file of files) {
-        results.push(file);
+      // Check if multipart plugin is available
+      if (typeof (req as any).files === 'function') {
+        const files = await (req as any).files();
+        const results = [];
+
+        for await (const file of files) {
+          results.push(file);
+        }
+
+        return results;
       }
-      
-      return results;
+      throw new Error('Multipart plugin not available');
     } catch (error) {
       throw new Error(`Multiple file upload failed: ${error.message}`);
     }

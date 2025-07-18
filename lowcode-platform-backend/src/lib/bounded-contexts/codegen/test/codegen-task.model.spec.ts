@@ -1,4 +1,4 @@
-import { CodegenTask, CodegenTaskStatus, CodegenTaskType } from '../domain/codegen-task.model';
+import { CodegenTask, CodegenTaskStatus, CodegenTaskType } from '@codegen/domain/codegen-task.model';
 
 describe('CodegenTask Model', () => {
   describe('create', () => {

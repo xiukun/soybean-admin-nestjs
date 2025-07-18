@@ -1,4 +1,4 @@
-import { Relationship, RelationshipType, RelationshipStatus } from '../domain/relationship.model';
+import { Relationship, RelationshipType, RelationshipStatus } from '@lib/bounded-contexts/relationship/domain/relationship.model';
 
 describe('Relationship Model', () => {
   describe('create', () => {

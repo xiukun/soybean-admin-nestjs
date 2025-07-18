@@ -1,8 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { PrismaService } from '../../../../shared/prisma/prisma.service';
-import { Entity } from '../../../entity/domain/entity.model';
-import { Field } from '../../../entity/domain/field.model';
-import { Relation } from '../../../entity/domain/relation.model';
+import { PrismaService } from '@prisma/prisma.service';
+import { Entity } from '@entity/domain/entity.model';
+import { Field } from '@entity/domain/field.model';
+import { Relation } from '@entity/domain/relation.model';
 
 export interface JoinConfig {
   sourceEntity: string;

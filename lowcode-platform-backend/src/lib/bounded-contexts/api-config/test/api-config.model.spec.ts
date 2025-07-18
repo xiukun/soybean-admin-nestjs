@@ -1,4 +1,4 @@
-import { ApiConfig, ApiMethod, ApiStatus, ParameterType, ParameterLocation } from '../domain/api-config.model';
+import { ApiConfig, ApiMethod, ApiStatus, ParameterType, ParameterLocation } from '@lib/bounded-contexts/api-config/domain/api-config.model';
 
 describe('ApiConfig Model', () => {
   describe('create', () => {

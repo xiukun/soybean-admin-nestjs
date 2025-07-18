@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CreateProjectHandler } from '../application/handlers/create-project.handler';
-import { GetProjectHandler, GetProjectsHandler, GetProjectsPaginatedHandler } from '../application/handlers/get-project.handler';
-import { UpdateProjectHandler } from '../application/handlers/update-project.handler';
-import { DeleteProjectHandler } from '../application/handlers/delete-project.handler';
-import { CreateProjectCommand } from '../application/commands/create-project.command';
-import { GetProjectQuery, GetProjectsQuery, GetProjectsPaginatedQuery } from '../application/queries/get-project.query';
-import { UpdateProjectCommand } from '../application/commands/update-project.command';
-import { DeleteProjectCommand } from '../application/commands/delete-project.command';
-import { Project, ProjectStatus } from '../domain/project.model';
+import { CreateProjectHandler } from '@project/application/handlers/create-project.handler';
+import { GetProjectHandler, GetProjectsHandler, GetProjectsPaginatedHandler } from '@project/application/handlers/get-project.handler';
+import { UpdateProjectHandler } from '@project/application/handlers/update-project.handler';
+import { DeleteProjectHandler } from '@project/application/handlers/delete-project.handler';
+import { CreateProjectCommand } from '@project/application/commands/create-project.command';
+import { GetProjectQuery, GetProjectsQuery, GetProjectsPaginatedQuery } from '@project/application/queries/get-project.query';
+import { UpdateProjectCommand } from '@project/application/commands/update-project.command';
+import { DeleteProjectCommand } from '@project/application/commands/delete-project.command';
+import { Project, ProjectStatus } from '@project/domain/project.model';
 
 describe('Project Handlers', () => {
   let createHandler: CreateProjectHandler;

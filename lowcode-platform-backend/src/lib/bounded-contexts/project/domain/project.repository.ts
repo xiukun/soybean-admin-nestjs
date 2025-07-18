@@ -1,4 +1,4 @@
-import { Project } from './project.model';
+import { Project } from '@project/domain/project.model';
 
 export interface ProjectRepository {
   // 基本操作

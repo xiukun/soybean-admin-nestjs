@@ -14,6 +14,8 @@
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name auto",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:seed": "ts-node -r tsconfig-paths/register prisma/seeds",
     "prisma:update": "prisma migrate dev --name auto && prisma generate",
     "prisma:studio": "prisma studio",
     "start": "nest start base-system",

@@ -80,13 +80,12 @@ async function bootstrap() {
     defaultVersion: '1',
   });
 
-  // Global prefix (excluding health endpoints)
-  app.setGlobalPrefix('api', {
-    exclude: ['/health', '/health/detailed', '/health/ready', '/health/live', '/health/metrics'],
-  });
+  // Global prefix for all API endpoints
+  app.setGlobalPrefix('api');
 
   // Setup Swagger documentation
-  if (process.env.NODE_ENV !== 'production') {
+  // 允许在所有环境中访问 API 文档，便于调试和开发
+  if (true) {
     const config = new DocumentBuilder()
       .setTitle('Low-Code Platform API')
       .setDescription('API documentation for the Low-Code Platform Backend')
@@ -109,7 +108,6 @@ async function bootstrap() {
       .addTag('API Configuration', 'API configuration endpoints')
       .addTag('Code Templates', 'Code template management endpoints')
       .addTag('Code Generation', 'Code generation endpoints')
-      .addTag('Health Check', 'Health monitoring endpoints')
       .build();
 
     const document = SwaggerModule.createDocument(app, config);

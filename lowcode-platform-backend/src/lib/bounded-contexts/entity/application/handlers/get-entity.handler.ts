@@ -6,9 +6,9 @@ import {
   GetEntitiesByProjectQuery,
   GetEntitiesPaginatedQuery,
   GetEntityStatsQuery
-} from '../queries/get-entity.query';
-import { Entity } from '../../domain/entity.model';
-import { EntityRepository } from '../../domain/entity.repository';
+} from '@entity/application/queries/get-entity.query';
+import { Entity } from '@entity/domain/entity.model';
+import { EntityRepository } from '@entity/domain/entity.repository';
 
 @QueryHandler(GetEntityQuery)
 export class GetEntityHandler implements IQueryHandler<GetEntityQuery> {

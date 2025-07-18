@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from '../../src/app.module';
-import { PrismaService } from '../../src/prisma/prisma.service';
+import { AppModule } from '@src/app.module';
+import { PrismaService } from '@prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -135,7 +135,7 @@ describe('Code Generation Integration Tests', () => {
         language: 'TYPESCRIPT',
         framework: 'NESTJS',
         content: `import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '@test/prisma/prisma.service';
 import { Create{{pascalCase entityName}}Dto, Update{{pascalCase entityName}}Dto } from './dto';
 
 @Injectable()

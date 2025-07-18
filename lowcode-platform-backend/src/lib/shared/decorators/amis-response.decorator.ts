@@ -1,6 +1,6 @@
 import { SetMetadata, applyDecorators } from '@nestjs/common';
 import { ApiResponse, ApiResponseOptions } from '@nestjs/swagger';
-import { AmisResponseUtil } from '../../bounded-contexts/api-config/domain/amis-response.util';
+import { AmisResponseUtil } from '@lib/bounded-contexts/api-config/domain/amis-response.util';
 
 export const AMIS_RESPONSE_KEY = 'amis_response';
 

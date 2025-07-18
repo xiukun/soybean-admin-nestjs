@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject, ConflictException } from '@nestjs/common';
-import { CreateProjectCommand } from '../commands/create-project.command';
-import { Project } from '../../domain/project.model';
-import { ProjectRepository } from '../../domain/project.repository';
+import { CreateProjectCommand } from '@project/application/commands/create-project.command';
+import { Project } from '@project/domain/project.model';
+import { ProjectRepository } from '@project/domain/project.repository';
 
 @CommandHandler(CreateProjectCommand)
 export class CreateProjectHandler implements ICommandHandler<CreateProjectCommand> {

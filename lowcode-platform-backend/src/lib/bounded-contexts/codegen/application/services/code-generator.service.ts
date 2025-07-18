@@ -3,11 +3,11 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as Handlebars from 'handlebars';
-import { Entity } from '../../../entity/domain/entity.model';
-import { Field } from '../../../entity/domain/field.model';
-import { Api } from '../../../api/domain/api.model';
-import { CodeTemplate } from '../../domain/code-template.model';
-import { CodegenTask, CodegenTaskType, CodegenTaskStatus } from '../../domain/codegen-task.model';
+import { Entity } from '@entity/domain/entity.model';
+import { Field } from '@entity/domain/field.model';
+import { Api } from '@api-context/domain/api.model';
+import { CodeTemplate } from '@codegen/domain/code-template.model';
+import { CodegenTask, CodegenTaskType, CodegenTaskStatus } from '@codegen/domain/codegen-task.model';
 
 export interface CodeGenerationConfig {
   outputPath: string;

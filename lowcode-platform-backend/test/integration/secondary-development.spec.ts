@@ -2,10 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
-import { AppModule } from '../../src/app.module';
-import { PrismaService } from '../../src/prisma/prisma.service';
+import { AppModule } from '@src/app.module';
+import { PrismaService } from '@prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { BaseBizArchitectureTemplate } from '../../src/lib/code-generation/templates/base-biz-architecture.template';
+import { BaseBizArchitectureTemplate } from '@code-generation/templates/base-biz-architecture.template';
 
 describe('Secondary Development Support Tests', () => {
   let app: INestApplication;
@@ -99,7 +99,7 @@ describe('Secondary Development Support Tests', () => {
 
       // Simulate user customization in biz layer
       const customBizService = `import { Injectable } from '@nestjs/common';
-import { UserBaseService } from '../../base/services/user.base.service';
+import { UserBaseService } from 'base/services/user.base.service';
 
 @Injectable()
 export class UserService extends UserBaseService {
@@ -182,7 +182,7 @@ export class UserService extends UserBaseService {
       // Create custom DTO with additional fields
       const customDto = `import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsOptional, IsNumber, IsArray } from 'class-validator';
-import { CreateProductBaseDto, UpdateProductBaseDto, ProductQueryBaseDto } from '../../base/dto/product.base.dto';
+import { CreateProductBaseDto, UpdateProductBaseDto, ProductQueryBaseDto } from 'base/dto/product.base.dto';
 
 export class CreateProductDto extends CreateProductBaseDto {
   @ApiPropertyOptional({ description: 'Product category' })
@@ -280,8 +280,8 @@ export { ProductResponseDto } from '../../base/dto/product.base.dto';`;
       // Create custom controller with additional endpoints
       const customController = `import { Controller, Get, Post, Put, Param, Body, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { OrderBaseController } from '../../base/controllers/order.base.controller';
-import { OrderService } from '../services/order.service';
+import { OrderBaseController } from 'base/controllers/order.base.controller';
+import { OrderService } from '@test/services/order.service';
 
 @Controller('orders')
 @ApiTags('Order Management')
@@ -367,7 +367,7 @@ export class OrderController extends OrderBaseController {
 
       // Create complex business logic service
       const complexBizService = `import { Injectable, BadRequestException } from '@nestjs/common';
-import { InvoiceBaseService } from '../../base/services/invoice.base.service';
+import { InvoiceBaseService } from 'base/services/invoice.base.service';
 
 @Injectable()
 export class InvoiceService extends InvoiceBaseService {
@@ -626,20 +626,20 @@ export class SmsService {
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 // Import base entities
-import { NotificationBaseEntity } from '../base/models/notification.base';
+import { NotificationBaseEntity } from '@test/base/models/notification.base';
 
 // Import biz services
-import { NotificationService } from './services/notification.service';
+import { NotificationService } from '@test/integration/services/notification.service';
 
 // Import biz controllers
-import { NotificationController } from './controllers/notification.controller';
+import { NotificationController } from '@test/integration/controllers/notification.controller';
 
 // Import custom services
-import { EmailService } from './custom/email.service';
-import { SmsService } from './custom/sms.service';
+import { EmailService } from '@test/integration/custom/email.service';
+import { SmsService } from '@test/integration/custom/sms.service';
 
 // Import custom middleware
-import { AuditMiddleware } from './middleware/audit.middleware';
+import { AuditMiddleware } from '@test/integration/middleware/audit.middleware';
 
 @Module({
   imports: [
@@ -680,24 +680,24 @@ export class SecondaryDevTestModule {
       expect(moduleContent).toContain('configure(consumer: MiddlewareConsumer)');
     });
   });
-
-  // Helper method to create files from templates
-  private createFilesFromTemplates(templates: any[], baseOnly = false) {
-    for (const template of templates) {
-      if (baseOnly && !template.path.includes('/base/')) {
-        continue; // Skip non-base files when regenerating base only
-      }
-
-      const fullPath = path.join(testDir, template.path.replace('secondary-dev-test/', ''));
-      const dir = path.dirname(fullPath);
-      
-      // Create directory if it doesn't exist
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-      
-      // Write file
-      fs.writeFileSync(fullPath, template.content);
-    }
-  }
 });
+
+// Helper function to create files from templates
+function createFilesFromTemplates(templates: any[], testDir: string, baseOnly = false) {
+  for (const template of templates) {
+    if (baseOnly && !template.path.includes('/base/')) {
+      continue; // Skip non-base files when regenerating base only
+    }
+
+    const fullPath = path.join(testDir, template.path.replace('secondary-dev-test/', ''));
+    const dir = path.dirname(fullPath);
+
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    // Write file
+    fs.writeFileSync(fullPath, template.content);
+  }
+}

@@ -1,4 +1,4 @@
-import { Field, FieldType } from '../domain/field.model';
+import { Field, FieldType } from '@entity/domain/field.model';
 
 describe('Field Model', () => {
   describe('create', () => {

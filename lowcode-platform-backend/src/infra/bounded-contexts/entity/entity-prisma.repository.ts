@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../lib/shared/prisma/prisma.service';
-import { EntityRepository } from '../../../lib/bounded-contexts/entity/domain/entity.repository';
-import { Entity, EntityStatus } from '../../../lib/bounded-contexts/entity/domain/entity.model';
-import { Field, FieldType } from '../../../lib/bounded-contexts/entity/domain/field.model';
-import { Relation, RelationType, CascadeType } from '../../../lib/bounded-contexts/entity/domain/relation.model';
+import { PrismaService } from '@prisma/prisma.service';
+import { EntityRepository } from '@entity/domain/entity.repository';
+import { Entity, EntityStatus } from '@entity/domain/entity.model';
+import { Field, FieldType } from '@entity/domain/field.model';
+import { Relation, RelationType, CascadeType } from '@entity/domain/relation.model';
 
 @Injectable()
 export class EntityPrismaRepository implements EntityRepository {

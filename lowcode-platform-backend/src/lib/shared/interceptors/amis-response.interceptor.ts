@@ -7,8 +7,8 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { AmisResponseUtil } from '../../bounded-contexts/api-config/domain/amis-response.util';
-import { AMIS_RESPONSE_KEY } from '../decorators/amis-response.decorator';
+import { AmisResponseUtil } from '@lib/bounded-contexts/api-config/domain/amis-response.util';
+import { AMIS_RESPONSE_KEY } from '@decorators/amis-response.decorator';
 
 @Injectable()
 export class AmisResponseInterceptor implements NestInterceptor {

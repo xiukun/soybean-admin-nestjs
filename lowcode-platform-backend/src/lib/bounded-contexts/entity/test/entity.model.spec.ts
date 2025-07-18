@@ -1,4 +1,4 @@
-import { Entity, EntityStatus } from '../domain/entity.model';
+import { Entity, EntityStatus } from '@entity/domain/entity.model';
 
 describe('Entity Model', () => {
   describe('create', () => {

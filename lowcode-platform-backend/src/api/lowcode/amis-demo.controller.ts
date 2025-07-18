@@ -11,8 +11,8 @@ import {
   ApiOperation,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { AmisResponse, AmisPaginationResponse, AmisErrorResponse } from '../../lib/shared/decorators/amis-response.decorator';
-import { AmisResponseInterceptor } from '../../lib/shared/interceptors/amis-response.interceptor';
+import { AmisResponse, AmisPaginationResponse, AmisErrorResponse } from '@decorators/amis-response.decorator';
+import { AmisResponseInterceptor } from '@interceptors/amis-response.interceptor';
 
 @ApiTags('amis-demo')
 @ApiBearerAuth()

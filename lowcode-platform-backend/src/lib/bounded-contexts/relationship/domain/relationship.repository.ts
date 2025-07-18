@@ -1,4 +1,4 @@
-import { Relationship } from './relationship.model';
+import { Relationship } from '@lib/bounded-contexts/relationship/domain/relationship.model';
 
 export interface RelationshipRepository {
   // 基本CRUD操作

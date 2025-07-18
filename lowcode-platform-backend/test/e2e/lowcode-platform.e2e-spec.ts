@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from '../../src/app.module';
-import { PrismaService } from '../../src/lib/shared/infrastructure/database/prisma.service';
+import { AppModule } from '@src/app.module';
+import { PrismaService } from '@prisma/prisma.service';
 
 describe('Lowcode Platform (e2e)', () => {
   let app: INestApplication;

@@ -1,4 +1,4 @@
-import { FieldDataType } from '../../domain/field.model';
+import { FieldDataType } from '@lib/bounded-contexts/field/domain/field.model';
 
 export class UpdateFieldCommand {
   constructor(

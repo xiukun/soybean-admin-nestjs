@@ -1,4 +1,4 @@
-import { AmisResponseUtil } from '../domain/amis-response.util';
+import { AmisResponseUtil } from '@lib/bounded-contexts/api-config/domain/amis-response.util';
 
 describe('AmisResponseUtil', () => {
   describe('success', () => {

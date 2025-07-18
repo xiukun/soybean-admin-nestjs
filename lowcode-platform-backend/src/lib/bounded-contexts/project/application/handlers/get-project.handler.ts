@@ -5,9 +5,9 @@ import {
   GetProjectByCodeQuery, 
   GetProjectsQuery,
   GetProjectsPaginatedQuery 
-} from '../queries/get-project.query';
-import { Project } from '../../domain/project.model';
-import { ProjectRepository } from '../../domain/project.repository';
+} from '@project/application/queries/get-project.query';
+import { Project } from '@project/domain/project.model';
+import { ProjectRepository } from '@project/domain/project.repository';
 
 @QueryHandler(GetProjectQuery)
 export class GetProjectHandler implements IQueryHandler<GetProjectQuery> {

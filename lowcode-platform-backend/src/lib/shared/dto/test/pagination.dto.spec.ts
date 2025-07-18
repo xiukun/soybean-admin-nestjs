@@ -1,4 +1,4 @@
-import { PaginationParamsDto, PaginationResponseDto, LegacyPaginationParamsDto, PaginationUtil } from '../pagination.dto';
+import { PaginationParamsDto, PaginationResponseDto, LegacyPaginationParamsDto, PaginationUtil } from '@dto/pagination.dto';
 
 describe('PaginationParamsDto', () => {
   describe('constructor and defaults', () => {

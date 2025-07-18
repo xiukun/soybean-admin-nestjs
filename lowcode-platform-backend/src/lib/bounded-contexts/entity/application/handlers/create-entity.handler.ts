@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject, ConflictException } from '@nestjs/common';
-import { CreateEntityCommand } from '../commands/create-entity.command';
-import { Entity } from '../../domain/entity.model';
-import { EntityRepository } from '../../domain/entity.repository';
+import { CreateEntityCommand } from '@entity/application/commands/create-entity.command';
+import { Entity } from '@entity/domain/entity.model';
+import { EntityRepository } from '@entity/domain/entity.repository';
 
 @CommandHandler(CreateEntityCommand)
 export class CreateEntityHandler implements ICommandHandler<CreateEntityCommand> {

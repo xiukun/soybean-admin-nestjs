@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
-import { CreateApiConfigHandler } from './application/handlers/create-api-config.handler';
+import { CreateApiConfigHandler } from '@lib/bounded-contexts/api-config/application/handlers/create-api-config.handler';
 import { 
   GetApiConfigHandler, 
   GetApiConfigByCodeHandler, 
@@ -10,8 +10,8 @@ import {
   GetApiConfigStatsHandler,
   GetPublishedApiConfigsHandler,
   GetApiConfigVersionsHandler
-} from './application/handlers/get-api-config.handler';
-import { ApiConfigPrismaRepository } from '../../../infra/bounded-contexts/api-config/api-config-prisma.repository';
+} from '@lib/bounded-contexts/api-config/application/handlers/get-api-config.handler';
+import { ApiConfigPrismaRepository } from '@infra/bounded-contexts/api-config/api-config-prisma.repository';
 
 const CommandHandlers = [
   CreateApiConfigHandler,

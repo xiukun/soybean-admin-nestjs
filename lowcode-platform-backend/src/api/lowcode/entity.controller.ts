@@ -24,17 +24,17 @@ import {
   EntityResponseDto,
   EntityListQueryDto,
   EntityListResponseDto,
-} from './dto/entity.dto';
-import { CreateEntityCommand } from '../../lib/bounded-contexts/entity/application/commands/create-entity.command';
-import { UpdateEntityCommand } from '../../lib/bounded-contexts/entity/application/commands/update-entity.command';
-import { DeleteEntityCommand } from '../../lib/bounded-contexts/entity/application/commands/delete-entity.command';
+} from '@api/lowcode/dto/entity.dto';
+import { CreateEntityCommand } from '@entity/application/commands/create-entity.command';
+import { UpdateEntityCommand } from '@entity/application/commands/update-entity.command';
+import { DeleteEntityCommand } from '@entity/application/commands/delete-entity.command';
 import {
   GetEntityQuery,
   GetEntityByCodeQuery,
   GetEntitiesByProjectQuery,
   GetEntitiesPaginatedQuery,
   GetEntityStatsQuery,
-} from '../../lib/bounded-contexts/entity/application/queries/get-entity.query';
+} from '@entity/application/queries/get-entity.query';
 
 @ApiTags('entities')
 @ApiBearerAuth()

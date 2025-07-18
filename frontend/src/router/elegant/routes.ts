@@ -146,6 +146,98 @@ export const generatedRoutes: GeneratedRoute[] = [
     }
   },
   {
+    name: 'lowcode',
+    path: '/lowcode',
+    component: 'layout.base',
+    meta: {
+      title: 'lowcode',
+      i18nKey: 'route.lowcode'
+    },
+    children: [
+      {
+        name: 'lowcode_api-config',
+        path: '/lowcode/api-config',
+        component: 'view.lowcode_api-config',
+        meta: {
+          title: 'lowcode_api-config',
+          i18nKey: 'route.lowcode_api-config'
+        }
+      },
+      {
+        name: 'lowcode_api-test',
+        path: '/lowcode/api-test',
+        component: 'view.lowcode_api-test',
+        meta: {
+          title: 'lowcode_api-test',
+          i18nKey: 'route.lowcode_api-test'
+        }
+      },
+      {
+        name: 'lowcode_code-generation',
+        path: '/lowcode/code-generation',
+        component: 'view.lowcode_code-generation',
+        meta: {
+          title: 'lowcode_code-generation',
+          i18nKey: 'route.lowcode_code-generation'
+        }
+      },
+      {
+        name: 'lowcode_entity',
+        path: '/lowcode/entity',
+        component: 'view.lowcode_entity',
+        meta: {
+          title: 'lowcode_entity',
+          i18nKey: 'route.lowcode_entity'
+        }
+      },
+      {
+        name: 'lowcode_field',
+        path: '/lowcode/field',
+        component: 'view.lowcode_field',
+        meta: {
+          title: 'lowcode_field',
+          i18nKey: 'route.lowcode_field'
+        }
+      },
+      {
+        name: 'lowcode_project',
+        path: '/lowcode/project',
+        component: 'view.lowcode_project',
+        meta: {
+          title: 'lowcode_project',
+          i18nKey: 'route.lowcode_project'
+        }
+      },
+      {
+        name: 'lowcode_query',
+        path: '/lowcode/query',
+        component: 'view.lowcode_query',
+        meta: {
+          title: 'lowcode_query',
+          i18nKey: 'route.lowcode_query'
+        }
+      },
+      {
+        name: 'lowcode_relationship',
+        path: '/lowcode/relationship',
+        component: 'view.lowcode_relationship',
+        meta: {
+          title: 'lowcode_relationship',
+          i18nKey: 'route.lowcode_relationship'
+        }
+      },
+      {
+        name: 'lowcode_template',
+        path: '/lowcode/template',
+        component: 'view.lowcode_template',
+        meta: {
+          title: 'lowcode_template',
+          i18nKey: 'route.lowcode_template'
+        }
+      }
+    ]
+  },
+  {
     name: 'manage',
     path: '/manage',
     component: 'layout.base',

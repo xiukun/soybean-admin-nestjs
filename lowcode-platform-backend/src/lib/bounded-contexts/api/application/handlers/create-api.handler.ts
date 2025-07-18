@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject, ConflictException } from '@nestjs/common';
-import { CreateApiCommand } from '../commands/create-api.command';
-import { Api } from '../../domain/api.model';
-import { ApiRepository } from '../../domain/api.repository';
+import { CreateApiCommand } from '@api-context/application/commands/create-api.command';
+import { Api } from '@api-context/domain/api.model';
+import { ApiRepository } from '@api-context/domain/api.repository';
 
 @CommandHandler(CreateApiCommand)
 export class CreateApiHandler implements ICommandHandler<CreateApiCommand> {

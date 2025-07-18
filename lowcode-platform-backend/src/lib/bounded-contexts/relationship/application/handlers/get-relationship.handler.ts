@@ -8,9 +8,9 @@ import {
   GetRelationshipsByEntityQuery,
   GetRelationshipGraphQuery,
   GetRelationshipStatsQuery
-} from '../queries/get-relationship.query';
-import { Relationship } from '../../domain/relationship.model';
-import { RelationshipRepository } from '../../domain/relationship.repository';
+} from '@lib/bounded-contexts/relationship/application/queries/get-relationship.query';
+import { Relationship } from '@lib/bounded-contexts/relationship/domain/relationship.model';
+import { RelationshipRepository } from '@lib/bounded-contexts/relationship/domain/relationship.repository';
 
 @QueryHandler(GetRelationshipQuery)
 export class GetRelationshipHandler implements IQueryHandler<GetRelationshipQuery> {

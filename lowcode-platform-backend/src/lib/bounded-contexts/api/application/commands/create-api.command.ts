@@ -1,4 +1,4 @@
-import { ApiMethod } from '../../domain/api.model';
+import { ApiMethod } from '@api-context/domain/api.model';
 
 export class CreateApiCommand {
   constructor(

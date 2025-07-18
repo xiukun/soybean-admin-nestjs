@@ -619,14 +619,32 @@ import { PerformanceMiddleware } from '@middleware/performance.middleware';
 # 自动更新现有文件的导入路径
 npm run update-imports
 
+# 验证路径别名配置
+npm run validate-aliases
+
 # 检查导入路径是否正确
 npm run check-imports
 
 # 检测循环依赖
-npx madge --circular --extensions ts src/
+npm run check-circular
+
+# 代码质量检查
+npm run lint
+
+# 代码格式化
+npm run format
 ```
 
-详细配置请参考 [PATH_ALIASES.md](./PATH_ALIASES.md)
+**开发工作流：**
+- 🔧 **ESLint** - 强制使用路径别名，禁止复杂相对路径
+- 💅 **Prettier** - 自动代码格式化
+- 🪝 **Husky** - Git pre-commit 检查
+- 🚀 **GitHub Actions** - 自动化 CI/CD 流程
+- 📊 **路径别名验证** - 自动检测配置问题
+
+详细配置请参考：
+- [PATH_ALIASES.md](./PATH_ALIASES.md) - 路径别名详细指南
+- [DEVELOPMENT_WORKFLOW.md](./DEVELOPMENT_WORKFLOW.md) - 完整开发工作流
 
 ## 🤝 贡献指南
 

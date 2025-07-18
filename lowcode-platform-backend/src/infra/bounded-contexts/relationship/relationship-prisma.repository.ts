@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../lib/shared/prisma/prisma.service';
-import { RelationshipRepository } from '../../../lib/bounded-contexts/relationship/domain/relationship.repository';
-import { Relationship, RelationshipType, RelationshipStatus } from '../../../lib/bounded-contexts/relationship/domain/relationship.model';
+import { PrismaService } from '@prisma/prisma.service';
+import { RelationshipRepository } from '@lib/bounded-contexts/relationship/domain/relationship.repository';
+import { Relationship, RelationshipType, RelationshipStatus } from '@lib/bounded-contexts/relationship/domain/relationship.model';
 
 @Injectable()
 export class RelationshipPrismaRepository implements RelationshipRepository {

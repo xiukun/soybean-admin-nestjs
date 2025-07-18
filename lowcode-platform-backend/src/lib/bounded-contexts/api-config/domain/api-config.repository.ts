@@ -1,4 +1,4 @@
-import { ApiConfig } from './api-config.model';
+import { ApiConfig } from '@lib/bounded-contexts/api-config/domain/api-config.model';
 
 export interface ApiConfigRepository {
   // 基本CRUD操作

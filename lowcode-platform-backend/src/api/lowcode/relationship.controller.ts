@@ -18,7 +18,7 @@ import {
   ApiParam,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { CreateRelationshipCommand } from '../../lib/bounded-contexts/relationship/application/commands/create-relationship.command';
+import { CreateRelationshipCommand } from '@lib/bounded-contexts/relationship/application/commands/create-relationship.command';
 import {
   GetRelationshipQuery,
   GetRelationshipByCodeQuery,
@@ -27,7 +27,7 @@ import {
   GetRelationshipsByEntityQuery,
   GetRelationshipGraphQuery,
   GetRelationshipStatsQuery,
-} from '../../lib/bounded-contexts/relationship/application/queries/get-relationship.query';
+} from '@lib/bounded-contexts/relationship/application/queries/get-relationship.query';
 
 @ApiTags('relationships')
 @ApiBearerAuth()

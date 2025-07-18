@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject, ConflictException } from '@nestjs/common';
-import { CreateFieldCommand } from '../commands/create-field.command';
-import { Field } from '../../domain/field.model';
-import { FieldRepository } from '../../domain/field.repository';
+import { CreateFieldCommand } from '@lib/bounded-contexts/field/application/commands/create-field.command';
+import { Field } from '@lib/bounded-contexts/field/domain/field.model';
+import { FieldRepository } from '@lib/bounded-contexts/field/domain/field.repository';
 
 @CommandHandler(CreateFieldCommand)
 export class CreateFieldHandler implements ICommandHandler<CreateFieldCommand> {

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CodeTemplate } from '../interfaces/code-template.interface';
+import { CodeTemplate } from '@code-generation/interfaces/code-template.interface';
 
 @Injectable()
 export class BaseBizArchitectureTemplate {
@@ -164,7 +164,7 @@ biz/            <- Your customizations go here
 
 // ✅ DO: Extend in biz layer
 // biz/services/user.service.ts
-import { UserBaseService } from '../../base/services/user.base.service';
+import { UserBaseService } from '@lib/base/services/user.base.service';
 
 @Injectable()
 export class UserService extends UserBaseService {
@@ -205,7 +205,7 @@ biz/
 
 \`\`\`typescript
 import { Injectable } from '@nestjs/common';
-import { UserBaseService } from '../../base/services/user.base.service';
+import { UserBaseService } from '@lib/base/services/user.base.service';
 
 @Injectable()
 export class UserService extends UserBaseService {
@@ -233,8 +233,8 @@ export class UserService extends UserBaseService {
 
 \`\`\`typescript
 import { Controller, Get, Post } from '@nestjs/common';
-import { UserBaseController } from '../../base/controllers/user.base.controller';
-import { UserService } from '../services/user.service';
+import { UserBaseController } from '@lib/base/controllers/user.base.controller';
+import { UserService } from '@code-generation/services/user.service';
 
 @Controller('users')
 export class UserController extends UserBaseController {
@@ -261,7 +261,7 @@ export class UserController extends UserBaseController {
 
 \`\`\`typescript
 import { IsOptional, IsString } from 'class-validator';
-import { CreateUserBaseDto } from '../../base/dto/user.base.dto';
+import { CreateUserBaseDto } from '@lib/base/dto/user.base.dto';
 
 export class CreateUserDto extends CreateUserBaseDto {
   @IsOptional()
@@ -506,8 +506,8 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
-import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { JwtAuthGuard } from '@shared/guards/jwt-auth.guard';
+import { CurrentUser } from '@decorators/current-user.decorator';
 import { ${pascalName}BaseService } from '../services/${entity.code}.base.service';
 import {
   Create${pascalName}BaseDto,

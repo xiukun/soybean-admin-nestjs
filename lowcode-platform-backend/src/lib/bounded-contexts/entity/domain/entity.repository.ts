@@ -1,6 +1,6 @@
-import { Entity } from './entity.model';
-import { Field } from './field.model';
-import { Relation } from './relation.model';
+import { Entity } from '@entity/domain/entity.model';
+import { Field } from '@entity/domain/field.model';
+import { Relation } from '@entity/domain/relation.model';
 
 export interface EntityRepository {
   // 实体操作

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
-import { CreateRelationshipHandler } from './application/handlers/create-relationship.handler';
+import { CreateRelationshipHandler } from '@lib/bounded-contexts/relationship/application/handlers/create-relationship.handler';
 import { 
   GetRelationshipHandler, 
   GetRelationshipByCodeHandler, 
@@ -9,8 +9,8 @@ import {
   GetRelationshipsByEntityHandler,
   GetRelationshipGraphHandler,
   GetRelationshipStatsHandler
-} from './application/handlers/get-relationship.handler';
-import { RelationshipPrismaRepository } from '../../../infra/bounded-contexts/relationship/relationship-prisma.repository';
+} from '@lib/bounded-contexts/relationship/application/handlers/get-relationship.handler';
+import { RelationshipPrismaRepository } from '@infra/bounded-contexts/relationship/relationship-prisma.repository';
 
 const CommandHandlers = [
   CreateRelationshipHandler,

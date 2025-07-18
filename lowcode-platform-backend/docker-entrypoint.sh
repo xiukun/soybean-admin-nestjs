@@ -1,244 +1,49 @@
 #!/bin/sh
 set -e
 
-echo "Starting Lowcode Platform Backend..."
+echo "🚀 启动低代码平台后端服务..."
+echo "🚀 Starting Low-Code Platform Backend Service..."
 
 # 等待数据库就绪
-echo "Waiting for database to be ready..."
-until npx prisma db push --accept-data-loss 2>/dev/null; do
-  echo "Database is unavailable - sleeping"
+echo "⏳ 等待数据库连接..."
+until nc -z postgres 5432; do
+  echo "数据库未就绪，等待中..."
   sleep 2
 done
+echo "✅ 数据库连接成功"
 
-echo "Database is ready!"
+# 等待 Redis 就绪
+echo "⏳ 等待 Redis 连接..."
+until nc -z redis 6379; do
+  echo "Redis 未就绪，等待中..."
+  sleep 2
+done
+echo "✅ Redis 连接成功"
 
-# 检查是否是首次运行
-if [ "$FIRST_RUN" = "true" ] || [ ! -f "/app/.initialized" ]; then
-  echo "First run detected, initializing database..."
-  
-  # 运行数据库迁移
-  echo "Running database migrations..."
-  npx prisma db push --accept-data-loss
-  
-  # 生成Prisma客户端
-  echo "Generating Prisma client..."
-  npx prisma generate
-  
-  # 初始化数据
-  echo "Initializing default data..."
-  node -e "
-    const { PrismaClient } = require('@prisma/client');
-    const prisma = new PrismaClient();
-    
-    async function initializeData() {
-      try {
-        // 创建默认项目
-        const defaultProject = await prisma.project.upsert({
-          where: { name: 'Default Project' },
-          update: {},
-          create: {
-            name: 'Default Project',
-            description: 'Default project for getting started',
-            type: 'web',
-            status: 'ACTIVE',
-            config: {
-              framework: 'react',
-              database: 'postgresql'
-            },
-            createdBy: 'system'
-          }
-        });
-        
-        console.log('Default project created:', defaultProject.id);
-        
-        // 创建示例实体
-        const userEntity = await prisma.entity.upsert({
-          where: { 
-            projectId_code: {
-              projectId: defaultProject.id,
-              code: 'user'
-            }
-          },
-          update: {},
-          create: {
-            projectId: defaultProject.id,
-            name: 'User',
-            code: 'user',
-            tableName: 'users',
-            description: 'User entity for authentication and management',
-            category: 'core',
-            status: 'DRAFT',
-            createdBy: 'system'
-          }
-        });
-        
-        console.log('User entity created:', userEntity.id);
-        
-        // 创建示例API配置
-        await prisma.apiConfig.upsert({
-          where: {
-            projectId_path_method: {
-              projectId: defaultProject.id,
-              path: '/api/users',
-              method: 'GET'
-            }
-          },
-          update: {},
-          create: {
-            projectId: defaultProject.id,
-            name: 'Get Users',
-            path: '/api/users',
-            method: 'GET',
-            description: 'Get list of users',
-            entityId: userEntity.id,
-            queryConfig: {
-              pagination: {
-                enabled: true,
-                defaultPageSize: 20,
-                maxPageSize: 100
-              }
-            },
-            responseConfig: {
-              format: 'json'
-            },
-            authRequired: true,
-            status: 'ACTIVE',
-            createdBy: 'system'
-          }
-        });
-        
-        console.log('Default API config created');
-        
-        // 创建示例代码模板
-        await prisma.codeTemplate.upsert({
-          where: {
-            projectId_name: {
-              projectId: defaultProject.id,
-              name: 'React Component'
-            }
-          },
-          update: {},
-          create: {
-            projectId: defaultProject.id,
-            name: 'React Component',
-            description: 'Basic React functional component template',
-            category: 'component',
-            language: 'typescript',
-            framework: 'react',
-            content: \`import React from 'react';
-
-interface {{componentName}}Props {
-  // Add your props here
-}
-
-const {{componentName}}: React.FC<{{componentName}}Props> = () => {
-  return (
-    <div>
-      <h1>{{title}}</h1>
-      <p>{{description}}</p>
-    </div>
-  );
-};
-
-export default {{componentName}};\`,
-            variables: [
-              {
-                name: 'componentName',
-                type: 'string',
-                description: 'Name of the React component',
-                required: true,
-                defaultValue: 'MyComponent'
-              },
-              {
-                name: 'title',
-                type: 'string',
-                description: 'Component title',
-                required: false,
-                defaultValue: 'Hello World'
-              },
-              {
-                name: 'description',
-                type: 'string',
-                description: 'Component description',
-                required: false,
-                defaultValue: 'This is a sample component'
-              }
-            ],
-            tags: ['react', 'component', 'typescript'],
-            isPublic: true,
-            status: 'PUBLISHED',
-            currentVersion: '1.0.0',
-            versions: [
-              {
-                version: '1.0.0',
-                content: \`import React from 'react';
-
-interface {{componentName}}Props {
-  // Add your props here
-}
-
-const {{componentName}}: React.FC<{{componentName}}Props> = () => {
-  return (
-    <div>
-      <h1>{{title}}</h1>
-      <p>{{description}}</p>
-    </div>
-  );
-};
-
-export default {{componentName}};\`,
-                variables: [
-                  {
-                    name: 'componentName',
-                    type: 'string',
-                    description: 'Name of the React component',
-                    required: true,
-                    defaultValue: 'MyComponent'
-                  },
-                  {
-                    name: 'title',
-                    type: 'string',
-                    description: 'Component title',
-                    required: false,
-                    defaultValue: 'Hello World'
-                  },
-                  {
-                    name: 'description',
-                    type: 'string',
-                    description: 'Component description',
-                    required: false,
-                    defaultValue: 'This is a sample component'
-                  }
-                ],
-                changelog: 'Initial version',
-                createdAt: new Date(),
-                createdBy: 'system'
-              }
-            ],
-            usageCount: 0,
-            createdBy: 'system'
-          }
-        });
-        
-        console.log('Default code template created');
-        
-        console.log('Database initialization completed successfully!');
-      } catch (error) {
-        console.error('Error initializing database:', error);
-        process.exit(1);
-      } finally {
-        await prisma.\$disconnect();
-      }
-    }
-    
-    initializeData();
-  "
-  
-  # 标记为已初始化
-  touch /app/.initialized
-  echo "Initialization completed!"
+# 生成 Prisma 客户端（如果需要）
+if [ ! -d "node_modules/.prisma" ]; then
+  echo "🔧 生成 Prisma 客户端..."
+  pnpm prisma:generate
+  echo "✅ Prisma 客户端生成完成"
 fi
 
+# 检查是否需要运行数据库迁移
+if [ "$RUN_MIGRATIONS" = "true" ]; then
+  echo "🔧 运行数据库迁移..."
+  npx prisma db push --accept-data-loss
+  echo "✅ 数据库迁移完成"
+fi
+
+# 设置环境变量默认值
+export NODE_ENV=${NODE_ENV:-production}
+export PORT=${PORT:-3000}
+
+echo "🌐 服务配置："
+echo "  - 环境: $NODE_ENV"
+echo "  - 端口: $PORT"
+echo "  - 数据库: $DATABASE_URL"
+echo "  - Redis: $REDIS_HOST:$REDIS_PORT"
+
 # 启动应用
-echo "Starting the application..."
+echo "🚀 启动应用服务器..."
 exec node dist/main.js

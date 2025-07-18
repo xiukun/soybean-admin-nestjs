@@ -54,7 +54,6 @@ export class PerformanceMiddleware implements NestMiddleware {
     // Start collecting default metrics
     prometheus.collectDefaultMetrics({
       prefix: 'lowcode_platform_',
-      timeout: 5000,
     });
 
     // Start memory and CPU monitoring
@@ -184,8 +183,8 @@ export class PerformanceMiddleware implements NestMiddleware {
   }
 
   // Method to get current metrics (for health checks or debugging)
-  getMetrics(): string {
-    return prometheus.register.metrics();
+  async getMetrics(): Promise<string> {
+    return await prometheus.register.metrics();
   }
 
   // Method to get specific metric values

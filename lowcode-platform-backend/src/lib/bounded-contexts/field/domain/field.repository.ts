@@ -1,4 +1,4 @@
-import { Field } from './field.model';
+import { Field } from '@lib/bounded-contexts/field/domain/field.model';
 
 export interface FieldRepository {
   // 基本CRUD操作

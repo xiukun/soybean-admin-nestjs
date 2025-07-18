@@ -9,9 +9,9 @@ import {
   GetApiConfigStatsQuery,
   GetPublishedApiConfigsQuery,
   GetApiConfigVersionsQuery
-} from '../queries/get-api-config.query';
-import { ApiConfig } from '../../domain/api-config.model';
-import { ApiConfigRepository } from '../../domain/api-config.repository';
+} from '@lib/bounded-contexts/api-config/application/queries/get-api-config.query';
+import { ApiConfig } from '@lib/bounded-contexts/api-config/domain/api-config.model';
+import { ApiConfigRepository } from '@lib/bounded-contexts/api-config/domain/api-config.repository';
 
 @QueryHandler(GetApiConfigQuery)
 export class GetApiConfigHandler implements IQueryHandler<GetApiConfigQuery> {

@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { PrismaService } from '../../src/lib/shared/infrastructure/database/prisma.service';
-import { Entity } from '../../src/lib/bounded-contexts/entity/domain/entity.model';
-import { Project } from '../../src/lib/bounded-contexts/project/domain/project.model';
-import { Relationship } from '../../src/lib/bounded-contexts/relationship/domain/relationship.model';
-import { CodegenTask } from '../../src/lib/bounded-contexts/codegen/domain/codegen-task.model';
+import { PrismaService } from '@prisma/prisma.service';
+import { Entity } from '@entity/domain/entity.model';
+import { Project } from '@project/domain/project.model';
+import { Relationship, RelationshipType } from '@lib/bounded-contexts/relationship/domain/relationship.model';
+import { CodegenTask, CodegenTaskType } from '@codegen/domain/codegen-task.model';
 
 /**
  * Test data factories for creating test objects
@@ -17,7 +17,7 @@ export class TestDataFactory {
     return Project.create({
       name: 'Test Project',
       description: 'A test project',
-      type: 'web',
+      // type: 'web', // 移除不存在的字段
       config: { framework: 'react' },
       createdBy: 'test-user',
       ...overrides,
@@ -62,7 +62,7 @@ export class TestDataFactory {
       projectId: 'test-project-id',
       name: 'Test Relationship',
       code: 'testRelationship',
-      type: 'ONE_TO_MANY',
+      type: RelationshipType.ONE_TO_MANY,
       sourceEntityId: 'source-entity-id',
       targetEntityId: 'target-entity-id',
       description: 'A test relationship',
@@ -80,7 +80,7 @@ export class TestDataFactory {
     return CodegenTask.create({
       projectId: 'test-project-id',
       name: 'Test Code Generation',
-      type: 'API',
+      type: CodegenTaskType.API,
       config: { entities: ['User'], framework: 'nestjs' },
       createdBy: 'test-user',
       ...overrides,
@@ -150,8 +150,9 @@ export class DatabaseTestUtils {
     return this.prisma.project.create({
       data: {
         name: 'Test Project',
+        code: 'test-project',
         description: 'A test project',
-        type: 'web',
+        // type: 'web', // 移除不存在的字段
         status: 'ACTIVE',
         config: {},
         createdBy: 'test-user',
@@ -213,11 +214,11 @@ export class DatabaseTestUtils {
     entityCount: number;
     relationshipCount: number;
   }> {
-    const [projectCount, entityCount, relationshipCount] = await Promise.all([
+    const [projectCount, entityCount] = await Promise.all([
       this.prisma.project.count(),
       this.prisma.entity.count(),
-      this.prisma.relationship?.count() || 0,
     ]);
+    const relationshipCount = 0; // 暂时设为 0，等 Prisma schema 更新
 
     return { projectCount, entityCount, relationshipCount };
   }

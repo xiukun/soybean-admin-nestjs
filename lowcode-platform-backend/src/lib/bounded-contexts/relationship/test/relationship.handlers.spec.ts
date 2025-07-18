@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CreateRelationshipHandler } from '../application/handlers/create-relationship.handler';
-import { GetRelationshipHandler, GetRelationshipsByProjectHandler, GetRelationshipsPaginatedHandler } from '../application/handlers/get-relationship.handler';
-import { CreateRelationshipCommand } from '../application/commands/create-relationship.command';
-import { GetRelationshipQuery, GetRelationshipsByProjectQuery, GetRelationshipsPaginatedQuery } from '../application/queries/get-relationship.query';
-import { Relationship, RelationshipType, RelationshipStatus } from '../domain/relationship.model';
+import { CreateRelationshipHandler } from '@lib/bounded-contexts/relationship/application/handlers/create-relationship.handler';
+import { GetRelationshipHandler, GetRelationshipsByProjectHandler, GetRelationshipsPaginatedHandler } from '@lib/bounded-contexts/relationship/application/handlers/get-relationship.handler';
+import { CreateRelationshipCommand } from '@lib/bounded-contexts/relationship/application/commands/create-relationship.command';
+import { GetRelationshipQuery, GetRelationshipsByProjectQuery, GetRelationshipsPaginatedQuery } from '@lib/bounded-contexts/relationship/application/queries/get-relationship.query';
+import { Relationship, RelationshipType, RelationshipStatus } from '@lib/bounded-contexts/relationship/domain/relationship.model';
 
 describe('Relationship Handlers', () => {
   let createHandler: CreateRelationshipHandler;

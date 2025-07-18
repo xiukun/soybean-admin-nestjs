@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { EntityController } from '../entity.controller';
-import { Entity } from '../../../lib/bounded-contexts/entity/domain/entity.model';
+import { EntityController } from '@api/lowcode/entity.controller';
+import { Entity } from '@entity/domain/entity.model';
 
 describe('EntityController', () => {
   let controller: EntityController;

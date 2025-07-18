@@ -1,4 +1,4 @@
-import { Api } from './api.model';
+import { Api } from '@api-context/domain/api.model';
 
 export interface ApiRepository {
   // 基本操作

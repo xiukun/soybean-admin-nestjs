@@ -1,4 +1,4 @@
-import { RelationshipType } from '../../domain/relationship.model';
+import { RelationshipType } from '@lib/bounded-contexts/relationship/domain/relationship.model';
 
 export class CreateRelationshipCommand {
   constructor(
