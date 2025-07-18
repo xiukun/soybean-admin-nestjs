@@ -41,10 +41,18 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     code: '实体代码',
     description: '实体描述',
     tableName: '表名',
+    category: '实体分类',
     status: {
+      DRAFT: '草稿',
       ACTIVE: '活跃',
       INACTIVE: '非活跃',
       ARCHIVED: '已归档'
+    },
+    categories: {
+      core: '核心',
+      business: '业务',
+      system: '系统',
+      config: '配置'
     },
     form: {
       name: {
@@ -61,6 +69,9 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       tableName: {
         placeholder: '请输入表名',
         required: '请输入表名'
+      },
+      category: {
+        placeholder: '请选择实体分类'
       },
       status: {
         placeholder: '请选择实体状态'
@@ -117,8 +128,7 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
         placeholder: '请输入默认值'
       },
       displayOrder: {
-        placeholder: '请输入显示顺序',
-        required: '请输入显示顺序'
+        placeholder: '请输入显示顺序'
       }
     }
   },
@@ -173,14 +183,18 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       }
     }
   },
-  codegen: {
+  codeGeneration: {
     title: '代码生成',
-    generate: '生成代码',
+    project: '项目',
+    entity: '实体',
     template: '代码模板',
-    output: '输出目录',
+    outputPath: '输出目录',
+    generate: '生成代码',
     progress: '生成进度',
-    preview: '预览代码',
-    download: '下载代码',
+    logs: '生成日志',
+    result: '生成结果',
+    fileList: '文件列表',
+    fileContent: '文件内容',
     status: {
       PENDING: '等待中',
       RUNNING: '生成中',
@@ -188,11 +202,18 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       FAILED: '失败'
     },
     form: {
+      project: {
+        placeholder: '请选择项目',
+        required: '请选择项目'
+      },
+      entity: {
+        placeholder: '请选择实体'
+      },
       template: {
         placeholder: '请选择代码模板',
         required: '请选择代码模板'
       },
-      output: {
+      outputPath: {
         placeholder: '请输入输出目录',
         required: '请输入输出目录'
       }
@@ -259,54 +280,42 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
         required: '请选择编程语言'
       },
       framework: {
-        placeholder: '请选择框架'
+        placeholder: '请选择框架',
+        required: '请选择框架'
       },
       content: {
         placeholder: '请输入模板内容',
         required: '请输入模板内容'
+      },
+      variables: {
+        placeholder: '请输入模板变量'
       },
       tags: {
         placeholder: '请输入标签，多个标签用逗号分隔'
       }
     }
   },
-  relationship: {
+  relation: {
     title: '关系管理',
-    addRelationship: '新增关系',
-    editRelationship: '编辑关系',
+    addRelation: '新增关系',
+    editRelation: '编辑关系',
     name: '关系名称',
     code: '关系代码',
     description: '关系描述',
-    typeLabel: '关系类型',
+    relationType: '关系类型',
     sourceEntity: '源实体',
     targetEntity: '目标实体',
     sourceField: '源字段',
     targetField: '目标字段',
     onDelete: '删除时',
     onUpdate: '更新时',
-    type: {
-      oneToOne: '一对一',
-      oneToMany: '一对多',
-      manyToOne: '多对一',
-      manyToMany: '多对多'
-    },
-    types: {
+    relationTypes: {
       ONE_TO_ONE: '一对一',
       ONE_TO_MANY: '一对多',
       MANY_TO_ONE: '多对一',
       MANY_TO_MANY: '多对多'
     },
-    status: {
-      ACTIVE: '活跃',
-      INACTIVE: '非活跃'
-    },
-    actions: {
-      CASCADE: '级联',
-      SET_NULL: '设为空',
-      RESTRICT: '限制',
-      NO_ACTION: '无操作'
-    },
-    cascade: {
+    cascadeActions: {
       CASCADE: '级联',
       SET_NULL: '设为空',
       RESTRICT: '限制',
@@ -324,7 +333,7 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       description: {
         placeholder: '请输入关系描述'
       },
-      type: {
+      relationType: {
         placeholder: '请选择关系类型',
         required: '请选择关系类型'
       },
@@ -349,9 +358,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       },
       onUpdate: {
         placeholder: '请选择更新时操作'
-      },
-      status: {
-        placeholder: '请选择状态'
       }
     }
   },

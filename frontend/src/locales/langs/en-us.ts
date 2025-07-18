@@ -9,6 +9,9 @@ const local: App.I18n.Schema = {
     updateCancel: 'Later'
   },
   common: {
+    status: 'Status',
+    createdAt: 'Created At',
+    updatedAt: 'Updated At',
     action: 'Action',
     add: 'Add',
     addSuccess: 'Add Success',

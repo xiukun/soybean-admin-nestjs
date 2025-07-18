@@ -309,6 +309,9 @@ declare namespace App {
         updateCancel: string;
       };
       common: {
+        status: string;
+        createdAt: string;
+        updatedAt: string;
         action: string;
         add: string;
         addSuccess: string;
@@ -671,7 +674,457 @@ declare namespace App {
             };
           };
         };
-        lowcode: Object;
+        lowcode: {
+          project: {
+            title: string;
+            addProject: string;
+            editProject: string;
+            name: string;
+            code: string;
+            description: string;
+            version: string;
+            status: {
+              ACTIVE: string;
+              INACTIVE: string;
+              ARCHIVED: string;
+            };
+            form: {
+              name: {
+                placeholder: string;
+                required: string;
+              };
+              code: {
+                placeholder: string;
+                required: string;
+              };
+              description: {
+                placeholder: string;
+              };
+              version: {
+                placeholder: string;
+                required: string;
+              };
+              status: {
+                placeholder: string;
+              };
+            };
+          };
+          entity: {
+            title: string;
+            addEntity: string;
+            editEntity: string;
+            name: string;
+            code: string;
+            description: string;
+            tableName: string;
+            category: string;
+            status: {
+              DRAFT: string;
+              ACTIVE: string;
+              INACTIVE: string;
+              ARCHIVED: string;
+            };
+            categories: {
+              core: string;
+              business: string;
+              system: string;
+              config: string;
+            };
+            form: {
+              name: {
+                placeholder: string;
+                required: string;
+              };
+              code: {
+                placeholder: string;
+                required: string;
+              };
+              description: {
+                placeholder: string;
+              };
+              tableName: {
+                placeholder: string;
+                required: string;
+              };
+              category: {
+                placeholder: string;
+              };
+              status: {
+                placeholder: string;
+              };
+            };
+          };
+          field: {
+            title: string;
+            addField: string;
+            editField: string;
+            name: string;
+            code: string;
+            description: string;
+            dataType: string;
+            length: string;
+            precision: string;
+            required: string;
+            unique: string;
+            defaultValue: string;
+            displayOrder: string;
+            dataTypes: {
+              STRING: string;
+              INTEGER: string;
+              DECIMAL: string;
+              BOOLEAN: string;
+              DATE: string;
+              DATETIME: string;
+              TEXT: string;
+              JSON: string;
+            };
+            form: {
+              name: {
+                placeholder: string;
+                required: string;
+              };
+              code: {
+                placeholder: string;
+                required: string;
+              };
+              description: {
+                placeholder: string;
+              };
+              dataType: {
+                placeholder: string;
+                required: string;
+              };
+              length: {
+                placeholder: string;
+              };
+              precision: {
+                placeholder: string;
+              };
+              defaultValue: {
+                placeholder: string;
+              };
+              displayOrder: {
+                placeholder: string;
+              };
+            };
+          };
+          api: {
+            title: string;
+            addApi: string;
+            editApi: string;
+            name: string;
+            code: string;
+            path: string;
+            method: string;
+            description: string;
+            version: string;
+            status: {
+              DRAFT: string;
+              PUBLISHED: string;
+              DEPRECATED: string;
+            };
+            methods: {
+              GET: string;
+              POST: string;
+              PUT: string;
+              DELETE: string;
+              PATCH: string;
+            };
+            form: {
+              name: {
+                placeholder: string;
+                required: string;
+              };
+              code: {
+                placeholder: string;
+                required: string;
+              };
+              path: {
+                placeholder: string;
+                required: string;
+              };
+              method: {
+                placeholder: string;
+                required: string;
+              };
+              description: {
+                placeholder: string;
+              };
+              version: {
+                placeholder: string;
+                required: string;
+              };
+              status: {
+                placeholder: string;
+              };
+            };
+          };
+          relation: {
+            title: string;
+            addRelation: string;
+            editRelation: string;
+            name: string;
+            code: string;
+            description: string;
+            sourceEntity: string;
+            targetEntity: string;
+            sourceField: string;
+            targetField: string;
+            relationType: string;
+            onDelete: string;
+            onUpdate: string;
+            relationTypes: {
+              ONE_TO_ONE: string;
+              ONE_TO_MANY: string;
+              MANY_TO_ONE: string;
+              MANY_TO_MANY: string;
+            };
+            cascadeActions: {
+              CASCADE: string;
+              SET_NULL: string;
+              RESTRICT: string;
+              NO_ACTION: string;
+            };
+            form: {
+              name: {
+                placeholder: string;
+                required: string;
+              };
+              code: {
+                placeholder: string;
+                required: string;
+              };
+              description: {
+                placeholder: string;
+              };
+              sourceEntity: {
+                placeholder: string;
+                required: string;
+              };
+              targetEntity: {
+                placeholder: string;
+                required: string;
+              };
+              sourceField: {
+                placeholder: string;
+                required: string;
+              };
+              targetField: {
+                placeholder: string;
+                required: string;
+              };
+              relationType: {
+                placeholder: string;
+                required: string;
+              };
+              onDelete: {
+                placeholder: string;
+              };
+              onUpdate: {
+                placeholder: string;
+              };
+            };
+          };
+          template: {
+            title: string;
+            addTemplate: string;
+            editTemplate: string;
+            name: string;
+            code: string;
+            description: string;
+            category: string;
+            language: string;
+            framework: string;
+            content: string;
+            variables: string;
+            tags: string;
+            isPublic: string;
+            categories: {
+              CONTROLLER: string;
+              SERVICE: string;
+              MODEL: string;
+              DTO: string;
+              COMPONENT: string;
+              PAGE: string;
+              CONFIG: string;
+              TEST: string;
+            };
+            languages: {
+              TYPESCRIPT: string;
+              JAVASCRIPT: string;
+              JAVA: string;
+              PYTHON: string;
+              CSHARP: string;
+              GO: string;
+            };
+            frameworks: {
+              NESTJS: string;
+              EXPRESS: string;
+              SPRING: string;
+              DJANGO: string;
+              DOTNET: string;
+              GIN: string;
+            };
+            form: {
+              name: {
+                placeholder: string;
+                required: string;
+              };
+              code: {
+                placeholder: string;
+                required: string;
+              };
+              description: {
+                placeholder: string;
+              };
+              category: {
+                placeholder: string;
+                required: string;
+              };
+              language: {
+                placeholder: string;
+                required: string;
+              };
+              framework: {
+                placeholder: string;
+                required: string;
+              };
+              content: {
+                placeholder: string;
+                required: string;
+              };
+              variables: {
+                placeholder: string;
+              };
+              tags: {
+                placeholder: string;
+              };
+            };
+          };
+          codeGeneration: {
+            title: string;
+            project: string;
+            entity: string;
+            template: string;
+            outputPath: string;
+            generate: string;
+            progress: string;
+            logs: string;
+            result: string;
+            fileList: string;
+            fileContent: string;
+            status: {
+              PENDING: string;
+              RUNNING: string;
+              SUCCESS: string;
+              FAILED: string;
+            };
+            form: {
+              project: {
+                placeholder: string;
+                required: string;
+              };
+              entity: {
+                placeholder: string;
+              };
+              template: {
+                placeholder: string;
+                required: string;
+              };
+              outputPath: {
+                placeholder: string;
+                required: string;
+              };
+            };
+          };
+          query: {
+            title: string;
+            addQuery: string;
+            editQuery: string;
+            name: string;
+            code: string;
+            description: string;
+            sql: string;
+            parameters: string;
+            result: string;
+            execute: string;
+            save: string;
+            form: {
+              name: {
+                placeholder: string;
+                required: string;
+              };
+              code: {
+                placeholder: string;
+                required: string;
+              };
+              description: {
+                placeholder: string;
+              };
+              sql: {
+                placeholder: string;
+                required: string;
+              };
+            };
+          };
+          common: {
+            search: {
+              placeholder: string;
+            };
+            actions: {
+              add: string;
+              edit: string;
+              delete: string;
+              view: string;
+              copy: string;
+              export: string;
+              import: string;
+              refresh: string;
+              reset: string;
+              submit: string;
+              cancel: string;
+              confirm: string;
+              save: string;
+              back: string;
+              next: string;
+              previous: string;
+              finish: string;
+            };
+            status: {
+              enabled: string;
+              disabled: string;
+              active: string;
+              inactive: string;
+              draft: string;
+              published: string;
+              archived: string;
+              deprecated: string;
+            };
+            messages: {
+              success: string;
+              error: string;
+              loading: string;
+              noData: string;
+              confirmDelete: string;
+              deleteSuccess: string;
+              saveSuccess: string;
+              updateSuccess: string;
+              createSuccess: string;
+            };
+            validation: {
+              required: string;
+              minLength: string;
+              maxLength: string;
+              email: string;
+              phone: string;
+              url: string;
+              number: string;
+              integer: string;
+              positive: string;
+              unique: string;
+            };
+          };
+        };
       };
       form: {
         required: string;

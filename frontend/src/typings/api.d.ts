@@ -26,10 +26,20 @@ declare namespace Api {
     /**
      * enable status
      *
-     * - "1": enabled
-     * - "2": disabled
+     * - "ENABLED": enabled
+     * - "DISABLED": disabled
      */
     type EnableStatus = 'ENABLED' | 'DISABLED';
+
+    /**
+     * object enable status
+     *
+     * - "ACTIVE": active
+     * - "INACTIVE": inactive
+     * - "ARCHIVED": archived
+     */
+    type ObjectEnableStatus = 'ACTIVE'| 'INACTIVE'| 'ARCHIVED';
+
 
     /** common record */
     type CommonRecord<T = any> = {
@@ -44,7 +54,7 @@ declare namespace Api {
       /** record update time */
       updateTime: string;
       /** record status */
-      status: EnableStatus | null;
+      status: EnableStatus | null | ObjectEnableStatus;
     } & T;
   }
 

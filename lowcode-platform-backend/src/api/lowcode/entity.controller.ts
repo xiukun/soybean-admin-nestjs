@@ -10,7 +10,6 @@ import {
   HttpStatus,
   HttpCode,
 } from '@nestjs/common';
-import { Public } from '@shared/decorators/public.decorator';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import {
   ApiTags,

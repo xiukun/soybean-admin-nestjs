@@ -9,6 +9,9 @@ const local: App.I18n.Schema = {
     updateCancel: '稍后再说'
   },
   common: {
+    status: '状态',   
+    createdAt: '创建时间',
+    updatedAt: '更新时间',
     action: '操作',
     add: '新增',
     addSuccess: '添加成功',

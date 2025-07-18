@@ -36,10 +36,7 @@
 </template>
 
 <script setup lang="tsx">
-import { reactive, ref, watch } from 'vue';
-import type { Ref } from 'vue';
 import { NButton, NPopconfirm, NSpace, NTag } from 'naive-ui';
-import type { DataTableColumns, PaginationProps } from 'naive-ui';
 import { fetchDeleteProject, fetchGetProjectList } from '@/service/api';
 import { $t } from '@/locales';
 import { useAppStore } from '@/store/modules/app';
@@ -66,7 +63,6 @@ const {
     current: 1,
     size: 10,
     status: null,
-    search: null
   },
   columns: () => [
     {
@@ -114,7 +110,7 @@ const {
           return null;
         }
 
-        const tagMap: Record<Api.Common.EnableStatus, NaiveUI.ThemeColor> = {
+        const tagMap: Record<Api.Common.ObjectEnableStatus, NaiveUI.ThemeColor> = {
           ACTIVE: 'success',
           INACTIVE: 'warning',
           ARCHIVED: 'error'
@@ -127,7 +123,7 @@ const {
     },
     {
       key: 'createdAt',
-      title: $t('common.createTime'),
+      title: $t('common.createdAt'),
       align: 'center',
       width: 180,
       render: row => {
@@ -170,7 +166,7 @@ const {
   onBatchDeleted,
   onDeleted
   // closeDrawer
-} = useTableOperate(data, getData);
+} = useTableOperate(data as any, getData);
 
 async function handleBatchDelete() {
   // NaiveUI的 data-table 组件的 checked-row-keys 类型是 DataTableRowKey[]
@@ -187,7 +183,7 @@ async function handleDelete(id: string) {
   onDeleted();
 }
 
-function openDrawer(operateType: AnyObject.OperateType) {
+function openDrawer(operateType: NaiveUI.TableOperateType) {
   handleAdd();
 }
 
