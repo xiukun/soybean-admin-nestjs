@@ -1,5 +1,21 @@
 <template>
   <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
+    <!-- Entity selector when no entityId is provided -->
+    <NCard v-if="!currentEntityId" :bordered="false" size="small">
+      <NSpace align="center">
+        <span>选择实体：</span>
+        <NSelect
+          v-model:value="selectedEntityId"
+          :options="entityOptions"
+          placeholder="请选择实体"
+          style="width: 300px"
+          :loading="entityLoading"
+          clearable
+          @update:value="handleEntityChange"
+        />
+      </NSpace>
+    </NCard>
+
     <NCard :title="$t('page.lowcode.field.title')" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
       <template #header-extra>
         <TableHeaderOperation
@@ -28,31 +44,82 @@
     <FieldOperateDrawer
       v-model:visible="drawerVisible"
       :operate-type="operateType"
-      :row-data="editingData"
-      :entity-id="entityId"
+      :row-data="editingData as any"
+      :entity-id="currentEntityId"
       @submitted="getData"
     />
   </div>
 </template>
 
 <script setup lang="tsx">
-import { reactive, ref, watch } from 'vue';
-import type { Ref } from 'vue';
-import { NButton, NPopconfirm, NSpace, NTag } from 'naive-ui';
-import type { DataTableColumns, PaginationProps } from 'naive-ui';
+import { computed, ref, watch } from 'vue';
+import { NButton, NPopconfirm, NSpace, NTag, NSelect, NCard } from 'naive-ui';
 import { fetchDeleteField, fetchGetFieldList, fetchMoveField } from '@/service/api';
 import { $t } from '@/locales';
 import { useAppStore } from '@/store/modules/app';
 import { useTable, useTableOperate } from '@/hooks/common/table';
-import { enableStatusRecord, enableStatusTag } from '@/constants/business';
 import FieldOperateDrawer from './modules/field-operate-drawer.vue';
 import TableHeaderOperation from '@/components/advanced/table-header-operation.vue';
+import { useRoute } from 'vue-router';
 
 const appStore = useAppStore();
+const route = useRoute();
 
-const props = defineProps<{
-  entityId: string;
-}>();
+interface Props {
+  entityId?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  entityId: ''
+});
+
+// Entity selection state
+const selectedEntityId = ref<string>('');
+const entityOptions = ref<Array<{ label: string; value: string }>>([]);
+const entityLoading = ref(false);
+
+// Get entityId from props or route query
+const currentEntityId = computed(() => {
+  return props.entityId || (route.query.entityId as string) || selectedEntityId.value;
+});
+
+// Create a wrapper function for the API call
+const getFieldListApi = (params: any): Promise<NaiveUI.FlatResponseData<Api.Common.PaginatingQueryRecord<Api.Lowcode.Field>>> => {
+  const entityId = currentEntityId.value;
+  if (!entityId) {
+    return Promise.resolve({
+      data: {
+        records: [] as Api.Lowcode.Field[],
+        total: 0,
+        current: 1,
+        size: 10
+      },
+      error: null,
+      response: {} as any
+    });
+  }
+
+  // Transform the field array response to match the expected paginated format
+  return fetchGetFieldList(entityId).then(response => {
+    const fields = response.data || [];
+    return {
+      data: {
+        records: fields,
+        total: fields.length,
+        current: 1,
+        size: fields.length
+      },
+      error: null,
+      response: response.response
+    };
+  }).catch(error => {
+    return {
+      data: null,
+      error: error,
+      response: error.response
+    };
+  });
+};
 
 const {
   columns,
@@ -64,7 +131,7 @@ const {
   searchParams,
   resetSearchParams
 } = useTable({
-  apiFn: () => fetchGetFieldList(props.entityId),
+  apiFn: getFieldListApi,
   showTotal: true,
   apiParams: {
     current: 1,
@@ -78,7 +145,7 @@ const {
     },
     {
       key: 'order',
-      title: $t('page.lowcode.field.order'),
+      title: '排序',
       align: 'center',
       width: 80,
       render: (row, index) => {
@@ -123,31 +190,29 @@ const {
       render: row => <code>{row.code}</code>
     },
     {
-      key: 'type',
-      title: $t('page.lowcode.field.type'),
+      key: 'dataType',
+      title: '数据类型',
       align: 'center',
       width: 120,
       render: row => {
-        let typeDisplay = row.type;
-        if (row.length && ['VARCHAR', 'CHAR'].includes(row.type)) {
+        let typeDisplay = row.dataType;
+        if (row.length && ['STRING'].includes(row.dataType)) {
           typeDisplay += `(${row.length})`;
-        } else if (row.precision && row.scale && row.type === 'DECIMAL') {
-          typeDisplay += `(${row.precision},${row.scale})`;
+        } else if (row.precision && ['DECIMAL'].includes(row.dataType)) {
+          typeDisplay += `(${row.precision})`;
         }
         return <NTag type="info">{typeDisplay}</NTag>;
       }
     },
     {
-      key: 'attributes',
-      title: $t('page.lowcode.field.attributes'),
+      key: 'attributes' as any,
+      title: '属性',
       align: 'center',
       width: 200,
       render: row => {
         const attributes = [];
-        if (row.primaryKey) attributes.push(<NTag type="error" size="small">PK</NTag>);
         if (row.unique) attributes.push(<NTag type="warning" size="small">UK</NTag>);
-        if (row.autoIncrement) attributes.push(<NTag type="success" size="small">AI</NTag>);
-        if (!row.nullable) attributes.push(<NTag type="info" size="small">NN</NTag>);
+        if (row.required) attributes.push(<NTag type="info" size="small">NN</NTag>);
         return <NSpace>{attributes}</NSpace>;
       }
     },
@@ -159,8 +224,8 @@ const {
       render: row => row.defaultValue ? <code>{String(row.defaultValue)}</code> : '-'
     },
     {
-      key: 'comment',
-      title: $t('page.lowcode.field.comment'),
+      key: 'description',
+      title: '描述',
       align: 'center',
       minWidth: 150,
       ellipsis: {
@@ -201,7 +266,7 @@ const {
   handleEdit,
   checkedRowKeys,
   onBatchDeleted
-} = useTableOperate(data, getData);
+} = useTableOperate(data as any, getData);
 
 async function handleDelete(id: string) {
   await fetchDeleteField(id);
@@ -214,16 +279,45 @@ async function handleBatchDelete() {
 }
 
 async function handleMoveField(id: string, direction: 'up' | 'down') {
+  if (!currentEntityId.value) return;
   await fetchMoveField(id, direction);
   await getData();
 }
 
+// Load entities for selection
+async function loadEntities() {
+  if (props.entityId) return; // Don't load if entityId is provided as prop
+
+  entityLoading.value = true;
+  try {
+    // We need to get entities from all projects or show project selector first
+    // For now, let's assume we get entities from a default project or all projects
+    // This would need to be implemented based on your specific requirements
+    entityOptions.value = [];
+  } catch (error) {
+    console.error('Failed to load entities:', error);
+  } finally {
+    entityLoading.value = false;
+  }
+}
+
+// Handle entity selection change
+function handleEntityChange(entityId: string | null) {
+  selectedEntityId.value = entityId || '';
+  if (entityId) {
+    getData();
+  }
+}
+
 // Watch for entityId changes
-watch(() => props.entityId, () => {
-  if (props.entityId) {
+watch(() => currentEntityId.value, () => {
+  if (currentEntityId.value) {
     getData();
   }
 }, { immediate: true });
+
+// Load entities on component mount
+loadEntities();
 </script>
 
 <style scoped></style>

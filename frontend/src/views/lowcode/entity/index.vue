@@ -64,8 +64,10 @@ import { useTable, useTableOperate } from '@/hooks/common/table';
 import EntityOperateDrawer from './modules/entity-operate-drawer.vue';
 import EntitySearch from './modules/entity-search.vue';
 import TableHeaderOperation from '@/components/advanced/table-header-operation.vue';
+import { useRouter } from 'vue-router';
 
 const appStore = useAppStore();
+const router = useRouter();
 
 interface Props {
   projectId?: string;
@@ -206,6 +208,9 @@ const {
       width: 130,
       render: row => (
         <NSpace justify={'center'}>
+          <NButton size={'small'} type={'primary'} onClick={() => handleViewFields(row.id)}>
+            字段
+          </NButton>
           <NButton size={'small'} type={'primary'} onClick={() => handleEdit(row.id)}>
             {$t('common.edit')}
           </NButton>
@@ -250,6 +255,13 @@ async function handleBatchDelete() {
 async function handleDelete(id: string) {
   await fetchDeleteEntity(id);
   onDeleted();
+}
+
+function handleViewFields(entityId: string) {
+  router.push({
+    path: '/lowcode/field',
+    query: { entityId }
+  });
 }
 
 function openDrawer(operateType: any) {
