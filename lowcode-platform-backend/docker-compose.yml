@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # 注意：PostgreSQL和Redis服务已移除，共用主系统的数据库和Redis服务
+  # Note: PostgreSQL and Redis services removed, sharing database and Redis with main system
+
+  # 低代码平台后端服务
+  lowcode-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lowcode-backend
+    environment:
+      TZ: Asia/Shanghai
+      NODE_ENV: production
+      PORT: 3000
+      # 数据库配置 - 共用主系统数据库
+      DATABASE_URL: 'postgresql://soybean:soybean@123.@host.docker.internal:25432/soybean-admin-nest-backend?schema=public'
+      # Redis配置 - 共用主系统的Redis服务
+      REDIS_HOST: 'host.docker.internal'
+      REDIS_PORT: 26379
+      REDIS_PASSWORD: '123456'
+      REDIS_DB: 6
+      # JWT配置
+      JWT_SECRET: 'JWT_SECRET-lowcode-platform@123456!@#.'
+      JWT_EXPIRES_IN: '7d'
+      # CORS配置
+      CORS_ORIGIN: 'http://localhost:9527,http://localhost:9528'
+      # 日志配置
+      LOG_LEVEL: 'info'
+      # 运行配置
+      RUN_MIGRATIONS: 'false'
+      RUN_SEEDS: 'false'
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+    networks:
+      - lowcode-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+# 注意：数据卷已移除，共用主系统的数据库
+# Note: Volumes removed, sharing database with main system
+
+networks:
+  lowcode-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -658,6 +658,61 @@ npm run format
 
 MIT License
 
+## 🗄️ 数据库配置
+
+### 配置信息
+- **数据库类型**: PostgreSQL 16.3
+- **主机**: localhost
+- **端口**: 25432 (Docker映射)
+- **数据库**: lowcode_platform
+- **用户名**: soybean
+- **密码**: soybean@123.
+- **连接字符串**: `postgresql://soybean:soybean@123.@localhost:25432/lowcode_platform?schema=public`
+
+### Redis配置（共用主系统）
+- **主机**: localhost
+- **端口**: 26379 (主系统端口)
+- **密码**: 123456
+- **数据库**: 6
+
+### 与主系统的一致性
+✅ **相同配置**:
+- 数据库用户名: `soybean`
+- 数据库密码: `soybean@123.`
+- Redis服务: 共用主系统Redis服务
+- Redis密码: `123456`
+
+🔄 **独立配置**:
+- 数据库端口: `25432` (避免冲突)
+- 数据库名: `lowcode_platform` (独立数据库)
+- Redis数据库: `6` (避免数据冲突)
+
+### 快速启动
+```bash
+# 验证配置
+./verify-config.sh
+
+# 启动所有服务
+./start-services.sh start
+
+# 仅启动数据库服务
+./start-services.sh db-only
+```
+
+### 数据库连接测试
+```bash
+# PostgreSQL连接测试
+psql -h localhost -p 25432 -U soybean -d lowcode_platform
+
+# Redis连接测试（共用主系统）
+redis-cli -h localhost -p 26379 -a "123456"
+```
+
+详细配置说明请参考：[DATABASE_CONFIG.md](./DATABASE_CONFIG.md)
+
 ## 🆘 支持
 
-如有问题，请提交Issue或联系开发团队。
+如有问题，请：
+1. 运行 `./verify-config.sh` 检查配置
+2. 查看 [DATABASE_CONFIG.md](./DATABASE_CONFIG.md) 详细说明
+3. 提交Issue或联系开发团队

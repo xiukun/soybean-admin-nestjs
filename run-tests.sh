@@ -96,11 +96,11 @@ start_services() {
     # Check if services are already running
     local base_system_running=false
     local lowcode_platform_running=false
-    
+
     if check_service "Base System" 9528; then
         base_system_running=true
     fi
-    
+
     if check_service "Low-code Platform" 3000; then
         lowcode_platform_running=true
     fi
