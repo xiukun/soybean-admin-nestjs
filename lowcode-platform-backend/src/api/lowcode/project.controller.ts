@@ -18,6 +18,7 @@ import {
   ApiParam,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { Public } from '@decorators/public.decorator';
 import {
   CreateProjectDto,
   UpdateProjectDto,
@@ -85,6 +86,7 @@ export class ProjectController {
   }
 
   @Get('paginated')
+  @Public()
   @ApiOperation({ summary: 'Get paginated projects' })
   @ApiResponse({
     status: HttpStatus.OK,

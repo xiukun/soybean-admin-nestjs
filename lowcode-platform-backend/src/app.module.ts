@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 import { AppController } from '@src/app.controller';
 import { AppService } from '@src/app.service';
 import { PrismaModule } from '@prisma/prisma.module';
@@ -15,6 +18,8 @@ import { ProjectController } from '@api/lowcode/project.controller';
 import { RelationshipController } from '@api/lowcode/relationship.controller';
 import { ApiConfigController } from '@api/lowcode/api-config.controller';
 import { AmisDemoController } from '@api/lowcode/amis-demo.controller';
+import { JwtAuthGuard } from '@guards/jwt-auth.guard';
+import { JwtStrategy } from '@strategies/jwt.strategy';
 
 @Module({
   imports: [
@@ -22,6 +27,19 @@ import { AmisDemoController } from '@api/lowcode/amis-demo.controller';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
+    }),
+
+    // 认证模块
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN', '7d'),
+        },
+      }),
+      inject: [ConfigService],
     }),
 
     // CQRS模块
@@ -43,6 +61,11 @@ import { AmisDemoController } from '@api/lowcode/amis-demo.controller';
   controllers: [AppController, EntityController, ProjectController, RelationshipController, ApiConfigController, AmisDemoController],
   providers: [
     AppService,
+    JwtStrategy,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
   ],
 })
 export class AppModule {}

@@ -38,6 +38,8 @@
       "@services/*": ["src/lib/shared/services/*"],
       "@middleware/*": ["src/lib/shared/middleware/*"],
       "@decorators/*": ["src/lib/shared/decorators/*"],
+      "@guards/*": ["src/lib/shared/guards/*"],
+      "@strategies/*": ["src/lib/shared/strategies/*"],
       "@interceptors/*": ["src/lib/shared/interceptors/*"],
       "@dto/*": ["src/lib/shared/dto/*"],
       "@prisma/*": ["src/lib/shared/prisma/*"],
