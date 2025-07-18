@@ -41,6 +41,7 @@ services:
       DOC_SWAGGER_ENABLE: 'true'
       DOC_SWAGGER_PATH: 'api-docs'
       DATABASE_URL: 'postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend?schema=public'
+      DIRECT_DATABASE_URL: 'postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend?schema=public'
       REDIS_HOST: 'redis'
       REDIS_PORT: 6379
       REDIS_PASSWORD: '123456'
@@ -90,7 +91,6 @@ services:
       BASE_SYSTEM_URL: 'http://backend:9528'
       # 性能和监控配置
       METRICS_ENABLED: 'true'
-      HEALTH_CHECK_ENABLED: 'true'
       PERFORMANCE_MONITORING: 'true'
       LOG_LEVEL: 'info'
       # CORS配置
@@ -115,7 +115,7 @@ services:
       - ./uploads:/app/uploads
       - ./examples:/app/examples:ro
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://lowcode-platform:3000/health"]
+      test: ["CMD", "curl", "-f", "http://lowcode-platform:3000/api/v1/projects"]
       interval: 30s
       timeout: 10s
       retries: 3
