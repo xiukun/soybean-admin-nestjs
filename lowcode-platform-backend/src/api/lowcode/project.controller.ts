@@ -22,6 +22,7 @@ import { Public } from '@decorators/public.decorator';
 import {
   CreateProjectDto,
   UpdateProjectDto,
+  UpdateProjectStatusDto,
   ProjectResponseDto,
   ProjectListQueryDto,
   ProjectListResponseDto,
@@ -29,6 +30,7 @@ import {
 } from '@api/lowcode/dto/project.dto';
 import { CreateProjectCommand } from '@project/application/commands/create-project.command';
 import { UpdateProjectCommand } from '@project/application/commands/update-project.command';
+import { UpdateProjectStatusCommand } from '@project/application/commands/update-project-status.command';
 import { DeleteProjectCommand } from '@project/application/commands/delete-project.command';
 import {
   GetProjectQuery,
@@ -193,6 +195,32 @@ export class ProjectController {
       updateProjectDto.description,
       updateProjectDto.version,
       updateProjectDto.config,
+      'system', // TODO: Get from authenticated user
+    );
+
+    const project = await this.commandBus.execute(command);
+    return this.mapToResponseDto(project);
+  }
+
+  @Put(':id/status')
+  @ApiOperation({ summary: 'Update project status' })
+  @ApiParam({ name: 'id', description: 'Project ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Project status updated successfully',
+    type: ProjectResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Project not found',
+  })
+  async updateProjectStatus(
+    @Param('id') id: string,
+    @Body() updateProjectStatusDto: UpdateProjectStatusDto,
+  ): Promise<ProjectResponseDto> {
+    const command = new UpdateProjectStatusCommand(
+      id,
+      updateProjectStatusDto.status,
       'system', // TODO: Get from authenticated user
     );
 

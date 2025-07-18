@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsObject, IsEnum, Min, Max } from 'class-validator';
+import { IsString, IsOptional, IsObject, IsEnum, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ProjectStatus } from '@project/domain/project.model';
 
@@ -53,6 +53,12 @@ export class UpdateProjectDto {
   @IsOptional()
   @IsObject()
   config?: any;
+}
+
+export class UpdateProjectStatusDto {
+  @ApiProperty({ description: 'Project status', enum: ProjectStatus })
+  @IsEnum(ProjectStatus)
+  status: ProjectStatus;
 }
 
 export class ProjectResponseDto {

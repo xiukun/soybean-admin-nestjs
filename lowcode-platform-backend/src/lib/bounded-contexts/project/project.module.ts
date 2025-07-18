@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { CreateProjectHandler } from '@project/application/handlers/create-project.handler';
 import { UpdateProjectHandler } from '@project/application/handlers/update-project.handler';
+import { UpdateProjectStatusHandler } from '@project/application/handlers/update-project-status.handler';
 import { DeleteProjectHandler } from '@project/application/handlers/delete-project.handler';
 import {
   GetProjectHandler,
@@ -14,6 +15,7 @@ import { ProjectPrismaRepository } from '@infra/bounded-contexts/project/project
 const CommandHandlers = [
   CreateProjectHandler,
   UpdateProjectHandler,
+  UpdateProjectStatusHandler,
   DeleteProjectHandler,
 ];
 
