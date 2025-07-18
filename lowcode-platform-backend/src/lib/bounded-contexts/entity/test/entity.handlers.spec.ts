@@ -64,6 +64,7 @@ describe('Entity Handlers', () => {
         'core',
         undefined, // diagramPosition
         undefined, // config
+        undefined, // status
         'user123'  // createdBy
       );
 
@@ -99,6 +100,7 @@ describe('Entity Handlers', () => {
         'core',
         undefined, // diagramPosition
         undefined, // config
+        undefined, // status
         'user123'  // createdBy
       );
 
@@ -207,7 +209,8 @@ describe('Entity Handlers', () => {
         'business',
         undefined,
         undefined,
-        'user456'
+        undefined, // status
+        'user456'  // updatedBy
       );
 
       const existingEntity = Entity.create({
@@ -247,7 +250,8 @@ describe('Entity Handlers', () => {
         'business',
         undefined,
         undefined,
-        'user456'
+        undefined, // status
+        'user456'  // updatedBy
       );
 
       mockRepository.findById.mockResolvedValue(null);

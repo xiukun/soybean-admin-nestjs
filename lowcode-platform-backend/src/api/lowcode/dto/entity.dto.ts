@@ -39,6 +39,11 @@ export class CreateEntityDto {
   @IsOptional()
   @IsObject()
   config?: any;
+
+  @ApiPropertyOptional({ description: 'Entity status', enum: EntityStatus })
+  @IsOptional()
+  @IsEnum(EntityStatus)
+  status?: EntityStatus;
 }
 
 export class UpdateEntityDto {
@@ -76,6 +81,11 @@ export class UpdateEntityDto {
   @IsOptional()
   @IsObject()
   config?: any;
+
+  @ApiPropertyOptional({ description: 'Entity status', enum: EntityStatus })
+  @IsOptional()
+  @IsEnum(EntityStatus)
+  status?: EntityStatus;
 }
 
 export class EntityResponseDto {
@@ -136,6 +146,7 @@ export class EntityListQueryDto {
   @IsOptional()
   @Type(() => Number)
   @Min(1)
+  @Max(100)
   size?: number = 10;
 
   @ApiPropertyOptional({ description: 'Filter by status', enum: EntityStatus })

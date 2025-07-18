@@ -67,6 +67,7 @@ export class EntityController {
       createEntityDto.category,
       createEntityDto.diagramPosition,
       createEntityDto.config,
+      createEntityDto.status,
       'system', // TODO: Get from authenticated user
     );
 
@@ -208,6 +209,7 @@ export class EntityController {
       updateEntityDto.category,
       updateEntityDto.diagramPosition,
       updateEntityDto.config,
+      updateEntityDto.status,
       'system', // TODO: Get from authenticated user
     );
 

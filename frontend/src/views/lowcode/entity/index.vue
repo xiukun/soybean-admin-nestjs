@@ -45,7 +45,7 @@
         v-model:visible="drawerVisible"
         :operate-type="operateType"
         :row-data="editingData"
-        :project-id="projectId"
+        :project-id="currentProjectId"
         @submitted="getTableData"
       />
     </NCard>
@@ -187,7 +187,7 @@ const {
 
         const label = row.status || '未知';
 
-        return <NTag type={tagMap[row.status] || 'default'}>{label}</NTag>;
+        return <NTag type={row.status ? (tagMap[row.status] || 'default') : 'default'}>{label}</NTag>;
       }
     },
     {
@@ -253,6 +253,19 @@ async function handleDelete(id: string) {
 }
 
 function openDrawer(operateType: any) {
+  // 验证是否选择了项目
+  if (!currentProjectId.value) {
+    window.$message?.warning('请先选择一个项目');
+    return;
+  }
+
+  // 验证项目ID是否为有效的UUID格式
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(currentProjectId.value)) {
+    window.$message?.error('项目ID格式无效，请重新选择项目');
+    return;
+  }
+
   handleAdd();
 }
 

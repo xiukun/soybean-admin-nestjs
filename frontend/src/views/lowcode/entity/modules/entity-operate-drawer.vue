@@ -40,7 +40,7 @@
                 {{ $t('page.lowcode.entity.status.DRAFT') }}
               </NRadio>
               <NRadio value="PUBLISHED">
-                {{ $t('page.lowcode.common.status.published') }}
+                {{ $t('page.lowcode.api.status.PUBLISHED') }}
               </NRadio>
             </NSpace>
           </NRadioGroup>
@@ -119,6 +119,8 @@ function createDefaultFormModel(): Api.Lowcode.EntityEdit {
     tableName: '',
     category: 'core',
     description: '',
+    diagramPosition: null,
+    config: {},
     status: 'DRAFT'
   };
 }
@@ -164,9 +166,32 @@ async function handleSubmit() {
 
   try {
     if (props.operateType === 'add') {
-      await fetchAddEntity(formModel);
+      // 创建实体时，只发送后端 CreateEntityDto 需要的字段
+      const createData = {
+        projectId: formModel.projectId,
+        name: formModel.name,
+        code: formModel.code,
+        tableName: formModel.tableName,
+        description: formModel.description,
+        category: formModel.category,
+        diagramPosition: formModel.diagramPosition || null,
+        config: formModel.config || {},
+        status: formModel.status
+      };
+      await fetchAddEntity(createData);
     } else if (props.operateType === 'edit' && props.rowData) {
-      await fetchUpdateEntity(props.rowData.id, formModel);
+      // 更新实体时，发送 UpdateEntityDto 需要的字段
+      const updateData = {
+        name: formModel.name,
+        code: formModel.code,
+        tableName: formModel.tableName,
+        description: formModel.description,
+        category: formModel.category,
+        diagramPosition: formModel.diagramPosition,
+        config: formModel.config,
+        status: formModel.status
+      };
+      await fetchUpdateEntity(props.rowData.id, updateData as any);
     }
 
     window.$message?.success($t('common.updateSuccess'));

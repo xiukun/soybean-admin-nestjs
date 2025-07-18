@@ -1,3 +1,5 @@
+import { EntityStatus } from '@entity/domain/entity.model';
+
 export class CreateEntityCommand {
   constructor(
     public readonly projectId: string,
@@ -8,6 +10,7 @@ export class CreateEntityCommand {
     public readonly category?: string,
     public readonly diagramPosition?: any,
     public readonly config?: any,
+    public readonly status?: EntityStatus,
     public readonly createdBy?: string,
   ) {}
 }

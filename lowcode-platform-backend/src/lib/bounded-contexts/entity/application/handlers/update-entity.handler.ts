@@ -57,6 +57,7 @@ export class UpdateEntityHandler implements ICommandHandler<UpdateEntityCommand>
       category: command.category,
       diagramPosition: command.diagramPosition,
       config: command.config,
+      status: command.status,
       updatedBy: command.updatedBy || 'system',
     });
 

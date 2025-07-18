@@ -46,6 +46,7 @@ export class CreateEntityHandler implements ICommandHandler<CreateEntityCommand>
       category: command.category,
       diagramPosition: command.diagramPosition,
       config: command.config,
+      status: command.status,
       createdBy: command.createdBy || 'system',
     });
 
