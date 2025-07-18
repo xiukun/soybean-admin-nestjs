@@ -37,7 +37,7 @@
 
 <script setup lang="tsx">
 import { NButton, NPopconfirm, NSpace, NTag } from 'naive-ui';
-import { fetchDeleteProject, fetchGetProjectList } from '@/service/api';
+import { fetchDeleteProject, fetchGetProjectList, fetchUpdateProjectStatus } from '@/service/api';
 import { $t } from '@/locales';
 import { useAppStore } from '@/store/modules/app';
 import { useTable, useTableOperate } from '@/hooks/common/table';
@@ -134,11 +134,18 @@ const {
       key: 'operate',
       title: $t('common.operate'),
       align: 'center',
-      width: 130,
+      width: 200,
       render: row => (
         <NSpace justify={'center'}>
           <NButton size={'small'} type={'primary'} onClick={() => handleEdit(row.id)}>
             {$t('common.edit')}
+          </NButton>
+          <NButton
+            size={'small'}
+            type={row.status === 'ACTIVE' ? 'warning' : 'success'}
+            onClick={() => handleToggleStatus(row.id, row.status)}
+          >
+            {row.status === 'ACTIVE' ? '禁用' : '启用'}
           </NButton>
           <NPopconfirm onPositiveClick={() => handleDelete(row.id)}>
             {{
@@ -181,6 +188,13 @@ async function handleBatchDelete() {
 async function handleDelete(id: string) {
   await fetchDeleteProject(id);
   onDeleted();
+}
+
+async function handleToggleStatus(id: string, currentStatus: string) {
+  const newStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+  await fetchUpdateProjectStatus(id, { status: newStatus });
+  getTableData();
+  window.$message?.success($t('common.updateSuccess'));
 }
 
 function openDrawer(operateType: NaiveUI.TableOperateType) {

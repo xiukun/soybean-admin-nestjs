@@ -41,8 +41,8 @@ declare namespace Api {
     interface ProjectList extends Common.PaginatingQueryRecord<Project> {
     }
 
-    /** Project edit */
-    interface ProjectEdit {
+    /** Project edit form (without status) */
+    interface ProjectEditForm {
       /** Project name */
       name: string;
       /** Project code */
@@ -53,8 +53,18 @@ declare namespace Api {
       version: string;
       /** Project configuration */
       config?: Record<string, any>;
+    }
+
+    /** Project edit (for API compatibility) */
+    interface ProjectEdit extends ProjectEditForm {
       /** Project status */
       status?: ProjectStatus;
+    }
+
+    /** Project status update */
+    interface ProjectStatusUpdate {
+      /** Project status */
+      status: ProjectStatus;
     }
 
     /** Project statistics */

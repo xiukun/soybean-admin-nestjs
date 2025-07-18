@@ -11,7 +11,7 @@ export function fetchGetProjectList(params?: Api.Lowcode.ProjectSearchParams) {
   return request<Api.Lowcode.ProjectList>({
     url: '/projects/paginated',
     method: 'get',
-    params
+    params,
   });
 }
 
@@ -54,7 +54,7 @@ export function fetchGetProjectByCode(code: string) {
  *
  * @param data - project data
  */
-export function fetchAddProject(data: Api.Lowcode.ProjectEdit) {
+export function fetchAddProject(data: Api.Lowcode.ProjectEditForm) {
   return request<Api.Lowcode.Project>({
     url: '/projects',
     method: 'post',
@@ -68,9 +68,23 @@ export function fetchAddProject(data: Api.Lowcode.ProjectEdit) {
  * @param id - project id
  * @param data - project data
  */
-export function fetchUpdateProject(id: string, data: Api.Lowcode.ProjectEdit) {
+export function fetchUpdateProject(id: string, data: Api.Lowcode.ProjectEditForm) {
   return request<Api.Lowcode.Project>({
     url: `/projects/${id}`,
+    method: 'put',
+    data
+  });
+}
+
+/**
+ * update project status
+ *
+ * @param id - project id
+ * @param data - status data
+ */
+export function fetchUpdateProjectStatus(id: string, data: Api.Lowcode.ProjectStatusUpdate) {
+  return request<Api.Lowcode.Project>({
+    url: `/projects/${id}/status`,
     method: 'put',
     data
   });

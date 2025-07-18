@@ -23,18 +23,6 @@
         <NFormItem :label="$t('page.lowcode.project.version')" path="version">
           <NInput v-model:value="formModel.version" :placeholder="$t('page.lowcode.project.form.version.placeholder')" />
         </NFormItem>
-        <NFormItem :label="$t('common.status')" path="status">
-          <NRadioGroup v-model:value="formModel.status">
-            <NSpace>
-              <NRadio value="ACTIVE">
-                {{ $t('page.lowcode.project.status.ACTIVE') }}
-              </NRadio>
-              <NRadio value="INACTIVE">
-                {{ $t('page.lowcode.project.status.INACTIVE') }}
-              </NRadio>
-            </NSpace>
-          </NRadioGroup>
-        </NFormItem>
       </NForm>
       <template #footer>
         <NSpace :size="16">
@@ -97,15 +85,14 @@ const title = computed(() => {
 
 const formRef = ref<FormInst | null>(null);
 
-const formModel = reactive<Api.Lowcode.ProjectEdit>(createDefaultFormModel());
+const formModel = reactive<Api.Lowcode.ProjectEditForm>(createDefaultFormModel());
 
-function createDefaultFormModel(): Api.Lowcode.ProjectEdit {
+function createDefaultFormModel(): Api.Lowcode.ProjectEditForm {
   return {
     name: '',
     code: '',
     description: '',
-    version: '1.0.0',
-    status: 'ACTIVE'
+    version: '1.0.0'
   };
 }
 
@@ -117,7 +104,7 @@ const rules: FormRules = {
 
 const submitLoading = ref(false);
 
-function handleUpdateFormModel(model: Partial<Api.Lowcode.ProjectEdit>) {
+function handleUpdateFormModel(model: Partial<Api.Lowcode.ProjectEditForm>) {
   Object.assign(formModel, model);
 }
 
@@ -129,7 +116,15 @@ function handleUpdateFormModelByRowData() {
   }
 
   if (props.operateType === 'edit' && props.rowData) {
-    handleUpdateFormModel(props.rowData);
+    // 只提取允许编辑的字段，排除系统管理字段
+    const editableData: Api.Lowcode.ProjectEditForm = {
+      name: props.rowData.name,
+      code: props.rowData.code,
+      description: props.rowData.description,
+      version: props.rowData.version,
+      config: props.rowData.config
+    };
+    handleUpdateFormModel(editableData);
   }
 }
 
