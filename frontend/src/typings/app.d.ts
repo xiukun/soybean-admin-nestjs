@@ -671,6 +671,7 @@ declare namespace App {
             };
           };
         };
+        lowcode: Object;
       };
       form: {
         required: string;

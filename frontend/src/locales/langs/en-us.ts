@@ -1,3 +1,5 @@
+import lowcode from "./en-us/lowcode";
+
 const local: App.I18n.Schema = {
   system: {
     title: 'SoybeanAdmin',
@@ -179,6 +181,16 @@ const local: App.I18n.Schema = {
     'amis-demo': 'Amis Demo',
     'amis-demo_child1': 'Amis Demo Child1',
     'amis-template': 'Amis Template',
+    lowcode: 'Low-Code Platform',
+    lowcode_project: 'Project Management',
+    lowcode_entity: 'Entity Management',
+    lowcode_field: 'Field Management',
+    lowcode_relationship: 'Relationship Management',
+    lowcode_query: 'Query Management',
+    'lowcode_api-config': 'API Configuration',
+    'lowcode_api-test': 'API Testing',
+    lowcode_template: 'Template Management',
+    'lowcode_code-generation': 'Code Generation',
     reload: 'Reload Page'
   },
   page: {
@@ -427,7 +439,8 @@ const local: App.I18n.Schema = {
           female: 'Female'
         }
       }
-    }
+    },
+    lowcode,
   },
   form: {
     required: 'Cannot be empty',
