@@ -30,7 +30,7 @@ declare namespace Api {
     }
 
     /** Project search params */
-    interface ProjectSearchParams extends Common.PaginatingQueryRecord {
+    interface ProjectSearchParams extends Common.CommonSearchParams {
       /** Project name or code search */
       search?: string;
       /** Project status */
@@ -38,12 +38,7 @@ declare namespace Api {
     }
 
     /** Project list */
-    interface ProjectList extends Common.PaginatingQueryRecord {
-      projects: Project[];
-      total: number;
-      page: number;
-      limit: number;
-      totalPages: number;
+    interface ProjectList extends Common.PaginatingQueryRecord<Project> {
     }
 
     /** Project edit */
@@ -110,7 +105,7 @@ declare namespace Api {
     }
 
     /** Entity search params */
-    interface EntitySearchParams extends Common.PaginatingQueryRecord {
+    interface EntitySearchParams extends Common.CommonSearchParams {
       /** Project ID */
       projectId: string;
       /** Entity name or code search */
@@ -122,12 +117,7 @@ declare namespace Api {
     }
 
     /** Entity list */
-    interface EntityList extends Common.PaginatingQueryRecord {
-      entities: Entity[];
-      total: number;
-      page: number;
-      limit: number;
-      totalPages: number;
+    interface EntityList extends Common.PaginatingQueryRecord<Entity> {
     }
 
     /** Entity edit */

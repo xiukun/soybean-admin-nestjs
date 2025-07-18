@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsObject, IsEnum } from 'class-validator';
+import { IsString, IsOptional, IsObject, IsEnum, Min, Max } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ProjectStatus } from '@project/domain/project.model';
 
 export class CreateProjectDto {
@@ -90,13 +91,17 @@ export class ProjectResponseDto {
 }
 
 export class ProjectListQueryDto {
-  @ApiPropertyOptional({ description: 'Page number', default: 1 })
+  @ApiPropertyOptional({ description: 'Current page number', default: 1, minimum: 1 })
   @IsOptional()
-  page?: number = 1;
+  @Type(() => Number)
+  @Min(1)
+  current?: number = 1;
 
-  @ApiPropertyOptional({ description: 'Items per page', default: 10 })
+  @ApiPropertyOptional({ description: 'Page size', default: 10, minimum: 1, maximum: 100 })
   @IsOptional()
-  limit?: number = 10;
+  @Type(() => Number)
+  @Min(1)
+  size?: number = 10;
 
   @ApiPropertyOptional({ description: 'Filter by status', enum: ProjectStatus })
   @IsOptional()
@@ -110,20 +115,17 @@ export class ProjectListQueryDto {
 }
 
 export class ProjectListResponseDto {
-  @ApiProperty({ description: 'List of projects', type: [ProjectResponseDto] })
-  projects: ProjectResponseDto[];
+  @ApiProperty({ description: 'Projects list', type: [ProjectResponseDto] })
+  records: ProjectResponseDto[];
 
-  @ApiProperty({ description: 'Total number of projects' })
+  @ApiProperty({ description: 'Current page number' })
+  current: number;
+
+  @ApiProperty({ description: 'Page size' })
+  size: number;
+
+  @ApiProperty({ description: 'Total count' })
   total: number;
-
-  @ApiProperty({ description: 'Current page' })
-  page: number;
-
-  @ApiProperty({ description: 'Items per page' })
-  limit: number;
-
-  @ApiProperty({ description: 'Total pages' })
-  totalPages: number;
 }
 
 export class ProjectStatsResponseDto {

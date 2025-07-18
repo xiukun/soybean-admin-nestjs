@@ -63,8 +63,8 @@ const {
 } = useTable({
   apiFn: fetchGetProjectList,
   apiParams: {
-    page: 1,
-    limit: 10,
+    current: 1,
+    size: 10,
     status: null,
     search: null
   },

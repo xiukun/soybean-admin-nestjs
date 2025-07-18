@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import type { FormInst } from 'naive-ui';
 import { $t } from '@/locales';
 

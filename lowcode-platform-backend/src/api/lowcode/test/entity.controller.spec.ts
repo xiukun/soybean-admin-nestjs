@@ -119,8 +119,8 @@ describe('EntityController', () => {
     it('should get paginated entities', async () => {
       const projectId = 'project-123';
       const query = {
-        page: 1,
-        limit: 10,
+        current: 1,
+        size: 10,
       };
 
       const mockResult = {
@@ -143,7 +143,7 @@ describe('EntityController', () => {
 
       const result = await controller.getEntitiesPaginated(projectId, query);
 
-      expect(result.entities).toHaveLength(1);
+      expect(result.records).toHaveLength(1);
       expect(mockQueryBus.execute).toHaveBeenCalled();
     });
   });

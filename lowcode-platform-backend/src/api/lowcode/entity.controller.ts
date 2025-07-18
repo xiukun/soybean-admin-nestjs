@@ -10,6 +10,7 @@ import {
   HttpStatus,
   HttpCode,
 } from '@nestjs/common';
+import { Public } from '@shared/decorators/public.decorator';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import {
   ApiTags,
@@ -120,8 +121,8 @@ export class EntityController {
   ): Promise<EntityListResponseDto> {
     const paginatedQuery = new GetEntitiesPaginatedQuery(
       projectId,
-      query.page,
-      query.limit,
+      query.current,
+      query.size,
       {
         status: query.status,
         category: query.category,
@@ -130,13 +131,12 @@ export class EntityController {
     );
 
     const result = await this.queryBus.execute(paginatedQuery);
-    
+
     return {
-      entities: result.entities.map(entity => this.mapToResponseDto(entity)),
+      records: result.entities.map(entity => this.mapToResponseDto(entity)),
+      current: result.page,
+      size: result.limit,
       total: result.total,
-      page: result.page,
-      limit: result.limit,
-      totalPages: result.totalPages,
     };
   }
 

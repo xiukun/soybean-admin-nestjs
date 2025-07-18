@@ -103,7 +103,7 @@ const {
     },
     {
       key: 'type',
-      title: $t('page.lowcode.relationship.type'),
+      title: $t('page.lowcode.relationship.typeLabel'),
       align: 'center',
       width: 120,
       render: row => {

@@ -277,19 +277,36 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     name: '关系名称',
     code: '关系代码',
     description: '关系描述',
-    type: '关系类型',
+    typeLabel: '关系类型',
     sourceEntity: '源实体',
     targetEntity: '目标实体',
     sourceField: '源字段',
     targetField: '目标字段',
     onDelete: '删除时',
     onUpdate: '更新时',
+    type: {
+      oneToOne: '一对一',
+      oneToMany: '一对多',
+      manyToOne: '多对一',
+      manyToMany: '多对多'
+    },
     types: {
       ONE_TO_ONE: '一对一',
       ONE_TO_MANY: '一对多',
+      MANY_TO_ONE: '多对一',
       MANY_TO_MANY: '多对多'
     },
+    status: {
+      ACTIVE: '活跃',
+      INACTIVE: '非活跃'
+    },
     actions: {
+      CASCADE: '级联',
+      SET_NULL: '设为空',
+      RESTRICT: '限制',
+      NO_ACTION: '无操作'
+    },
+    cascade: {
       CASCADE: '级联',
       SET_NULL: '设为空',
       RESTRICT: '限制',
@@ -326,6 +343,15 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       targetField: {
         placeholder: '请选择目标字段',
         required: '请选择目标字段'
+      },
+      onDelete: {
+        placeholder: '请选择删除时操作'
+      },
+      onUpdate: {
+        placeholder: '请选择更新时操作'
+      },
+      status: {
+        placeholder: '请选择状态'
       }
     }
   },

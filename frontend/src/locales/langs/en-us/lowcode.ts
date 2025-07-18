@@ -173,6 +173,91 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       }
     }
   },
+  relationship: {
+    title: 'Relationship Management',
+    addRelationship: 'Add Relationship',
+    editRelationship: 'Edit Relationship',
+    name: 'Relationship Name',
+    code: 'Relationship Code',
+    description: 'Description',
+    typeLabel: 'Relationship Type',
+    type: {
+      oneToOne: 'One to One',
+      oneToMany: 'One to Many',
+      manyToOne: 'Many to One',
+      manyToMany: 'Many to Many'
+    },
+    sourceEntity: 'Source Entity',
+    targetEntity: 'Target Entity',
+    sourceField: 'Source Field',
+    targetField: 'Target Field',
+    onDelete: 'On Delete',
+    onUpdate: 'On Update',
+    types: {
+      ONE_TO_ONE: 'One to One',
+      ONE_TO_MANY: 'One to Many',
+      MANY_TO_ONE: 'Many to One',
+      MANY_TO_MANY: 'Many to Many'
+    },
+    status: {
+      ACTIVE: 'Active',
+      INACTIVE: 'Inactive'
+    },
+    actions: {
+      CASCADE: 'Cascade',
+      SET_NULL: 'Set Null',
+      RESTRICT: 'Restrict',
+      NO_ACTION: 'No Action'
+    },
+    cascade: {
+      CASCADE: 'Cascade',
+      SET_NULL: 'Set Null',
+      RESTRICT: 'Restrict',
+      NO_ACTION: 'No Action'
+    },
+    form: {
+      name: {
+        placeholder: 'Please enter relationship name',
+        required: 'Please enter relationship name'
+      },
+      code: {
+        placeholder: 'Please enter relationship code',
+        required: 'Please enter relationship code'
+      },
+      description: {
+        placeholder: 'Please enter description'
+      },
+      type: {
+        placeholder: 'Please select relationship type',
+        required: 'Please select relationship type'
+      },
+      sourceEntity: {
+        placeholder: 'Please select source entity',
+        required: 'Please select source entity'
+      },
+      targetEntity: {
+        placeholder: 'Please select target entity',
+        required: 'Please select target entity'
+      },
+      sourceField: {
+        placeholder: 'Please select source field',
+        required: 'Please select source field'
+      },
+      targetField: {
+        placeholder: 'Please select target field',
+        required: 'Please select target field'
+      },
+      onDelete: {
+        placeholder: 'Please select on delete action'
+      },
+      onUpdate: {
+        placeholder: 'Please select on update action'
+      },
+      status: {
+        placeholder: 'Please select status'
+      }
+    }
+  },
   codegen: {
     title: 'Code Generation',
     generate: 'Generate Code',

@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch } from 'vue';
+import { computed, reactive, watch, ref } from 'vue';
 import type { FormInst, FormRules } from 'naive-ui';
 import { fetchAddProject, fetchGetProject, fetchUpdateProject } from '@/service/api';
 import { $t } from '@/locales';
@@ -61,7 +61,7 @@ defineOptions({
 
 interface Props {
   /** the type of operation */
-  operateType: AnyObject.OperateType;
+  operateType: NaiveUI.TableOperateType;
   /** the edit row data */
   rowData?: Api.Lowcode.Project | null;
   visible: boolean;
@@ -88,7 +88,7 @@ const drawerVisible = computed({
 });
 
 const title = computed(() => {
-  const titles: Record<AnyObject.OperateType, string> = {
+  const titles: Record<NaiveUI.TableOperateType, string> = {
     add: $t('page.lowcode.project.addProject'),
     edit: $t('page.lowcode.project.editProject')
   };

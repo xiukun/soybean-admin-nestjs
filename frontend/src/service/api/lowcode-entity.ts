@@ -10,9 +10,10 @@ export function fetchGetEntityList(params?: Api.Lowcode.EntitySearchParams) {
     url: `/entities/project/${params?.projectId}/paginated`,
     method: 'get',
     params: {
-      page: params?.page,
-      limit: params?.limit,
+      current: params?.current,
+      size: params?.size,
       status: params?.status,
+      category: params?.category,
       search: params?.search
     }
   });

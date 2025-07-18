@@ -12,7 +12,7 @@
             :disabled="operateType === 'edit'"
           />
         </NFormItem>
-        <NFormItem :label="$t('page.lowcode.relationship.type')" path="type">
+        <NFormItem :label="$t('page.lowcode.relationship.typeLabel')" path="type">
           <NSelect
             v-model:value="formModel.type"
             :placeholder="$t('page.lowcode.relationship.form.type.placeholder')"

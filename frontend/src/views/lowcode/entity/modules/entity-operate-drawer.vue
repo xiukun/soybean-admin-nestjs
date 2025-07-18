@@ -71,7 +71,7 @@ defineOptions({
 
 interface Props {
   /** the type of operation */
-  operateType: AnyObject.OperateType;
+  operateType: NaiveUI.TableOperateType;
   /** the edit row data */
   rowData?: Api.Lowcode.Entity | null;
   /** project id */
@@ -100,7 +100,7 @@ const drawerVisible = computed({
 });
 
 const title = computed(() => {
-  const titles: Record<AnyObject.OperateType, string> = {
+  const titles: Record<NaiveUI.TableOperateType, string> = {
     add: $t('page.lowcode.entity.addEntity'),
     edit: $t('page.lowcode.entity.editEntity')
   };

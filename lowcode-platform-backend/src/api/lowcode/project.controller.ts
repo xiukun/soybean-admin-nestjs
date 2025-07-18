@@ -95,8 +95,8 @@ export class ProjectController {
   })
   async getProjectsPaginated(@Query() query: ProjectListQueryDto): Promise<ProjectListResponseDto> {
     const paginatedQuery = new GetProjectsPaginatedQuery(
-      query.page,
-      query.limit,
+      query.current,
+      query.size,
       {
         status: query.status,
         search: query.search,
@@ -104,13 +104,12 @@ export class ProjectController {
     );
 
     const result = await this.queryBus.execute(paginatedQuery);
-    
+
     return {
-      projects: result.projects.map(project => this.mapToResponseDto(project)),
+      records: result.projects.map(project => this.mapToResponseDto(project)),
+      current: result.page,
+      size: result.limit,
       total: result.total,
-      page: result.page,
-      limit: result.limit,
-      totalPages: result.totalPages,
     };
   }
 

@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsObject, IsEnum, IsUUID } from 'class-validator';
+import { IsString, IsOptional, IsObject, IsEnum, IsUUID, Min, Max } from 'class-validator';
+import { Type } from 'class-transformer';
 import { EntityStatus } from '@entity/domain/entity.model';
 
 export class CreateEntityDto {
@@ -125,13 +126,17 @@ export class EntityResponseDto {
 }
 
 export class EntityListQueryDto {
-  @ApiPropertyOptional({ description: 'Page number', default: 1 })
+  @ApiPropertyOptional({ description: 'Current page number', default: 1, minimum: 1 })
   @IsOptional()
-  page?: number = 1;
+  @Type(() => Number)
+  @Min(1)
+  current?: number = 1;
 
-  @ApiPropertyOptional({ description: 'Items per page', default: 10 })
+  @ApiPropertyOptional({ description: 'Page size', default: 10, minimum: 1, maximum: 100 })
   @IsOptional()
-  limit?: number = 10;
+  @Type(() => Number)
+  @Min(1)
+  size?: number = 10;
 
   @ApiPropertyOptional({ description: 'Filter by status', enum: EntityStatus })
   @IsOptional()
@@ -150,18 +155,15 @@ export class EntityListQueryDto {
 }
 
 export class EntityListResponseDto {
-  @ApiProperty({ description: 'List of entities', type: [EntityResponseDto] })
-  entities: EntityResponseDto[];
+  @ApiProperty({ description: 'Entities list', type: [EntityResponseDto] })
+  records: EntityResponseDto[];
 
-  @ApiProperty({ description: 'Total number of entities' })
+  @ApiProperty({ description: 'Current page number' })
+  current: number;
+
+  @ApiProperty({ description: 'Page size' })
+  size: number;
+
+  @ApiProperty({ description: 'Total count' })
   total: number;
-
-  @ApiProperty({ description: 'Current page' })
-  page: number;
-
-  @ApiProperty({ description: 'Items per page' })
-  limit: number;
-
-  @ApiProperty({ description: 'Total pages' })
-  totalPages: number;
 }

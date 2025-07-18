@@ -5,7 +5,7 @@
         <NFormItemGi span="24 s:12 m:6" :label="$t('page.lowcode.relationship.name')" path="search" class="pr-24px">
           <NInput v-model:value="model.search" :placeholder="$t('page.lowcode.relationship.form.name.placeholder')" />
         </NFormItemGi>
-        <NFormItemGi span="24 s:12 m:6" :label="$t('page.lowcode.relationship.type')" path="type" class="pr-24px">
+        <NFormItemGi span="24 s:12 m:6" :label="$t('page.lowcode.relationship.typeLabel')" path="type" class="pr-24px">
           <NSelect
             v-model:value="model.type"
             :placeholder="$t('page.lowcode.relationship.form.type.placeholder')"
@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import type { FormInst } from 'naive-ui';
 import { $t } from '@/locales';
 
