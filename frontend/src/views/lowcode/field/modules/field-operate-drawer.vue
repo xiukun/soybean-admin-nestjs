@@ -120,13 +120,13 @@ const title = computed(() => {
 });
 
 const fieldTypeOptions = [
-  { label: 'STRING', value: 'STRING' },
-  { label: 'INTEGER', value: 'INTEGER' },
-  { label: 'DECIMAL', value: 'DECIMAL' },
-  { label: 'BOOLEAN', value: 'BOOLEAN' },
-  { label: 'DATE', value: 'DATE' },
-  { label: 'DATETIME', value: 'DATETIME' },
-  { label: 'TEXT', value: 'TEXT' },
+  { label: '字符串 (STRING)', value: 'STRING' },
+  { label: '整数 (INTEGER)', value: 'INTEGER' },
+  { label: '小数 (DECIMAL)', value: 'DECIMAL' },
+  { label: '布尔值 (BOOLEAN)', value: 'BOOLEAN' },
+  { label: '日期 (DATE)', value: 'DATE' },
+  { label: '日期时间 (DATETIME)', value: 'DATETIME' },
+  { label: '长文本 (TEXT)', value: 'TEXT' },
   { label: 'JSON', value: 'JSON' }
 ];
 
@@ -167,7 +167,19 @@ const rules: FormRules = {
       trigger: 'blur'
     }
   ],
-  dataType: createRequiredFormRule('数据类型不能为空'),
+  dataType: [
+    createRequiredFormRule('数据类型不能为空'),
+    {
+      validator: (_rule: any, value: string) => {
+        const validTypes = ['STRING', 'INTEGER', 'DECIMAL', 'BOOLEAN', 'DATE', 'DATETIME', 'TEXT', 'JSON'];
+        if (value && !validTypes.includes(value)) {
+          return new Error('请选择有效的数据类型');
+        }
+        return true;
+      },
+      trigger: 'change'
+    }
+  ],
   length: {
     type: 'number',
     required: showLengthField.value,
@@ -194,7 +206,28 @@ function handleUpdateFormModelByModalType() {
     },
     edit: () => {
       if (props.rowData) {
-        handleUpdateFormModel(props.rowData);
+        // Only populate form with editable fields
+        // Convert UUID to STRING for compatibility
+        let dataType = props.rowData.dataType;
+        if ((dataType as string) === 'UUID') {
+          dataType = 'STRING' as Api.Lowcode.FieldDataType;
+        }
+
+        const editableData = {
+          entityId: props.rowData.entityId,
+          name: props.rowData.name,
+          code: props.rowData.code,
+          dataType: dataType as Api.Lowcode.FieldDataType,
+          description: props.rowData.description,
+          length: props.rowData.length,
+          precision: props.rowData.precision,
+          required: props.rowData.required,
+          unique: props.rowData.unique,
+          defaultValue: props.rowData.defaultValue,
+          config: props.rowData.config || {},
+          displayOrder: props.rowData.displayOrder
+        };
+        handleUpdateFormModel(editableData);
       }
     }
   };
@@ -211,13 +244,39 @@ function handleTypeChange() {
 async function handleSubmit() {
   await validate();
   
+  // Clean form data for API submission
+  function getCleanFormData(includeEntityId = true) {
+    const data: any = {
+      name: formModel.name,
+      code: formModel.code,
+      dataType: formModel.dataType,
+      description: formModel.description,
+      length: formModel.length,
+      precision: formModel.precision,
+      required: formModel.required,
+      unique: formModel.unique,
+      defaultValue: formModel.defaultValue,
+      config: formModel.config,
+      displayOrder: formModel.displayOrder
+    };
+
+    // Only include entityId for create operations
+    if (includeEntityId) {
+      data.entityId = formModel.entityId;
+    }
+
+    return data;
+  }
+
   const handlers: Record<NaiveUI.TableOperateType, () => Promise<void>> = {
     add: async () => {
-      await fetchAddField(formModel as any);
+      // Include entityId for create operations
+      await fetchAddField(getCleanFormData(true) as any);
     },
     edit: async () => {
       if (props.rowData) {
-        await fetchUpdateField(props.rowData.id, formModel as any);
+        // Exclude entityId for update operations
+        await fetchUpdateField(props.rowData.id, getCleanFormData(false) as any);
       }
     }
   };
