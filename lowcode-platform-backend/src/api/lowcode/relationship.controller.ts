@@ -265,6 +265,16 @@ export class RelationshipController {
       type: relationship.type,
       sourceEntityId: relationship.sourceEntityId,
       targetEntityId: relationship.targetEntityId,
+      sourceEntity: relationship.sourceEntity ? {
+        id: relationship.sourceEntity.id,
+        name: relationship.sourceEntity.name,
+        code: relationship.sourceEntity.code,
+      } : null,
+      targetEntity: relationship.targetEntity ? {
+        id: relationship.targetEntity.id,
+        name: relationship.targetEntity.name,
+        code: relationship.targetEntity.code,
+      } : null,
       sourceFieldId: relationship.sourceFieldId,
       targetFieldId: relationship.targetFieldId,
       foreignKeyName: relationship.foreignKeyName,

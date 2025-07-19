@@ -160,8 +160,20 @@ export class Relationship {
     createdAt: Date;
     updatedBy?: string;
     updatedAt?: Date;
+    sourceEntity?: any;
+    targetEntity?: any;
   }): Relationship {
-    return new Relationship(data);
+    const relationship = new Relationship(data);
+
+    // 添加实体信息（如果存在）
+    if (data.sourceEntity) {
+      (relationship as any).sourceEntity = data.sourceEntity;
+    }
+    if (data.targetEntity) {
+      (relationship as any).targetEntity = data.targetEntity;
+    }
+
+    return relationship;
   }
 
   static fromExisting(data: any): Relationship {

@@ -189,6 +189,22 @@ export class RelationshipPrismaRepository implements RelationshipRepository {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
+        include: {
+          sourceEntity: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+            },
+          },
+          targetEntity: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+            },
+          },
+        },
       }),
       this.prisma.relation.count({ where }),
     ]);
@@ -196,11 +212,23 @@ export class RelationshipPrismaRepository implements RelationshipRepository {
     const totalPages = Math.ceil(total / limit);
 
     return {
-      relationships: relationships.map(relationship => Relationship.fromPersistence({
-        ...relationship,
-        type: relationship.type as RelationshipType,
-        status: relationship.status as RelationshipStatus,
-      })),
+      relationships: relationships.map(relationship => {
+        const relationshipData = {
+          ...relationship,
+          type: relationship.type as RelationshipType,
+          status: relationship.status as RelationshipStatus,
+        };
+
+        // 添加实体信息
+        if (relationship.sourceEntity) {
+          relationshipData.sourceEntity = relationship.sourceEntity;
+        }
+        if (relationship.targetEntity) {
+          relationshipData.targetEntity = relationship.targetEntity;
+        }
+
+        return Relationship.fromPersistence(relationshipData);
+      }),
       total,
       page,
       limit,
