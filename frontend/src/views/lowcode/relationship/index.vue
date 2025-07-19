@@ -180,8 +180,9 @@ const {
           <NButton size={'small'} type={'primary'} onClick={() => handleEdit(row.id)}>
             {$t('common.edit')}
           </NButton>
-          <NPopconfirm onPositiveClick={() => handleDelete(row.id)}>
-            {{
+          <NPopconfirm
+            onPositiveClick={() => handleDelete(row.id)}
+            v-slots={{
               default: () => $t('common.confirmDelete'),
               trigger: () => (
                 <NButton size={'small'} type={'error'}>
@@ -189,7 +190,7 @@ const {
                 </NButton>
               )
             }}
-          </NPopconfirm>
+          />
         </NSpace>
       )
     }

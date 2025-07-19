@@ -2,75 +2,68 @@
   <NDrawer v-model:show="drawerVisible" display-directive="show" :width="640">
     <NDrawerContent :title="title" :native-scrollbar="false" closable>
       <NForm ref="formRef" :model="formModel" :rules="rules" label-placement="left" :label-width="100">
-        <NFormItem :label="$t('page.lowcode.field.name')" path="name">
-          <NInput v-model:value="formModel.name" :placeholder="$t('page.lowcode.field.form.name.placeholder')" />
+        <NFormItem label="字段名称" path="name">
+          <NInput v-model:value="formModel.name" placeholder="请输入字段名称" />
         </NFormItem>
-        <NFormItem :label="$t('page.lowcode.field.code')" path="code">
-          <NInput v-model:value="formModel.code" :placeholder="$t('page.lowcode.field.form.code.placeholder')" />
+        <NFormItem label="字段代码" path="code">
+          <NInput v-model:value="formModel.code" placeholder="请输入字段代码" />
         </NFormItem>
-        <NFormItem :label="$t('page.lowcode.field.type')" path="type">
-          <NSelect 
-            v-model:value="formModel.type" 
-            :placeholder="$t('page.lowcode.field.form.type.placeholder')"
+        <NFormItem label="数据类型" path="dataType">
+          <NSelect
+            v-model:value="formModel.dataType"
+            placeholder="请选择数据类型"
             :options="fieldTypeOptions"
             @update:value="handleTypeChange"
           />
         </NFormItem>
-        <NFormItem v-if="showLengthField" :label="$t('page.lowcode.field.length')" path="length">
-          <NInputNumber 
-            v-model:value="formModel.length" 
-            :placeholder="$t('page.lowcode.field.form.length.placeholder')"
+        <NFormItem v-if="showLengthField" label="字段长度" path="length">
+          <NInputNumber
+            v-model:value="formModel.length"
+            placeholder="请输入字段长度"
             :min="1"
             :max="65535"
             style="width: 100%"
           />
         </NFormItem>
-        <NFormItem v-if="showPrecisionFields" :label="$t('page.lowcode.field.precision')" path="precision">
-          <NInputNumber 
-            v-model:value="formModel.precision" 
-            :placeholder="$t('page.lowcode.field.form.precision.placeholder')"
+        <NFormItem v-if="showPrecisionFields" label="精度" path="precision">
+          <NInputNumber
+            v-model:value="formModel.precision"
+            placeholder="请输入精度"
             :min="1"
             :max="65"
             style="width: 100%"
           />
         </NFormItem>
-        <NFormItem v-if="showPrecisionFields" :label="$t('page.lowcode.field.scale')" path="scale">
-          <NInputNumber 
-            v-model:value="formModel.scale" 
-            :placeholder="$t('page.lowcode.field.form.scale.placeholder')"
-            :min="0"
-            :max="30"
-            style="width: 100%"
+        <NFormItem label="描述" path="description">
+          <NInput
+            v-model:value="formModel.description"
+            placeholder="请输入字段描述"
+            type="textarea"
+            :rows="3"
           />
         </NFormItem>
-        <NFormItem :label="$t('page.lowcode.field.attributes')">
+        <NFormItem label="属性">
           <NSpace vertical>
-            <NCheckbox v-model:checked="formModel.primaryKey">
-              {{ $t('page.lowcode.field.primaryKey') }}
+            <NCheckbox v-model:checked="formModel.required">
+              必填
             </NCheckbox>
             <NCheckbox v-model:checked="formModel.unique">
-              {{ $t('page.lowcode.field.unique') }}
-            </NCheckbox>
-            <NCheckbox v-model:checked="formModel.nullable">
-              {{ $t('page.lowcode.field.nullable') }}
-            </NCheckbox>
-            <NCheckbox v-model:checked="formModel.autoIncrement">
-              {{ $t('page.lowcode.field.autoIncrement') }}
+              唯一
             </NCheckbox>
           </NSpace>
         </NFormItem>
-        <NFormItem :label="$t('page.lowcode.field.defaultValue')" path="defaultValue">
-          <NInput 
-            v-model:value="formModel.defaultValue" 
-            :placeholder="$t('page.lowcode.field.form.defaultValue.placeholder')" 
+        <NFormItem label="默认值" path="defaultValue">
+          <NInput
+            v-model:value="formModel.defaultValue"
+            placeholder="请输入默认值"
           />
         </NFormItem>
-        <NFormItem :label="$t('page.lowcode.field.comment')" path="comment">
-          <NInput
-            v-model:value="formModel.comment"
-            :placeholder="$t('page.lowcode.field.form.comment.placeholder')"
-            type="textarea"
-            :rows="3"
+        <NFormItem label="显示顺序" path="displayOrder">
+          <NInputNumber
+            v-model:value="formModel.displayOrder"
+            placeholder="请输入显示顺序"
+            :min="0"
+            style="width: 100%"
           />
         </NFormItem>
       </NForm>
@@ -90,6 +83,7 @@ import type { FormInst, FormRules } from 'naive-ui';
 import { fetchAddField, fetchUpdateField } from '@/service/api';
 import { $t } from '@/locales';
 import { createRequiredFormRule } from '@/utils/form/rule';
+import { useNaiveForm, useFormRules } from '@/hooks/common/form';
 
 export interface Props {
   /** the type of operation */
@@ -126,76 +120,64 @@ const title = computed(() => {
 });
 
 const fieldTypeOptions = [
-  { label: 'VARCHAR', value: 'VARCHAR' },
-  { label: 'TEXT', value: 'TEXT' },
-  { label: 'INT', value: 'INT' },
-  { label: 'BIGINT', value: 'BIGINT' },
+  { label: 'STRING', value: 'STRING' },
+  { label: 'INTEGER', value: 'INTEGER' },
   { label: 'DECIMAL', value: 'DECIMAL' },
-  { label: 'FLOAT', value: 'FLOAT' },
-  { label: 'DOUBLE', value: 'DOUBLE' },
   { label: 'BOOLEAN', value: 'BOOLEAN' },
   { label: 'DATE', value: 'DATE' },
   { label: 'DATETIME', value: 'DATETIME' },
-  { label: 'TIMESTAMP', value: 'TIMESTAMP' },
-  { label: 'JSON', value: 'JSON' },
-  { label: 'UUID', value: 'UUID' }
+  { label: 'TEXT', value: 'TEXT' },
+  { label: 'JSON', value: 'JSON' }
 ];
 
 const showLengthField = computed(() => {
-  return ['VARCHAR', 'CHAR'].includes(formModel.type);
+  return ['STRING'].includes(formModel.dataType);
 });
 
 const showPrecisionFields = computed(() => {
-  return formModel.type === 'DECIMAL';
+  return formModel.dataType === 'DECIMAL';
 });
 
-function createDefaultFormModel(): Api.Lowcode.FieldEdit {
+function createDefaultFormModel() {
   return {
     entityId: props.entityId,
     name: '',
     code: '',
-    type: 'VARCHAR',
+    dataType: 'STRING' as Api.Lowcode.FieldDataType,
+    description: '',
     length: undefined,
     precision: undefined,
-    scale: undefined,
-    nullable: true,
+    required: false,
     unique: false,
-    primaryKey: false,
-    autoIncrement: false,
     defaultValue: '',
-    comment: ''
+    config: {},
+    displayOrder: 0
   };
 }
 
-const formModel: Api.Lowcode.FieldEdit = reactive(createDefaultFormModel());
+const formModel = reactive(createDefaultFormModel());
 
 const rules: FormRules = {
-  name: createRequiredFormRule($t('page.lowcode.field.form.name.required')),
+  name: createRequiredFormRule('字段名称不能为空'),
   code: [
-    createRequiredFormRule($t('page.lowcode.field.form.code.required')),
+    createRequiredFormRule('字段代码不能为空'),
     {
       pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/,
-      message: $t('page.lowcode.field.form.code.invalid'),
+      message: '字段代码必须以字母开头，只能包含字母、数字和下划线',
       trigger: 'blur'
     }
   ],
-  type: createRequiredFormRule($t('page.lowcode.field.form.type.required')),
+  dataType: createRequiredFormRule('数据类型不能为空'),
   length: {
     type: 'number',
     required: showLengthField.value,
-    message: $t('page.lowcode.field.form.length.required'),
+    message: '字段长度不能为空',
     trigger: 'blur'
   },
   precision: {
     type: 'number',
     required: showPrecisionFields.value,
-    message: $t('page.lowcode.field.form.precision.required'),
-    trigger: 'blur'
-  },
-  scale: {
-    type: 'number',
-    required: showPrecisionFields.value,
-    message: $t('page.lowcode.field.form.scale.required'),
+    message: '精度不能为空',
     trigger: 'blur'
   }
 };
@@ -224,7 +206,6 @@ function handleTypeChange() {
   // Clear length/precision fields when type changes
   formModel.length = undefined;
   formModel.precision = undefined;
-  formModel.scale = undefined;
 }
 
 async function handleSubmit() {
@@ -232,11 +213,11 @@ async function handleSubmit() {
   
   const handlers: Record<NaiveUI.TableOperateType, () => Promise<void>> = {
     add: async () => {
-      await fetchAddField(formModel);
+      await fetchAddField(formModel as any);
     },
     edit: async () => {
       if (props.rowData) {
-        await fetchUpdateField(props.rowData.id, formModel);
+        await fetchUpdateField(props.rowData.id, formModel as any);
       }
     }
   };

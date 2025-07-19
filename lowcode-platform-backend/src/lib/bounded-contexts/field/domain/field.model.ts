@@ -153,6 +153,7 @@ export class Field {
 
   update(data: {
     name?: string;
+    code?: string;
     description?: string;
     dataType?: FieldDataType;
     length?: number;
@@ -169,6 +170,16 @@ export class Field {
         throw new Error('Field name is required');
       }
       this.name = data.name;
+    }
+
+    if (data.code !== undefined) {
+      if (!data.code.trim()) {
+        throw new Error('Field code is required');
+      }
+      if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(data.code)) {
+        throw new Error('Field code must start with a letter and contain only letters, numbers, and underscores');
+      }
+      this.code = data.code;
     }
 
     if (data.dataType !== undefined) {
@@ -229,6 +240,14 @@ export class Field {
   canDelete(): boolean {
     // 字段可以删除，但需要检查是否被其他地方引用
     return true;
+  }
+
+  updateDisplayOrder(newOrder: number): void {
+    if (newOrder < 0) {
+      throw new Error('Display order must be greater than or equal to 0');
+    }
+    this.displayOrder = newOrder;
+    this.updatedAt = new Date();
   }
 
   generateColumnName(): string {

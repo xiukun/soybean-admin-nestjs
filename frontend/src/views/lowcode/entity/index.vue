@@ -205,7 +205,7 @@ const {
       key: 'operate',
       title: $t('common.operate'),
       align: 'center',
-      width: 130,
+      minWidth: 160,
       render: row => (
         <NSpace justify={'center'}>
           <NButton size={'small'} type={'primary'} onClick={() => handleViewFields(row.id)}>
@@ -214,8 +214,9 @@ const {
           <NButton size={'small'} type={'primary'} onClick={() => handleEdit(row.id)}>
             {$t('common.edit')}
           </NButton>
-          <NPopconfirm onPositiveClick={() => handleDelete(row.id)}>
-            {{
+          <NPopconfirm
+            onPositiveClick={() => handleDelete(row.id)}
+            v-slots={{
               default: () => $t('common.confirmDelete'),
               trigger: () => (
                 <NButton size={'small'} type={'error'}>
@@ -223,7 +224,7 @@ const {
                 </NButton>
               )
             }}
-          </NPopconfirm>
+          />
         </NSpace>
       )
     }

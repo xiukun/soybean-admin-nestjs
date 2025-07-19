@@ -7,7 +7,7 @@ import { lowcodeRequest as request } from '../request';
  */
 export function fetchGetFieldList(entityId: string) {
   return request<Api.Lowcode.Field[]>({
-    url: `/entities/${entityId}/fields`,
+    url: `/fields/entity/${entityId}`,
     method: 'get'
   });
 }

@@ -4,8 +4,9 @@ export class UpdateFieldCommand {
   constructor(
     public readonly id: string,
     public readonly name?: string,
-    public readonly description?: string,
+    public readonly code?: string,
     public readonly dataType?: FieldDataType,
+    public readonly description?: string,
     public readonly length?: number,
     public readonly precision?: number,
     public readonly required?: boolean,

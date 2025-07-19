@@ -13,10 +13,12 @@ import { ApiModule } from '@api-context/api.module';
 import { ProjectModule } from '@project/project.module';
 import { RelationshipModule } from '@lib/bounded-contexts/relationship/relationship.module';
 import { ApiConfigModule } from '@lib/bounded-contexts/api-config/api-config.module';
+import { FieldModule } from '@field/field.module';
 import { EntityController } from '@api/lowcode/entity.controller';
 import { ProjectController } from '@api/lowcode/project.controller';
 import { RelationshipController } from '@api/lowcode/relationship.controller';
 import { ApiConfigController } from '@api/lowcode/api-config.controller';
+import { FieldController } from '@api/lowcode/field.controller';
 import { AmisDemoController } from '@api/lowcode/amis-demo.controller';
 import { JwtAuthGuard } from '@guards/jwt-auth.guard';
 import { JwtStrategy } from '@strategies/jwt.strategy';
@@ -57,8 +59,9 @@ import { JwtStrategy } from '@strategies/jwt.strategy';
     ProjectModule,
     RelationshipModule,
     ApiConfigModule,
+    FieldModule,
   ],
-  controllers: [AppController, EntityController, ProjectController, RelationshipController, ApiConfigController, AmisDemoController],
+  controllers: [AppController, EntityController, ProjectController, RelationshipController, ApiConfigController, FieldController, AmisDemoController],
   providers: [
     AppService,
     JwtStrategy,

@@ -27,6 +27,7 @@
       "@views/*": ["src/views/*"],
       "@resources/*": ["src/resources/*"],
       "@entity/*": ["src/lib/bounded-contexts/entity/*"],
+      "@field/*": ["src/lib/bounded-contexts/field/*"],
       "@api-context/*": ["src/lib/bounded-contexts/api/*"],
       "@codegen/*": ["src/lib/bounded-contexts/codegen/*"],
       "@project/*": ["src/lib/bounded-contexts/project/*"],
