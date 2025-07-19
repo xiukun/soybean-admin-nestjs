@@ -18,7 +18,10 @@ import {
   ApiParam,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { Public } from '@decorators/public.decorator';
 import { CreateRelationshipCommand } from '@lib/bounded-contexts/relationship/application/commands/create-relationship.command';
+import { UpdateRelationshipCommand } from '@lib/bounded-contexts/relationship/application/commands/update-relationship.command';
+import { DeleteRelationshipCommand } from '@lib/bounded-contexts/relationship/application/commands/delete-relationship.command';
 import {
   GetRelationshipQuery,
   GetRelationshipByCodeQuery,
@@ -97,8 +100,8 @@ export class RelationshipController {
   ): Promise<any> {
     const paginatedQuery = new GetRelationshipsPaginatedQuery(
       projectId,
-      query.page || 1,
-      query.limit || 10,
+      parseInt(query.current) || 1,
+      parseInt(query.size) || 10,
       {
         type: query.type,
         status: query.status,
@@ -109,13 +112,12 @@ export class RelationshipController {
     );
 
     const result = await this.queryBus.execute(paginatedQuery);
-    
+
     return {
-      relationships: result.relationships.map(relationship => this.mapToResponseDto(relationship)),
+      records: result.relationships.map(relationship => this.mapToResponseDto(relationship)),
+      current: result.page,
+      size: result.limit,
       total: result.total,
-      page: result.page,
-      limit: result.limit,
-      totalPages: result.totalPages,
     };
   }
 
@@ -197,6 +199,60 @@ export class RelationshipController {
     const query = new GetRelationshipByCodeQuery(projectId, code);
     const relationship = await this.queryBus.execute(query);
     return this.mapToResponseDto(relationship);
+  }
+
+
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Update relationship by ID' })
+  @ApiParam({ name: 'id', description: 'Relationship ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Relationship updated successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Relationship not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid input data',
+  })
+  async updateRelationship(
+    @Param('id') id: string,
+    @Body() updateDto: any,
+  ): Promise<any> {
+    const command = new UpdateRelationshipCommand(
+      id,
+      updateDto.name,
+      updateDto.description,
+      updateDto.sourceFieldId,
+      updateDto.targetFieldId,
+      updateDto.foreignKeyName,
+      updateDto.onDelete,
+      updateDto.onUpdate,
+      updateDto.config,
+      updateDto.status,
+    );
+
+    const relationship = await this.commandBus.execute(command);
+    return this.mapToResponseDto(relationship);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete relationship by ID' })
+  @ApiParam({ name: 'id', description: 'Relationship ID' })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Relationship deleted successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Relationship not found',
+  })
+  async deleteRelationship(@Param('id') id: string): Promise<void> {
+    const command = new DeleteRelationshipCommand(id);
+    await this.commandBus.execute(command);
   }
 
   private mapToResponseDto(relationship: any): any {

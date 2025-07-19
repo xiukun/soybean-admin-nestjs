@@ -164,6 +164,30 @@ export class Relationship {
     return new Relationship(data);
   }
 
+  static fromExisting(data: any): Relationship {
+    return new Relationship({
+      id: data.id,
+      projectId: data.projectId,
+      name: data.name,
+      code: data.code,
+      description: data.description,
+      type: data.type,
+      sourceEntityId: data.sourceEntityId,
+      targetEntityId: data.targetEntityId,
+      sourceFieldId: data.sourceFieldId,
+      targetFieldId: data.targetFieldId,
+      foreignKeyName: data.foreignKeyName,
+      onDelete: data.onDelete,
+      onUpdate: data.onUpdate,
+      config: data.config,
+      status: data.status,
+      createdBy: data.createdBy,
+      createdAt: data.createdAt,
+      updatedBy: data.updatedBy,
+      updatedAt: data.updatedAt,
+    });
+  }
+
   update(data: {
     name?: string;
     description?: string;

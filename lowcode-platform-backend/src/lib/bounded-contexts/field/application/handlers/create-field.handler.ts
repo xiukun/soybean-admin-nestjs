@@ -26,19 +26,20 @@ export class CreateFieldHandler implements ICommandHandler<CreateFieldCommand> {
 
     // 获取显示顺序
     let displayOrder = command.displayOrder;
-    if (displayOrder === undefined) {
+    if (displayOrder === undefined || displayOrder === null) {
+      // 如果没有指定显示顺序，自动计算下一个可用的顺序
       const maxOrder = await this.fieldRepository.findMaxDisplayOrder(command.entityId);
       displayOrder = maxOrder + 1;
     } else {
-      // 检查显示顺序是否已存在
+      // 如果指定了显示顺序，检查是否已存在
       const existingOrderField = await this.fieldRepository.existsByDisplayOrder(
         command.entityId,
         displayOrder,
       );
       if (existingOrderField) {
-        throw new ConflictException(
-          `Display order '${displayOrder}' already exists in this entity`,
-        );
+        // 如果指定的顺序已存在，自动计算下一个可用的顺序
+        const maxOrder = await this.fieldRepository.findMaxDisplayOrder(command.entityId);
+        displayOrder = maxOrder + 1;
       }
     }
 

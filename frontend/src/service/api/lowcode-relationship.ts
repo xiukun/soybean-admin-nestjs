@@ -10,8 +10,8 @@ export function fetchGetRelationshipList(params?: Api.Lowcode.RelationshipSearch
     url: `/relationships/project/${params?.projectId}/paginated`,
     method: 'get',
     params: {
-      page: params?.page,
-      limit: params?.limit,
+      current: params?.current,
+      size: params?.size,
       type: params?.type,
       status: params?.status,
       search: params?.search

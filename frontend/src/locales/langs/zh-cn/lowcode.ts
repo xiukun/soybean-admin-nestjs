@@ -304,11 +304,11 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     name: '关系名称',
     code: '关系代码',
     description: '关系描述',
-    relationType: '关系类型',
     sourceEntity: '源实体',
     targetEntity: '目标实体',
     sourceField: '源字段',
     targetField: '目标字段',
+    relationType: '关系类型',
     onDelete: '删除时',
     onUpdate: '更新时',
     relationTypes: {
@@ -335,10 +335,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       description: {
         placeholder: '请输入关系描述'
       },
-      relationType: {
-        placeholder: '请选择关系类型',
-        required: '请选择关系类型'
-      },
       sourceEntity: {
         placeholder: '请选择源实体',
         required: '请选择源实体'
@@ -354,6 +350,10 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       targetField: {
         placeholder: '请选择目标字段',
         required: '请选择目标字段'
+      },
+      relationType: {
+        placeholder: '请选择关系类型',
+        required: '请选择关系类型'
       },
       onDelete: {
         placeholder: '请选择删除时操作'

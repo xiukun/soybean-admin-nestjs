@@ -2,61 +2,61 @@
   <NDrawer v-model:show="drawerVisible" display-directive="show" :width="480">
     <NDrawerContent :title="title" :native-scrollbar="false" closable>
       <NForm ref="formRef" :model="formModel" :rules="rules">
-        <NFormItem :label="$t('page.lowcode.relationship.name')" path="name">
-          <NInput v-model:value="formModel.name" :placeholder="$t('page.lowcode.relationship.form.name.placeholder')" />
+        <NFormItem :label="$t('page.lowcode.relation.name')" path="name">
+          <NInput v-model:value="formModel.name" :placeholder="$t('page.lowcode.relation.form.name.placeholder')" />
         </NFormItem>
-        <NFormItem :label="$t('page.lowcode.relationship.code')" path="code">
-          <NInput 
-            v-model:value="formModel.code" 
-            :placeholder="$t('page.lowcode.relationship.form.code.placeholder')"
+        <NFormItem :label="$t('page.lowcode.relation.code')" path="code">
+          <NInput
+            v-model:value="formModel.code"
+            :placeholder="$t('page.lowcode.relation.form.code.placeholder')"
             :disabled="operateType === 'edit'"
           />
         </NFormItem>
-        <NFormItem :label="$t('page.lowcode.relationship.typeLabel')" path="type">
+        <NFormItem :label="$t('page.lowcode.relation.relationType')" path="type">
           <NSelect
             v-model:value="formModel.type"
-            :placeholder="$t('page.lowcode.relationship.form.type.placeholder')"
+            :placeholder="$t('page.lowcode.relation.form.relationType.placeholder')"
             :options="typeOptions"
             :disabled="operateType === 'edit'"
           />
         </NFormItem>
-        <NFormItem :label="$t('page.lowcode.relationship.sourceEntity')" path="sourceEntityId">
+        <NFormItem :label="$t('page.lowcode.relation.sourceEntity')" path="sourceEntityId">
           <NSelect
             v-model:value="formModel.sourceEntityId"
-            :placeholder="$t('page.lowcode.relationship.form.sourceEntity.placeholder')"
+            :placeholder="$t('page.lowcode.relation.form.sourceEntity.placeholder')"
             :options="entityOptions"
             :disabled="operateType === 'edit'"
             filterable
           />
         </NFormItem>
-        <NFormItem :label="$t('page.lowcode.relationship.targetEntity')" path="targetEntityId">
+        <NFormItem :label="$t('page.lowcode.relation.targetEntity')" path="targetEntityId">
           <NSelect
             v-model:value="formModel.targetEntityId"
-            :placeholder="$t('page.lowcode.relationship.form.targetEntity.placeholder')"
+            :placeholder="$t('page.lowcode.relation.form.targetEntity.placeholder')"
             :options="entityOptions"
             :disabled="operateType === 'edit'"
             filterable
           />
         </NFormItem>
-        <NFormItem :label="$t('page.lowcode.relationship.description')" path="description">
+        <NFormItem :label="$t('page.lowcode.relation.description')" path="description">
           <NInput
             v-model:value="formModel.description"
-            :placeholder="$t('page.lowcode.relationship.form.description.placeholder')"
+            :placeholder="$t('page.lowcode.relation.form.description.placeholder')"
             type="textarea"
             :rows="3"
           />
         </NFormItem>
-        <NFormItem :label="$t('page.lowcode.relationship.onDelete')" path="onDelete">
+        <NFormItem :label="$t('page.lowcode.relation.onDelete')" path="onDelete">
           <NSelect
             v-model:value="formModel.onDelete"
-            :placeholder="$t('page.lowcode.relationship.form.onDelete.placeholder')"
+            :placeholder="$t('page.lowcode.relation.form.onDelete.placeholder')"
             :options="cascadeOptions"
           />
         </NFormItem>
-        <NFormItem :label="$t('page.lowcode.relationship.onUpdate')" path="onUpdate">
+        <NFormItem :label="$t('page.lowcode.relation.onUpdate')" path="onUpdate">
           <NSelect
             v-model:value="formModel.onUpdate"
-            :placeholder="$t('page.lowcode.relationship.form.onUpdate.placeholder')"
+            :placeholder="$t('page.lowcode.relation.form.onUpdate.placeholder')"
             :options="cascadeOptions"
           />
         </NFormItem>
@@ -64,10 +64,10 @@
           <NRadioGroup v-model:value="formModel.status">
             <NSpace>
               <NRadio value="ACTIVE">
-                {{ $t('page.lowcode.relationship.status.ACTIVE') }}
+                {{ $t('page.lowcode.common.status.active') }}
               </NRadio>
               <NRadio value="INACTIVE">
-                {{ $t('page.lowcode.relationship.status.INACTIVE') }}
+                {{ $t('page.lowcode.common.status.inactive') }}
               </NRadio>
             </NSpace>
           </NRadioGroup>
@@ -86,9 +86,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch, onMounted } from 'vue';
+import { computed, reactive, watch, onMounted, ref } from 'vue';
 import type { FormInst, FormRules } from 'naive-ui';
-import { fetchAddRelationship, fetchGetRelationship, fetchUpdateRelationship, fetchGetAllEntities } from '@/service/api';
+import { fetchAddRelationship, fetchUpdateRelationship, fetchGetAllEntities } from '@/service/api';
 import { $t } from '@/locales';
 import { createRequiredFormRule } from '@/utils/form/rule';
 
@@ -98,7 +98,7 @@ defineOptions({
 
 interface Props {
   /** the type of operation */
-  operateType: AnyObject.OperateType;
+  operateType: NaiveUI.TableOperateType;
   /** the edit row data */
   rowData?: Api.Lowcode.Relationship | null;
   /** project id */
@@ -127,9 +127,9 @@ const drawerVisible = computed({
 });
 
 const title = computed(() => {
-  const titles: Record<AnyObject.OperateType, string> = {
-    add: $t('page.lowcode.relationship.addRelationship'),
-    edit: $t('page.lowcode.relationship.editRelationship')
+  const titles: Record<NaiveUI.TableOperateType, string> = {
+    add: $t('page.lowcode.relation.addRelation'),
+    edit: $t('page.lowcode.relation.editRelation')
   };
   return titles[props.operateType];
 });
@@ -154,47 +154,47 @@ function createDefaultFormModel(): Api.Lowcode.RelationshipEdit {
 }
 
 const rules: FormRules = {
-  name: createRequiredFormRule($t('page.lowcode.relationship.form.name.required')),
-  code: createRequiredFormRule($t('page.lowcode.relationship.form.code.required')),
-  type: createRequiredFormRule($t('page.lowcode.relationship.form.type.required')),
-  sourceEntityId: createRequiredFormRule($t('page.lowcode.relationship.form.sourceEntity.required')),
-  targetEntityId: createRequiredFormRule($t('page.lowcode.relationship.form.targetEntity.required'))
+  name: createRequiredFormRule($t('page.lowcode.relation.form.name.required')),
+  code: createRequiredFormRule($t('page.lowcode.relation.form.code.required')),
+  type: createRequiredFormRule($t('page.lowcode.relation.form.relationType.required')),
+  sourceEntityId: createRequiredFormRule($t('page.lowcode.relation.form.sourceEntity.required')),
+  targetEntityId: createRequiredFormRule($t('page.lowcode.relation.form.targetEntity.required'))
 };
 
 const typeOptions = computed(() => [
   {
-    label: $t('page.lowcode.relationship.type.oneToOne'),
+    label: $t('page.lowcode.relation.relationTypes.ONE_TO_ONE'),
     value: 'ONE_TO_ONE'
   },
   {
-    label: $t('page.lowcode.relationship.type.oneToMany'),
+    label: $t('page.lowcode.relation.relationTypes.ONE_TO_MANY'),
     value: 'ONE_TO_MANY'
   },
   {
-    label: $t('page.lowcode.relationship.type.manyToOne'),
+    label: $t('page.lowcode.relation.relationTypes.MANY_TO_ONE'),
     value: 'MANY_TO_ONE'
   },
   {
-    label: $t('page.lowcode.relationship.type.manyToMany'),
+    label: $t('page.lowcode.relation.relationTypes.MANY_TO_MANY'),
     value: 'MANY_TO_MANY'
   }
 ]);
 
 const cascadeOptions = computed(() => [
   {
-    label: $t('page.lowcode.relationship.cascade.RESTRICT'),
+    label: $t('page.lowcode.relation.cascadeActions.RESTRICT'),
     value: 'RESTRICT'
   },
   {
-    label: $t('page.lowcode.relationship.cascade.CASCADE'),
+    label: $t('page.lowcode.relation.cascadeActions.CASCADE'),
     value: 'CASCADE'
   },
   {
-    label: $t('page.lowcode.relationship.cascade.SET_NULL'),
+    label: $t('page.lowcode.relation.cascadeActions.SET_NULL'),
     value: 'SET_NULL'
   },
   {
-    label: $t('page.lowcode.relationship.cascade.NO_ACTION'),
+    label: $t('page.lowcode.relation.cascadeActions.NO_ACTION'),
     value: 'NO_ACTION'
   }
 ]);
@@ -205,13 +205,15 @@ const submitLoading = ref(false);
 
 async function loadEntities() {
   if (!props.projectId) return;
-  
+
   try {
-    const entities = await fetchGetAllEntities(props.projectId);
-    entityOptions.value = entities.map(entity => ({
-      label: `${entity.name} (${entity.code})`,
-      value: entity.id
-    }));
+    const response = await fetchGetAllEntities(props.projectId);
+    if (response.data) {
+      entityOptions.value = response.data.map((entity: any) => ({
+        label: `${entity.name} (${entity.code})`,
+        value: entity.id
+      }));
+    }
   } catch (error) {
     console.error('Failed to load entities:', error);
   }

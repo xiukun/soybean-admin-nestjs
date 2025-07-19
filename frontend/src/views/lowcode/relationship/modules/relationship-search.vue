@@ -2,13 +2,13 @@
   <NCard :title="$t('common.search')" :bordered="false" size="small" class="card-wrapper">
     <NForm ref="formRef" :model="model" :label-width="80">
       <NGrid responsive="screen" item-responsive>
-        <NFormItemGi span="24 s:12 m:6" :label="$t('page.lowcode.relationship.name')" path="search" class="pr-24px">
-          <NInput v-model:value="model.search" :placeholder="$t('page.lowcode.relationship.form.name.placeholder')" />
+        <NFormItemGi span="24 s:12 m:6" :label="$t('page.lowcode.relation.name')" path="search" class="pr-24px">
+          <NInput v-model:value="model.search" :placeholder="$t('page.lowcode.relation.form.name.placeholder')" />
         </NFormItemGi>
-        <NFormItemGi span="24 s:12 m:6" :label="$t('page.lowcode.relationship.typeLabel')" path="type" class="pr-24px">
+        <NFormItemGi span="24 s:12 m:6" :label="$t('page.lowcode.relation.relationType')" path="type" class="pr-24px">
           <NSelect
             v-model:value="model.type"
-            :placeholder="$t('page.lowcode.relationship.form.type.placeholder')"
+            :placeholder="$t('page.lowcode.relation.form.relationType.placeholder')"
             :options="typeOptions"
             clearable
           />
@@ -16,7 +16,7 @@
         <NFormItemGi span="24 s:12 m:6" :label="$t('common.status')" path="status" class="pr-24px">
           <NSelect
             v-model:value="model.status"
-            :placeholder="$t('page.lowcode.relationship.form.status.placeholder')"
+            :placeholder="$t('common.pleaseCheckValue')"
             :options="statusOptions"
             clearable
           />
@@ -57,47 +57,47 @@ interface Emits {
 }
 
 interface Props {
-  model: Api.Lowcode.RelationshipSearchParams;
+  model: any; // 使用 any 类型以兼容不同的搜索参数类型
 }
 
 const emit = defineEmits<Emits>();
 
-const props = defineProps<Props>();
+defineProps<Props>();
 
 const formRef = ref<FormInst | null>(null);
 
 const typeOptions = computed(() => [
   {
-    label: $t('page.lowcode.relationship.type.oneToOne'),
+    label: $t('page.lowcode.relation.relationTypes.ONE_TO_ONE'),
     value: 'ONE_TO_ONE'
   },
   {
-    label: $t('page.lowcode.relationship.type.oneToMany'),
+    label: $t('page.lowcode.relation.relationTypes.ONE_TO_MANY'),
     value: 'ONE_TO_MANY'
   },
   {
-    label: $t('page.lowcode.relationship.type.manyToOne'),
+    label: $t('page.lowcode.relation.relationTypes.MANY_TO_ONE'),
     value: 'MANY_TO_ONE'
   },
   {
-    label: $t('page.lowcode.relationship.type.manyToMany'),
+    label: $t('page.lowcode.relation.relationTypes.MANY_TO_MANY'),
     value: 'MANY_TO_MANY'
   }
 ]);
 
 const statusOptions = computed(() => [
   {
-    label: $t('page.lowcode.relationship.status.ACTIVE'),
+    label: $t('page.lowcode.common.status.active'),
     value: 'ACTIVE'
   },
   {
-    label: $t('page.lowcode.relationship.status.INACTIVE'),
+    label: $t('page.lowcode.common.status.inactive'),
     value: 'INACTIVE'
   }
 ]);
 
-async function reset() {
-  await formRef.value?.restoreValidation();
+function reset() {
+  formRef.value?.restoreValidation();
   emit('reset');
 }
 

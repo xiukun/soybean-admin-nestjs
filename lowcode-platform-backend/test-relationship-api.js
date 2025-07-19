@@ -130,16 +130,16 @@ async function testRelationshipAPI() {
     {
       name: '分页获取关系',
       test: async () => {
-        const response = await axios.get(`${BASE_URL}/relationships/project/${projectId}/paginated?page=1&limit=10`);
-        
+        const response = await axios.get(`${BASE_URL}/relationships/project/${projectId}/paginated?current=1&size=10`);
+
         return {
-          success: response.status === 200 && 
-                  response.data.hasOwnProperty('relationships') &&
+          success: response.status === 200 &&
+                  response.data.hasOwnProperty('records') &&
                   response.data.hasOwnProperty('total'),
           data: {
             total: response.data.total,
-            page: response.data.page,
-            limit: response.data.limit
+            current: response.data.current,
+            size: response.data.size
           },
           message: '分页关系列表获取成功'
         };
@@ -238,11 +238,11 @@ async function testRelationshipAPI() {
       name: '搜索关系',
       test: async () => {
         const response = await axios.get(`${BASE_URL}/relationships/project/${projectId}/paginated?search=用户`);
-        
+
         return {
-          success: response.status === 200 && 
-                  response.data.relationships.some(r => r.name.includes('用户')),
-          data: { found: response.data.relationships.length },
+          success: response.status === 200 &&
+                  response.data.records.some(r => r.name.includes('用户')),
+          data: { found: response.data.records.length },
           message: '关系搜索成功'
         };
       }
@@ -251,11 +251,11 @@ async function testRelationshipAPI() {
       name: '按类型筛选关系',
       test: async () => {
         const response = await axios.get(`${BASE_URL}/relationships/project/${projectId}/paginated?type=ONE_TO_MANY`);
-        
+
         return {
-          success: response.status === 200 && 
-                  response.data.relationships.every(r => r.type === 'ONE_TO_MANY'),
-          data: { oneToManyCount: response.data.relationships.length },
+          success: response.status === 200 &&
+                  response.data.records.every(r => r.type === 'ONE_TO_MANY'),
+          data: { oneToManyCount: response.data.records.length },
           message: '按类型筛选关系成功'
         };
       }

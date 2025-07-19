@@ -58,14 +58,7 @@
             placeholder="请输入默认值"
           />
         </NFormItem>
-        <NFormItem label="显示顺序" path="displayOrder">
-          <NInputNumber
-            v-model:value="formModel.displayOrder"
-            placeholder="请输入显示顺序"
-            :min="0"
-            style="width: 100%"
-          />
-        </NFormItem>
+        <!-- 显示顺序由系统自动管理，不需要用户输入 -->
       </NForm>
       <template #footer>
         <NSpace :size="16">
@@ -143,15 +136,15 @@ function createDefaultFormModel() {
     entityId: props.entityId,
     name: '',
     code: '',
-    dataType: 'STRING' as Api.Lowcode.FieldDataType,
+    dataType: 'STRING' as Api.Lowcode.FieldType,
     description: '',
     length: undefined,
     precision: undefined,
     required: false,
     unique: false,
     defaultValue: '',
-    config: {},
-    displayOrder: 0
+    config: {}
+    // displayOrder 由后端自动计算，不需要前端传递
   };
 }
 
@@ -202,30 +195,34 @@ function handleUpdateFormModelByModalType() {
   const handlers: Record<NaiveUI.TableOperateType, () => void> = {
     add: () => {
       const defaultFormModel = createDefaultFormModel();
+      // 清除所有字段，确保没有残留的 displayOrder
+      Object.keys(formModel).forEach(key => {
+        delete (formModel as any)[key];
+      });
       handleUpdateFormModel(defaultFormModel);
     },
     edit: () => {
       if (props.rowData) {
         // Only populate form with editable fields
         // Convert UUID to STRING for compatibility
-        let dataType = props.rowData.dataType;
+        let dataType = (props.rowData as any).dataType;
         if ((dataType as string) === 'UUID') {
-          dataType = 'STRING' as Api.Lowcode.FieldDataType;
+          dataType = 'STRING' as Api.Lowcode.FieldType;
         }
 
         const editableData = {
-          entityId: props.rowData.entityId,
-          name: props.rowData.name,
-          code: props.rowData.code,
-          dataType: dataType as Api.Lowcode.FieldDataType,
-          description: props.rowData.description,
-          length: props.rowData.length,
-          precision: props.rowData.precision,
-          required: props.rowData.required,
-          unique: props.rowData.unique,
-          defaultValue: props.rowData.defaultValue,
-          config: props.rowData.config || {},
-          displayOrder: props.rowData.displayOrder
+          entityId: (props.rowData as any).entityId,
+          name: (props.rowData as any).name,
+          code: (props.rowData as any).code,
+          dataType: dataType as Api.Lowcode.FieldType,
+          description: (props.rowData as any).description,
+          length: (props.rowData as any).length,
+          precision: (props.rowData as any).precision,
+          required: (props.rowData as any).required,
+          unique: (props.rowData as any).unique,
+          defaultValue: (props.rowData as any).defaultValue,
+          config: (props.rowData as any).config || {},
+          displayOrder: (props.rowData as any).displayOrder
         };
         handleUpdateFormModel(editableData);
       }
@@ -256,13 +253,17 @@ async function handleSubmit() {
       required: formModel.required,
       unique: formModel.unique,
       defaultValue: formModel.defaultValue,
-      config: formModel.config,
-      displayOrder: formModel.displayOrder
+      config: formModel.config
     };
 
     // Only include entityId for create operations
     if (includeEntityId) {
       data.entityId = formModel.entityId;
+    }
+
+    // Include displayOrder for edit operations
+    if (props.operateType === 'edit' && (formModel as any).displayOrder !== undefined) {
+      data.displayOrder = (formModel as any).displayOrder;
     }
 
     return data;
