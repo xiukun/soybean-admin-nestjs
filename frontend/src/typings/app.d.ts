@@ -1051,6 +1051,17 @@ declare namespace App {
             result: string;
             execute: string;
             save: string;
+            baseEntity: string;
+            joinCount: string;
+            fieldCount: string;
+            filterCount: string;
+            lastExecuted: string;
+            executeSuccess: string;
+            executeFailed: string;
+            status: {
+              ACTIVE: string;
+              INACTIVE: string;
+            };
             form: {
               name: {
                 placeholder: string;

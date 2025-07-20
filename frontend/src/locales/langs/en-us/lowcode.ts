@@ -42,7 +42,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     description: 'Description',
     tableName: 'Table Name',
     status: {
-      DRAFT: 'Draft',
       ACTIVE: 'Active',
       INACTIVE: 'Inactive',
       ARCHIVED: 'Archived'
@@ -259,6 +258,47 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       }
     }
   },
+  query: {
+    title: 'Query Management',
+    addQuery: 'Add Query',
+    editQuery: 'Edit Query',
+    name: 'Query Name',
+    code: 'Query Code',
+    description: 'Description',
+    sql: 'SQL Statement',
+    parameters: 'Query Parameters',
+    result: 'Query Result',
+    execute: 'Execute Query',
+    save: 'Save Query',
+    baseEntity: 'Base Entity',
+    joinCount: 'Join Count',
+    fieldCount: 'Field Count',
+    filterCount: 'Filter Count',
+    lastExecuted: 'Last Executed',
+    executeSuccess: 'Query executed successfully',
+    executeFailed: 'Query execution failed',
+    status: {
+      ACTIVE: 'Active',
+      INACTIVE: 'Inactive'
+    },
+    form: {
+      name: {
+        placeholder: 'Please enter query name',
+        required: 'Please enter query name'
+      },
+      code: {
+        placeholder: 'Please enter query code',
+        required: 'Please enter query code'
+      },
+      description: {
+        placeholder: 'Please enter description'
+      },
+      sql: {
+        placeholder: 'Please enter SQL statement',
+        required: 'Please enter SQL statement'
+      }
+    }
+  },
   codegen: {
     title: 'Code Generation',
     generate: 'Generate Code',
@@ -279,94 +319,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       output: {
         placeholder: 'Please enter output directory',
         required: 'Please enter output directory'
-      }
-    }
-  },
-  template: {
-    title: 'Template Management',
-    addTemplate: 'Add Template',
-    editTemplate: 'Edit Template',
-    name: 'Template Name',
-    code: 'Template Code',
-    description: 'Template Description',
-    category: 'Template Category',
-    language: 'Programming Language',
-    framework: 'Framework',
-    content: 'Template Content',
-    variables: 'Template Variables',
-    tags: 'Tags',
-    isPublic: 'Public Template',
-    status: {
-      DRAFT: 'Draft',
-      PUBLISHED: 'Published',
-      DEPRECATED: 'Deprecated'
-    },
-    categories: {
-      entity: 'Entity',
-      controller: 'Controller',
-      service: 'Service',
-      repository: 'Repository',
-      dto: 'DTO',
-      test: 'Test',
-      config: 'Config',
-      other: 'Other'
-    },
-    languages: {
-      typescript: 'TypeScript',
-      javascript: 'JavaScript',
-      java: 'Java',
-      python: 'Python',
-      csharp: 'C#',
-      go: 'Go',
-      php: 'PHP',
-      other: 'Other'
-    },
-    frameworks: {
-      nestjs: 'NestJS',
-      express: 'Express',
-      spring: 'Spring Boot',
-      django: 'Django',
-      flask: 'Flask',
-      dotnet: '.NET',
-      gin: 'Gin',
-      laravel: 'Laravel',
-      other: 'Other'
-    },
-    form: {
-      name: {
-        placeholder: 'Please enter template name',
-        required: 'Please enter template name'
-      },
-      code: {
-        placeholder: 'Please enter template code',
-        required: 'Please enter template code'
-      },
-      description: {
-        placeholder: 'Please enter template description'
-      },
-      category: {
-        placeholder: 'Please select template category',
-        required: 'Please select template category'
-      },
-      language: {
-        placeholder: 'Please select programming language',
-        required: 'Please select programming language'
-      },
-      framework: {
-        placeholder: 'Please select framework'
-      },
-      content: {
-        placeholder: 'Please enter template content',
-        required: 'Please enter template content'
-      },
-      variables: {
-        placeholder: 'Please enter template variables'
-      },
-      tags: {
-        placeholder: 'Please enter tags'
-      },
-      status: {
-        placeholder: 'Please select status'
       }
     }
   }

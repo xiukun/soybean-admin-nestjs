@@ -40,12 +40,14 @@
 import { computed, reactive, watch } from 'vue';
 import type { FormInst, FormRules } from 'naive-ui';
 import { createRequiredFormRule } from '@/utils/form/rule';
+import { useNaiveForm } from '@/hooks/common/form';
+import { useFormRules } from '@/hooks/common/form';
 import { $t } from '@/locales';
 import { enableStatusOptions } from '@/constants/business';
 
 export interface Props {
   /** the type of operation */
-  operateType: AntDesign.TableOperateType;
+  operateType: NaiveUI.TableOperateType;
   /** the edit row data */
   rowData?: Api.SystemManage.Query | null;
 }
@@ -68,7 +70,7 @@ const { formRef, validate, restoreValidation } = useNaiveForm();
 const { defaultRequiredRule } = useFormRules();
 
 const title = computed(() => {
-  const titles: Record<AntDesign.TableOperateType, string> = {
+  const titles: Record<NaiveUI.TableOperateType, string> = {
     add: $t('page.manage.query.addQuery'),
     edit: $t('page.manage.query.editQuery')
   };

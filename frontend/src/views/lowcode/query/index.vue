@@ -1,5 +1,17 @@
 <template>
   <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
+    <!-- 项目选择器 (仅在没有传入projectId时显示) -->
+    <NCard v-if="!props.projectId" title="项目选择" :bordered="false" size="small">
+      <NSelect
+        v-model:value="selectedProjectId"
+        :options="projectOptions"
+        :loading="projectLoading"
+        placeholder="请选择项目"
+        clearable
+        @update:value="getDataByPage"
+      />
+    </NCard>
+
     <QuerySearch v-model:model="searchParams" @reset="resetSearchParams" @search="getDataByPage" />
     <NCard :title="$t('page.lowcode.query.title')" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
       <template #header-extra>
@@ -42,15 +54,12 @@
 </template>
 
 <script setup lang="tsx">
-import { reactive, ref, watch } from 'vue';
-import type { Ref } from 'vue';
-import { NButton, NPopconfirm, NSpace, NTag } from 'naive-ui';
-import type { DataTableColumns, PaginationProps } from 'naive-ui';
-import { fetchDeleteQuery, fetchGetQueryList, fetchExecuteQuery } from '@/service/api';
+import { computed, ref, watch } from 'vue';
+import { NButton, NCard, NPopconfirm, NSelect, NTag } from 'naive-ui';
+import { fetchDeleteQuery, fetchGetQueryList, fetchExecuteQuery, fetchGetAllProjects } from '@/service/api';
 import { $t } from '@/locales';
 import { useAppStore } from '@/store/modules/app';
 import { useTable, useTableOperate } from '@/hooks/common/table';
-import { enableStatusRecord, enableStatusTag } from '@/constants/business';
 import QueryOperateDrawer from './modules/query-operate-drawer.vue';
 import QuerySearch from './modules/query-search.vue';
 import QueryResultModal from './modules/query-result-modal.vue';
@@ -58,13 +67,43 @@ import TableHeaderOperation from '@/components/advanced/table-header-operation.v
 
 const appStore = useAppStore();
 
-const props = defineProps<{
-  projectId: string;
-}>();
+interface Props {
+  projectId?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  projectId: ''
+});
 
 const resultModalVisible = ref(false);
 const queryResult = ref<any>(null);
 const resultLoading = ref(false);
+
+// 项目选择相关状态
+const selectedProjectId = ref<string>(props.projectId || '');
+const projectOptions = ref<Array<{ label: string; value: string }>>([]);
+const projectLoading = ref(false);
+
+// 当前有效的项目ID
+const currentProjectId = computed(() => props.projectId || selectedProjectId.value);
+
+// 创建适配器函数来处理API调用
+const queryApiAdapter = async (params: any) => {
+  const projectId = currentProjectId.value;
+  if (!projectId || projectId === 'undefined' || projectId === '[object Object]') {
+    return {
+      data: {
+        records: [],
+        current: 1,
+        size: 10,
+        total: 0
+      },
+      error: null,
+      response: {} as any
+    };
+  }
+  return await fetchGetQueryList(projectId, params);
+};
 
 const {
   columns,
@@ -77,12 +116,11 @@ const {
   searchParams,
   resetSearchParams
 } = useTable({
-  apiFn: fetchGetQueryList,
+  apiFn: queryApiAdapter,
   showTotal: true,
   apiParams: {
     current: 1,
-    size: 10,
-    projectId: props.projectId
+    size: 10
   },
   columns: () => [
     {
@@ -97,32 +135,32 @@ const {
       minWidth: 120
     },
     {
-      key: 'baseEntity',
+      key: 'baseEntityId' as any,
       title: $t('page.lowcode.query.baseEntity'),
       align: 'center',
       width: 120,
-      render: row => row.baseEntity?.name || '-'
+      render: (row: any) => row.baseEntity?.name || row.baseEntityId || '-'
     },
     {
-      key: 'joinCount',
+      key: 'joins' as any,
       title: $t('page.lowcode.query.joinCount'),
       align: 'center',
       width: 80,
-      render: row => row.joins?.length || 0
+      render: (row: any) => row.joins?.length || 0
     },
     {
-      key: 'fieldCount',
+      key: 'fields' as any,
       title: $t('page.lowcode.query.fieldCount'),
       align: 'center',
       width: 80,
-      render: row => row.fields?.length || 0
+      render: (row: any) => row.fields?.length || 0
     },
     {
-      key: 'filterCount',
+      key: 'filters' as any,
       title: $t('page.lowcode.query.filterCount'),
       align: 'center',
       width: 80,
-      render: row => row.filters?.length || 0
+      render: (row: any) => row.filters?.length || 0
     },
     {
       key: 'status',
@@ -136,7 +174,7 @@ const {
           INACTIVE: 'default'
         };
         
-        const label = $t(`page.lowcode.query.status.${row.status}`);
+        const label = row.status === 'ACTIVE' ? $t('page.lowcode.query.status.ACTIVE') : $t('page.lowcode.query.status.INACTIVE');
         return <NTag type={tagMap[row.status] || 'default'}>{label}</NTag>;
       }
     },
@@ -163,7 +201,7 @@ const {
     },
     {
       key: 'createdAt',
-      title: $t('common.createTime'),
+      title: '创建时间',
       align: 'center',
       width: 180,
       render: row => new Date(row.createdAt).toLocaleString()
@@ -205,7 +243,7 @@ const {
   handleEdit,
   checkedRowKeys,
   onBatchDeleted
-} = useTableOperate(data, getData);
+} = useTableOperate(data as any, getData);
 
 async function handleDelete(id: string) {
   await fetchDeleteQuery(id);
@@ -234,13 +272,41 @@ async function handleExecute(id: string) {
   }
 }
 
+// 加载项目列表
+async function loadProjects() {
+  if (props.projectId) return; // 如果已有projectId，不需要加载项目列表
+
+  try {
+    projectLoading.value = true;
+    const response = await fetchGetAllProjects();
+    if (response.data) {
+      projectOptions.value = response.data.map((project: any) => ({
+        label: `${project.name} (${project.code})`,
+        value: project.id
+      }));
+
+      // 如果只有一个项目，自动选择
+      if (projectOptions.value.length === 1) {
+        selectedProjectId.value = projectOptions.value[0].value;
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load projects:', error);
+  } finally {
+    projectLoading.value = false;
+  }
+}
+
 // Watch for projectId changes
-watch(() => props.projectId, () => {
-  if (props.projectId) {
-    searchParams.projectId = props.projectId;
+watch(() => currentProjectId.value, () => {
+  if (currentProjectId.value) {
+    (searchParams as any).projectId = currentProjectId.value;
     getDataByPage();
   }
 }, { immediate: true });
+
+// 初始化时加载项目列表
+loadProjects();
 </script>
 
 <style scoped></style>

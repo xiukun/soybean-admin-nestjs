@@ -375,6 +375,17 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     result: '查询结果',
     execute: '执行查询',
     save: '保存查询',
+    baseEntity: '基础实体',
+    joinCount: '关联数量',
+    fieldCount: '字段数量',
+    filterCount: '过滤条件',
+    lastExecuted: '最后执行',
+    executeSuccess: '查询执行成功',
+    executeFailed: '查询执行失败',
+    status: {
+      ACTIVE: '激活',
+      INACTIVE: '非激活'
+    },
     form: {
       name: {
         placeholder: '请输入查询名称',

@@ -36,6 +36,7 @@ model Project {
   apis       Api[]
   relations  Relation[]
   apiConfigs ApiConfig[]
+  queries    LowcodeQuery[]
   
   @@map("lowcode_projects")
 }
@@ -69,12 +70,13 @@ model Entity {
   updatedAt DateTime @updatedAt @map("updated_at")
   
   // 关联关系
-  project         Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project         Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   fields          Field[]
-  sourceRelations Relation[]  @relation("SourceEntity")
-  targetRelations Relation[]  @relation("TargetEntity")
+  sourceRelations Relation[]     @relation("SourceEntity")
+  targetRelations Relation[]     @relation("TargetEntity")
   apis            Api[]
   apiConfigs      ApiConfig[]
+  queries         LowcodeQuery[]
   
   @@unique([projectId, code])
   @@unique([projectId, tableName])
@@ -223,6 +225,37 @@ model Api {
   @@unique([projectId, code])
   @@unique([projectId, path, method])
   @@map("lowcode_apis")
+}
+
+// 查询管理表
+model LowcodeQuery {
+  id              String   @id @default(cuid())
+  projectId       String   @map("project_id")
+  name            String
+  description     String?
+  baseEntityId    String   @map("base_entity_id")
+  baseEntityAlias String   @map("base_entity_alias") @default("main")
+  joins           Json     @default("[]")
+  fields          Json     @default("[]")
+  filters         Json     @default("[]")
+  sorting         Json     @default("[]")
+  groupBy         Json     @default("[]") @map("group_by")
+  having          Json     @default("[]")
+  limit           Int?
+  offset          Int?
+  status          String   @default("DRAFT")
+  sqlQuery        String?  @map("sql_query")
+  executionStats  Json?    @map("execution_stats")
+  createdBy       String   @map("created_by")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedBy       String?  @map("updated_by")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  baseEntity Entity  @relation(fields: [baseEntityId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, name])
+  @@map("lowcode_queries")
 }
 
 // 代码生成任务表

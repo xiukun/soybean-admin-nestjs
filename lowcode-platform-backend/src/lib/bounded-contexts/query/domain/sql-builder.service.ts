@@ -99,7 +99,7 @@ export class SqlBuilderService {
   ): string {
     const fieldExpressions = fields.map(field => {
       const entityAlias = field.entityAlias || baseAlias;
-      let expression = `${entityAlias}.${field.field}`;
+      let expression = `${entityAlias}.${field.fieldId}`;
 
       // 处理聚合函数
       if (field.aggregation) {
@@ -338,8 +338,8 @@ export class SqlBuilderService {
     const validIdentifierPattern = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 
     query.fields.forEach(field => {
-      if (!validIdentifierPattern.test(field.field)) {
-        throw new Error(`Invalid field name: ${field.field}`);
+      if (!validIdentifierPattern.test(field.fieldId)) {
+        throw new Error(`Invalid field name: ${field.fieldId}`);
       }
       if (field.alias && !validIdentifierPattern.test(field.alias)) {
         throw new Error(`Invalid field alias: ${field.alias}`);
@@ -368,14 +368,10 @@ export class SqlBuilderService {
         entityAlias: query.baseEntityAlias,
       };
       
-      return query.update(
-        undefined, // name
-        undefined, // description
-        undefined, // joins
-        undefined, // fields
-        undefined, // filters
-        [defaultSort], // sorting
-      );
+      query.update({
+        sorting: [defaultSort],
+      });
+      return query;
     }
 
     return query;
