@@ -10,7 +10,8 @@
   },
   "workspaces": [
     "frontend",
-    "backend"
+    "backend",
+    "lowcode-platform-backend"
   ],
   "devDependencies": {},
   "engines": {
