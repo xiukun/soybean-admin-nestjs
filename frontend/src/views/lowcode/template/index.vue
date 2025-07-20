@@ -1,5 +1,21 @@
 <template>
   <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
+    <!-- 项目选择器 -->
+    <NCard v-if="!props.projectId" :title="$t('page.lowcode.template.selectProject')" :bordered="false" size="small" class="card-wrapper">
+      <NSpace align="center">
+        <span>{{ $t('page.lowcode.template.currentProject') }}:</span>
+        <NSelect
+          v-model:value="selectedProjectId"
+          :placeholder="$t('page.lowcode.template.form.project.placeholder')"
+          :options="projectOptions"
+          :loading="projectLoading"
+          style="width: 300px"
+          clearable
+          @update:value="handleProjectChange"
+        />
+      </NSpace>
+    </NCard>
+
     <TemplateSearch v-model:model="searchParams" @reset="resetSearchParams" @search="getDataByPage" />
     <NCard :title="$t('page.lowcode.template.title')" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
       <template #header-extra>
@@ -37,24 +53,51 @@
 </template>
 
 <script setup lang="tsx">
-import { reactive, ref, watch } from 'vue';
-import type { Ref } from 'vue';
-import { NButton, NPopconfirm, NSpace, NTag } from 'naive-ui';
-import type { DataTableColumns, PaginationProps } from 'naive-ui';
-import { fetchDeleteTemplate, fetchGetTemplateList, fetchPublishTemplate } from '@/service/api';
+import { computed, ref, watch, onMounted } from 'vue';
+import { NButton, NPopconfirm, NSpace, NTag, NSelect } from 'naive-ui';
+import { fetchDeleteTemplate, fetchGetTemplateList, fetchPublishTemplate, fetchGetAllProjects } from '@/service/api';
 import { $t } from '@/locales';
 import { useAppStore } from '@/store/modules/app';
 import { useTable, useTableOperate } from '@/hooks/common/table';
-import { enableStatusRecord, enableStatusTag } from '@/constants/business';
 import TemplateOperateDrawer from './modules/template-operate-drawer.vue';
 import TemplateSearch from './modules/template-search.vue';
 import TableHeaderOperation from '@/components/advanced/table-header-operation.vue';
 
 const appStore = useAppStore();
 
-const props = defineProps<{
-  projectId: string;
-}>();
+interface Props {
+  projectId?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  projectId: ''
+});
+
+// 项目选择相关状态
+const selectedProjectId = ref<string>(props.projectId || '');
+const projectOptions = ref<Array<{ label: string; value: string }>>([]);
+const projectLoading = ref(false);
+
+// 当前有效的项目ID
+const currentProjectId = computed(() => props.projectId || selectedProjectId.value);
+
+// Create a wrapper function for the API call
+const getTemplateListApi = (params: any): Promise<NaiveUI.FlatResponseData<Api.Lowcode.TemplateList>> => {
+  const projectId = currentProjectId.value;
+  if (!projectId) {
+    return Promise.resolve({
+      data: {
+        records: [] as Api.Lowcode.CodeTemplate[],
+        total: 0,
+        current: 1,
+        size: 10
+      },
+      error: null,
+      response: {} as any
+    });
+  }
+  return fetchGetTemplateList(projectId, params);
+};
 
 const {
   columns,
@@ -67,13 +110,12 @@ const {
   searchParams,
   resetSearchParams
 } = useTable({
-  apiFn: fetchGetTemplateList,
+  apiFn: getTemplateListApi,
   showTotal: true,
   apiParams: {
     current: 1,
-    size: 10,
-    projectId: props.projectId
-  },
+    size: 10
+  } as any,
   columns: () => [
     {
       type: 'selection',
@@ -151,7 +193,7 @@ const {
       width: 80,
       render: row => (
         <NTag type={row.isPublic ? 'success' : 'default'}>
-          {row.isPublic ? $t('common.yes') : $t('common.no')}
+          {row.isPublic ? '是' : '否'}
         </NTag>
       )
     },
@@ -210,7 +252,31 @@ const {
   handleEdit,
   checkedRowKeys,
   onBatchDeleted
-} = useTableOperate(data, getData);
+} = useTableOperate(data as any, getData);
+
+// 加载项目列表
+async function loadProjects() {
+  try {
+    projectLoading.value = true;
+    const response = await fetchGetAllProjects();
+    const projects = response.data || response;
+    if (Array.isArray(projects)) {
+      projectOptions.value = projects.map(project => ({
+        label: project.name,
+        value: project.id
+      }));
+    }
+  } catch (error) {
+    console.error('Failed to load projects:', error);
+  } finally {
+    projectLoading.value = false;
+  }
+}
+
+// 处理项目选择变化
+function handleProjectChange() {
+  getData();
+}
 
 async function handleDelete(id: string) {
   await fetchDeleteTemplate(id);
@@ -232,11 +298,17 @@ async function handlePublish(id: string) {
   }
 }
 
+// 初始化
+onMounted(() => {
+  if (!props.projectId) {
+    loadProjects();
+  }
+});
+
 // Watch for projectId changes
-watch(() => props.projectId, () => {
-  if (props.projectId) {
-    searchParams.projectId = props.projectId;
-    getDataByPage();
+watch(() => currentProjectId.value, (newProjectId) => {
+  if (newProjectId) {
+    getData();
   }
 }, { immediate: true });
 </script>

@@ -2,32 +2,32 @@
   <NDrawer v-model:show="drawerVisible" :width="800" :title="title">
     <NDrawerContent :title="title" closable>
       <NForm ref="formRef" :model="formModel" :rules="rules" label-placement="left" :label-width="120">
-        <NFormItem :label="$t('page.manage.template.name')" path="name">
-          <NInput v-model:value="formModel.name" :placeholder="$t('page.manage.template.form.name')" />
+        <NFormItem :label="$t('page.lowcode.template.name')" path="name">
+          <NInput v-model:value="formModel.name" :placeholder="$t('page.lowcode.template.form.name.placeholder')" />
         </NFormItem>
-        <NFormItem :label="$t('page.manage.template.description')" path="description">
+        <NFormItem :label="$t('page.lowcode.template.description')" path="description">
           <NInput
             v-model:value="formModel.description"
             type="textarea"
-            :placeholder="$t('page.manage.template.form.description')"
+            :placeholder="$t('page.lowcode.template.form.description.placeholder')"
           />
         </NFormItem>
-        <NFormItem :label="$t('page.manage.template.category')" path="category">
+        <NFormItem :label="$t('page.lowcode.template.category')" path="category">
           <NSelect
             v-model:value="formModel.category"
-            :placeholder="$t('page.manage.template.form.category')"
+            :placeholder="$t('page.lowcode.template.form.category.placeholder')"
             :options="categoryOptions"
           />
         </NFormItem>
-        <NFormItem :label="$t('page.manage.template.content')" path="content">
+        <NFormItem :label="$t('page.lowcode.template.content')" path="content">
           <NInput
             v-model:value="formModel.content"
             type="textarea"
             :rows="10"
-            :placeholder="$t('page.manage.template.form.content')"
+            :placeholder="$t('page.lowcode.template.form.content.placeholder')"
           />
         </NFormItem>
-        <NFormItem :label="$t('page.manage.template.status')" path="status">
+        <NFormItem :label="$t('page.lowcode.template.status')" path="status">
           <NRadioGroup v-model:value="formModel.status">
             <NRadio v-for="item in enableStatusOptions" :key="item.value" :value="item.value" :label="item.label" />
           </NRadioGroup>
@@ -47,6 +47,8 @@
 import { computed, reactive, watch } from 'vue';
 import type { FormInst, FormRules } from 'naive-ui';
 import { createRequiredFormRule } from '@/utils/form/rule';
+import { useNaiveForm } from '@/hooks/common/form';
+import { useFormRules } from '@/hooks/common/form';
 import { $t } from '@/locales';
 import { enableStatusOptions } from '@/constants/business';
 
@@ -54,7 +56,7 @@ export interface Props {
   /** the type of operation */
   operateType: AntDesign.TableOperateType;
   /** the edit row data */
-  rowData?: Api.SystemManage.Template | null;
+  rowData?: Api.Lowcode.CodeTemplate | null;
 }
 
 export interface Emits {
@@ -76,28 +78,33 @@ const { defaultRequiredRule } = useFormRules();
 
 const title = computed(() => {
   const titles: Record<AntDesign.TableOperateType, string> = {
-    add: $t('page.manage.template.addTemplate'),
-    edit: $t('page.manage.template.editTemplate')
+    add: $t('page.lowcode.template.addTemplate'),
+    edit: $t('page.lowcode.template.editTemplate')
   };
   return titles[props.operateType];
 });
 
-const formModel = reactive<Api.SystemManage.TemplateEdit>(createDefaultModel());
+const formModel = reactive(createDefaultModel());
 
-function createDefaultModel(): Api.SystemManage.TemplateEdit {
+function createDefaultModel() {
   return {
     name: '',
     description: '',
-    category: null,
+    category: '',
     content: '',
-    status: null
+    status: 'DRAFT'
   };
 }
 
 const categoryOptions = [
-  { label: $t('page.manage.template.category.page'), value: 'page' },
-  { label: $t('page.manage.template.category.component'), value: 'component' },
-  { label: $t('page.manage.template.category.layout'), value: 'layout' }
+  { label: $t('page.lowcode.template.categories.PAGE'), value: 'PAGE' },
+  { label: $t('page.lowcode.template.categories.COMPONENT'), value: 'COMPONENT' },
+  { label: $t('page.lowcode.template.categories.CONTROLLER'), value: 'CONTROLLER' },
+  { label: $t('page.lowcode.template.categories.SERVICE'), value: 'SERVICE' },
+  { label: $t('page.lowcode.template.categories.MODEL'), value: 'MODEL' },
+  { label: $t('page.lowcode.template.categories.DTO'), value: 'DTO' },
+  { label: $t('page.lowcode.template.categories.CONFIG'), value: 'CONFIG' },
+  { label: $t('page.lowcode.template.categories.TEST'), value: 'TEST' }
 ];
 
 const rules: FormRules = {

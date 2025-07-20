@@ -21,6 +21,7 @@ import { RelationshipController } from '@api/lowcode/relationship.controller';
 import { ApiConfigController } from '@api/lowcode/api-config.controller';
 import { QueryController } from '@api/lowcode/query.controller';
 import { FieldController } from '@api/lowcode/field.controller';
+import { TemplateController } from '@api/lowcode/template.controller';
 import { AmisDemoController } from '@api/lowcode/amis-demo.controller';
 import { JwtAuthGuard } from '@guards/jwt-auth.guard';
 import { JwtStrategy } from '@strategies/jwt.strategy';
@@ -64,7 +65,7 @@ import { JwtStrategy } from '@strategies/jwt.strategy';
     QueryModule,
     FieldModule,
   ],
-  controllers: [AppController, EntityController, ProjectController, RelationshipController, ApiConfigController, QueryController, FieldController, AmisDemoController],
+  controllers: [AppController, EntityController, ProjectController, RelationshipController, ApiConfigController, QueryController, FieldController, TemplateController, AmisDemoController],
   providers: [
     AppService,
     JwtStrategy,

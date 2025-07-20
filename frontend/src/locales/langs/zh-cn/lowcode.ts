@@ -223,6 +223,8 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
   },
   template: {
     title: '模板管理',
+    selectProject: '选择项目',
+    currentProject: '当前项目',
     addTemplate: '新增模板',
     editTemplate: '编辑模板',
     name: '模板名称',
@@ -303,6 +305,78 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       },
       tags: {
         placeholder: '请输入标签，多个标签用逗号分隔'
+      },
+      status: {
+        placeholder: '请选择状态'
+      },
+      project: {
+        placeholder: '请选择项目'
+      }
+    }
+  },
+  relation: {
+    title: '关系管理',
+    addRelation: '新增关系',
+    editRelation: '编辑关系',
+    name: '关系名称',
+    code: '关系代码',
+    description: '关系描述',
+    sourceEntity: '源实体',
+    targetEntity: '目标实体',
+    sourceField: '源字段',
+    targetField: '目标字段',
+    relationType: '关系类型',
+    onDelete: '删除时',
+    onUpdate: '更新时',
+    relationTypes: {
+      ONE_TO_ONE: '一对一',
+      ONE_TO_MANY: '一对多',
+      MANY_TO_ONE: '多对一',
+      MANY_TO_MANY: '多对多'
+    },
+    cascadeActions: {
+      CASCADE: '级联',
+      SET_NULL: '设为空',
+      RESTRICT: '限制',
+      NO_ACTION: '无操作'
+    },
+    form: {
+      name: {
+        placeholder: '请输入关系名称',
+        required: '请输入关系名称'
+      },
+      code: {
+        placeholder: '请输入关系代码',
+        required: '请输入关系代码'
+      },
+      description: {
+        placeholder: '请输入关系描述'
+      },
+      sourceEntity: {
+        placeholder: '请选择源实体',
+        required: '请选择源实体'
+      },
+      targetEntity: {
+        placeholder: '请选择目标实体',
+        required: '请选择目标实体'
+      },
+      sourceField: {
+        placeholder: '请选择源字段',
+        required: '请选择源字段'
+      },
+      targetField: {
+        placeholder: '请选择目标字段',
+        required: '请选择目标字段'
+      },
+      relationType: {
+        placeholder: '请选择关系类型',
+        required: '请选择关系类型'
+      },
+      onDelete: {
+        placeholder: '请选择删除时操作'
+      },
+      onUpdate: {
+        placeholder: '请选择更新时操作'
       }
     }
   },

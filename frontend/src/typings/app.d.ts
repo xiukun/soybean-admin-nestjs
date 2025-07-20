@@ -931,6 +931,8 @@ declare namespace App {
           };
           template: {
             title: string;
+            selectProject: string;
+            currentProject: string;
             addTemplate: string;
             editTemplate: string;
             name: string;
@@ -1010,6 +1012,12 @@ declare namespace App {
                 placeholder: string;
               };
               tags: {
+                placeholder: string;
+              };
+              status: {
+                placeholder: string;
+              };
+              project: {
                 placeholder: string;
               };
             };
