@@ -319,6 +319,7 @@ declare namespace App {
         backToHome: string;
         batchDelete: string;
         cancel: string;
+        clear: string;
         close: string;
         check: string;
         expandColumn: string;
@@ -1168,6 +1169,12 @@ declare namespace App {
             title: string;
             addApiConfig: string;
             editApiConfig: string;
+            selectProject: string;
+            currentProject: string;
+            changeProject: string;
+            test: string;
+            testSuccess: string;
+            testFailed: string;
             name: string;
             code: string;
             path: string;
@@ -1176,9 +1183,17 @@ declare namespace App {
             version: string;
             entity: string;
             authRequired: string;
-            test: string;
-            testSuccess: string;
-            testFailed: string;
+            queryConfig: string;
+            paginationEnabled: string;
+            defaultPageSize: string;
+            maxPageSize: string;
+            responseConfig: string;
+            responseFormat: string;
+            responseWrapper: string;
+            securityConfig: string;
+            rateLimitEnabled: string;
+            rateLimitRequests: string;
+            rateLimitWindow: string;
             status: {
               ACTIVE: string;
               INACTIVE: string;
@@ -1202,6 +1217,7 @@ declare namespace App {
               path: {
                 placeholder: string;
                 required: string;
+                invalid: string;
               };
               method: {
                 placeholder: string;
@@ -1223,6 +1239,166 @@ declare namespace App {
               status: {
                 placeholder: string;
               };
+              responseFormat: {
+                placeholder: string;
+                required: string;
+              };
+              defaultPageSize: {
+                placeholder: string;
+              };
+              maxPageSize: {
+                placeholder: string;
+              };
+              responseWrapper: {
+                placeholder: string;
+              };
+              rateLimitRequests: {
+                placeholder: string;
+              };
+              rateLimitWindow: {
+                placeholder: string;
+              };
+              search: {
+                placeholder: string;
+              };
+            };
+            selector: {
+              title: string;
+              platformFormat: string;
+              lowcodeFormat: string;
+              selectApi: string;
+              selectApiPlaceholder: string;
+              selectedApi: string;
+              amisConfig: string;
+            };
+            tabs: {
+              management: string;
+              selector: string;
+              batchOperations: string;
+              onlineTest: string;
+              versionManagement: string;
+              documentation: string;
+            };
+            batchOperations: {
+              title: string;
+              export: {
+                title: string;
+                all: string;
+                selected: string;
+                allSuccess: string;
+                selectedSuccess: string;
+              };
+              import: {
+                title: string;
+                button: string;
+                dragText: string;
+                hintText: string;
+                overwrite: string;
+                invalidFormat: string;
+                success: string;
+              };
+              delete: {
+                title: string;
+                selected: string;
+                confirm: string;
+                success: string;
+              };
+              template: {
+                title: string;
+                json: string;
+                yaml: string;
+                downloaded: string;
+              };
+            };
+            onlineTest: {
+              title: string;
+              history: string;
+              selectApi: string;
+              apiInfo: string;
+              testConfig: string;
+              headers: string;
+              headerKey: string;
+              headerValue: string;
+              addHeader: string;
+              queryParams: string;
+              paramKey: string;
+              paramValue: string;
+              addParam: string;
+              requestBody: string;
+              jsonPlaceholder: string;
+              fieldKey: string;
+              fieldValue: string;
+              addField: string;
+              rawPlaceholder: string;
+              execute: string;
+              saveCase: string;
+              result: string;
+              status: string;
+              time: string;
+              responseHeaders: string;
+              responseBody: string;
+              formatted: string;
+              raw: string;
+              testHistory: string;
+              caseSaved: string;
+            };
+            versionManagement: {
+              title: string;
+              selectApi: string;
+              currentVersion: string;
+              versionHistory: string;
+              versionCompare: string;
+              createVersion: string;
+              version: string;
+              versionNumber: string;
+              versionPlaceholder: string;
+              changeLog: string;
+              changeLogPlaceholder: string;
+              compare: string;
+              rollback: string;
+              viewVersion: string;
+              selectSecondVersion: string;
+              compareReady: string;
+              sameVersion: string;
+              versionCreated: string;
+              createFailed: string;
+              rollbackSuccess: string;
+              rollbackFailed: string;
+            };
+            documentation: {
+              title: string;
+              generate: string;
+              exportSwagger: string;
+              selectProject: string;
+              selectProjectFirst: string;
+              includeInactive: string;
+              config: string;
+              docTitle: string;
+              docVersion: string;
+              docDescription: string;
+              docBaseUrl: string;
+              titlePlaceholder: string;
+              versionPlaceholder: string;
+              descriptionPlaceholder: string;
+              baseUrlPlaceholder: string;
+              statistics: string;
+              totalApis: string;
+              activeApis: string;
+              inactiveApis: string;
+              methods: string;
+              methodDistribution: string;
+              preview: string;
+              swaggerFormat: string;
+              markdownFormat: string;
+              htmlFormat: string;
+              export: string;
+              exportMarkdown: string;
+              exportHtml: string;
+              exportPostman: string;
+              generateSuccess: string;
+              generateFailed: string;
+              exportSuccess: string;
+              exportFailed: string;
             };
           };
           common: {

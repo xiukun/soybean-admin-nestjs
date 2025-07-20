@@ -265,9 +265,55 @@ declare namespace Api {
       updatedAt?: string;
     }
 
-    /** API config list */
+    /** API config list (Platform Management Format) */
     interface ApiConfigList extends Common.PaginatingQueryRecord {
       records: ApiConfig[];
+    }
+
+    /** API config for lowcode pages */
+    interface ApiConfigLowcodeOption {
+      /** Display label */
+      label: string;
+      /** Option value */
+      value: string;
+      /** API config ID */
+      id: string;
+      /** API name */
+      name: string;
+      /** HTTP method */
+      method: HttpMethod;
+      /** API path */
+      path: string;
+      /** Full API path */
+      fullPath: string;
+      /** API description */
+      description?: string;
+      /** API status */
+      status: ApiConfigStatus;
+      /** Has authentication */
+      hasAuthentication: boolean;
+      /** API URL for direct use */
+      api: string;
+      /** URL alias */
+      url: string;
+      /** Additional data for amis */
+      data?: {
+        api: string;
+        method: string;
+      };
+    }
+
+    /** API config list for lowcode pages (Amis Format) */
+    interface ApiConfigLowcodeList {
+      status: number;
+      msg: string;
+      data: {
+        options: ApiConfigLowcodeOption[];
+        page: number;
+        perPage: number;
+        total: number;
+        totalPages: number;
+      };
     }
 
     /** API config search params */

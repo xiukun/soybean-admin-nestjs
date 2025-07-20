@@ -41,10 +41,18 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     code: 'Entity Code',
     description: 'Description',
     tableName: 'Table Name',
+    category: 'Entity Category',
     status: {
+      DRAFT: 'Draft',
       ACTIVE: 'Active',
       INACTIVE: 'Inactive',
       ARCHIVED: 'Archived'
+    },
+    categories: {
+      core: 'Core',
+      business: 'Business',
+      system: 'System',
+      config: 'Configuration'
     },
     form: {
       name: {
@@ -61,6 +69,10 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       tableName: {
         placeholder: 'Please enter table name',
         required: 'Please enter table name'
+      },
+      category: {
+        placeholder: 'Please select entity category',
+        required: 'Please select entity category'
       },
       status: {
         placeholder: 'Please select status'
@@ -285,6 +297,21 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     title: 'API Configuration Management',
     addApiConfig: 'Add API Configuration',
     editApiConfig: 'Edit API Configuration',
+    selectProject: 'Select Project',
+    currentProject: 'Current Project',
+    changeProject: 'Change Project',
+    test: 'Test',
+    quickExport: 'Quick Export',
+    advancedSearch: 'Advanced Search',
+    advancedSearchOptions: 'Advanced Search Options',
+    selectMethod: 'Select Method',
+    selectStatus: 'Select Status',
+    selectAuth: 'Select Auth Requirement',
+    dateRange: 'Date Range',
+    totalCount: 'Total',
+    selectedCount: 'Selected',
+    testSuccess: 'API test successful',
+    testFailed: 'API test failed',
     name: 'API Name',
     code: 'API Code',
     path: 'API Path',
@@ -293,9 +320,17 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     version: 'Version',
     entity: 'Related Entity',
     authRequired: 'Authentication Required',
-    test: 'Test',
-    testSuccess: 'API test successful',
-    testFailed: 'API test failed',
+    queryConfig: 'Query Configuration',
+    paginationEnabled: 'Enable Pagination',
+    defaultPageSize: 'Default Page Size',
+    maxPageSize: 'Maximum Page Size',
+    responseConfig: 'Response Configuration',
+    responseFormat: 'Response Format',
+    responseWrapper: 'Response Wrapper',
+    securityConfig: 'Security Configuration',
+    rateLimitEnabled: 'Enable Rate Limiting',
+    rateLimitRequests: 'Rate Limit Requests',
+    rateLimitWindow: 'Rate Limit Window',
     status: {
       ACTIVE: 'Active',
       INACTIVE: 'Inactive'
@@ -318,7 +353,8 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       },
       path: {
         placeholder: 'Please enter API path',
-        required: 'Please enter API path'
+        required: 'Please enter API path',
+        invalid: 'API path must start with /'
       },
       method: {
         placeholder: 'Please select HTTP method',
@@ -339,7 +375,181 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       },
       status: {
         placeholder: 'Please select status'
+      },
+      responseFormat: {
+        placeholder: 'Please select response format',
+        required: 'Please select response format'
+      },
+      defaultPageSize: {
+        placeholder: 'Please enter default page size'
+      },
+      maxPageSize: {
+        placeholder: 'Please enter maximum page size'
+      },
+      responseWrapper: {
+        placeholder: 'Please enter response wrapper, e.g.: data'
+      },
+      rateLimitRequests: {
+        placeholder: 'Please enter rate limit requests'
+      },
+      rateLimitWindow: {
+        placeholder: 'Please enter rate limit window (seconds)'
+      },
+      search: {
+        placeholder: 'Please enter API name or path to search'
       }
+    },
+    selector: {
+      title: 'API Configuration Selector',
+      platformFormat: 'Platform Management Format (current/size + records)',
+      lowcodeFormat: 'Lowcode Page Format (page/perPage + options)',
+      selectApi: 'Select API Configuration',
+      selectApiPlaceholder: 'Please select an API configuration to use',
+      selectedApi: 'Selected API Configuration',
+      amisConfig: 'Generated Amis Configuration'
+    },
+    tabs: {
+      management: 'API Configuration Management',
+      selector: 'Interface Format Comparison',
+      batchOperations: 'Batch Operations',
+      onlineTest: 'Online Test',
+      versionManagement: 'Version Management',
+      documentation: 'Documentation'
+    },
+    batchOperations: {
+      title: 'Batch Operations',
+      export: {
+        title: 'Batch Export',
+        all: 'Export All',
+        selected: 'Export Selected',
+        allSuccess: 'Successfully exported all API configurations',
+        selectedSuccess: 'Successfully exported {count} API configurations'
+      },
+      import: {
+        title: 'Batch Import',
+        button: 'Start Import',
+        dragText: 'Click or drag files to this area to upload',
+        hintText: 'Supports JSON, YAML formats, single file size not exceeding 10MB',
+        overwrite: 'Overwrite existing configurations',
+        invalidFormat: 'Unsupported file format, please upload JSON or YAML files',
+        success: 'Import successful: created {created}, updated {updated}'
+      },
+      delete: {
+        title: 'Batch Delete',
+        selected: 'Delete Selected',
+        confirm: 'Are you sure you want to delete the selected {count} API configurations? This operation cannot be undone.',
+        success: 'Successfully deleted {count} API configurations'
+      },
+      template: {
+        title: 'Template Download',
+        json: 'Download JSON Template',
+        yaml: 'Download YAML Template',
+        downloaded: 'Downloaded {format} format template file'
+      }
+    },
+    onlineTest: {
+      title: 'Online API Test',
+      history: 'Test History',
+      selectApi: 'Select API',
+      apiInfo: 'API Information',
+      testConfig: 'Test Configuration',
+      headers: 'Request Headers',
+      headerKey: 'Header Name',
+      headerValue: 'Header Value',
+      addHeader: 'Add Header',
+      queryParams: 'Query Parameters',
+      paramKey: 'Parameter Name',
+      paramValue: 'Parameter Value',
+      addParam: 'Add Parameter',
+      requestBody: 'Request Body',
+      jsonPlaceholder: 'Please enter JSON format request body',
+      fieldKey: 'Field Name',
+      fieldValue: 'Field Value',
+      addField: 'Add Field',
+      rawPlaceholder: 'Please enter raw request body content',
+      execute: 'Execute Test',
+      saveCase: 'Save Test Case',
+      result: 'Test Result',
+      status: 'Status Code',
+      time: 'Response Time',
+      responseHeaders: 'Response Headers',
+      responseBody: 'Response Body',
+      formatted: 'Formatted',
+      raw: 'Raw',
+      testHistory: 'Test History',
+      envVariables: 'Environment Variables',
+      variableKey: 'Variable Name',
+      variableValue: 'Variable Value',
+      addVariable: 'Add Variable',
+      testCases: 'Test Cases',
+      savedCases: 'Saved Test Cases',
+      noCases: 'No saved test cases',
+      load: 'Load',
+      createdAt: 'Created At',
+      caseSaved: 'Test case saved',
+      caseLoaded: 'Test case loaded',
+      caseDeleted: 'Test case deleted'
+    },
+    versionManagement: {
+      title: 'API Version Management',
+      selectApi: 'Select API',
+      currentVersion: 'Current Version',
+      versionHistory: 'Version History',
+      versionCompare: 'Version Compare',
+      createVersion: 'Create Version',
+      version: 'Version',
+      versionNumber: 'Version Number',
+      versionPlaceholder: 'Please enter version number, e.g.: 1.0.0',
+      changeLog: 'Change Log',
+      changeLogPlaceholder: 'Please enter detailed description of changes',
+      compare: 'Compare',
+      rollback: 'Rollback',
+      viewVersion: 'View version {version}',
+      selectSecondVersion: 'Please select a second version for comparison',
+      compareReady: 'Version comparison is ready',
+      sameVersion: 'Cannot select the same version for comparison',
+      versionCreated: 'Version created successfully',
+      createFailed: 'Failed to create version',
+      rollbackSuccess: 'Successfully rolled back to version {version}',
+      rollbackFailed: 'Failed to rollback version',
+      loadFailed: 'Failed to load versions, using mock data'
+    },
+    documentation: {
+      title: 'API Documentation Generation',
+      generate: 'Generate Documentation',
+      exportSwagger: 'Export Swagger',
+      selectProject: 'Select Project',
+      selectProjectFirst: 'Please select a project first',
+      includeInactive: 'Include inactive APIs',
+      config: 'Documentation Configuration',
+      docTitle: 'Documentation Title',
+      docVersion: 'Documentation Version',
+      docDescription: 'Documentation Description',
+      docBaseUrl: 'Base URL',
+      titlePlaceholder: 'Please enter documentation title',
+      versionPlaceholder: 'Please enter documentation version',
+      descriptionPlaceholder: 'Please enter documentation description',
+      baseUrlPlaceholder: 'Please enter base URL',
+      statistics: 'API Statistics',
+      totalApis: 'Total APIs',
+      activeApis: 'Active APIs',
+      inactiveApis: 'Inactive APIs',
+      methods: 'Method Types',
+      methodDistribution: 'Method Distribution',
+      preview: 'Documentation Preview',
+      swaggerFormat: 'Swagger Format',
+      markdownFormat: 'Markdown Format',
+      htmlFormat: 'HTML Format',
+      export: 'Export Documentation',
+      exportMarkdown: 'Export Markdown',
+      exportHtml: 'Export HTML',
+      exportPostman: 'Export Postman Collection',
+      exportOpenAPI: 'Export OpenAPI YAML',
+      exportInsomnia: 'Export Insomnia Collection',
+      generateSuccess: 'Documentation generated successfully',
+      generateFailed: 'Failed to generate documentation',
+      exportSuccess: 'Successfully exported {format} format documentation',
+      exportFailed: 'Failed to export documentation'
     }
   }
 };

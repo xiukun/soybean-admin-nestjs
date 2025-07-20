@@ -98,6 +98,7 @@ declare module 'vue' {
     NTree: typeof import('naive-ui')['NTree']
     NWatermark: typeof import('naive-ui')['NWatermark']
     OpenDesignerIcon: typeof import('./../components/amis-renderer/open-designer-icon.vue')['default']
+    PerformanceTable: typeof import('./../components/advanced/performance-table.vue')['default']
     PinToggler: typeof import('./../components/common/pin-toggler.vue')['default']
     ReloadButton: typeof import('./../components/common/reload-button.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

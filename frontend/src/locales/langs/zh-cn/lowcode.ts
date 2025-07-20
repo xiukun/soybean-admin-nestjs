@@ -491,6 +491,21 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     title: 'API配置管理',
     addApiConfig: '新增API配置',
     editApiConfig: '编辑API配置',
+    selectProject: '选择项目',
+    currentProject: '当前项目',
+    changeProject: '切换项目',
+    test: '测试',
+    quickExport: '快速导出',
+    advancedSearch: '高级搜索',
+    advancedSearchOptions: '高级搜索选项',
+    selectMethod: '选择请求方法',
+    selectStatus: '选择状态',
+    selectAuth: '选择认证要求',
+    dateRange: '日期范围',
+    totalCount: '总数',
+    selectedCount: '已选择',
+    testSuccess: 'API测试成功',
+    testFailed: 'API测试失败',
     name: 'API名称',
     code: 'API代码',
     path: 'API路径',
@@ -499,9 +514,17 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     version: '版本',
     entity: '关联实体',
     authRequired: '需要认证',
-    test: '测试',
-    testSuccess: 'API测试成功',
-    testFailed: 'API测试失败',
+    queryConfig: '查询配置',
+    paginationEnabled: '启用分页',
+    defaultPageSize: '默认页面大小',
+    maxPageSize: '最大页面大小',
+    responseConfig: '响应配置',
+    responseFormat: '响应格式',
+    responseWrapper: '响应包装器',
+    securityConfig: '安全配置',
+    rateLimitEnabled: '启用限流',
+    rateLimitRequests: '限流请求数',
+    rateLimitWindow: '限流时间窗口',
     status: {
       ACTIVE: '启用',
       INACTIVE: '禁用'
@@ -524,7 +547,8 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       },
       path: {
         placeholder: '请输入API路径',
-        required: '请输入API路径'
+        required: '请输入API路径',
+        invalid: 'API路径必须以/开头'
       },
       method: {
         placeholder: '请选择HTTP方法',
@@ -545,7 +569,181 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       },
       status: {
         placeholder: '请选择状态'
+      },
+      responseFormat: {
+        placeholder: '请选择响应格式',
+        required: '请选择响应格式'
+      },
+      defaultPageSize: {
+        placeholder: '请输入默认页面大小'
+      },
+      maxPageSize: {
+        placeholder: '请输入最大页面大小'
+      },
+      responseWrapper: {
+        placeholder: '请输入响应包装器，如：data'
+      },
+      rateLimitRequests: {
+        placeholder: '请输入限流请求数'
+      },
+      rateLimitWindow: {
+        placeholder: '请输入限流时间窗口（秒）'
+      },
+      search: {
+        placeholder: '请输入API名称或路径进行搜索'
       }
+    },
+    selector: {
+      title: 'API配置选择器',
+      platformFormat: '平台管理格式 (current/size + records)',
+      lowcodeFormat: '低代码页面格式 (page/perPage + options)',
+      selectApi: '选择API配置',
+      selectApiPlaceholder: '请选择要使用的API配置',
+      selectedApi: '选中的API配置',
+      amisConfig: '生成的Amis配置'
+    },
+    tabs: {
+      management: 'API配置管理',
+      selector: '接口格式对比',
+      batchOperations: '批量操作',
+      onlineTest: '在线测试',
+      versionManagement: '版本管理',
+      documentation: '文档生成'
+    },
+    batchOperations: {
+      title: '批量操作',
+      export: {
+        title: '批量导出',
+        all: '导出全部',
+        selected: '导出选中',
+        allSuccess: '已成功导出所有API配置',
+        selectedSuccess: '已成功导出 {count} 个API配置'
+      },
+      import: {
+        title: '批量导入',
+        button: '开始导入',
+        dragText: '点击或拖拽文件到此区域上传',
+        hintText: '支持 JSON、YAML 格式，单个文件大小不超过 10MB',
+        overwrite: '覆盖已存在的配置',
+        invalidFormat: '不支持的文件格式，请上传 JSON 或 YAML 文件',
+        success: '导入成功：新建 {created} 个，更新 {updated} 个'
+      },
+      delete: {
+        title: '批量删除',
+        selected: '删除选中',
+        confirm: '确定要删除选中的 {count} 个API配置吗？此操作不可撤销。',
+        success: '已成功删除 {count} 个API配置'
+      },
+      template: {
+        title: '模板下载',
+        json: '下载JSON模板',
+        yaml: '下载YAML模板',
+        downloaded: '已下载 {format} 格式模板文件'
+      }
+    },
+    onlineTest: {
+      title: '在线API测试',
+      history: '测试历史',
+      selectApi: '选择API',
+      apiInfo: 'API信息',
+      testConfig: '测试配置',
+      headers: '请求头',
+      headerKey: '请求头名称',
+      headerValue: '请求头值',
+      addHeader: '添加请求头',
+      queryParams: '查询参数',
+      paramKey: '参数名',
+      paramValue: '参数值',
+      addParam: '添加参数',
+      requestBody: '请求体',
+      jsonPlaceholder: '请输入JSON格式的请求体',
+      fieldKey: '字段名',
+      fieldValue: '字段值',
+      addField: '添加字段',
+      rawPlaceholder: '请输入原始请求体内容',
+      execute: '执行测试',
+      saveCase: '保存用例',
+      result: '测试结果',
+      status: '状态码',
+      time: '响应时间',
+      responseHeaders: '响应头',
+      responseBody: '响应体',
+      formatted: '格式化',
+      raw: '原始',
+      testHistory: '测试历史',
+      envVariables: '环境变量',
+      variableKey: '变量名',
+      variableValue: '变量值',
+      addVariable: '添加变量',
+      testCases: '测试用例',
+      savedCases: '已保存的测试用例',
+      noCases: '暂无保存的测试用例',
+      load: '加载',
+      createdAt: '创建时间',
+      caseSaved: '测试用例已保存',
+      caseLoaded: '测试用例已加载',
+      caseDeleted: '测试用例已删除'
+    },
+    versionManagement: {
+      title: 'API版本管理',
+      selectApi: '选择API',
+      currentVersion: '当前版本',
+      versionHistory: '版本历史',
+      versionCompare: '版本对比',
+      createVersion: '创建版本',
+      version: '版本',
+      versionNumber: '版本号',
+      versionPlaceholder: '请输入版本号，如：1.0.0',
+      changeLog: '变更日志',
+      changeLogPlaceholder: '请输入本次变更的详细说明',
+      compare: '对比',
+      rollback: '回滚',
+      viewVersion: '查看版本 {version}',
+      selectSecondVersion: '请选择第二个版本进行对比',
+      compareReady: '版本对比已准备就绪',
+      sameVersion: '不能选择相同的版本进行对比',
+      versionCreated: '版本创建成功',
+      createFailed: '版本创建失败',
+      rollbackSuccess: '已成功回滚到版本 {version}',
+      rollbackFailed: '版本回滚失败',
+      loadFailed: '版本加载失败，使用模拟数据'
+    },
+    documentation: {
+      title: 'API文档生成',
+      generate: '生成文档',
+      exportSwagger: '导出Swagger',
+      selectProject: '选择项目',
+      selectProjectFirst: '请先选择项目',
+      includeInactive: '包含未激活的API',
+      config: '文档配置',
+      docTitle: '文档标题',
+      docVersion: '文档版本',
+      docDescription: '文档描述',
+      docBaseUrl: '基础URL',
+      titlePlaceholder: '请输入文档标题',
+      versionPlaceholder: '请输入文档版本',
+      descriptionPlaceholder: '请输入文档描述',
+      baseUrlPlaceholder: '请输入基础URL',
+      statistics: 'API统计',
+      totalApis: '总API数',
+      activeApis: '激活API数',
+      inactiveApis: '未激活API数',
+      methods: '方法类型',
+      methodDistribution: '方法分布',
+      preview: '文档预览',
+      swaggerFormat: 'Swagger格式',
+      markdownFormat: 'Markdown格式',
+      htmlFormat: 'HTML格式',
+      export: '导出文档',
+      exportMarkdown: '导出Markdown',
+      exportHtml: '导出HTML',
+      exportPostman: '导出Postman集合',
+      exportOpenAPI: '导出OpenAPI YAML',
+      exportInsomnia: '导出Insomnia集合',
+      generateSuccess: '文档生成成功',
+      generateFailed: '文档生成失败',
+      exportSuccess: '已成功导出 {format} 格式文档',
+      exportFailed: '文档导出失败'
     }
   },
   common: {

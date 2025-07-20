@@ -116,11 +116,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch, onMounted } from 'vue';
+import { computed, reactive, watch, onMounted, ref } from 'vue';
 import type { FormInst, FormRules } from 'naive-ui';
 import { fetchAddApiConfig, fetchUpdateApiConfig, fetchGetAllEntities } from '@/service/api';
 import { $t } from '@/locales';
 import { createRequiredFormRule } from '@/utils/form/rule';
+import { useNaiveForm } from '@/hooks/common/form';
 
 export interface Props {
   /** the type of operation */
@@ -255,8 +256,21 @@ function handleUpdateFormModelByModalType() {
 
 async function loadEntities() {
   try {
-    const entities = await fetchGetAllEntities(props.projectId);
-    entityOptions.value = entities.map(entity => ({
+    const response = await fetchGetAllEntities(props.projectId);
+    // Handle different response structures
+    let entities: any[] = [];
+    if (Array.isArray(response)) {
+      entities = response;
+    } else if (response && Array.isArray((response as any).data)) {
+      entities = (response as any).data;
+    } else if (response && Array.isArray((response as any).records)) {
+      entities = (response as any).records;
+    } else {
+      console.warn('Unexpected response structure:', response);
+      entities = [];
+    }
+
+    entityOptions.value = entities.map((entity: any) => ({
       label: entity.name,
       value: entity.id
     }));

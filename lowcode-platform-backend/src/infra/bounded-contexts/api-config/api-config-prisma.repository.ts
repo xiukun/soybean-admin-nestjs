@@ -176,7 +176,7 @@ export class ApiConfigPrismaRepository implements ApiConfigRepository {
     totalPages: number;
   }> {
     const skip = (page - 1) * limit;
-    
+
     const where = {
       projectId,
       ...(filters?.method && { method: filters.method }),
