@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2022",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@/*": ["src/*"],
+      "@base/*": ["src/base/*"],
+      "@biz/*": ["src/biz/*"],
+      "@shared/*": ["src/shared/*"],
+      "@config/*": ["src/config/*"],
+      "@dto/*": ["src/base/dto/*"],
+      "@entities/*": ["src/base/entities/*"],
+      "@interfaces/*": ["src/base/interfaces/*"],
+      "@controllers/*": ["src/biz/controllers/*"],
+      "@services/*": ["src/biz/services/*"],
+      "@modules/*": ["src/biz/modules/*"],
+      "@guards/*": ["src/shared/guards/*"],
+      "@interceptors/*": ["src/shared/interceptors/*"],
+      "@decorators/*": ["src/shared/decorators/*"],
+      "@filters/*": ["src/shared/filters/*"],
+      "@utils/*": ["src/shared/utils/*"]
+    }
+  }
+}

@@ -15,6 +15,8 @@ export function fetchGenerateCode(data: {
     overwriteExisting: boolean;
     generateTests: boolean;
     generateDocs: boolean;
+    architecture: string;
+    framework: string;
   };
 }) {
   return request<{

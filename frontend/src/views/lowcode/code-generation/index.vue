@@ -200,13 +200,14 @@
 <script setup lang="ts">
 import { reactive, ref, watch, onMounted } from 'vue';
 import type { FormInst, FormRules } from 'naive-ui';
-import { 
-  fetchGetAllProjects, 
-  fetchGetAllTemplates, 
+import {
+  fetchGetAllProjects,
+  fetchGetAllTemplates,
   fetchGetAllEntities,
   fetchGenerateCode,
   fetchGetGenerationProgress,
-  fetchGetGeneratedFileContent
+  fetchGetGeneratedFileContent,
+  fetchGetTemplateVariables
 } from '@/service/api';
 import { $t } from '@/locales';
 import { createRequiredFormRule } from '@/utils/form/rule';
@@ -228,7 +229,7 @@ interface GenerationForm {
 
 interface GenerationProgress {
   percentage: number;
-  status: 'active' | 'success' | 'error';
+  status: 'default' | 'success' | 'error';
   message: string;
   logs: Array<{
     level: 'info' | 'warn' | 'error';
@@ -314,11 +315,13 @@ function getFileLanguage(fileName: string): string {
 
 async function loadProjects() {
   try {
-    const projects = await fetchGetAllProjects();
-    projectOptions.value = projects.map(project => ({
-      label: project.name,
-      value: project.id
-    }));
+    const { data: projects } = await fetchGetAllProjects();
+    if (projects) {
+      projectOptions.value = projects.map((project: any) => ({
+        label: project.name,
+        value: project.id
+      }));
+    }
   } catch (error) {
     console.error('Failed to load projects:', error);
   }
@@ -326,14 +329,16 @@ async function loadProjects() {
 
 async function loadTemplates(projectId: string) {
   if (!projectId) return;
-  
+
   try {
     templateLoading.value = true;
-    const templates = await fetchGetAllTemplates(projectId);
-    templateOptions.value = templates.map(template => ({
-      label: `${template.name} (${template.language})`,
-      value: template.id
-    }));
+    const { data: templates } = await fetchGetAllTemplates(projectId);
+    if (templates) {
+      templateOptions.value = templates.map((template: any) => ({
+        label: `${template.name} (${template.language})`,
+        value: template.id
+      }));
+    }
   } catch (error) {
     console.error('Failed to load templates:', error);
   } finally {
@@ -343,14 +348,16 @@ async function loadTemplates(projectId: string) {
 
 async function loadEntities(projectId: string) {
   if (!projectId) return;
-  
+
   try {
     entityLoading.value = true;
-    const entities = await fetchGetAllEntities(projectId);
-    entityOptions.value = entities.map(entity => ({
-      label: entity.name,
-      value: entity.id
-    }));
+    const { data: entities } = await fetchGetAllEntities(projectId);
+    if (entities) {
+      entityOptions.value = entities.map((entity: any) => ({
+        label: entity.name,
+        value: entity.id
+      }));
+    }
   } catch (error) {
     console.error('Failed to load entities:', error);
   } finally {
@@ -371,34 +378,34 @@ function handleProjectChange(projectId: string) {
 async function handleTemplateChange(templateId: string) {
   // Load template variables
   try {
-    const template = await fetchGetTemplate(templateId);
-    templateVariables.value = template.variables || [];
-    
+    const { data: variables } = await fetchGetTemplateVariables(templateId);
+    templateVariables.value = variables || [];
+
     // Initialize variables with default values
     generationForm.variables = {};
-    templateVariables.value.forEach(variable => {
+    templateVariables.value.forEach((variable: any) => {
       if (variable.defaultValue !== undefined) {
         generationForm.variables[variable.name] = variable.defaultValue;
       }
     });
   } catch (error) {
-    console.error('Failed to load template:', error);
+    console.error('Failed to load template variables:', error);
   }
 }
 
 async function handleGenerate() {
   await formRef.value?.validate();
-  
+
   try {
     generating.value = true;
     generationProgress.value = {
       percentage: 0,
-      status: 'active',
-      message: $t('page.lowcode.codeGeneration.starting'),
+      status: 'default',
+      message: 'Starting code generation...',
       logs: []
     };
-    
-    const result = await fetchGenerateCode({
+
+    const { data: result } = await fetchGenerateCode({
       projectId: generationForm.projectId,
       templateId: generationForm.templateId,
       entityIds: generationForm.entityIds,
@@ -407,27 +414,31 @@ async function handleGenerate() {
       options: {
         overwriteExisting: generationForm.overwriteExisting,
         generateTests: generationForm.generateTests,
-        generateDocs: generationForm.generateDocs
+        generateDocs: generationForm.generateDocs,
+        architecture: 'base-biz',
+        framework: 'nestjs'
       }
     });
-    
-    generationResult.value = result;
-    generationProgress.value = {
-      percentage: 100,
-      status: result.success ? 'success' : 'error',
-      message: result.success ? $t('page.lowcode.codeGeneration.completed') : $t('page.lowcode.codeGeneration.failed'),
-      logs: generationProgress.value?.logs || []
-    };
-    
-    window.$message?.success($t('page.lowcode.codeGeneration.generateSuccess'));
+
+    if (result) {
+      generationResult.value = result;
+      generationProgress.value = {
+        percentage: 100,
+        status: result.success ? 'success' : 'error',
+        message: result.success ? 'Code generation completed' : 'Code generation failed',
+        logs: generationProgress.value?.logs || []
+      };
+
+      window.$message?.success('Code generation completed successfully');
+    }
   } catch (error: any) {
     generationProgress.value = {
       percentage: 100,
       status: 'error',
-      message: error.message || $t('page.lowcode.codeGeneration.failed'),
+      message: error.message || 'Code generation failed',
       logs: generationProgress.value?.logs || []
     };
-    window.$message?.error($t('page.lowcode.codeGeneration.generateFailed'));
+    window.$message?.error('Code generation failed');
   } finally {
     generating.value = false;
   }

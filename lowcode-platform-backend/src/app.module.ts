@@ -23,8 +23,10 @@ import { QueryController } from '@api/lowcode/query.controller';
 import { FieldController } from '@api/lowcode/field.controller';
 import { TemplateController } from '@api/lowcode/template.controller';
 import { AmisDemoController } from '@api/lowcode/amis-demo.controller';
+import { CodeGenerationController } from '@api/lowcode/code-generation.controller';
 import { JwtAuthGuard } from '@guards/jwt-auth.guard';
 import { JwtStrategy } from '@strategies/jwt.strategy';
+import { CodeGenerationModule } from '@lib/bounded-contexts/code-generation/code-generation.module';
 
 @Module({
   imports: [
@@ -64,8 +66,9 @@ import { JwtStrategy } from '@strategies/jwt.strategy';
     ApiConfigModule,
     QueryModule,
     FieldModule,
+    CodeGenerationModule,
   ],
-  controllers: [AppController, EntityController, ProjectController, RelationshipController, ApiConfigController, QueryController, FieldController, TemplateController, AmisDemoController],
+  controllers: [AppController, EntityController, ProjectController, RelationshipController, ApiConfigController, QueryController, FieldController, TemplateController, AmisDemoController, CodeGenerationController],
   providers: [
     AppService,
     JwtStrategy,
