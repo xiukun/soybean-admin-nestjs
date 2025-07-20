@@ -12,6 +12,7 @@ const local: App.I18n.Schema = {
     status: '状态',   
     createdAt: '创建时间',
     updatedAt: '更新时间',
+    updateFailed: '更新失败',
     action: '操作',
     add: '新增',
     addSuccess: '添加成功',

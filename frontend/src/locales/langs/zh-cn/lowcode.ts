@@ -376,18 +376,54 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     execute: '执行查询',
     save: '保存查询',
     baseEntity: '基础实体',
+    baseEntityAlias: '基础实体别名',
     joinCount: '关联数量',
     fieldCount: '字段数量',
     filterCount: '过滤条件',
     lastExecuted: '最后执行',
     executeSuccess: '查询执行成功',
     executeFailed: '查询执行失败',
+    noDataToExport: '没有数据可导出',
+    exportComingSoon: '导出功能即将推出',
+    generateSQLFailed: 'SQL生成失败',
+    basicInfo: '基础信息',
+    joins: '表关联',
+    fields: '字段选择',
+    filters: '过滤条件',
+    sorting: '排序设置',
+    joinType: '关联类型',
+    targetEntity: '目标实体',
+    sourceField: '源字段',
+    targetField: '目标字段',
+    alias: '别名',
+    fieldName: '字段名',
+    fieldAlias: '字段别名',
+    entityAlias: '实体别名',
+    aggregation: '聚合函数',
+    operator: '操作符',
+    value: '值',
+    direction: '排序方向',
+    addJoin: '添加关联',
+    join: '关联',
+    addField: '添加字段',
+    field: '字段',
+    addFilter: '添加过滤条件',
+    filter: '过滤条件',
+    addSort: '添加排序',
+    sort: '排序',
+    sqlPreview: 'SQL预览',
+    generateSQL: '生成SQL',
+    noSQL: '暂无SQL',
+    executeError: '执行错误',
+    noData: '暂无数据',
+    info: '信息',
+    executeTime: '执行时间',
+    rowCount: '行数',
+    columnCount: '列数',
     status: {
       DRAFT: '草稿',
       PUBLISHED: '已发布',
-      DEPRECATED: '已废弃',
-      ACTIVE: '激活',
-      INACTIVE: '非激活'
+      DEPRECATED: '已废弃'
     },
     form: {
       name: {
@@ -404,6 +440,50 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       sql: {
         placeholder: '请输入SQL语句',
         required: '请输入SQL语句'
+      },
+      baseEntity: {
+        placeholder: '请选择基础实体',
+        required: '请选择基础实体'
+      },
+      baseEntityAlias: {
+        placeholder: '请输入基础实体别名',
+        required: '请输入基础实体别名'
+      },
+      joinType: {
+        placeholder: '请选择关联类型'
+      },
+      targetEntity: {
+        placeholder: '请选择目标实体'
+      },
+      sourceField: {
+        placeholder: '请输入源字段'
+      },
+      targetField: {
+        placeholder: '请输入目标字段'
+      },
+      alias: {
+        placeholder: '请输入别名'
+      },
+      fieldName: {
+        placeholder: '请输入字段名'
+      },
+      fieldAlias: {
+        placeholder: '请输入字段别名'
+      },
+      entityAlias: {
+        placeholder: '请输入实体别名'
+      },
+      aggregation: {
+        placeholder: '请选择聚合函数'
+      },
+      operator: {
+        placeholder: '请选择操作符'
+      },
+      value: {
+        placeholder: '请输入值'
+      },
+      direction: {
+        placeholder: '请选择排序方向'
       }
     }
   },

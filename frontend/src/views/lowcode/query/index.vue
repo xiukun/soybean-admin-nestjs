@@ -171,9 +171,7 @@ const {
         const tagMap: Record<string, NaiveUI.ThemeColor> = {
           DRAFT: 'warning',
           PUBLISHED: 'success',
-          DEPRECATED: 'error',
-          ACTIVE: 'success',
-          INACTIVE: 'default'
+          DEPRECATED: 'error'
         };
 
         const statusKey = `page.lowcode.query.status.${row.status}`;
@@ -204,7 +202,7 @@ const {
     },
     {
       key: 'createdAt',
-      title: '创建时间',
+      title: $t('common.createdAt'),
       align: 'center',
       width: 180,
       render: row => new Date(row.createdAt).toLocaleString()

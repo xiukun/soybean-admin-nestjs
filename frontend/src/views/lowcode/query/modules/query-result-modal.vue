@@ -2,12 +2,12 @@
   <NModal v-model:show="modalVisible" preset="card" :title="title" class="w-1200px">
     <div class="h-500px">
       <NTabs v-model:value="activeTab" type="line" animated>
-        <NTabPane name="result" :tab="$t('page.manage.query.result')">
+        <NTabPane name="result" :tab="$t('page.lowcode.query.result')">
           <div v-if="loading" class="flex-center h-200px">
             <NSpin size="medium" />
           </div>
           <div v-else-if="error" class="flex-center h-200px">
-            <NResult status="error" :title="$t('page.manage.query.executeError')" :description="error" />
+            <NResult status="error" :title="$t('page.lowcode.query.executeError')" :description="error" />
           </div>
           <div v-else-if="resultData && resultData.length > 0" class="h-full">
             <NDataTable
@@ -20,18 +20,18 @@
             />
           </div>
           <div v-else class="flex-center h-200px">
-            <NEmpty :description="$t('page.manage.query.noData')" />
+            <NEmpty :description="$t('page.lowcode.query.noData')" />
           </div>
         </NTabPane>
-        <NTabPane name="info" :tab="$t('page.manage.query.info')">
+        <NTabPane name="info" :tab="$t('page.lowcode.query.info')">
           <NDescriptions :column="2" label-placement="left">
-            <NDescriptionsItem :label="$t('page.manage.query.executeTime')">
+            <NDescriptionsItem :label="$t('page.lowcode.query.executeTime')">
               {{ executeTime }}ms
             </NDescriptionsItem>
-            <NDescriptionsItem :label="$t('page.manage.query.rowCount')">
+            <NDescriptionsItem :label="$t('page.lowcode.query.rowCount')">
               {{ rowCount }}
             </NDescriptionsItem>
-            <NDescriptionsItem :label="$t('page.manage.query.columnCount')">
+            <NDescriptionsItem :label="$t('page.lowcode.query.columnCount')">
               {{ columnCount }}
             </NDescriptionsItem>
           </NDescriptions>
@@ -85,7 +85,7 @@ const visible = defineModel<boolean>('visible', {
 const activeTab = ref('result');
 
 const title = computed(() => {
-  return props.queryName ? `${$t('page.manage.query.result')} - ${props.queryName}` : $t('page.manage.query.result');
+  return props.queryName ? `${$t('page.lowcode.query.result')} - ${props.queryName}` : $t('page.lowcode.query.result');
 });
 
 const modalVisible = computed({
@@ -135,12 +135,12 @@ function closeModal() {
 
 function exportData() {
   if (!resultData.value || resultData.value.length === 0) {
-    window.$message?.warning($t('page.manage.query.noDataToExport'));
+    window.$message?.warning($t('page.lowcode.query.noDataToExport'));
     return;
   }
 
   // TODO: Implement export functionality
-  window.$message?.info($t('common.comingSoon'));
+  window.$message?.info($t('page.lowcode.query.exportComingSoon'));
 }
 
 watch(visible, newVal => {

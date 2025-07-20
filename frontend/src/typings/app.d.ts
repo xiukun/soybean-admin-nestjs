@@ -312,6 +312,7 @@ declare namespace App {
         status: string;
         createdAt: string;
         updatedAt: string;
+        updateFailed: string;
         action: string;
         add: string;
         addSuccess: string;
@@ -1052,15 +1053,54 @@ declare namespace App {
             execute: string;
             save: string;
             baseEntity: string;
+            baseEntityAlias: string;
             joinCount: string;
             fieldCount: string;
             filterCount: string;
             lastExecuted: string;
             executeSuccess: string;
             executeFailed: string;
+            noDataToExport: string;
+            exportComingSoon: string;
+            generateSQLFailed: string;
+            basicInfo: string;
+            joins: string;
+            fields: string;
+            filters: string;
+            sorting: string;
+            joinType: string;
+            targetEntity: string;
+            sourceField: string;
+            targetField: string;
+            alias: string;
+            fieldName: string;
+            fieldAlias: string;
+            entityAlias: string;
+            aggregation: string;
+            operator: string;
+            value: string;
+            direction: string;
+            addJoin: string;
+            join: string;
+            addField: string;
+            field: string;
+            addFilter: string;
+            filter: string;
+            addSort: string;
+            sort: string;
+            sqlPreview: string;
+            generateSQL: string;
+            noSQL: string;
+            executeError: string;
+            noData: string;
+            info: string;
+            executeTime: string;
+            rowCount: string;
+            columnCount: string;
             status: {
-              ACTIVE: string;
-              INACTIVE: string;
+              DRAFT: string;
+              PUBLISHED: string;
+              DEPRECATED: string;
             };
             form: {
               name: {
@@ -1077,6 +1117,50 @@ declare namespace App {
               sql: {
                 placeholder: string;
                 required: string;
+              };
+              baseEntity: {
+                placeholder: string;
+                required: string;
+              };
+              baseEntityAlias: {
+                placeholder: string;
+                required: string;
+              };
+              joinType: {
+                placeholder: string;
+              };
+              targetEntity: {
+                placeholder: string;
+              };
+              sourceField: {
+                placeholder: string;
+              };
+              targetField: {
+                placeholder: string;
+              };
+              alias: {
+                placeholder: string;
+              };
+              fieldName: {
+                placeholder: string;
+              };
+              fieldAlias: {
+                placeholder: string;
+              };
+              entityAlias: {
+                placeholder: string;
+              };
+              aggregation: {
+                placeholder: string;
+              };
+              operator: {
+                placeholder: string;
+              };
+              value: {
+                placeholder: string;
+              };
+              direction: {
+                placeholder: string;
               };
             };
           };

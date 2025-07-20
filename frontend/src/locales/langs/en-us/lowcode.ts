@@ -258,47 +258,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       }
     }
   },
-  query: {
-    title: 'Query Management',
-    addQuery: 'Add Query',
-    editQuery: 'Edit Query',
-    name: 'Query Name',
-    code: 'Query Code',
-    description: 'Description',
-    sql: 'SQL Statement',
-    parameters: 'Query Parameters',
-    result: 'Query Result',
-    execute: 'Execute Query',
-    save: 'Save Query',
-    baseEntity: 'Base Entity',
-    joinCount: 'Join Count',
-    fieldCount: 'Field Count',
-    filterCount: 'Filter Count',
-    lastExecuted: 'Last Executed',
-    executeSuccess: 'Query executed successfully',
-    executeFailed: 'Query execution failed',
-    status: {
-      ACTIVE: 'Active',
-      INACTIVE: 'Inactive'
-    },
-    form: {
-      name: {
-        placeholder: 'Please enter query name',
-        required: 'Please enter query name'
-      },
-      code: {
-        placeholder: 'Please enter query code',
-        required: 'Please enter query code'
-      },
-      description: {
-        placeholder: 'Please enter description'
-      },
-      sql: {
-        placeholder: 'Please enter SQL statement',
-        required: 'Please enter SQL statement'
-      }
-    }
-  },
   codegen: {
     title: 'Code Generation',
     generate: 'Generate Code',
@@ -319,6 +278,130 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       output: {
         placeholder: 'Please enter output directory',
         required: 'Please enter output directory'
+      }
+    }
+  },
+  query: {
+    title: 'Query Management',
+    addQuery: 'Add Query',
+    editQuery: 'Edit Query',
+    name: 'Query Name',
+    code: 'Query Code',
+    description: 'Description',
+    sql: 'SQL Statement',
+    parameters: 'Query Parameters',
+    result: 'Query Result',
+    execute: 'Execute Query',
+    save: 'Save Query',
+    baseEntity: 'Base Entity',
+    baseEntityAlias: 'Base Entity Alias',
+    joinCount: 'Join Count',
+    fieldCount: 'Field Count',
+    filterCount: 'Filter Count',
+    lastExecuted: 'Last Executed',
+    executeSuccess: 'Query executed successfully',
+    executeFailed: 'Query execution failed',
+    noDataToExport: 'No data to export',
+    exportComingSoon: 'Export feature coming soon',
+    generateSQLFailed: 'SQL generation failed',
+    basicInfo: 'Basic Info',
+    joins: 'Table Joins',
+    fields: 'Field Selection',
+    filters: 'Filter Conditions',
+    sorting: 'Sort Settings',
+    joinType: 'Join Type',
+    targetEntity: 'Target Entity',
+    sourceField: 'Source Field',
+    targetField: 'Target Field',
+    alias: 'Alias',
+    fieldName: 'Field Name',
+    fieldAlias: 'Field Alias',
+    entityAlias: 'Entity Alias',
+    aggregation: 'Aggregation Function',
+    operator: 'Operator',
+    value: 'Value',
+    direction: 'Sort Direction',
+    addJoin: 'Add Join',
+    join: 'Join',
+    addField: 'Add Field',
+    field: 'Field',
+    addFilter: 'Add Filter',
+    filter: 'Filter',
+    addSort: 'Add Sort',
+    sort: 'Sort',
+    sqlPreview: 'SQL Preview',
+    generateSQL: 'Generate SQL',
+    noSQL: 'No SQL',
+    executeError: 'Execute Error',
+    noData: 'No Data',
+    info: 'Info',
+    executeTime: 'Execute Time',
+    rowCount: 'Row Count',
+    columnCount: 'Column Count',
+    status: {
+      DRAFT: 'Draft',
+      PUBLISHED: 'Published',
+      DEPRECATED: 'Deprecated'
+    },
+    form: {
+      name: {
+        placeholder: 'Please enter query name',
+        required: 'Please enter query name'
+      },
+      code: {
+        placeholder: 'Please enter query code',
+        required: 'Please enter query code'
+      },
+      description: {
+        placeholder: 'Please enter description'
+      },
+      sql: {
+        placeholder: 'Please enter SQL statement',
+        required: 'Please enter SQL statement'
+      },
+      baseEntity: {
+        placeholder: 'Please select base entity',
+        required: 'Please select base entity'
+      },
+      baseEntityAlias: {
+        placeholder: 'Please enter base entity alias',
+        required: 'Please enter base entity alias'
+      },
+      joinType: {
+        placeholder: 'Please select join type'
+      },
+      targetEntity: {
+        placeholder: 'Please select target entity'
+      },
+      sourceField: {
+        placeholder: 'Please enter source field'
+      },
+      targetField: {
+        placeholder: 'Please enter target field'
+      },
+      alias: {
+        placeholder: 'Please enter alias'
+      },
+      fieldName: {
+        placeholder: 'Please enter field name'
+      },
+      fieldAlias: {
+        placeholder: 'Please enter field alias'
+      },
+      entityAlias: {
+        placeholder: 'Please enter entity alias'
+      },
+      aggregation: {
+        placeholder: 'Please select aggregation function'
+      },
+      operator: {
+        placeholder: 'Please select operator'
+      },
+      value: {
+        placeholder: 'Please enter value'
+      },
+      direction: {
+        placeholder: 'Please select sort direction'
       }
     }
   }

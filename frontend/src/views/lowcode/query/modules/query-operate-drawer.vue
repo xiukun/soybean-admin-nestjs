@@ -3,13 +3,13 @@
     <NDrawerContent :title="title" closable>
       <NForm ref="formRef" :model="formModel" :rules="rules" label-placement="left" :label-width="100">
         <NFormItem :label="$t('page.lowcode.query.name')" path="name">
-          <NInput v-model:value="formModel.name" :placeholder="$t('page.lowcode.query.form.name')" />
+          <NInput v-model:value="formModel.name" :placeholder="$t('page.lowcode.query.form.name.placeholder')" />
         </NFormItem>
         <NFormItem :label="$t('page.lowcode.query.description')" path="description">
           <NInput
             v-model:value="formModel.description"
             type="textarea"
-            :placeholder="$t('page.lowcode.query.form.description')"
+            :placeholder="$t('page.lowcode.query.form.description.placeholder')"
           />
         </NFormItem>
         <NFormItem :label="$t('page.lowcode.query.sql')" path="sql">
@@ -17,10 +17,10 @@
             v-model:value="formModel.sql"
             type="textarea"
             :rows="8"
-            :placeholder="$t('page.lowcode.query.form.sql')"
+            :placeholder="$t('page.lowcode.query.form.sql.placeholder')"
           />
         </NFormItem>
-        <NFormItem :label="$t('page.lowcode.query.status')" path="status">
+        <NFormItem :label="$t('common.status')" path="status">
           <NRadioGroup v-model:value="formModel.status">
             <NRadio v-for="item in queryStatusOptions" :key="item.value" :value="item.value" :label="item.label" />
           </NRadioGroup>

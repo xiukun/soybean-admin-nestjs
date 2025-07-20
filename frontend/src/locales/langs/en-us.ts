@@ -12,6 +12,7 @@ const local: App.I18n.Schema = {
     status: 'Status',
     createdAt: 'Created At',
     updatedAt: 'Updated At',
+    updateFailed: 'Update Failed',
     action: 'Action',
     add: 'Add',
     addSuccess: 'Add Success',
