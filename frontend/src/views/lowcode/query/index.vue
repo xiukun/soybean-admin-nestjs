@@ -47,7 +47,9 @@
     />
     <QueryResultModal
       v-model:visible="resultModalVisible"
-      :query-result="queryResult"
+      :data="queryResult?.data || []"
+      :query-name="queryResult?.query?.name || ''"
+      :execute-time="calculateExecuteTime(queryResult?.query?.executedAt)"
       :loading="resultLoading"
     />
   </div>
@@ -271,6 +273,13 @@ async function handleExecute(id: string) {
   } finally {
     resultLoading.value = false;
   }
+}
+
+// 计算执行时间（简化版本，返回固定值）
+function calculateExecuteTime(executedAt?: string): number {
+  // 这里可以根据实际需求计算执行时间
+  // 目前返回一个默认值
+  return executedAt ? 100 : 0;
 }
 
 // 加载项目列表

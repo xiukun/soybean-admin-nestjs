@@ -943,6 +943,15 @@ declare namespace App {
             variables: string;
             tags: string;
             isPublic: string;
+            usageCount: string;
+            publish: string;
+            publishSuccess: string;
+            publishFailed: string;
+            status: {
+              DRAFT: string;
+              PUBLISHED: string;
+              DEPRECATED: string;
+            };
             categories: {
               CONTROLLER: string;
               SERVICE: string;
@@ -1173,6 +1182,15 @@ declare namespace App {
             currentProject: string;
             changeProject: string;
             test: string;
+            quickExport: string;
+            advancedSearch: string;
+            advancedSearchOptions: string;
+            selectMethod: string;
+            selectStatus: string;
+            selectAuth: string;
+            dateRange: string;
+            totalCount: string;
+            selectedCount: string;
             testSuccess: string;
             testFailed: string;
             name: string;
@@ -1340,7 +1358,18 @@ declare namespace App {
               formatted: string;
               raw: string;
               testHistory: string;
+              envVariables: string;
+              variableKey: string;
+              variableValue: string;
+              addVariable: string;
+              testCases: string;
+              savedCases: string;
+              noCases: string;
+              load: string;
+              createdAt: string;
               caseSaved: string;
+              caseLoaded: string;
+              caseDeleted: string;
             };
             versionManagement: {
               title: string;
@@ -1364,6 +1393,7 @@ declare namespace App {
               createFailed: string;
               rollbackSuccess: string;
               rollbackFailed: string;
+              loadFailed: string;
             };
             documentation: {
               title: string;
@@ -1395,6 +1425,8 @@ declare namespace App {
               exportMarkdown: string;
               exportHtml: string;
               exportPostman: string;
+              exportOpenAPI: string;
+              exportInsomnia: string;
               generateSuccess: string;
               generateFailed: string;
               exportSuccess: string;
@@ -1456,6 +1488,100 @@ declare namespace App {
               integer: string;
               positive: string;
               unique: string;
+            };
+          };
+          apiTest: {
+            title: string;
+            project: string;
+            apiConfig: string;
+            requestConfig: string;
+            method: string;
+            url: string;
+            headers: string;
+            params: string;
+            body: string;
+            response: string;
+            status: string;
+            time: string;
+            responseHeaders: string;
+            responseData: string;
+            requestInfo: string;
+            testApi: string;
+            clearResult: string;
+            saveAsTemplate: string;
+            addHeader: string;
+            addParam: string;
+            testSuccess: string;
+            testFailed: string;
+            saveAsTemplateNotImplemented: string;
+            queryParams: string;
+            test: string;
+            form: {
+              project: {
+                placeholder: string;
+                required: string;
+              };
+              apiConfig: {
+                placeholder: string;
+                required: string;
+              };
+              url: {
+                placeholder: string;
+              };
+              headerKey: {
+                placeholder: string;
+              };
+              headerValue: {
+                placeholder: string;
+              };
+              paramKey: {
+                placeholder: string;
+              };
+              paramValue: {
+                placeholder: string;
+              };
+              body: {
+                placeholder: string;
+              };
+            };
+          };
+          relationship: {
+            title: string;
+            addRelationship: string;
+            editRelationship: string;
+            sourceEntity: string;
+            targetEntity: string;
+            relationType: string;
+            relationshipName: string;
+            description: string;
+            cascadeDelete: string;
+            required: string;
+            form: {
+              sourceEntity: {
+                placeholder: string;
+                required: string;
+              };
+              targetEntity: {
+                placeholder: string;
+                required: string;
+              };
+              relationType: {
+                placeholder: string;
+                required: string;
+              };
+              relationshipName: {
+                placeholder: string;
+                required: string;
+              };
+              description: {
+                placeholder: string;
+              };
+            };
+            relationTypes: {
+              oneToOne: string;
+              oneToMany: string;
+              manyToOne: string;
+              manyToMany: string;
             };
           };
         };

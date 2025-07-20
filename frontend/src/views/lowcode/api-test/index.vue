@@ -49,7 +49,7 @@
                 {{ $t('common.delete') }}
               </NButton>
             </NSpace>
-            <NButton type="dashed" @click="addHeader" class="w-full">
+            <NButton type="default" dashed @click="addHeader" class="w-full">
               {{ $t('page.lowcode.apiTest.addHeader') }}
             </NButton>
           </NSpace>
@@ -81,7 +81,7 @@
                 {{ $t('common.delete') }}
               </NButton>
             </NSpace>
-            <NButton type="dashed" @click="addParam" class="w-full">
+            <NButton type="default" dashed @click="addParam" class="w-full">
               {{ $t('page.lowcode.apiTest.addParam') }}
             </NButton>
           </NSpace>
@@ -242,11 +242,16 @@ function removeParam(index: number) {
 
 async function loadProjects() {
   try {
-    const projects = await fetchGetAllProjects();
-    projectOptions.value = projects.map(project => ({
-      label: project.name,
-      value: project.id
-    }));
+    const response = await fetchGetAllProjects();
+    const projects = response.data || response; // 处理响应结构
+    if (Array.isArray(projects)) {
+      projectOptions.value = projects.map(project => ({
+        label: project.name,
+        value: project.id
+      }));
+    } else {
+      console.error('Projects data is not an array:', projects);
+    }
   } catch (error) {
     console.error('Failed to load projects:', error);
   }
@@ -254,14 +259,19 @@ async function loadProjects() {
 
 async function loadApiConfigs(projectId: string) {
   if (!projectId) return;
-  
+
   try {
     apiConfigLoading.value = true;
-    const apiConfigs = await fetchGetAllApiConfigs(projectId);
-    apiConfigOptions.value = apiConfigs.map(config => ({
-      label: `${config.method} ${config.path} - ${config.name}`,
-      value: config.id
-    }));
+    const response = await fetchGetAllApiConfigs(projectId);
+    const apiConfigs = response.data || response; // 处理响应结构
+    if (Array.isArray(apiConfigs)) {
+      apiConfigOptions.value = apiConfigs.map((config: any) => ({
+        label: `${config.method} ${config.path} - ${config.name}`,
+        value: config.id
+      }));
+    } else {
+      console.error('API configs data is not an array:', apiConfigs);
+    }
   } catch (error) {
     console.error('Failed to load API configs:', error);
   } finally {
@@ -291,16 +301,19 @@ async function handleTest() {
   try {
     testing.value = true;
     testResult.value = null;
-    
+
     const startTime = Date.now();
-    const result = await fetchTestApiConfig(testForm.apiConfigId);
+    const response = await fetchTestApiConfig(testForm.apiConfigId);
     const endTime = Date.now();
-    
+
+    // 处理响应结构
+    const result = response.data || response;
+
     testResult.value = {
-      status: result.status || 200,
+      status: (result as any)?.status || 200,
       time: endTime - startTime,
-      headers: result.headers || {},
-      data: result.data,
+      headers: (result as any)?.headers || {},
+      data: result,
       request: {
         url: testForm.url,
         headers: testForm.headers.reduce((acc, header) => {
@@ -312,7 +325,7 @@ async function handleTest() {
         body: testForm.body ? JSON.parse(testForm.body) : undefined
       }
     };
-    
+
     window.$message?.success($t('page.lowcode.apiTest.testSuccess'));
   } catch (error: any) {
     testResult.value = {

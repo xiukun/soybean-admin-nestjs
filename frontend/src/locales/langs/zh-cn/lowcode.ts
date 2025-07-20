@@ -235,6 +235,15 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     variables: '模板变量',
     tags: '标签',
     isPublic: '公开模板',
+    usageCount: '使用次数',
+    publish: '发布',
+    publishSuccess: '模板发布成功',
+    publishFailed: '模板发布失败',
+    status: {
+      DRAFT: '草稿',
+      PUBLISHED: '已发布',
+      DEPRECATED: '已废弃'
+    },
     categories: {
       CONTROLLER: '控制器',
       SERVICE: '服务',
@@ -297,44 +306,24 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       }
     }
   },
-  relation: {
+  relationship: {
     title: '关系管理',
-    addRelation: '新增关系',
-    editRelation: '编辑关系',
-    name: '关系名称',
-    code: '关系代码',
-    description: '关系描述',
+    addRelationship: '新增关系',
+    editRelationship: '编辑关系',
     sourceEntity: '源实体',
     targetEntity: '目标实体',
-    sourceField: '源字段',
-    targetField: '目标字段',
     relationType: '关系类型',
-    onDelete: '删除时',
-    onUpdate: '更新时',
+    relationshipName: '关系名称',
+    description: '关系描述',
+    cascadeDelete: '级联删除',
+    required: '必填',
     relationTypes: {
-      ONE_TO_ONE: '一对一',
-      ONE_TO_MANY: '一对多',
-      MANY_TO_ONE: '多对一',
-      MANY_TO_MANY: '多对多'
-    },
-    cascadeActions: {
-      CASCADE: '级联',
-      SET_NULL: '设为空',
-      RESTRICT: '限制',
-      NO_ACTION: '无操作'
+      oneToOne: '一对一',
+      oneToMany: '一对多',
+      manyToOne: '多对一',
+      manyToMany: '多对多'
     },
     form: {
-      name: {
-        placeholder: '请输入关系名称',
-        required: '请输入关系名称'
-      },
-      code: {
-        placeholder: '请输入关系代码',
-        required: '请输入关系代码'
-      },
-      description: {
-        placeholder: '请输入关系描述'
-      },
       sourceEntity: {
         placeholder: '请选择源实体',
         required: '请选择源实体'
@@ -343,23 +332,16 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
         placeholder: '请选择目标实体',
         required: '请选择目标实体'
       },
-      sourceField: {
-        placeholder: '请选择源字段',
-        required: '请选择源字段'
-      },
-      targetField: {
-        placeholder: '请选择目标字段',
-        required: '请选择目标字段'
-      },
       relationType: {
         placeholder: '请选择关系类型',
         required: '请选择关系类型'
       },
-      onDelete: {
-        placeholder: '请选择删除时操作'
+      relationshipName: {
+        placeholder: '请输入关系名称',
+        required: '请输入关系名称'
       },
-      onUpdate: {
-        placeholder: '请选择更新时操作'
+      description: {
+        placeholder: '请输入关系描述'
       }
     }
   },
@@ -801,6 +783,61 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       integer: '请输入有效的整数',
       positive: '请输入正数',
       unique: '此值已存在，请输入其他值'
+    }
+  },
+  apiTest: {
+    title: 'API测试',
+    project: '项目',
+    apiConfig: 'API配置',
+    requestConfig: '请求配置',
+    method: '请求方法',
+    url: '请求URL',
+    headers: '请求头',
+    params: '请求参数',
+    body: '请求体',
+    response: '响应结果',
+    status: '状态码',
+    time: '响应时间',
+    responseHeaders: '响应头',
+    responseData: '响应数据',
+    requestInfo: '请求信息',
+    testApi: '测试API',
+    clearResult: '清空结果',
+    saveAsTemplate: '保存为模板',
+    addHeader: '添加请求头',
+    addParam: '添加参数',
+    testSuccess: 'API测试成功',
+    testFailed: 'API测试失败',
+    saveAsTemplateNotImplemented: '保存为模板功能尚未实现',
+    queryParams: '查询参数',
+    test: '测试',
+    form: {
+      project: {
+        placeholder: '请选择项目',
+        required: '请选择项目'
+      },
+      apiConfig: {
+        placeholder: '请选择API配置',
+        required: '请选择API配置'
+      },
+      url: {
+        placeholder: '请求URL将自动生成'
+      },
+      headerKey: {
+        placeholder: '请求头名称'
+      },
+      headerValue: {
+        placeholder: '请求头值'
+      },
+      paramKey: {
+        placeholder: '参数名称'
+      },
+      paramValue: {
+        placeholder: '参数值'
+      },
+      body: {
+        placeholder: '请输入JSON格式的请求体'
+      }
     }
   }
 };

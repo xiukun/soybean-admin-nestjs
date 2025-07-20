@@ -293,6 +293,91 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       }
     }
   },
+  template: {
+    title: 'Template Management',
+    addTemplate: 'Add Template',
+    editTemplate: 'Edit Template',
+    name: 'Template Name',
+    code: 'Template Code',
+    description: 'Template Description',
+    category: 'Template Category',
+    language: 'Programming Language',
+    framework: 'Framework',
+    content: 'Template Content',
+    variables: 'Template Variables',
+    tags: 'Tags',
+    isPublic: 'Public Template',
+    usageCount: 'Usage Count',
+    publish: 'Publish',
+    publishSuccess: 'Template published successfully',
+    publishFailed: 'Failed to publish template',
+    status: {
+      DRAFT: 'Draft',
+      PUBLISHED: 'Published',
+      DEPRECATED: 'Deprecated'
+    },
+    categories: {
+      CONTROLLER: 'Controller',
+      SERVICE: 'Service',
+      MODEL: 'Model',
+      DTO: 'Data Transfer Object',
+      COMPONENT: 'Component',
+      PAGE: 'Page',
+      CONFIG: 'Configuration',
+      TEST: 'Test'
+    },
+    languages: {
+      TYPESCRIPT: 'TypeScript',
+      JAVASCRIPT: 'JavaScript',
+      JAVA: 'Java',
+      PYTHON: 'Python',
+      CSHARP: 'C#',
+      GO: 'Go'
+    },
+    frameworks: {
+      NESTJS: 'NestJS',
+      EXPRESS: 'Express',
+      SPRING: 'Spring Boot',
+      DJANGO: 'Django',
+      DOTNET: '.NET Core',
+      GIN: 'Gin'
+    },
+    form: {
+      name: {
+        placeholder: 'Please enter template name',
+        required: 'Please enter template name'
+      },
+      code: {
+        placeholder: 'Please enter template code',
+        required: 'Please enter template code'
+      },
+      description: {
+        placeholder: 'Please enter template description'
+      },
+      category: {
+        placeholder: 'Please select template category',
+        required: 'Please select template category'
+      },
+      language: {
+        placeholder: 'Please select programming language',
+        required: 'Please select programming language'
+      },
+      framework: {
+        placeholder: 'Please select framework',
+        required: 'Please select framework'
+      },
+      content: {
+        placeholder: 'Please enter template content',
+        required: 'Please enter template content'
+      },
+      variables: {
+        placeholder: 'Please enter template variables'
+      },
+      tags: {
+        placeholder: 'Please enter tags, separated by commas'
+      }
+    }
+  },
   apiConfig: {
     title: 'API Configuration Management',
     addApiConfig: 'Add API Configuration',
@@ -550,6 +635,61 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       generateFailed: 'Failed to generate documentation',
       exportSuccess: 'Successfully exported {format} format documentation',
       exportFailed: 'Failed to export documentation'
+    }
+  },
+  apiTest: {
+    title: 'API Testing',
+    project: 'Project',
+    apiConfig: 'API Configuration',
+    requestConfig: 'Request Configuration',
+    method: 'Request Method',
+    url: 'Request URL',
+    headers: 'Request Headers',
+    params: 'Request Parameters',
+    body: 'Request Body',
+    response: 'Response Result',
+    status: 'Status Code',
+    time: 'Response Time',
+    responseHeaders: 'Response Headers',
+    responseData: 'Response Data',
+    requestInfo: 'Request Information',
+    testApi: 'Test API',
+    clearResult: 'Clear Result',
+    saveAsTemplate: 'Save as Template',
+    addHeader: 'Add Header',
+    addParam: 'Add Parameter',
+    testSuccess: 'API test successful',
+    testFailed: 'API test failed',
+    saveAsTemplateNotImplemented: 'Save as template feature not implemented yet',
+    queryParams: 'Query Parameters',
+    test: 'Test',
+    form: {
+      project: {
+        placeholder: 'Please select a project',
+        required: 'Please select a project'
+      },
+      apiConfig: {
+        placeholder: 'Please select an API configuration',
+        required: 'Please select an API configuration'
+      },
+      url: {
+        placeholder: 'Request URL will be generated automatically'
+      },
+      headerKey: {
+        placeholder: 'Header name'
+      },
+      headerValue: {
+        placeholder: 'Header value'
+      },
+      paramKey: {
+        placeholder: 'Parameter name'
+      },
+      paramValue: {
+        placeholder: 'Parameter value'
+      },
+      body: {
+        placeholder: 'Please enter JSON format request body'
+      }
     }
   }
 };
