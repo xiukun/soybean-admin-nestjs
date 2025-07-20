@@ -2,8 +2,8 @@
   <NCard :title="$t('common.search')" :bordered="false" size="small" class="card-wrapper">
     <NForm ref="formRef" :model="model" :label-width="80" label-placement="left">
       <NGrid responsive="screen" item-responsive>
-        <NFormItemGi span="24 s:12 m:6" :label="$t('page.lowcode.query.name')" path="name" class="pr-24px">
-          <NInput v-model:value="model.name" :placeholder="$t('page.lowcode.query.form.name.placeholder')" />
+        <NFormItemGi span="24 s:12 m:6" :label="$t('page.lowcode.query.name')" path="search" class="pr-24px">
+          <NInput v-model:value="model.search" :placeholder="$t('page.lowcode.query.form.name.placeholder')" />
         </NFormItemGi>
         <NFormItemGi span="24 s:12 m:6" :label="$t('common.status')" path="status" class="pr-24px">
           <NSelect
@@ -49,7 +49,7 @@ defineOptions({
 
 const emit = defineEmits<Emits>();
 
-const model = defineModel<Api.SystemManage.QuerySearchParams>('model', { required: true });
+const model = defineModel<Api.Lowcode.QuerySearchParams>('model', { required: true });
 
 async function reset() {
   emit('reset');

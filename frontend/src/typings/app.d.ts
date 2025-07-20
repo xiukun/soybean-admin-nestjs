@@ -1164,6 +1164,67 @@ declare namespace App {
               };
             };
           };
+          apiConfig: {
+            title: string;
+            addApiConfig: string;
+            editApiConfig: string;
+            name: string;
+            code: string;
+            path: string;
+            method: string;
+            description: string;
+            version: string;
+            entity: string;
+            authRequired: string;
+            test: string;
+            testSuccess: string;
+            testFailed: string;
+            status: {
+              ACTIVE: string;
+              INACTIVE: string;
+            };
+            methods: {
+              GET: string;
+              POST: string;
+              PUT: string;
+              DELETE: string;
+              PATCH: string;
+            };
+            form: {
+              name: {
+                placeholder: string;
+                required: string;
+              };
+              code: {
+                placeholder: string;
+                required: string;
+              };
+              path: {
+                placeholder: string;
+                required: string;
+              };
+              method: {
+                placeholder: string;
+                required: string;
+              };
+              description: {
+                placeholder: string;
+              };
+              version: {
+                placeholder: string;
+                required: string;
+              };
+              entity: {
+                placeholder: string;
+              };
+              authRequired: {
+                placeholder: string;
+              };
+              status: {
+                placeholder: string;
+              };
+            };
+          };
           common: {
             search: {
               placeholder: string;

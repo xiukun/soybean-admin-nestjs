@@ -49,7 +49,7 @@ export interface Props {
   /** the type of operation */
   operateType: NaiveUI.TableOperateType;
   /** the edit row data */
-  rowData?: Api.SystemManage.Query | null;
+  rowData?: Api.Lowcode.MultiTableQuery | null;
 }
 
 export interface Emits {
@@ -77,14 +77,23 @@ const title = computed(() => {
   return titles[props.operateType];
 });
 
-const formModel = reactive<Api.SystemManage.QueryEdit>(createDefaultModel());
+const formModel = reactive<Api.Lowcode.QueryEdit>(createDefaultModel());
 
-function createDefaultModel(): Api.SystemManage.QueryEdit {
+function createDefaultModel(): Api.Lowcode.QueryEdit {
   return {
+    projectId: '',
     name: '',
     description: '',
+    baseEntityId: '',
+    baseEntityAlias: 'main',
+    joins: [],
+    fields: [],
+    filters: [],
+    sorting: [],
+    groupBy: [],
+    having: [],
     sql: '',
-    status: null
+    status: 'DRAFT'
   };
 }
 

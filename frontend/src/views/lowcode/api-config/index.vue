@@ -37,15 +37,12 @@
 </template>
 
 <script setup lang="tsx">
-import { reactive, ref, watch } from 'vue';
-import type { Ref } from 'vue';
-import { NButton, NPopconfirm, NSpace, NTag } from 'naive-ui';
-import type { DataTableColumns, PaginationProps } from 'naive-ui';
+import { watch } from 'vue';
+import { NButton, NPopconfirm, NTag } from 'naive-ui';
 import { fetchDeleteApiConfig, fetchGetApiConfigList, fetchTestApiConfig } from '@/service/api';
 import { $t } from '@/locales';
 import { useAppStore } from '@/store/modules/app';
 import { useTable, useTableOperate } from '@/hooks/common/table';
-import { enableStatusRecord, enableStatusTag } from '@/constants/business';
 import ApiConfigOperateDrawer from './modules/api-config-operate-drawer.vue';
 import ApiConfigSearch from './modules/api-config-search.vue';
 import TableHeaderOperation from '@/components/advanced/table-header-operation.vue';
@@ -55,6 +52,12 @@ const appStore = useAppStore();
 const props = defineProps<{
   projectId: string;
 }>();
+
+// 创建适配器函数来处理API调用
+const apiConfigListAdapter = (params: any) => {
+  const { projectId, ...searchParams } = params;
+  return fetchGetApiConfigList(projectId, searchParams);
+};
 
 const {
   columns,
@@ -67,7 +70,7 @@ const {
   searchParams,
   resetSearchParams
 } = useTable({
-  apiFn: fetchGetApiConfigList,
+  apiFn: apiConfigListAdapter,
   showTotal: true,
   apiParams: {
     current: 1,
@@ -122,7 +125,7 @@ const {
       width: 80,
       render: row => (
         <NTag type={row.authRequired ? 'error' : 'success'}>
-          {row.authRequired ? $t('common.yes') : $t('common.no')}
+          {row.authRequired ? $t('common.yesOrNo.yes') : $t('common.yesOrNo.no')}
         </NTag>
       )
     },

@@ -571,6 +571,10 @@ declare namespace Api {
       limit?: number;
       /** Result offset */
       offset?: number;
+      /** Query status */
+      status?: QueryStatus;
+      /** Generated SQL */
+      sql?: string;
     }
 
     /** Field data type */

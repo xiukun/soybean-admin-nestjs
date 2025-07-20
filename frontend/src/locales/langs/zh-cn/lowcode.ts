@@ -487,6 +487,67 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       }
     }
   },
+  apiConfig: {
+    title: 'API配置管理',
+    addApiConfig: '新增API配置',
+    editApiConfig: '编辑API配置',
+    name: 'API名称',
+    code: 'API代码',
+    path: 'API路径',
+    method: 'HTTP方法',
+    description: '描述',
+    version: '版本',
+    entity: '关联实体',
+    authRequired: '需要认证',
+    test: '测试',
+    testSuccess: 'API测试成功',
+    testFailed: 'API测试失败',
+    status: {
+      ACTIVE: '启用',
+      INACTIVE: '禁用'
+    },
+    methods: {
+      GET: 'GET',
+      POST: 'POST',
+      PUT: 'PUT',
+      DELETE: 'DELETE',
+      PATCH: 'PATCH'
+    },
+    form: {
+      name: {
+        placeholder: '请输入API名称',
+        required: '请输入API名称'
+      },
+      code: {
+        placeholder: '请输入API代码',
+        required: '请输入API代码'
+      },
+      path: {
+        placeholder: '请输入API路径',
+        required: '请输入API路径'
+      },
+      method: {
+        placeholder: '请选择HTTP方法',
+        required: '请选择HTTP方法'
+      },
+      description: {
+        placeholder: '请输入描述'
+      },
+      version: {
+        placeholder: '请输入版本',
+        required: '请输入版本'
+      },
+      entity: {
+        placeholder: '请选择关联实体'
+      },
+      authRequired: {
+        placeholder: '请选择是否需要认证'
+      },
+      status: {
+        placeholder: '请选择状态'
+      }
+    }
+  },
   common: {
     search: {
       placeholder: '请输入搜索关键词'
