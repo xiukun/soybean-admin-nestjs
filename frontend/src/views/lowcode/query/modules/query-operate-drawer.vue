@@ -44,6 +44,7 @@ import { useNaiveForm } from '@/hooks/common/form';
 import { useFormRules } from '@/hooks/common/form';
 import { $t } from '@/locales';
 import { queryStatusOptions } from '@/constants/business';
+import { fetchAddQuery, fetchUpdateQuery } from '@/service/api';
 
 export interface Props {
   /** the type of operation */
@@ -118,10 +119,27 @@ function closeDrawer() {
 
 async function handleSubmit() {
   await validate();
-  // TODO: submit form
-  window.$message?.success($t('common.updateSuccess'));
-  closeDrawer();
-  emit('submitted');
+
+  try {
+    // 准备提交数据，将 sql 映射为 sqlQuery
+    const submitData = {
+      ...formModel,
+      sqlQuery: formModel.sql // 将 sql 映射为 sqlQuery
+    };
+
+    if (props.operateType === 'add') {
+      await fetchAddQuery(submitData);
+      window.$message?.success($t('common.addSuccess'));
+    } else {
+      await fetchUpdateQuery(props.rowData!.id, submitData);
+      window.$message?.success($t('common.updateSuccess'));
+    }
+
+    closeDrawer();
+    emit('submitted');
+  } catch (error) {
+    window.$message?.error($t('common.saveFailed'));
+  }
 }
 
 watch(visible, () => {
@@ -135,7 +153,12 @@ function handleInitModel() {
   Object.assign(formModel, createDefaultModel());
 
   if (props.operateType === 'edit' && props.rowData) {
-    Object.assign(formModel, props.rowData);
+    // 映射字段名：sqlQuery -> sql
+    const editData = {
+      ...props.rowData,
+      sql: props.rowData.sqlQuery // 将 sqlQuery 映射为 sql
+    };
+    Object.assign(formModel, editData);
   }
 }
 </script>

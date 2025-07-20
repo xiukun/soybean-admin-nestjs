@@ -81,6 +81,11 @@ export class UpdateQueryHandler implements ICommandHandler<UpdateQueryCommand> {
       updatedBy: command.updatedBy,
     });
 
+    // 如果提供了SQL查询，则更新它
+    if (command.sqlQuery !== undefined) {
+      query.setSqlQuery(command.sqlQuery);
+    }
+
     return this.queryRepository.save(query);
   }
 }

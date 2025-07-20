@@ -34,6 +34,7 @@ export class UpdateQueryCommand {
     public readonly having: FilterCondition[],
     public readonly limit?: number,
     public readonly offset?: number,
+    public readonly sqlQuery?: string,
     public readonly updatedBy: string = 'system',
   ) {}
 }

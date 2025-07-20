@@ -155,17 +155,20 @@ export class QueryRepository {
       if (query.sqlQuery) {
         const result = await this.client.$queryRawUnsafe(query.sqlQuery);
 
+        // 处理BigInt类型，转换为字符串
+        const processedResult = this.processBigIntValues(result);
+
         // 更新执行统计
-        await this.updateExecutionStats(id, result);
+        await this.updateExecutionStats(id, processedResult);
 
         return {
-          data: result,
+          data: processedResult,
           query: {
             id: query.id,
             name: query.name,
             sql: query.sqlQuery,
             executedAt: new Date().toISOString(),
-            resultCount: Array.isArray(result) ? result.length : 1
+            resultCount: Array.isArray(processedResult) ? processedResult.length : 1
           }
         };
       }
@@ -174,17 +177,20 @@ export class QueryRepository {
       const generatedSQL = this.generateSQL(query);
       const result = await this.client.$queryRawUnsafe(generatedSQL);
 
+      // 处理BigInt类型，转换为字符串
+      const processedResult = this.processBigIntValues(result);
+
       // 更新执行统计
-      await this.updateExecutionStats(id, result);
+      await this.updateExecutionStats(id, processedResult);
 
       return {
-        data: result,
+        data: processedResult,
         query: {
           id: query.id,
           name: query.name,
           sql: generatedSQL,
           executedAt: new Date().toISOString(),
-          resultCount: Array.isArray(result) ? result.length : 1
+          resultCount: Array.isArray(processedResult) ? processedResult.length : 1
         }
       };
     } catch (error) {
@@ -211,6 +217,30 @@ export class QueryRepository {
 
     // 默认查询
     return `SELECT 'Query execution completed' as message, '${query.name}' as query_name`;
+  }
+
+  private processBigIntValues(data: any): any {
+    if (data === null || data === undefined) {
+      return data;
+    }
+
+    if (typeof data === 'bigint') {
+      return data.toString();
+    }
+
+    if (Array.isArray(data)) {
+      return data.map(item => this.processBigIntValues(item));
+    }
+
+    if (typeof data === 'object') {
+      const processed: any = {};
+      for (const [key, value] of Object.entries(data)) {
+        processed[key] = this.processBigIntValues(value);
+      }
+      return processed;
+    }
+
+    return data;
   }
 
   private async updateExecutionStats(queryId: string, result: any): Promise<void> {

@@ -179,6 +179,7 @@ export class QueryController {
       body.having || [],
       body.limit,
       body.offset,
+      body.sqlQuery,
       body.updatedBy || 'system',
     );
 
