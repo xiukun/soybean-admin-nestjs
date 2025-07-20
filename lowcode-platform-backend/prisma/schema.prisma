@@ -241,8 +241,8 @@ model LowcodeQuery {
   sorting         Json     @default("[]")
   groupBy         Json     @default("[]") @map("group_by")
   having          Json     @default("[]")
-  limit           Int?
-  offset          Int?
+  limit           Int?     @map("limit_count")
+  offset          Int?     @map("offset_count")
   status          String   @default("DRAFT")
   sqlQuery        String?  @map("sql_query")
   executionStats  Json?    @map("execution_stats")

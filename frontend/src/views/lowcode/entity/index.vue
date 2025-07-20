@@ -205,7 +205,7 @@ const {
       key: 'operate',
       title: $t('common.operate'),
       align: 'center',
-      minWidth: 160,
+      width: 200,
       render: row => (
         <NSpace justify={'center'}>
           <NButton size={'small'} type={'primary'} onClick={() => handleViewFields(row.id)}>

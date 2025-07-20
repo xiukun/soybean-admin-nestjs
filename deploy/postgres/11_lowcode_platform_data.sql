@@ -210,7 +210,7 @@ INSERT INTO lowcode_relations (id, project_id, name, code, description, type, so
 'system');
 
 -- 插入示例API配置
-INSERT INTO lowcode_api_configs (id, project_id, name, code, description, method, path, entity_id, parameters, responses, created_by) VALUES 
+INSERT INTO lowcode_api_configs (id, project_id, name, code, description, method, path, entity_id, parameters, responses, created_by) VALUES
 ('api-user-list', 'demo-project-1', '获取用户列表', 'get-users', '获取用户列表API', 'GET', '/users', 'demo-entity-user',
 '[{"name":"page","type":"number","description":"页码","required":false},{"name":"limit","type":"number","description":"每页数量","required":false}]',
 '[{"status":200,"description":"成功","schema":{"type":"array","items":{"$ref":"#/components/schemas/User"}}}]',
@@ -218,6 +218,27 @@ INSERT INTO lowcode_api_configs (id, project_id, name, code, description, method
 ('api-user-create', 'demo-project-1', '创建用户', 'create-user', '创建新用户API', 'POST', '/users', 'demo-entity-user',
 '[{"name":"body","type":"object","description":"用户信息","required":true,"schema":{"$ref":"#/components/schemas/CreateUserDto"}}]',
 '[{"status":201,"description":"创建成功","schema":{"$ref":"#/components/schemas/User"}}]',
+'system');
+
+-- 插入示例查询
+INSERT INTO lowcode_queries (id, project_id, name, description, base_entity_id, base_entity_alias, fields, filters, sorting, status, created_by) VALUES
+('query-active-users', 'demo-project-1', '活跃用户查询', '查询所有状态为活跃的用户', 'demo-entity-user', 'user',
+'[{"field":"id","alias":"用户ID","type":"UUID"},{"field":"username","alias":"用户名","type":"STRING"},{"field":"email","alias":"邮箱","type":"STRING"},{"field":"nickname","alias":"昵称","type":"STRING"},{"field":"status","alias":"状态","type":"STRING"}]',
+'[{"field":"status","operator":"eq","value":"ACTIVE","type":"STRING"}]',
+'[{"field":"username","direction":"ASC"}]',
+'PUBLISHED',
+'system'),
+('query-user-roles', 'demo-project-1', '用户角色查询', '查询用户及其关联的角色信息', 'demo-entity-user', 'user',
+'[{"field":"user.id","alias":"用户ID","type":"UUID"},{"field":"user.username","alias":"用户名","type":"STRING"},{"field":"user.email","alias":"邮箱","type":"STRING"},{"field":"role.name","alias":"角色名","type":"STRING"},{"field":"role.code","alias":"角色编码","type":"STRING"}]',
+'[]',
+'[{"field":"user.username","direction":"ASC"},{"field":"role.name","direction":"ASC"}]',
+'PUBLISHED',
+'system'),
+('query-user-statistics', 'demo-project-1', '用户统计查询', '按状态统计用户数量', 'demo-entity-user', 'user',
+'[{"field":"status","alias":"状态","type":"STRING"},{"field":"COUNT(*)","alias":"用户数量","type":"INTEGER"}]',
+'[]',
+'[{"field":"status","direction":"ASC"}]',
+'PUBLISHED',
 'system');
 
 -- 为低代码平台菜单添加权限（ID从100开始）

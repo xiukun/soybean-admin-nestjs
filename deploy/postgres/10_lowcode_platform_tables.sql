@@ -150,6 +150,34 @@ CREATE TABLE IF NOT EXISTS lowcode_apis (
     UNIQUE (project_id, path, method)
 );
 
+-- 查询管理表
+CREATE TABLE IF NOT EXISTS lowcode_queries (
+    id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    project_id VARCHAR(36) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    base_entity_id VARCHAR(36) NOT NULL,
+    base_entity_alias VARCHAR(50) DEFAULT 'main',
+    joins JSONB DEFAULT '[]',
+    fields JSONB DEFAULT '[]',
+    filters JSONB DEFAULT '[]',
+    sorting JSONB DEFAULT '[]',
+    group_by JSONB DEFAULT '[]',
+    having_conditions JSONB DEFAULT '[]',
+    limit_count INTEGER,
+    offset_count INTEGER,
+    status VARCHAR(20) DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'PUBLISHED', 'DEPRECATED')),
+    sql_query TEXT,
+    execution_stats JSONB,
+    created_by VARCHAR(36) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(36),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES lowcode_projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (base_entity_id) REFERENCES lowcode_entities(id) ON DELETE CASCADE,
+    UNIQUE (project_id, name)
+);
+
 -- 代码生成任务表
 CREATE TABLE IF NOT EXISTS lowcode_codegen_tasks (
     id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
@@ -196,6 +224,9 @@ CREATE INDEX IF NOT EXISTS idx_lowcode_relations_target_entity ON lowcode_relati
 CREATE INDEX IF NOT EXISTS idx_lowcode_api_configs_project_id ON lowcode_api_configs(project_id);
 CREATE INDEX IF NOT EXISTS idx_lowcode_apis_project_id ON lowcode_apis(project_id);
 CREATE INDEX IF NOT EXISTS idx_lowcode_apis_entity_id ON lowcode_apis(entity_id);
+CREATE INDEX IF NOT EXISTS idx_lowcode_queries_project_id ON lowcode_queries(project_id);
+CREATE INDEX IF NOT EXISTS idx_lowcode_queries_base_entity_id ON lowcode_queries(base_entity_id);
+CREATE INDEX IF NOT EXISTS idx_lowcode_queries_status ON lowcode_queries(status);
 CREATE INDEX IF NOT EXISTS idx_lowcode_codegen_tasks_project_id ON lowcode_codegen_tasks(project_id);
 CREATE INDEX IF NOT EXISTS idx_lowcode_codegen_tasks_status ON lowcode_codegen_tasks(status);
 
@@ -215,6 +246,7 @@ CREATE TRIGGER update_lowcode_fields_updated_at BEFORE UPDATE ON lowcode_fields 
 CREATE TRIGGER update_lowcode_relations_updated_at BEFORE UPDATE ON lowcode_relations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_lowcode_api_configs_updated_at BEFORE UPDATE ON lowcode_api_configs FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_lowcode_apis_updated_at BEFORE UPDATE ON lowcode_apis FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_lowcode_queries_updated_at BEFORE UPDATE ON lowcode_queries FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_lowcode_codegen_tasks_updated_at BEFORE UPDATE ON lowcode_codegen_tasks FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_lowcode_code_templates_updated_at BEFORE UPDATE ON lowcode_code_templates FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -225,5 +257,6 @@ COMMENT ON TABLE lowcode_fields IS '低代码平台字段表';
 COMMENT ON TABLE lowcode_relations IS '低代码平台关系表';
 COMMENT ON TABLE lowcode_api_configs IS '低代码平台API配置表';
 COMMENT ON TABLE lowcode_apis IS '低代码平台API表';
+COMMENT ON TABLE lowcode_queries IS '低代码平台查询管理表';
 COMMENT ON TABLE lowcode_codegen_tasks IS '低代码平台代码生成任务表';
 COMMENT ON TABLE lowcode_code_templates IS '低代码平台代码模板表';
