@@ -2,14 +2,14 @@
   <NCard :title="$t('common.search')" :bordered="false" size="small" class="card-wrapper">
     <NForm ref="formRef" :model="model" :label-width="80" label-placement="left">
       <NGrid responsive="screen" item-responsive>
-        <NFormItemGi span="24 s:12 m:6" :label="$t('page.manage.query.name')" path="name" class="pr-24px">
-          <NInput v-model:value="model.name" :placeholder="$t('page.manage.query.form.name')" />
+        <NFormItemGi span="24 s:12 m:6" :label="$t('page.lowcode.query.name')" path="name" class="pr-24px">
+          <NInput v-model:value="model.name" :placeholder="$t('page.lowcode.query.form.name')" />
         </NFormItemGi>
-        <NFormItemGi span="24 s:12 m:6" :label="$t('page.manage.query.status')" path="status" class="pr-24px">
+        <NFormItemGi span="24 s:12 m:6" :label="$t('page.lowcode.query.status')" path="status" class="pr-24px">
           <NSelect
             v-model:value="model.status"
-            :placeholder="$t('page.manage.query.form.status')"
-            :options="enableStatusOptions"
+            :placeholder="$t('page.lowcode.query.form.status')"
+            :options="queryStatusOptions"
             clearable
           />
         </NFormItemGi>
@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import { $t } from '@/locales';
-import { enableStatusOptions } from '@/constants/business';
+import { queryStatusOptions } from '@/constants/business';
 
 export interface Emits {
   (e: 'reset'): void;

@@ -14,6 +14,14 @@ export const userGenderRecord: Record<Api.SystemManage.UserGender, App.I18n.I18n
 
 export const userGenderOptions = transformRecordToOption(userGenderRecord);
 
+export const queryStatusRecord: Record<Api.Lowcode.QueryStatus, App.I18n.I18nKey> = {
+  DRAFT: 'page.lowcode.query.status.DRAFT',
+  PUBLISHED: 'page.lowcode.query.status.PUBLISHED',
+  DEPRECATED: 'page.lowcode.query.status.DEPRECATED'
+};
+
+export const queryStatusOptions = transformRecordToOption(queryStatusRecord);
+
 export const menuTypeRecord: Record<Api.SystemManage.MenuType, App.I18n.I18nKey> = {
   directory: 'page.manage.menu.type.directory',
   menu: 'page.manage.menu.type.menu',

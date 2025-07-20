@@ -170,11 +170,14 @@ const {
       render: row => {
         const tagMap: Record<string, NaiveUI.ThemeColor> = {
           DRAFT: 'warning',
+          PUBLISHED: 'success',
+          DEPRECATED: 'error',
           ACTIVE: 'success',
           INACTIVE: 'default'
         };
-        
-        const label = row.status === 'ACTIVE' ? $t('page.lowcode.query.status.ACTIVE') : $t('page.lowcode.query.status.INACTIVE');
+
+        const statusKey = `page.lowcode.query.status.${row.status}`;
+        const label = $t(statusKey as any) || row.status;
         return <NTag type={tagMap[row.status] || 'default'}>{label}</NTag>;
       }
     },

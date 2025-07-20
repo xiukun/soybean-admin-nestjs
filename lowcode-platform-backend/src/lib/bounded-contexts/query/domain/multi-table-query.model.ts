@@ -63,8 +63,8 @@ export interface MultiTableQueryPersistence extends MultiTableQueryProperties {
 
 export enum QueryStatus {
   DRAFT = 'DRAFT',
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
+  PUBLISHED = 'PUBLISHED',
+  DEPRECATED = 'DEPRECATED',
 }
 
 export class MultiTableQuery {
@@ -167,12 +167,12 @@ export class MultiTableQuery {
   }
 
   activate(): void {
-    this.status = QueryStatus.ACTIVE;
+    this.status = QueryStatus.PUBLISHED;
     this.updatedAt = new Date();
   }
 
   deactivate(): void {
-    this.status = QueryStatus.INACTIVE;
+    this.status = QueryStatus.DEPRECATED;
     this.updatedAt = new Date();
   }
 

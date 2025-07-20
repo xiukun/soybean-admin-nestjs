@@ -383,6 +383,9 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     executeSuccess: '查询执行成功',
     executeFailed: '查询执行失败',
     status: {
+      DRAFT: '草稿',
+      PUBLISHED: '已发布',
+      DEPRECATED: '已废弃',
       ACTIVE: '激活',
       INACTIVE: '非激活'
     },

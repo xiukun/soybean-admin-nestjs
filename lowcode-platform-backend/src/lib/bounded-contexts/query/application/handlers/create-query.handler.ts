@@ -115,8 +115,8 @@ export class ExecuteQueryHandler implements ICommandHandler<ExecuteQueryCommand>
       throw new NotFoundException(`Query with id '${command.id}' not found`);
     }
 
-    if (query.status !== QueryStatus.ACTIVE) {
-      throw new ConflictException('Query must be active to execute');
+    if (query.status !== QueryStatus.PUBLISHED) {
+      throw new ConflictException('Query must be published to execute');
     }
 
     return this.queryRepository.execute(command.id, command.parameters);

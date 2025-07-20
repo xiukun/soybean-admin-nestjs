@@ -216,7 +216,7 @@ export class QueryController {
   })
   async executeQuery(@Param('id') id: string, @Body() body?: any): Promise<any> {
     const command = new ExecuteQueryCommand(id, body?.parameters);
-    return this.queryBus.execute(command);
+    return this.commandBus.execute(command);
   }
 
   @Post(':id/activate')

@@ -417,7 +417,7 @@ declare namespace Api {
     }
 
     /** Query status */
-    type QueryStatus = 'DRAFT' | 'ACTIVE' | 'INACTIVE';
+    type QueryStatus = 'DRAFT' | 'PUBLISHED' | 'DEPRECATED';
 
     /** Join type */
     type JoinType = 'INNER' | 'LEFT' | 'RIGHT' | 'FULL';
@@ -573,50 +573,37 @@ declare namespace Api {
       offset?: number;
     }
 
+    /** Field data type */
+    type FieldDataType = 'STRING' | 'INTEGER' | 'DECIMAL' | 'BOOLEAN' | 'DATE' | 'DATETIME' | 'TEXT' | 'JSON';
 
-
-    /** Relationship status */
-    type RelationshipStatus = 'ACTIVE' | 'INACTIVE';
-
-    /** Relationship type */
-    type RelationshipType = 'ONE_TO_ONE' | 'ONE_TO_MANY' | 'MANY_TO_ONE' | 'MANY_TO_MANY';
-
-    /** Relationship */
-    interface Relationship {
-      /** Relationship ID */
+    /** Field */
+    interface Field {
+      /** Field ID */
       id: string;
-      /** Project ID */
-      projectId: string;
-      /** Relationship name */
+      /** Entity ID */
+      entityId: string;
+      /** Field name */
       name: string;
-      /** Relationship code */
+      /** Field code */
       code: string;
-      /** Relationship description */
+      /** Field description */
       description?: string;
-      /** Relationship type */
-      type: RelationshipType;
-      /** Source entity ID */
-      sourceEntityId: string;
-      /** Target entity ID */
-      targetEntityId: string;
-      /** Source field ID */
-      sourceFieldId?: string;
-      /** Target field ID */
-      targetFieldId?: string;
-      /** Foreign key name */
-      foreignKeyName?: string;
-      /** On delete action */
-      onDelete?: string;
-      /** On update action */
-      onUpdate?: string;
-      /** Relationship configuration */
+      /** Data type */
+      dataType: FieldDataType;
+      /** Field length */
+      length?: number;
+      /** Decimal places */
+      precision?: number;
+      /** Is required */
+      required: boolean;
+      /** Is unique */
+      unique: boolean;
+      /** Default value */
+      defaultValue?: string;
+      /** Field configuration */
       config?: Record<string, any>;
-      /** Relationship status */
-      status: RelationshipStatus;
-      /** Source entity */
-      sourceEntity?: Entity;
-      /** Target entity */
-      targetEntity?: Entity;
+      /** Display order */
+      displayOrder: number;
       /** Created by */
       createdBy: string;
       /** Created time */
@@ -627,52 +614,51 @@ declare namespace Api {
       updatedAt?: string;
     }
 
-    /** Relationship search params */
-    interface RelationshipSearchParams extends Common.CommonSearchParams {
-      /** Project ID */
-      projectId: string;
-      /** Relationship name or code search */
+    /** Field search params */
+    interface FieldSearchParams extends Common.PaginatingQueryRecord {
+      /** Entity ID */
+      entityId: string;
+      /** Field name or code search */
       search?: string;
-      /** Relationship type */
-      type?: RelationshipType | null;
-      /** Relationship status */
-      status?: RelationshipStatus | null;
+      /** Data type */
+      dataType?: FieldDataType | null;
     }
 
-    /** Relationship list */
-    interface RelationshipList extends Common.PaginatingQueryRecord<Relationship> {
+    /** Field list */
+    interface FieldList extends Common.PaginatingQueryRecord {
+      fields: Field[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
     }
 
-    /** Relationship edit */
-    interface RelationshipEdit {
-      /** Project ID */
-      projectId: string;
-      /** Relationship name */
+    /** Field edit */
+    interface FieldEdit {
+      /** Entity ID */
+      entityId: string;
+      /** Field name */
       name: string;
-      /** Relationship code */
+      /** Field code */
       code: string;
-      /** Relationship description */
+      /** Field description */
       description?: string;
-      /** Relationship type */
-      type: RelationshipType;
-      /** Source entity ID */
-      sourceEntityId: string;
-      /** Target entity ID */
-      targetEntityId: string;
-      /** Source field ID */
-      sourceFieldId?: string;
-      /** Target field ID */
-      targetFieldId?: string;
-      /** Foreign key name */
-      foreignKeyName?: string;
-      /** On delete action */
-      onDelete?: string;
-      /** On update action */
-      onUpdate?: string;
-      /** Relationship configuration */
+      /** Data type */
+      dataType: FieldDataType;
+      /** Field length */
+      length?: number;
+      /** Decimal places */
+      precision?: number;
+      /** Is required */
+      required: boolean;
+      /** Is unique */
+      unique: boolean;
+      /** Default value */
+      defaultValue?: string;
+      /** Field configuration */
       config?: Record<string, any>;
-      /** Relationship status */
-      status?: RelationshipStatus;
+      /** Display order */
+      displayOrder: number;
     }
   }
 }

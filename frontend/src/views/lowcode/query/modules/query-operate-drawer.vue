@@ -2,27 +2,27 @@
   <NDrawer v-model:show="drawerVisible" :width="640" :title="title">
     <NDrawerContent :title="title" closable>
       <NForm ref="formRef" :model="formModel" :rules="rules" label-placement="left" :label-width="100">
-        <NFormItem :label="$t('page.manage.query.name')" path="name">
-          <NInput v-model:value="formModel.name" :placeholder="$t('page.manage.query.form.name')" />
+        <NFormItem :label="$t('page.lowcode.query.name')" path="name">
+          <NInput v-model:value="formModel.name" :placeholder="$t('page.lowcode.query.form.name')" />
         </NFormItem>
-        <NFormItem :label="$t('page.manage.query.description')" path="description">
+        <NFormItem :label="$t('page.lowcode.query.description')" path="description">
           <NInput
             v-model:value="formModel.description"
             type="textarea"
-            :placeholder="$t('page.manage.query.form.description')"
+            :placeholder="$t('page.lowcode.query.form.description')"
           />
         </NFormItem>
-        <NFormItem :label="$t('page.manage.query.sql')" path="sql">
+        <NFormItem :label="$t('page.lowcode.query.sql')" path="sql">
           <NInput
             v-model:value="formModel.sql"
             type="textarea"
             :rows="8"
-            :placeholder="$t('page.manage.query.form.sql')"
+            :placeholder="$t('page.lowcode.query.form.sql')"
           />
         </NFormItem>
-        <NFormItem :label="$t('page.manage.query.status')" path="status">
+        <NFormItem :label="$t('page.lowcode.query.status')" path="status">
           <NRadioGroup v-model:value="formModel.status">
-            <NRadio v-for="item in enableStatusOptions" :key="item.value" :value="item.value" :label="item.label" />
+            <NRadio v-for="item in queryStatusOptions" :key="item.value" :value="item.value" :label="item.label" />
           </NRadioGroup>
         </NFormItem>
       </NForm>
@@ -43,7 +43,7 @@ import { createRequiredFormRule } from '@/utils/form/rule';
 import { useNaiveForm } from '@/hooks/common/form';
 import { useFormRules } from '@/hooks/common/form';
 import { $t } from '@/locales';
-import { enableStatusOptions } from '@/constants/business';
+import { queryStatusOptions } from '@/constants/business';
 
 export interface Props {
   /** the type of operation */
@@ -71,8 +71,8 @@ const { defaultRequiredRule } = useFormRules();
 
 const title = computed(() => {
   const titles: Record<NaiveUI.TableOperateType, string> = {
-    add: $t('page.manage.query.addQuery'),
-    edit: $t('page.manage.query.editQuery')
+    add: $t('page.lowcode.query.addQuery'),
+    edit: $t('page.lowcode.query.editQuery')
   };
   return titles[props.operateType];
 });
