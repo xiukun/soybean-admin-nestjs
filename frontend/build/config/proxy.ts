@@ -33,7 +33,33 @@ function createProxyItem(item: App.Service.ServiceConfigItem, enableLog: boolean
   proxy[item.proxyPattern] = {
     target: item.baseURL,
     changeOrigin: true,
+    secure: false,
     configure: (_proxy: HttpProxy.Server, options: ProxyOptions) => {
+      // Add CORS headers to handle preflight requests
+      _proxy.on('proxyRes', (proxyRes, req, res) => {
+        // Set CORS headers
+        proxyRes.headers['Access-Control-Allow-Origin'] = '*';
+        proxyRes.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH';
+        proxyRes.headers['Access-Control-Allow-Headers'] = 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,x-request-id,Page-Auth';
+        proxyRes.headers['Access-Control-Allow-Credentials'] = 'true';
+        proxyRes.headers['Access-Control-Max-Age'] = '86400';
+      });
+
+      // Handle OPTIONS preflight requests
+      _proxy.on('proxyReq', (proxyReq, req, res) => {
+        if (req.method === 'OPTIONS') {
+          res.writeHead(200, {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
+            'Access-Control-Allow-Headers': 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,x-request-id,Page-Auth',
+            'Access-Control-Allow-Credentials': 'true',
+            'Access-Control-Max-Age': '86400'
+          });
+          res.end();
+          return;
+        }
+      });
+
       _proxy.on('proxyReq', (_proxyReq, req, _res) => {
         if (!enableLog) return;
 

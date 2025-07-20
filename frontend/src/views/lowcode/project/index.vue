@@ -127,7 +127,7 @@ const {
     },
     {
       key: 'createdAt',
-      title: $t('common.createTime'),
+      title: $t('common.createdAt'),
       align: 'center',
       width: 180,
       render: row => {

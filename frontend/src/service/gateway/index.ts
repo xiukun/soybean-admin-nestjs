@@ -13,19 +13,32 @@ export interface ServiceConfig {
   description: string;
 }
 
+/**
+ * Get service URLs based on environment
+ */
+function getServiceURLs() {
+  const isDev = import.meta.env.DEV;
+  const isProxy = isDev && import.meta.env.VITE_HTTP_PROXY === 'Y';
+
+  return {
+    baseSystem: isProxy ? '/proxy-default' : '/api',
+    lowcodePlatform: isProxy ? '/proxy-lowcodeService' : '/lowcode-api'
+  };
+}
+
 export const SERVICE_CONFIGS: Record<string, ServiceConfig> = {
   // Base system service (original soybean admin)
   baseSystem: {
     name: 'Base System',
-    baseURL: 'http://localhost:9528/v1',
+    baseURL: getServiceURLs().baseSystem,
     prefix: '/v1',
     description: 'User management, authentication, permissions, etc.'
   },
-  
+
   // Low-code platform service
   lowcodePlatform: {
     name: 'Low-code Platform',
-    baseURL: 'http://localhost:3000/api',
+    baseURL: getServiceURLs().lowcodePlatform,
     prefix: '/api',
     description: 'Low-code platform APIs for project, entity, field management, etc.'
   }
