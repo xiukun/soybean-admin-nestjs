@@ -38,6 +38,30 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store/soybean-admin/fronte
 # Create a stage for building the application.
 FROM deps AS build
 
+# Remove all existing env files and create clean production environment file
+RUN rm -f .env .env.* && \
+    echo 'VITE_BASE_URL=/' > .env.prod && \
+    echo 'VITE_APP_TITLE=Soybean Admin' >> .env.prod && \
+    echo 'VITE_APP_DESC=A fresh and elegant admin template' >> .env.prod && \
+    echo 'VITE_ROUTER_HISTORY_MODE=history' >> .env.prod && \
+    echo 'VITE_ICON_PREFIX=icon' >> .env.prod && \
+    echo 'VITE_ICON_LOCAL_PREFIX=icon-local' >> .env.prod && \
+    echo 'VITE_SERVICE_BASE_URL=/api' >> .env.prod && \
+    echo 'VITE_SERVICE_SUCCESS_CODE=0000,200,0' >> .env.prod && \
+    echo 'VITE_SERVICE_LOGOUT_CODES=1001,1002' >> .env.prod && \
+    echo 'VITE_SERVICE_MODAL_LOGOUT_CODES=1003,1004' >> .env.prod && \
+    echo 'VITE_SERVICE_EXPIRED_TOKEN_CODES=1005,1006' >> .env.prod && \
+    echo 'VITE_AUTH_ROUTE_MODE=dynamic' >> .env.prod && \
+    echo 'VITE_ROUTE_HOME=home' >> .env.prod && \
+    echo 'VITE_STATIC_SUPER_ROLE=super' >> .env.prod && \
+    echo 'VITE_MENU_ICON=lucide:layout-dashboard' >> .env.prod && \
+    echo 'VITE_OTHER_SERVICE_BASE_URL=`{"demo": "/api", "amisService": "https://m1.apifoxmock.com/m1/3546534-2258203-default", "lowcodeService": "/lowcode-api"}`' >> .env.prod && \
+    echo 'VITE_HTTP_PROXY=N' >> .env.prod && \
+    echo 'VITE_SOURCE_MAP=N' >> .env.prod && \
+    echo 'VITE_PROXY_LOG=N' >> .env.prod && \
+    echo 'VITE_STORAGE_PREFIX=soybean' >> .env.prod && \
+    echo 'VITE_AUTOMATICALLY_DETECT_UPDATE=N' >> .env.prod
+
 # Run the build script.
 RUN pnpm run build
 
