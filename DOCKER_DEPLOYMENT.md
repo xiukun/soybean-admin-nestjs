@@ -232,11 +232,223 @@ git pull
 docker-compose up --build -d
 ```
 
+## 🚀 增强功能
+
+### 低代码平台服务 (端口: 3000)
+
+新增的低代码平台服务提供以下功能：
+
+- **项目管理**: 创建和管理低代码项目
+- **实体设计**: 可视化数据模型设计
+- **模板管理**: 代码生成模板管理
+- **代码生成**: 智能代码生成和部署
+
+访问地址：http://localhost:3000
+
+### Amis后端服务 (端口: 9522)
+
+生成代码的运行时环境：
+
+- **动态API**: 根据实体自动生成API
+- **数据管理**: 动态数据CRUD操作
+- **自动初始化**: 首次运行自动创建数据库结构
+
+访问地址：http://localhost:9522
+
+### 自动化部署脚本
+
+使用增强的部署和管理脚本：
+
+```bash
+# 一键部署（包含健康检查）
+./deploy.sh
+
+# 带备份的部署
+./deploy.sh --backup
+
+# 强制重建所有镜像
+./deploy.sh --force-rebuild
+```
+
+### 管理工具
+
+```bash
+# 使用管理脚本
+./scripts/manage.sh help
+
+# 常用操作
+./scripts/manage.sh start          # 启动服务
+./scripts/manage.sh stop           # 停止服务
+./scripts/manage.sh status         # 查看状态
+./scripts/manage.sh logs backend   # 查看日志
+./scripts/manage.sh backup         # 创建备份
+./scripts/manage.sh health         # 健康检查
+```
+
+### 健康检查
+
+```bash
+# 运行健康检查
+./scripts/health-check.sh
+
+# 生成健康报告
+./scripts/health-check.sh --report
+
+# 自定义检查参数
+./scripts/health-check.sh --timeout 15 --retry 5
+```
+
+## 🔧 配置说明
+
+### 环境变量
+
+主要环境变量配置：
+
+```env
+# 数据库配置
+DATABASE_URL=postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend
+
+# 低代码平台配置
+AUTO_INIT_DATA=true              # 自动初始化数据
+FIRST_RUN_DETECTION=true         # 首次运行检测
+AMIS_BACKEND_PATH=/app/amis-backend
+
+# 性能监控
+METRICS_ENABLED=true
+PERFORMANCE_MONITORING=true
+```
+
+### 数据持久化
+
+增强的数据持久化：
+
+- `generated-code/` - 低代码平台生成的代码
+- `amis-generated/` - Amis后端生成的代码
+- `logs/` - 应用日志文件
+- `amis-logs/` - Amis后端日志
+- `uploads/` - 文件上传目录
+
+## 📊 监控和维护
+
+### 服务监控
+
+```bash
+# 查看所有服务状态
+docker-compose ps
+
+# 查看资源使用情况
+docker stats
+
+# 查看系统资源
+./scripts/health-check.sh
+```
+
+### 日志管理
+
+```bash
+# 查看实时日志
+./scripts/manage.sh logs
+
+# 查看特定服务日志
+./scripts/manage.sh logs lowcode-platform 100
+
+# 查看错误日志
+docker-compose logs --tail=50 | grep ERROR
+```
+
+### 备份和恢复
+
+```bash
+# 创建完整备份
+./scripts/manage.sh backup
+
+# 从备份恢复
+./scripts/manage.sh restore backups/backup_20231201_120000.tar.gz
+
+# 数据库备份
+docker-compose exec postgres pg_dump -U soybean soybean-admin-nest-backend > db_backup.sql
+```
+
+## 🔐 安全配置
+
+### 生产环境安全
+
+1. **更改默认密码**：
+   ```env
+   POSTGRES_PASSWORD=your-secure-password
+   REDIS_PASSWORD=your-secure-redis-password
+   JWT_SECRET=your-secure-jwt-secret
+   ```
+
+2. **网络安全**：
+   - 配置防火墙规则
+   - 使用内网访问数据库
+   - 启用SSL/TLS加密
+
+3. **访问控制**：
+   - 配置CORS策略
+   - 实施API访问限制
+   - 启用审计日志
+
+## 🚨 故障排除
+
+### 常见问题
+
+1. **服务启动失败**：
+   ```bash
+   # 查看详细日志
+   ./scripts/manage.sh logs service-name
+
+   # 重启服务
+   ./scripts/manage.sh restart service-name
+   ```
+
+2. **端口冲突**：
+   ```bash
+   # 检查端口占用
+   netstat -tulpn | grep :9527
+
+   # 修改docker-compose.yml中的端口映射
+   ```
+
+3. **内存不足**：
+   ```bash
+   # 清理系统资源
+   ./scripts/manage.sh cleanup
+
+   # 调整容器内存限制
+   # 编辑docker-compose.yml中的deploy.resources配置
+   ```
+
+### 性能优化
+
+1. **数据库优化**：
+   ```bash
+   # 调整PostgreSQL配置
+   docker-compose exec postgres psql -U soybean -c "SHOW all;"
+   ```
+
+2. **缓存优化**：
+   ```bash
+   # 检查Redis状态
+   docker-compose exec redis redis-cli info
+   ```
+
+3. **资源监控**：
+   ```bash
+   # 监控容器资源使用
+   docker stats --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}"
+   ```
+
 ## 📞 技术支持
 
 如果遇到问题，请：
 
-1. 查看服务日志
-2. 检查网络连接
-3. 确认配置文件正确
-4. 联系技术支持团队
+1. 运行健康检查：`./scripts/health-check.sh`
+2. 查看服务日志：`./scripts/manage.sh logs`
+3. 检查系统资源：`docker stats`
+4. 查看GitHub Issues或联系技术支持团队
+
+---
+
+**注意**: 本部署方案支持开发、测试和生产环境。生产环境请确保修改默认密码和安全配置。
