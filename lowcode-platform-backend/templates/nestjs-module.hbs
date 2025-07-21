@@ -1,0 +1,120 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+{{#if useRedis}}
+import { CacheModule } from '@nestjs/cache-manager';
+{{/if}}
+{{#if useQueue}}
+import { BullModule } from '@nestjs/bull';
+{{/if}}
+
+// Entities
+{{#each entities}}
+import { {{name}} } from './entities/{{kebabCase name}}.entity';
+{{/each}}
+
+// Controllers
+{{#each entities}}
+import { {{name}}Controller } from './controllers/{{kebabCase name}}.controller';
+{{/each}}
+
+// Services
+{{#each entities}}
+import { {{name}}Service } from './services/{{kebabCase name}}.service';
+{{/each}}
+
+// Repositories
+{{#each entities}}
+import { {{name}}Repository } from './repositories/{{kebabCase name}}.repository';
+{{/each}}
+
+{{#if hasEventHandlers}}
+// Event Handlers
+{{#each eventHandlers}}
+import { {{name}} } from './handlers/{{kebabCase name}}.handler';
+{{/each}}
+{{/if}}
+
+{{#if hasMiddleware}}
+// Middleware
+{{#each middleware}}
+import { {{name}} } from './middleware/{{kebabCase name}}.middleware';
+{{/each}}
+{{/if}}
+
+{{#if hasGuards}}
+// Guards
+{{#each guards}}
+import { {{name}} } from './guards/{{kebabCase name}}.guard';
+{{/each}}
+{{/if}}
+
+{{#if hasInterceptors}}
+// Interceptors
+{{#each interceptors}}
+import { {{name}} } from './interceptors/{{kebabCase name}}.interceptor';
+{{/each}}
+{{/if}}
+
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([
+      {{#each entities}}
+      {{name}},
+      {{/each}}
+    ]),
+    {{#if useRedis}}
+    CacheModule.register({
+      ttl: 300, // 5 minutes
+      max: 100, // maximum number of items in cache
+    }),
+    {{/if}}
+    {{#if useQueue}}
+    BullModule.registerQueue({
+      name: '{{kebabCase moduleName}}-queue',
+    }),
+    {{/if}}
+  ],
+  controllers: [
+    {{#each entities}}
+    {{name}}Controller,
+    {{/each}}
+  ],
+  providers: [
+    {{#each entities}}
+    {{name}}Service,
+    {{name}}Repository,
+    {{/each}}
+    {{#if hasEventHandlers}}
+    {{#each eventHandlers}}
+    {{name}},
+    {{/each}}
+    {{/if}}
+    {{#if hasGuards}}
+    {{#each guards}}
+    {{name}},
+    {{/each}}
+    {{/if}}
+    {{#if hasInterceptors}}
+    {{#each interceptors}}
+    {{name}},
+    {{/each}}
+    {{/if}}
+  ],
+  exports: [
+    {{#each entities}}
+    {{name}}Service,
+    {{name}}Repository,
+    {{/each}}
+  ],
+})
+export class {{pascalCase moduleName}}Module {
+  {{#if hasMiddleware}}
+  configure(consumer: MiddlewareConsumer) {
+    {{#each middleware}}
+    consumer
+      .apply({{name}})
+      .forRoutes({{#each routes}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}});
+    {{/each}}
+  }
+  {{/if}}
+}

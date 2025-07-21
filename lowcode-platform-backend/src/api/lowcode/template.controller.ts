@@ -47,9 +47,30 @@ export class TemplateController {
     description: 'Template created successfully',
     type: TemplateResponseDto,
   })
-  async createTemplate(@Body() createTemplateDto: CreateTemplateDto): Promise<TemplateResponseDto> {
-    // TODO: Implement create template command
-    throw new Error('Not implemented yet');
+  async createTemplate(@Body() createTemplateDto: CreateTemplateDto): Promise<any> {
+    const { CreateTemplateCommand } = await import('@lib/bounded-contexts/template/application/commands/create-template.command');
+
+    const command = new CreateTemplateCommand(
+      createTemplateDto.projectId,
+      createTemplateDto.name,
+      createTemplateDto.description,
+      createTemplateDto.category,
+      createTemplateDto.language,
+      createTemplateDto.framework,
+      createTemplateDto.content,
+      createTemplateDto.variables || [],
+      createTemplateDto.tags || [],
+      createTemplateDto.isPublic || false,
+      'system', // TODO: Get from authenticated user
+    );
+
+    const templateId = await this.commandBus.execute(command);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: { id: templateId },
+    };
   }
 
   @Get(':id')
@@ -76,9 +97,30 @@ export class TemplateController {
   async updateTemplate(
     @Param('id') id: string,
     @Body() updateTemplateDto: UpdateTemplateDto,
-  ): Promise<TemplateResponseDto> {
-    // TODO: Implement update template command
-    throw new Error('Not implemented yet');
+  ): Promise<any> {
+    const { UpdateTemplateCommand } = await import('@lib/bounded-contexts/template/application/commands/update-template.command');
+
+    const command = new UpdateTemplateCommand(
+      id,
+      updateTemplateDto.name,
+      updateTemplateDto.description,
+      updateTemplateDto.category,
+      updateTemplateDto.language,
+      updateTemplateDto.framework,
+      updateTemplateDto.content,
+      updateTemplateDto.variables,
+      updateTemplateDto.tags,
+      updateTemplateDto.isPublic,
+      'system', // TODO: Get from authenticated user
+    );
+
+    await this.commandBus.execute(command);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: { id },
+    };
   }
 
   @Delete(':id')
@@ -210,9 +252,21 @@ export class {{pascalCase entityName}}Service {
     description: 'Template published successfully',
     type: TemplateResponseDto,
   })
-  async publishTemplate(@Param('id') id: string): Promise<TemplateResponseDto> {
-    // TODO: Implement publish template command
-    throw new Error('Not implemented yet');
+  async publishTemplate(@Param('id') id: string): Promise<any> {
+    const { PublishTemplateCommand } = await import('@lib/bounded-contexts/template/application/commands/update-template.command');
+
+    const command = new PublishTemplateCommand(
+      id,
+      'system', // TODO: Get from authenticated user
+    );
+
+    await this.commandBus.execute(command);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: { id },
+    };
   }
 
   @Post(':id/versions')
@@ -226,8 +280,89 @@ export class {{pascalCase entityName}}Service {
   async createTemplateVersion(
     @Param('id') id: string,
     @Body() versionData: any,
-  ): Promise<TemplateResponseDto> {
-    // TODO: Implement create template version command
-    throw new Error('Not implemented yet');
+  ): Promise<any> {
+    const { CreateTemplateVersionCommand } = await import('@lib/bounded-contexts/template/application/commands/update-template.command');
+
+    const command = new CreateTemplateVersionCommand(
+      id,
+      versionData.version,
+      versionData.content,
+      versionData.variables || [],
+      versionData.changelog,
+      'system', // TODO: Get from authenticated user
+    );
+
+    await this.commandBus.execute(command);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: { id, version: versionData.version },
+    };
+  }
+
+  @Post(':id/validate')
+  @ApiOperation({ summary: 'Validate template content' })
+  @ApiParam({ name: 'id', description: 'Template ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Template validation result',
+  })
+  async validateTemplate(
+    @Param('id') id: string,
+    @Body() validationData: { content: string; variables: any[] },
+  ): Promise<any> {
+    try {
+      const { TemplateEngineService } = await import('@lib/bounded-contexts/code-generation/infrastructure/template-engine.service');
+      const templateEngine = new TemplateEngineService();
+
+      // Generate sample data for validation
+      const sampleData: Record<string, any> = {};
+      validationData.variables.forEach(variable => {
+        switch (variable.type) {
+          case 'string':
+            sampleData[variable.name] = variable.defaultValue || 'SampleString';
+            break;
+          case 'number':
+          case 'integer':
+            sampleData[variable.name] = variable.defaultValue || 42;
+            break;
+          case 'boolean':
+            sampleData[variable.name] = variable.defaultValue !== undefined ? variable.defaultValue : true;
+            break;
+          case 'array':
+            sampleData[variable.name] = variable.defaultValue || ['item1', 'item2'];
+            break;
+          case 'object':
+            sampleData[variable.name] = variable.defaultValue || { key: 'value' };
+            break;
+          default:
+            sampleData[variable.name] = variable.defaultValue || 'defaultValue';
+        }
+      });
+
+      // Test compile
+      const compiledContent = templateEngine.compileTemplateFromString(validationData.content, sampleData);
+
+      return {
+        status: 0,
+        msg: 'success',
+        data: {
+          isValid: true,
+          compiledContent,
+          sampleData,
+          errors: [],
+        },
+      };
+    } catch (error) {
+      return {
+        status: 1,
+        msg: 'Validation failed',
+        data: {
+          isValid: false,
+          errors: [error.message],
+        },
+      };
+    }
   }
 }

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { FieldMetadata } from '../../../shared/types/metadata.types';
+import { PrismaTypeMapperService } from './prisma-type-mapper.service';
 
 export interface TypeMappingResult {
   prismaType: string;
@@ -7,11 +8,15 @@ export interface TypeMappingResult {
   sqlType: string;
   defaultValue?: string;
   attributes: string[];
+  validationType: string;
+  prismaAttributes: string[];
 }
 
 @Injectable()
 export class FieldTypeMapperService {
   private readonly logger = new Logger(FieldTypeMapperService.name);
+
+  constructor(private readonly prismaTypeMapper: PrismaTypeMapperService) {}
 
   /**
    * 将字段类型映射到Prisma类型
@@ -371,5 +376,118 @@ export class FieldTypeMapperService {
       { type: 'JSON', description: 'JSON data', category: 'Special' },
       { type: 'BINARY', description: 'Binary data', category: 'Special' },
     ];
+  }
+
+  /**
+   * 获取完整的字段映射结果（包含Prisma信息）
+   */
+  getCompleteFieldMapping(field: FieldMetadata): TypeMappingResult {
+    const prismaMapping = this.prismaTypeMapper.getPrismaMapping(field.type, {
+      length: field.length,
+      precision: field.precision,
+      scale: field.scale,
+      nullable: field.nullable,
+    });
+
+    const sqlType = this.mapToSqlType(field);
+    const attributes = this.getPrismaAttributes(field);
+
+    return {
+      prismaType: prismaMapping.prismaType,
+      tsType: prismaMapping.tsType,
+      sqlType,
+      defaultValue: field.defaultValue || prismaMapping.defaultValue,
+      attributes,
+      validationType: prismaMapping.validationType,
+      prismaAttributes: prismaMapping.attributes || [],
+    };
+  }
+
+  /**
+   * 生成Prisma字段定义
+   */
+  generatePrismaFieldDefinition(field: FieldMetadata): string {
+    return this.prismaTypeMapper.generatePrismaField(field.code, field.type, {
+      nullable: field.nullable,
+      unique: field.isUnique,
+      defaultValue: field.defaultValue,
+      length: field.length,
+      precision: field.precision,
+      scale: field.scale,
+      comment: field.comment,
+    });
+  }
+
+  /**
+   * 生成TypeScript字段定义
+   */
+  generateTSFieldDefinition(field: FieldMetadata): string {
+    return this.prismaTypeMapper.generateTSField(field.code, field.type, {
+      nullable: field.nullable,
+      comment: field.comment,
+    });
+  }
+
+  /**
+   * 获取字段验证装饰器
+   */
+  getFieldValidationDecorators(field: FieldMetadata): string[] {
+    return this.prismaTypeMapper.getValidationDecorator(field.type, {
+      nullable: field.nullable,
+      length: field.length,
+      pattern: field.validationPattern,
+    });
+  }
+
+  /**
+   * 检查字段是否为系统字段
+   */
+  isSystemField(fieldCode: string): boolean {
+    const systemFields = [
+      'id', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy',
+      'deletedAt', 'version', 'tenantId', 'status'
+    ];
+    return systemFields.includes(fieldCode);
+  }
+
+  /**
+   * 生成默认系统字段
+   */
+  generateSystemFields(options?: {
+    enableAudit?: boolean;
+    enableSoftDelete?: boolean;
+    enableVersioning?: boolean;
+    enableTenancy?: boolean;
+    enableStatus?: boolean;
+  }): string[] {
+    const fields: string[] = [
+      '  id        String   @id @default(cuid())',
+    ];
+
+    if (options?.enableTenancy) {
+      fields.push('  tenantId  String?  @map("tenant_id")');
+    }
+
+    if (options?.enableAudit) {
+      fields.push('  createdBy String?  @map("created_by")');
+      fields.push('  updatedBy String?  @map("updated_by")');
+    }
+
+    fields.push('  createdAt DateTime @default(now()) @map("created_at")');
+    fields.push('  updatedAt DateTime @updatedAt @map("updated_at")');
+
+    if (options?.enableStatus) {
+      fields.push('  status    String   @default("ACTIVE")');
+    }
+
+    if (options?.enableSoftDelete) {
+      fields.push('  deletedAt DateTime? @map("deleted_at")');
+    }
+
+    if (options?.enableVersioning) {
+      fields.push('  version   Int      @default(1)');
+    }
+
+    return fields;
   }
 }

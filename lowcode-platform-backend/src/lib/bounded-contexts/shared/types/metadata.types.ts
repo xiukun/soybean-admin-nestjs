@@ -1,9 +1,23 @@
 export interface ProjectMetadata {
-  project: {
-    id: string;
-    name: string;
-    code: string;
-    description?: string;
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  framework: string;
+  architecture: string;
+  language: string;
+  database: string;
+  settings?: {
+    enableSwagger?: boolean;
+    enableValidation?: boolean;
+    enableAuth?: boolean;
+    enableCaching?: boolean;
+    enableLogging?: boolean;
+    enableAudit?: boolean;
+    enableSoftDelete?: boolean;
+    enableVersioning?: boolean;
+    enableTenancy?: boolean;
+    enableStatus?: boolean;
   };
   entities: EntityMetadata[];
   relationships: RelationshipMetadata[];
@@ -28,15 +42,21 @@ export interface FieldMetadata {
   code: string;
   type: string;
   length?: number;
+  precision?: number;
+  scale?: number;
   nullable: boolean;
   isPrimaryKey: boolean;
   isUnique: boolean;
   defaultValue?: string;
   description?: string;
+  comment?: string;
+  validationPattern?: string;
   // 新增字段
   tsType?: string;
   prismaType?: string;
   prismaAttributes?: string[];
+  sortOrder?: number;
+  isSystemField?: boolean;
 }
 
 export interface RelationshipMetadata {

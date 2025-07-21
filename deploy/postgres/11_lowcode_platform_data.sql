@@ -3,27 +3,69 @@
 
 -- 插入默认代码模板
 INSERT INTO lowcode_code_templates (id, name, code, type, language, framework, description, template, variables, created_by) VALUES 
--- NestJS Entity Model 模板
-('tpl-nestjs-entity-model', 'NestJS实体模型', 'nestjs-entity-model', 'ENTITY_MODEL', 'TYPESCRIPT', 'NESTJS', 'NestJS实体模型代码模板', 
-'import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from ''typeorm'';
+-- NestJS Prisma Entity Model 模板
+('tpl-nestjs-entity-model', 'NestJS Prisma实体模型', 'nestjs-prisma-entity-model', 'ENTITY_MODEL', 'TYPESCRIPT', 'NESTJS', 'NestJS Prisma实体模型代码模板',
+'// Prisma Schema Model for {{entityName}}
+// This will be added to schema.prisma file
 
-@Entity(''{{tableName}}'')
-export class {{entityName}} {
-  @PrimaryGeneratedColumn(''uuid'')
-  id: string;
-
+model {{entityName}} {
+  id        String   @id @default(cuid())
 {{#each fields}}
-  @Column({{#if this.columnOptions}}{{this.columnOptions}}{{else}}{ type: ''{{this.type}}''{{#if this.nullable}}, nullable: {{this.nullable}}{{/if}}{{#if this.unique}}, unique: {{this.unique}}{{/if}} }{{/if}})
-  {{this.name}}: {{this.tsType}};
-
+{{#unless this.isSystemField}}
+  {{this.code}}{{#if this.nullable}}?{{/if}}     {{this.prismaType}}{{#if this.unique}} @unique{{/if}}{{#if this.comment}} // {{this.comment}}{{/if}}
+{{/unless}}
 {{/each}}
-  @CreateDateColumn()
-  createdAt: Date;
 
-  @UpdateDateColumn()
+  // System fields
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+
+  @@map("{{tableName}}")
+}
+
+// TypeScript interface for {{entityName}}
+export interface {{entityName}} {
+  id: string;
+{{#each fields}}
+{{#unless this.isSystemField}}
+  {{this.code}}: {{this.tsType}}{{#if this.nullable}} | null{{/if}};
+{{/unless}}
+{{/each}}
+  createdAt: Date;
   updatedAt: Date;
-}', 
-'[{"name":"entityName","type":"string","description":"实体类名"},{"name":"tableName","type":"string","description":"数据库表名"},{"name":"fields","type":"array","description":"字段列表"}]', 
+  createdBy: string | null;
+  updatedBy: string | null;
+}
+
+// Create input type
+export interface Create{{entityName}}Input {
+{{#each fields}}
+{{#unless this.isSystemField}}
+{{#unless this.nullable}}
+  {{this.code}}: {{this.tsType}};
+{{/unless}}
+{{/unless}}
+{{/each}}
+{{#each fields}}
+{{#unless this.isSystemField}}
+{{#if this.nullable}}
+  {{this.code}}?: {{this.tsType}} | null;
+{{/if}}
+{{/unless}}
+{{/each}}
+}
+
+// Update input type
+export interface Update{{entityName}}Input {
+{{#each fields}}
+{{#unless this.isSystemField}}
+  {{this.code}}?: {{this.tsType}}{{#if this.nullable}} | null{{/if}};
+{{/unless}}
+{{/each}}
+}',
+'[{"name":"entityName","type":"string","description":"实体类名"},{"name":"tableName","type":"string","description":"数据库表名"},{"name":"fields","type":"array","description":"字段列表"}]',
 'system'),
 
 -- NestJS DTO 模板
@@ -70,104 +112,341 @@ export class {{entityName}}ResponseDto {
 '[{"name":"entityName","type":"string","description":"实体类名"},{"name":"fields","type":"array","description":"字段列表"}]',
 'system'),
 
--- NestJS Service 模板
-('tpl-nestjs-service', 'NestJS服务类', 'nestjs-service', 'ENTITY_SERVICE', 'TYPESCRIPT', 'NESTJS', 'NestJS服务类代码模板',
-'import { Injectable, NotFoundException } from ''@nestjs/common'';
-import { InjectRepository } from ''@nestjs/typeorm'';
-import { Repository } from ''typeorm'';
-import { {{entityName}} } from ''./entities/{{entityName.toLowerCase()}}.entity'';
-import { Create{{entityName}}Dto, Update{{entityName}}Dto } from ''./dto/{{entityName.toLowerCase()}}.dto'';
+-- NestJS Prisma Service 模板
+('tpl-nestjs-service', 'NestJS Prisma服务类', 'nestjs-prisma-service', 'ENTITY_SERVICE', 'TYPESCRIPT', 'NESTJS', 'NestJS Prisma服务类代码模板',
+'import { Injectable, NotFoundException, BadRequestException } from ''@nestjs/common'';
+import { PrismaService } from ''../prisma/prisma.service'';
+import { {{entityName}}, Create{{entityName}}Input, Update{{entityName}}Input } from ''./interfaces/{{entityName.toLowerCase()}}.interface'';
+import { Create{{entityName}}Dto, Update{{entityName}}Dto, {{entityName}}ResponseDto } from ''./dto/{{entityName.toLowerCase()}}.dto'';
+import { Prisma } from ''@prisma/client'';
 
 @Injectable()
 export class {{entityName}}Service {
-  constructor(
-    @InjectRepository({{entityName}})
-    private readonly {{entityName.toLowerCase()}}Repository: Repository<{{entityName}}>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create(create{{entityName}}Dto: Create{{entityName}}Dto): Promise<{{entityName}}> {
-    const {{entityName.toLowerCase()}} = this.{{entityName.toLowerCase()}}Repository.create(create{{entityName}}Dto);
-    return await this.{{entityName.toLowerCase()}}Repository.save({{entityName.toLowerCase()}});
+  async create(create{{entityName}}Dto: Create{{entityName}}Dto, userId?: string): Promise<{{entityName}}ResponseDto> {
+    try {
+      const data: Prisma.{{entityName}}CreateInput = {
+        ...create{{entityName}}Dto,
+        createdBy: userId,
+        updatedBy: userId,
+      };
+
+      const {{entityName.toLowerCase()}} = await this.prisma.{{entityName.toLowerCase()}}.create({
+        data,
+      });
+
+      return this.mapToResponseDto({{entityName.toLowerCase()}});
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === ''P2002'') {
+          throw new BadRequestException(''{{entityName}} with this data already exists'');
+        }
+      }
+      throw error;
+    }
   }
 
-  async findAll(): Promise<{{entityName}}[]> {
-    return await this.{{entityName.toLowerCase()}}Repository.find();
+  async findAll(params?: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.{{entityName}}WhereUniqueInput;
+    where?: Prisma.{{entityName}}WhereInput;
+    orderBy?: Prisma.{{entityName}}OrderByWithRelationInput;
+  }): Promise<{{entityName}}ResponseDto[]> {
+    const { skip, take, cursor, where, orderBy } = params || {};
+
+    const {{entityName.toLowerCase()}}s = await this.prisma.{{entityName.toLowerCase()}}.findMany({
+      skip,
+      take,
+      cursor,
+      where,
+      orderBy: orderBy || { createdAt: ''desc'' },
+    });
+
+    return {{entityName.toLowerCase()}}s.map(this.mapToResponseDto);
   }
 
-  async findOne(id: string): Promise<{{entityName}}> {
-    const {{entityName.toLowerCase()}} = await this.{{entityName.toLowerCase()}}Repository.findOne({ where: { id } });
+  async findOne(id: string): Promise<{{entityName}}ResponseDto> {
+    const {{entityName.toLowerCase()}} = await this.prisma.{{entityName.toLowerCase()}}.findUnique({
+      where: { id },
+    });
+
     if (!{{entityName.toLowerCase()}}) {
       throw new NotFoundException(`{{entityName}} with ID ${id} not found`);
     }
-    return {{entityName.toLowerCase()}};
+
+    return this.mapToResponseDto({{entityName.toLowerCase()}});
   }
 
-  async update(id: string, update{{entityName}}Dto: Update{{entityName}}Dto): Promise<{{entityName}}> {
-    const {{entityName.toLowerCase()}} = await this.findOne(id);
-    Object.assign({{entityName.toLowerCase()}}, update{{entityName}}Dto);
-    return await this.{{entityName.toLowerCase()}}Repository.save({{entityName.toLowerCase()}});
+  async update(id: string, update{{entityName}}Dto: Update{{entityName}}Dto, userId?: string): Promise<{{entityName}}ResponseDto> {
+    await this.findOne(id); // Check if exists
+
+    try {
+      const data: Prisma.{{entityName}}UpdateInput = {
+        ...update{{entityName}}Dto,
+        updatedBy: userId,
+      };
+
+      const {{entityName.toLowerCase()}} = await this.prisma.{{entityName.toLowerCase()}}.update({
+        where: { id },
+        data,
+      });
+
+      return this.mapToResponseDto({{entityName.toLowerCase()}});
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === ''P2002'') {
+          throw new BadRequestException(''{{entityName}} with this data already exists'');
+        }
+      }
+      throw error;
+    }
   }
 
   async remove(id: string): Promise<void> {
-    const {{entityName.toLowerCase()}} = await this.findOne(id);
-    await this.{{entityName.toLowerCase()}}Repository.remove({{entityName.toLowerCase()}});
+    await this.findOne(id); // Check if exists
+
+    await this.prisma.{{entityName.toLowerCase()}}.delete({
+      where: { id },
+    });
+  }
+
+  async count(where?: Prisma.{{entityName}}WhereInput): Promise<number> {
+    return this.prisma.{{entityName.toLowerCase()}}.count({ where });
+  }
+
+  private mapToResponseDto({{entityName.toLowerCase()}}: any): {{entityName}}ResponseDto {
+    return {
+      id: {{entityName.toLowerCase()}}.id,
+{{#each fields}}
+{{#unless this.isSystemField}}
+      {{this.code}}: {{entityName.toLowerCase()}}.{{this.code}},
+{{/unless}}
+{{/each}}
+      createdAt: {{entityName.toLowerCase()}}.createdAt,
+      updatedAt: {{entityName.toLowerCase()}}.updatedAt,
+      createdBy: {{entityName.toLowerCase()}}.createdBy,
+      updatedBy: {{entityName.toLowerCase()}}.updatedBy,
+    };
   }
 }',
-'[{"name":"entityName","type":"string","description":"实体类名"}]',
+'[{"name":"entityName","type":"string","description":"实体类名"},{"name":"fields","type":"array","description":"字段列表"}]',
 'system'),
 
--- NestJS Controller 模板
-('tpl-nestjs-controller', 'NestJS控制器', 'nestjs-controller', 'ENTITY_CONTROLLER', 'TYPESCRIPT', 'NESTJS', 'NestJS控制器代码模板',
-'import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus } from ''@nestjs/common'';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from ''@nestjs/swagger'';
+-- NestJS Prisma Controller 模板
+('tpl-nestjs-controller', 'NestJS Prisma控制器', 'nestjs-prisma-controller', 'ENTITY_CONTROLLER', 'TYPESCRIPT', 'NESTJS', 'NestJS Prisma控制器代码模板',
+'import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, Query, UseGuards, Req } from ''@nestjs/common'';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBearerAuth } from ''@nestjs/swagger'';
 import { {{entityName}}Service } from ''./{{entityName.toLowerCase()}}.service'';
-import { Create{{entityName}}Dto, Update{{entityName}}Dto, {{entityName}}ResponseDto } from ''./dto/{{entityName.toLowerCase()}}.dto'';
+import { Create{{entityName}}Dto, Update{{entityName}}Dto, {{entityName}}ResponseDto, {{entityName}}ListResponseDto } from ''./dto/{{entityName.toLowerCase()}}.dto'';
+import { JwtAuthGuard } from ''../auth/guards/jwt-auth.guard'';
+import { ApiPaginatedResponse } from ''../common/decorators/api-paginated-response.decorator'';
+import { PaginationDto } from ''../common/dto/pagination.dto'';
+import { ApiStandardResponse } from ''../common/decorators/api-standard-response.decorator'';
+import { StandardResponse } from ''../common/interfaces/standard-response.interface'';
+import { Request } from ''express'';
 
 @ApiTags(''{{entityName}}'')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller(''{{controllerPath}}'')
 export class {{entityName}}Controller {
   constructor(private readonly {{entityName.toLowerCase()}}Service: {{entityName}}Service) {}
 
   @Post()
   @ApiOperation({ summary: ''创建{{entityDescription}}'' })
-  @ApiResponse({ status: 201, description: ''创建成功'', type: {{entityName}}ResponseDto })
-  async create(@Body() create{{entityName}}Dto: Create{{entityName}}Dto): Promise<{{entityName}}ResponseDto> {
-    return await this.{{entityName.toLowerCase()}}Service.create(create{{entityName}}Dto);
+  @ApiStandardResponse(201, ''创建成功'', {{entityName}}ResponseDto)
+  async create(
+    @Body() create{{entityName}}Dto: Create{{entityName}}Dto,
+    @Req() req: Request
+  ): Promise<StandardResponse<{{entityName}}ResponseDto>> {
+    const userId = req.user?.id;
+    const data = await this.{{entityName.toLowerCase()}}Service.create(create{{entityName}}Dto, userId);
+    return {
+      status: 0,
+      msg: ''success'',
+      data
+    };
   }
 
   @Get()
   @ApiOperation({ summary: ''获取{{entityDescription}}列表'' })
-  @ApiResponse({ status: 200, description: ''获取成功'', type: [{{entityName}}ResponseDto] })
-  async findAll(): Promise<{{entityName}}ResponseDto[]> {
-    return await this.{{entityName.toLowerCase()}}Service.findAll();
+  @ApiQuery({ name: ''current'', required: false, description: ''当前页码'' })
+  @ApiQuery({ name: ''size'', required: false, description: ''每页数量'' })
+  @ApiPaginatedResponse({{entityName}}ResponseDto)
+  async findAll(
+    @Query() paginationDto: PaginationDto
+  ): Promise<StandardResponse<{{entityName}}ListResponseDto>> {
+    const { current = 1, size = 10 } = paginationDto;
+    const skip = (current - 1) * size;
+    const take = size;
+
+    const [data, total] = await Promise.all([
+      this.{{entityName.toLowerCase()}}Service.findAll({ skip, take }),
+      this.{{entityName.toLowerCase()}}Service.count()
+    ]);
+
+    return {
+      status: 0,
+      msg: ''success'',
+      data: {
+        records: data,
+        meta: {
+          current,
+          size,
+          total,
+          pages: Math.ceil(total / size)
+        }
+      }
+    };
   }
 
   @Get('':id'')
   @ApiOperation({ summary: ''获取{{entityDescription}}详情'' })
   @ApiParam({ name: ''id'', description: ''{{entityDescription}}ID'' })
-  @ApiResponse({ status: 200, description: ''获取成功'', type: {{entityName}}ResponseDto })
-  async findOne(@Param(''id'') id: string): Promise<{{entityName}}ResponseDto> {
-    return await this.{{entityName.toLowerCase()}}Service.findOne(id);
+  @ApiStandardResponse(200, ''获取成功'', {{entityName}}ResponseDto)
+  async findOne(@Param(''id'') id: string): Promise<StandardResponse<{{entityName}}ResponseDto>> {
+    const data = await this.{{entityName.toLowerCase()}}Service.findOne(id);
+    return {
+      status: 0,
+      msg: ''success'',
+      data
+    };
   }
 
   @Patch('':id'')
   @ApiOperation({ summary: ''更新{{entityDescription}}'' })
   @ApiParam({ name: ''id'', description: ''{{entityDescription}}ID'' })
-  @ApiResponse({ status: 200, description: ''更新成功'', type: {{entityName}}ResponseDto })
-  async update(@Param(''id'') id: string, @Body() update{{entityName}}Dto: Update{{entityName}}Dto): Promise<{{entityName}}ResponseDto> {
-    return await this.{{entityName.toLowerCase()}}Service.update(id, update{{entityName}}Dto);
+  @ApiStandardResponse(200, ''更新成功'', {{entityName}}ResponseDto)
+  async update(
+    @Param(''id'') id: string,
+    @Body() update{{entityName}}Dto: Update{{entityName}}Dto,
+    @Req() req: Request
+  ): Promise<StandardResponse<{{entityName}}ResponseDto>> {
+    const userId = req.user?.id;
+    const data = await this.{{entityName.toLowerCase()}}Service.update(id, update{{entityName}}Dto, userId);
+    return {
+      status: 0,
+      msg: ''success'',
+      data
+    };
   }
 
   @Delete('':id'')
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: ''删除{{entityDescription}}'' })
   @ApiParam({ name: ''id'', description: ''{{entityDescription}}ID'' })
-  @ApiResponse({ status: 204, description: ''删除成功'' })
-  async remove(@Param(''id'') id: string): Promise<void> {
+  @ApiStandardResponse(200, ''删除成功'')
+  async remove(@Param(''id'') id: string): Promise<StandardResponse<null>> {
     await this.{{entityName.toLowerCase()}}Service.remove(id);
+    return {
+      status: 0,
+      msg: ''success'',
+      data: null
+    };
   }
 }',
 '[{"name":"entityName","type":"string","description":"实体类名"},{"name":"entityDescription","type":"string","description":"实体描述"},{"name":"controllerPath","type":"string","description":"控制器路径"}]',
+'system'),
+
+-- NestJS Prisma Module 模板
+('tpl-nestjs-module', 'NestJS Prisma模块', 'nestjs-prisma-module', 'API_CONTROLLER', 'TYPESCRIPT', 'NESTJS', 'NestJS Prisma模块代码模板',
+'import { Module } from ''@nestjs/common'';
+import { {{entityName}}Service } from ''./{{entityName.toLowerCase()}}.service'';
+import { {{entityName}}Controller } from ''./{{entityName.toLowerCase()}}.controller'';
+import { PrismaModule } from ''../prisma/prisma.module'';
+
+@Module({
+  imports: [PrismaModule],
+  controllers: [{{entityName}}Controller],
+  providers: [{{entityName}}Service],
+  exports: [{{entityName}}Service],
+})
+export class {{entityName}}Module {}',
+'[{"name":"entityName","type":"string","description":"实体类名"}]',
+'system'),
+
+-- Prisma Repository 模板
+('tpl-prisma-repository', 'Prisma仓储类', 'prisma-repository', 'ENTITY_REPOSITORY', 'TYPESCRIPT', 'NESTJS', 'Prisma仓储类代码模板',
+'import { Injectable } from ''@nestjs/common'';
+import { PrismaService } from ''../prisma/prisma.service'';
+import { Prisma, {{entityName}} } from ''@prisma/client'';
+
+@Injectable()
+export class {{entityName}}Repository {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(data: Prisma.{{entityName}}CreateInput): Promise<{{entityName}}> {
+    return this.prisma.{{entityName.toLowerCase()}}.create({ data });
+  }
+
+  async findMany(params: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.{{entityName}}WhereUniqueInput;
+    where?: Prisma.{{entityName}}WhereInput;
+    orderBy?: Prisma.{{entityName}}OrderByWithRelationInput;
+    include?: Prisma.{{entityName}}Include;
+  }): Promise<{{entityName}}[]> {
+    const { skip, take, cursor, where, orderBy, include } = params;
+    return this.prisma.{{entityName.toLowerCase()}}.findMany({
+      skip,
+      take,
+      cursor,
+      where,
+      orderBy,
+      include,
+    });
+  }
+
+  async findUnique(where: Prisma.{{entityName}}WhereUniqueInput, include?: Prisma.{{entityName}}Include): Promise<{{entityName}} | null> {
+    return this.prisma.{{entityName.toLowerCase()}}.findUnique({
+      where,
+      include,
+    });
+  }
+
+  async update(params: {
+    where: Prisma.{{entityName}}WhereUniqueInput;
+    data: Prisma.{{entityName}}UpdateInput;
+    include?: Prisma.{{entityName}}Include;
+  }): Promise<{{entityName}}> {
+    const { where, data, include } = params;
+    return this.prisma.{{entityName.toLowerCase()}}.update({
+      data,
+      where,
+      include,
+    });
+  }
+
+  async delete(where: Prisma.{{entityName}}WhereUniqueInput): Promise<{{entityName}}> {
+    return this.prisma.{{entityName.toLowerCase()}}.delete({ where });
+  }
+
+  async count(where?: Prisma.{{entityName}}WhereInput): Promise<number> {
+    return this.prisma.{{entityName.toLowerCase()}}.count({ where });
+  }
+
+  async aggregate(params: {
+    where?: Prisma.{{entityName}}WhereInput;
+    orderBy?: Prisma.{{entityName}}OrderByWithRelationInput;
+    cursor?: Prisma.{{entityName}}WhereUniqueInput;
+    take?: number;
+    skip?: number;
+  }): Promise<any> {
+    const { where, orderBy, cursor, take, skip } = params;
+    return this.prisma.{{entityName.toLowerCase()}}.aggregate({
+      where,
+      orderBy,
+      cursor,
+      take,
+      skip,
+      _count: true,
+    });
+  }
+}',
+'[{"name":"entityName","type":"string","description":"实体类名"}]',
 'system');
 
 -- 插入示例项目

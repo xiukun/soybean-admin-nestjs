@@ -79,9 +79,99 @@ export class MetadataAggregatorService {
       prismaType: 'String?',
       prismaAttributes: [],
     },
+    {
+      name: 'status',
+      code: 'status',
+      type: 'STRING',
+      nullable: false,
+      isPrimaryKey: false,
+      defaultValue: 'ACTIVE',
+      description: 'Record status (ACTIVE, INACTIVE, DELETED)',
+      tsType: 'string',
+      prismaType: 'String',
+      prismaAttributes: ['@default("ACTIVE")'],
+    },
+    {
+      name: 'deletedAt',
+      code: 'deletedAt',
+      type: 'DATETIME',
+      nullable: true,
+      isPrimaryKey: false,
+      description: 'Soft delete timestamp',
+      tsType: 'Date | null',
+      prismaType: 'DateTime?',
+      prismaAttributes: [],
+    },
+    {
+      name: 'version',
+      code: 'version',
+      type: 'INTEGER',
+      nullable: false,
+      isPrimaryKey: false,
+      defaultValue: '1',
+      description: 'Record version for optimistic locking',
+      tsType: 'number',
+      prismaType: 'Int',
+      prismaAttributes: ['@default(1)'],
+    },
   ];
 
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Get default fields based on entity configuration
+   */
+  getDefaultFieldsForEntity(entityConfig?: {
+    enableSoftDelete?: boolean;
+    enableAudit?: boolean;
+    enableVersioning?: boolean;
+    enableTenancy?: boolean;
+    enableStatus?: boolean;
+  }): Partial<FieldMetadata>[] {
+    const config = {
+      enableSoftDelete: true,
+      enableAudit: true,
+      enableVersioning: false,
+      enableTenancy: false,
+      enableStatus: true,
+      ...entityConfig,
+    };
+
+    const defaultFields: Partial<FieldMetadata>[] = [];
+
+    // Always include ID, createdAt, updatedAt
+    defaultFields.push(
+      this.DEFAULT_FIELDS.find(f => f.code === 'id')!,
+      this.DEFAULT_FIELDS.find(f => f.code === 'createdAt')!,
+      this.DEFAULT_FIELDS.find(f => f.code === 'updatedAt')!,
+    );
+
+    // Conditional fields based on configuration
+    if (config.enableTenancy) {
+      defaultFields.push(this.DEFAULT_FIELDS.find(f => f.code === 'tenantId')!);
+    }
+
+    if (config.enableAudit) {
+      defaultFields.push(
+        this.DEFAULT_FIELDS.find(f => f.code === 'createdBy')!,
+        this.DEFAULT_FIELDS.find(f => f.code === 'updatedBy')!,
+      );
+    }
+
+    if (config.enableStatus) {
+      defaultFields.push(this.DEFAULT_FIELDS.find(f => f.code === 'status')!);
+    }
+
+    if (config.enableSoftDelete) {
+      defaultFields.push(this.DEFAULT_FIELDS.find(f => f.code === 'deletedAt')!);
+    }
+
+    if (config.enableVersioning) {
+      defaultFields.push(this.DEFAULT_FIELDS.find(f => f.code === 'version')!);
+    }
+
+    return defaultFields;
+  }
 
   // Cache management methods
   private getCachedData<T>(key: string): T | null {
@@ -543,8 +633,51 @@ export class MetadataAggregatorService {
   }
 
   private isSystemField(fieldCode: string): boolean {
-    const systemFields = ['id', 'tenantId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy'];
+    const systemFields = ['id', 'tenantId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', 'status', 'deletedAt', 'version'];
     return systemFields.includes(fieldCode);
+  }
+
+  /**
+   * Validate entity relationships
+   */
+  private validateRelationships(relationships: RelationshipMetadata[]): void {
+    for (const relationship of relationships) {
+      // Check for circular references (only for self-referencing relationships)
+      if (relationship.sourceEntityId === relationship.targetEntityId &&
+          relationship.relationType !== 'oneToOne') {
+        throw new Error(`Circular reference detected in relationship: ${relationship.relationshipName}`);
+      }
+
+      // Validate relationship type
+      const validTypes = ['oneToOne', 'oneToMany', 'manyToOne', 'manyToMany'];
+      if (!validTypes.includes(relationship.relationType)) {
+        throw new Error(`Invalid relationship type: ${relationship.relationType}`);
+      }
+
+      // Validate relationship name
+      if (!relationship.relationshipName || relationship.relationshipName.trim() === '') {
+        throw new Error(`Relationship name is required for relationship ${relationship.id}`);
+      }
+
+      // Check for valid entity references
+      if (!relationship.sourceEntityId || !relationship.targetEntityId) {
+        throw new Error(`Source and target entity IDs are required for relationship: ${relationship.relationshipName}`);
+      }
+    }
+
+    // Check for duplicate relationship names within the same entity
+    const relationshipNames = new Map<string, string[]>();
+    for (const relationship of relationships) {
+      const key = relationship.sourceEntityId;
+      if (!relationshipNames.has(key)) {
+        relationshipNames.set(key, []);
+      }
+      const names = relationshipNames.get(key)!;
+      if (names.includes(relationship.relationshipName)) {
+        throw new Error(`Duplicate relationship name '${relationship.relationshipName}' in entity ${relationship.sourceEntityId}`);
+      }
+      names.push(relationship.relationshipName);
+    }
   }
 
   // Public methods for cache management

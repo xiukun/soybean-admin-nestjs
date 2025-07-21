@@ -4,6 +4,188 @@
 
 import { ref, nextTick } from 'vue';
 
+// Performance metrics interface
+export interface PerformanceMetric {
+  name: string;
+  value: number;
+  unit: string;
+  timestamp: number;
+  metadata?: Record<string, any>;
+}
+
+// Component performance tracker
+export class ComponentPerformanceTracker {
+  private static instance: ComponentPerformanceTracker;
+  private metrics: PerformanceMetric[] = [];
+  private observers: PerformanceObserver[] = [];
+
+  static getInstance(): ComponentPerformanceTracker {
+    if (!ComponentPerformanceTracker.instance) {
+      ComponentPerformanceTracker.instance = new ComponentPerformanceTracker();
+    }
+    return ComponentPerformanceTracker.instance;
+  }
+
+  /**
+   * Start tracking component render time
+   */
+  startRender(componentName: string): () => void {
+    const startTime = performance.now();
+
+    return () => {
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      this.recordMetric({
+        name: `component_render_${componentName}`,
+        value: duration,
+        unit: 'ms',
+        timestamp: Date.now(),
+        metadata: { componentName, type: 'render' },
+      });
+
+      // Log slow renders
+      if (duration > 16) { // More than one frame at 60fps
+        console.warn(`Slow render detected: ${componentName} took ${duration.toFixed(2)}ms`);
+      }
+    };
+  }
+
+  /**
+   * Track API call performance
+   */
+  trackApiCall(url: string, method: string): () => void {
+    const startTime = performance.now();
+
+    return () => {
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      this.recordMetric({
+        name: 'api_call',
+        value: duration,
+        unit: 'ms',
+        timestamp: Date.now(),
+        metadata: { url, method, type: 'api' },
+      });
+    };
+  }
+
+  /**
+   * Record a performance metric
+   */
+  recordMetric(metric: PerformanceMetric): void {
+    this.metrics.push(metric);
+
+    // Keep only recent metrics to prevent memory leaks
+    if (this.metrics.length > 1000) {
+      this.metrics = this.metrics.slice(-500);
+    }
+  }
+
+  /**
+   * Get performance metrics
+   */
+  getMetrics(filter?: { name?: string; type?: string; since?: number }): PerformanceMetric[] {
+    let filtered = this.metrics;
+
+    if (filter) {
+      if (filter.name) {
+        filtered = filtered.filter(m => m.name.includes(filter.name!));
+      }
+      if (filter.type) {
+        filtered = filtered.filter(m => m.metadata?.type === filter.type);
+      }
+      if (filter.since) {
+        filtered = filtered.filter(m => m.timestamp >= filter.since!);
+      }
+    }
+
+    return filtered;
+  }
+
+  /**
+   * Get performance summary
+   */
+  getSummary(): {
+    totalMetrics: number;
+    averageRenderTime: number;
+    averageApiTime: number;
+    slowComponents: string[];
+    slowApis: string[];
+  } {
+    const renderMetrics = this.getMetrics({ type: 'render' });
+    const apiMetrics = this.getMetrics({ type: 'api' });
+
+    const averageRenderTime = renderMetrics.length > 0
+      ? renderMetrics.reduce((sum, m) => sum + m.value, 0) / renderMetrics.length
+      : 0;
+
+    const averageApiTime = apiMetrics.length > 0
+      ? apiMetrics.reduce((sum, m) => sum + m.value, 0) / apiMetrics.length
+      : 0;
+
+    const slowComponents = renderMetrics
+      .filter(m => m.value > 16)
+      .map(m => m.metadata?.componentName)
+      .filter((name, index, arr) => arr.indexOf(name) === index);
+
+    const slowApis = apiMetrics
+      .filter(m => m.value > 1000)
+      .map(m => m.metadata?.url)
+      .filter((url, index, arr) => arr.indexOf(url) === index);
+
+    return {
+      totalMetrics: this.metrics.length,
+      averageRenderTime,
+      averageApiTime,
+      slowComponents,
+      slowApis,
+    };
+  }
+
+  /**
+   * Initialize performance observers
+   */
+  initializeObservers(): void {
+    if (typeof window === 'undefined' || !window.PerformanceObserver) {
+      return;
+    }
+
+    // Observe long tasks
+    try {
+      const longTaskObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          this.recordMetric({
+            name: 'long_task',
+            value: entry.duration,
+            unit: 'ms',
+            timestamp: Date.now(),
+            metadata: { type: 'long_task', startTime: entry.startTime },
+          });
+
+          if (entry.duration > 50) {
+            console.warn(`Long task detected: ${entry.duration.toFixed(2)}ms`);
+          }
+        }
+      });
+
+      longTaskObserver.observe({ entryTypes: ['longtask'] });
+      this.observers.push(longTaskObserver);
+    } catch (error) {
+      console.warn('Long task observer not supported');
+    }
+  }
+
+  /**
+   * Cleanup observers
+   */
+  cleanup(): void {
+    this.observers.forEach(observer => observer.disconnect());
+    this.observers = [];
+  }
+}
+
 /**
  * Debounce function to limit the rate of function execution
  * @param func - Function to debounce

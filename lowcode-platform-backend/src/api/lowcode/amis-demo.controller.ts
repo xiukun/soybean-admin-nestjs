@@ -13,12 +13,14 @@ import {
 } from '@nestjs/swagger';
 import { AmisResponse, AmisPaginationResponse, AmisErrorResponse } from '@decorators/amis-response.decorator';
 import { AmisResponseInterceptor } from '@interceptors/amis-response.interceptor';
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
 
 @ApiTags('amis-demo')
 @ApiBearerAuth()
 @Controller({ path: 'amis-demo', version: '1' })
 @UseInterceptors(AmisResponseInterceptor)
 export class AmisDemoController {
+  constructor(private readonly prisma: PrismaService) {}
 
   @Get('string')
   @AmisResponse({
@@ -194,5 +196,62 @@ export class AmisDemoController {
       default:
         return data;
     }
+  }
+
+  @Get('code-templates')
+  @AmisResponse({
+    description: '获取代码模板列表',
+    dataKey: 'templates'
+  })
+  @ApiOperation({ summary: '获取代码模板列表' })
+  async getCodeTemplates(
+    @Query('type') type?: string,
+    @Query('language') language?: string,
+    @Query('framework') framework?: string,
+  ) {
+    const where: any = {
+      status: 'ACTIVE',
+    };
+
+    if (type) {
+      where.type = type;
+    }
+
+    if (language) {
+      where.language = language;
+    }
+
+    if (framework) {
+      where.framework = framework;
+    }
+
+    const templates = await this.prisma.codeTemplate.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        type: true,
+        language: true,
+        framework: true,
+        description: true,
+        variables: true,
+        version: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: [
+        { type: 'asc' },
+        { name: 'asc' },
+      ],
+    });
+
+    return templates.map(template => ({
+      ...template,
+      variables: typeof template.variables === 'string'
+        ? JSON.parse(template.variables)
+        : template.variables,
+    }));
   }
 }

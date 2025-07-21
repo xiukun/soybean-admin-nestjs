@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, UseGuards } from '@nestjs/common';
+import { Controller, Get, Inject, UseGuards, Query } from '@nestjs/common';
 import {
   DiskHealthIndicator,
   HealthCheck,
@@ -116,5 +116,68 @@ export class AppController {
   @UseGuards(ApiKeyGuard)
   async apiKeyAndSecret() {
     return this.appService.getHello();
+  }
+
+  @Get('code-templates')
+  @Public()
+  async getCodeTemplates(
+    @Query('type') type?: string,
+    @Query('language') language?: string,
+    @Query('framework') framework?: string,
+  ) {
+    // 返回模拟数据，因为当前数据库中没有 CodeTemplate 表
+    const mockTemplates = [
+      {
+        id: '1',
+        name: 'React Component Template',
+        code: 'import React from "react";\n\nexport const {{componentName}} = () => {\n  return (\n    <div>\n      <h1>{{title}}</h1>\n    </div>\n  );\n};',
+        type: 'component',
+        language: 'typescript',
+        framework: 'react',
+        description: 'Basic React component template',
+        variables: {
+          componentName: { type: 'string', description: 'Component name' },
+          title: { type: 'string', description: 'Component title' }
+        },
+        version: '1.0.0',
+        status: 'ACTIVE',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: '2',
+        name: 'Vue Component Template',
+        code: '<template>\n  <div>\n    <h1>{{ title }}</h1>\n  </div>\n</template>\n\n<script>\nexport default {\n  name: "{{componentName}}",\n  props: {\n    title: String\n  }\n}\n</script>',
+        type: 'component',
+        language: 'typescript',
+        framework: 'vue',
+        description: 'Basic Vue component template',
+        variables: {
+          componentName: { type: 'string', description: 'Component name' },
+          title: { type: 'string', description: 'Component title' }
+        },
+        version: '1.0.0',
+        status: 'ACTIVE',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    ];
+
+    // 根据查询参数过滤
+    let filteredTemplates = mockTemplates;
+
+    if (type) {
+      filteredTemplates = filteredTemplates.filter(t => t.type === type);
+    }
+
+    if (language) {
+      filteredTemplates = filteredTemplates.filter(t => t.language === language);
+    }
+
+    if (framework) {
+      filteredTemplates = filteredTemplates.filter(t => t.framework === framework);
+    }
+
+    return ApiRes.success(filteredTemplates);
   }
 }

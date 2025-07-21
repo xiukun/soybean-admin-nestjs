@@ -4,6 +4,9 @@ import * as Handlebars from 'handlebars';
 import { GeneratedFile, ProjectMetadata, EntityMetadata, FieldMetadata } from '../../../shared/types/metadata.types';
 import { MetadataAggregatorService } from '../../../metadata/application/services/metadata-aggregator.service';
 import { TemplateEngineService } from '../../infrastructure/template-engine.service';
+import { FieldTypeMapperService } from './field-type-mapper.service';
+import { PrismaTypeMapperService } from './prisma-type-mapper.service';
+import { TemplateValidationService } from './template-validation.service';
 
 export interface GenerationRequest {
   projectId: string;
@@ -46,6 +49,9 @@ export class IntelligentCodeGeneratorService {
     private readonly prisma: PrismaService,
     private readonly metadataAggregator: MetadataAggregatorService,
     private readonly templateEngine: TemplateEngineService,
+    private readonly fieldTypeMapper: FieldTypeMapperService,
+    private readonly prismaTypeMapper: PrismaTypeMapperService,
+    private readonly templateValidation: TemplateValidationService,
   ) {
     this.handlebars = Handlebars.create();
     this.registerHelpers();
@@ -57,7 +63,7 @@ export class IntelligentCodeGeneratorService {
     try {
       // Validate project exists
       const projectMetadata = await this.metadataAggregator.getProjectMetadata(request.projectId);
-      this.logger.log(`Project validated: ${projectMetadata.project.name}`);
+      this.logger.log(`Project validated: ${projectMetadata.name}`);
 
       // Get templates
       const templates = await this.getTemplates(request.templateIds);
@@ -294,7 +300,17 @@ export class IntelligentCodeGeneratorService {
       this.logger.log(`Template context built with ${context.fields ? context.fields.length : 0} fields`);
 
       // Add project metadata to context
-      context.project = projectMetadata.project;
+      context.project = {
+        id: projectMetadata.id,
+        name: projectMetadata.name,
+        code: projectMetadata.code,
+        description: projectMetadata.description,
+        framework: projectMetadata.framework,
+        architecture: projectMetadata.architecture,
+        language: projectMetadata.language,
+        database: projectMetadata.database,
+        settings: projectMetadata.settings,
+      };
       context.allEntities = projectMetadata.entities;
       context.allRelationships = projectMetadata.relationships;
 
@@ -327,7 +343,17 @@ export class IntelligentCodeGeneratorService {
     try {
       // Build project context with metadata
       const context = this.buildProjectContext(request);
-      context.project = projectMetadata.project;
+      context.project = {
+        id: projectMetadata.id,
+        name: projectMetadata.name,
+        code: projectMetadata.code,
+        description: projectMetadata.description,
+        framework: projectMetadata.framework,
+        architecture: projectMetadata.architecture,
+        language: projectMetadata.language,
+        database: projectMetadata.database,
+        settings: projectMetadata.settings,
+      };
       context.allEntities = projectMetadata.entities;
       context.allRelationships = projectMetadata.relationships;
 
@@ -684,6 +710,114 @@ export class IntelligentCodeGeneratorService {
       const d = new Date(date);
       return d.toISOString().split('T')[0];
     });
+
+    this.handlebars.registerHelper('currentDate', () => {
+      return new Date().toISOString().split('T')[0];
+    });
+
+    // Prisma 相关助手函数
+    this.handlebars.registerHelper('mapTypeToPrisma', (fieldType: string) => {
+      const mapping = this.prismaTypeMapper.getPrismaMapping(fieldType);
+      return mapping.prismaType;
+    });
+
+    this.handlebars.registerHelper('mapTypeToTS', (fieldType: string) => {
+      const mapping = this.prismaTypeMapper.getPrismaMapping(fieldType);
+      return mapping.tsType;
+    });
+
+    this.handlebars.registerHelper('getPrismaAttributes', (field: any) => {
+      const attributes = [];
+      if (field.isUnique) attributes.push('@unique');
+      if (field.defaultValue) attributes.push(`@default(${field.defaultValue})`);
+      return attributes.join(' ');
+    });
+
+    // 比较助手函数
+    this.handlebars.registerHelper('eq', (a: any, b: any) => {
+      return a === b;
+    });
+
+    this.handlebars.registerHelper('ne', (a: any, b: any) => {
+      return a !== b;
+    });
+
+    this.handlebars.registerHelper('gt', (a: any, b: any) => {
+      return a > b;
+    });
+
+    this.handlebars.registerHelper('lt', (a: any, b: any) => {
+      return a < b;
+    });
+
+    // 逻辑助手函数
+    this.handlebars.registerHelper('and', (a: any, b: any) => {
+      return a && b;
+    });
+
+    this.handlebars.registerHelper('or', (a: any, b: any) => {
+      return a || b;
+    });
+
+    this.handlebars.registerHelper('not', (a: any) => {
+      return !a;
+    });
+
+    // 字符串处理助手
+    this.handlebars.registerHelper('upperCase', (str: string) => {
+      return str ? str.toUpperCase() : '';
+    });
+
+    this.handlebars.registerHelper('lowerCase', (str: string) => {
+      return str ? str.toLowerCase() : '';
+    });
+
+    this.handlebars.registerHelper('capitalize', (str: string) => {
+      return str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
+    });
+
+    this.handlebars.registerHelper('pluralize', (str: string) => {
+      // 简单的复数化逻辑
+      if (!str) return '';
+      if (str.endsWith('y')) return str.slice(0, -1) + 'ies';
+      if (str.endsWith('s') || str.endsWith('sh') || str.endsWith('ch') || str.endsWith('x') || str.endsWith('z')) {
+        return str + 'es';
+      }
+      return str + 's';
+    });
+
+    this.handlebars.registerHelper('singularize', (str: string) => {
+      // 简单的单数化逻辑
+      if (!str) return '';
+      if (str.endsWith('ies')) return str.slice(0, -3) + 'y';
+      if (str.endsWith('es')) return str.slice(0, -2);
+      if (str.endsWith('s')) return str.slice(0, -1);
+      return str;
+    });
+
+    // 数组过滤助手
+    this.handlebars.registerHelper('filter', (array: any[], property: string, value: any) => {
+      if (!Array.isArray(array)) return [];
+      return array.filter(item => item[property] === value);
+    });
+
+    this.handlebars.registerHelper('filterNot', (array: any[], property: string, value: any) => {
+      if (!Array.isArray(array)) return [];
+      return array.filter(item => item[property] !== value);
+    });
+
+    // 缩进助手
+    this.handlebars.registerHelper('indent', (text: string, spaces: number = 2) => {
+      if (!text) return '';
+      const indentation = ' '.repeat(spaces);
+      return text.split('\n').map(line => indentation + line).join('\n');
+    });
+
+    // 注释助手
+    this.handlebars.registerHelper('comment', (text: string, style: string = '//') => {
+      if (!text) return '';
+      return `${style} ${text}`;
+    });
   }
 
   // Enhanced field analysis methods
@@ -803,15 +937,341 @@ export class IntelligentCodeGeneratorService {
       case 'string':
         return typeof value === 'string';
       case 'number':
-        return typeof value === 'number';
+        return typeof value === 'number' && !isNaN(value);
+      case 'integer':
+        return Number.isInteger(value);
+      case 'float':
+        return typeof value === 'number' && !isNaN(value);
       case 'boolean':
         return typeof value === 'boolean';
       case 'array':
         return Array.isArray(value);
       case 'object':
         return typeof value === 'object' && value !== null && !Array.isArray(value);
+      case 'date':
+        return value instanceof Date || (typeof value === 'string' && !isNaN(Date.parse(value)));
+      case 'email':
+        return typeof value === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+      case 'url':
+        try {
+          new URL(value);
+          return true;
+        } catch {
+          return false;
+        }
+      case 'uuid':
+        return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+      case 'json':
+        if (typeof value === 'string') {
+          try {
+            JSON.parse(value);
+            return true;
+          } catch {
+            return false;
+          }
+        }
+        return typeof value === 'object';
       default:
         return true; // Unknown types are considered valid
     }
+  }
+
+  /**
+   * Enhanced template variable validation with custom rules
+   */
+  public async validateTemplateVariablesEnhanced(
+    templateId: string,
+    variables: Record<string, any>,
+    customRules?: Record<string, (value: any) => string | null>
+  ): Promise<{ isValid: boolean; errors: Array<{ variable: string; message: string; type: string }> }> {
+    try {
+      const template = await this.getTemplates([templateId]);
+      if (template.length === 0) {
+        return {
+          isValid: false,
+          errors: [{ variable: 'template', message: 'Template not found', type: 'not_found' }]
+        };
+      }
+
+      const templateMeta = template[0];
+      const errors: Array<{ variable: string; message: string; type: string }> = [];
+
+      // Check required variables
+      for (const variable of templateMeta.variables) {
+        if (variable.required && !(variable.name in variables)) {
+          errors.push({
+            variable: variable.name,
+            message: `Required variable missing: ${variable.name}`,
+            type: 'required'
+          });
+        }
+      }
+
+      // Check variable types and custom validations
+      for (const [name, value] of Object.entries(variables)) {
+        const variableDef = templateMeta.variables.find(v => v.name === name);
+
+        if (!variableDef) {
+          errors.push({
+            variable: name,
+            message: `Unknown variable: ${name}`,
+            type: 'unknown'
+          });
+          continue;
+        }
+
+        // Type validation
+        if (!this.validateVariableType(value, variableDef.type)) {
+          errors.push({
+            variable: name,
+            message: `Invalid type for variable ${name}: expected ${variableDef.type}, got ${typeof value}`,
+            type: 'type_mismatch'
+          });
+        }
+
+        // Extended validation using any type to access additional properties
+        const extendedVariableDef = variableDef as any;
+
+        // Length validation for strings
+        if (variableDef.type === 'string' && typeof value === 'string') {
+          if (extendedVariableDef.minLength && value.length < extendedVariableDef.minLength) {
+            errors.push({
+              variable: name,
+              message: `Variable ${name} must be at least ${extendedVariableDef.minLength} characters long`,
+              type: 'min_length'
+            });
+          }
+          if (extendedVariableDef.maxLength && value.length > extendedVariableDef.maxLength) {
+            errors.push({
+              variable: name,
+              message: `Variable ${name} must be at most ${extendedVariableDef.maxLength} characters long`,
+              type: 'max_length'
+            });
+          }
+        }
+
+        // Range validation for numbers
+        if ((variableDef.type === 'number' || variableDef.type === 'integer') && typeof value === 'number') {
+          if (extendedVariableDef.min !== undefined && value < extendedVariableDef.min) {
+            errors.push({
+              variable: name,
+              message: `Variable ${name} must be at least ${extendedVariableDef.min}`,
+              type: 'min_value'
+            });
+          }
+          if (extendedVariableDef.max !== undefined && value > extendedVariableDef.max) {
+            errors.push({
+              variable: name,
+              message: `Variable ${name} must be at most ${extendedVariableDef.max}`,
+              type: 'max_value'
+            });
+          }
+        }
+
+        // Pattern validation
+        if (extendedVariableDef.pattern && typeof value === 'string') {
+          const regex = new RegExp(extendedVariableDef.pattern);
+          if (!regex.test(value)) {
+            errors.push({
+              variable: name,
+              message: `Variable ${name} does not match required pattern: ${extendedVariableDef.pattern}`,
+              type: 'pattern_mismatch'
+            });
+          }
+        }
+
+        // Enum validation
+        if (extendedVariableDef.enum && !extendedVariableDef.enum.includes(value)) {
+          errors.push({
+            variable: name,
+            message: `Variable ${name} must be one of: ${extendedVariableDef.enum.join(', ')}`,
+            type: 'enum_mismatch'
+          });
+        }
+
+        // Custom validation rules
+        if (customRules && customRules[name]) {
+          const customError = customRules[name](value);
+          if (customError) {
+            errors.push({
+              variable: name,
+              message: customError,
+              type: 'custom'
+            });
+          }
+        }
+      }
+
+      return {
+        isValid: errors.length === 0,
+        errors,
+      };
+    } catch (error) {
+      return {
+        isValid: false,
+        errors: [{ variable: 'validation', message: `Validation failed: ${error.message}`, type: 'system_error' }],
+      };
+    }
+  }
+
+  /**
+   * 准备Prisma特定的模板变量
+   */
+  private preparePrismaTemplateVariables(
+    entity: EntityMetadata,
+    project: ProjectMetadata,
+    customVariables: Record<string, any> = {}
+  ): Record<string, any> {
+    const fields = entity.fields || [];
+
+    // 处理字段映射
+    const processedFields = fields.map(field => {
+      const mapping = this.fieldTypeMapper.getCompleteFieldMapping(field);
+      return {
+        ...field,
+        prismaType: mapping.prismaType,
+        tsType: mapping.tsType,
+        sqlType: mapping.sqlType,
+        validationType: mapping.validationType,
+        prismaAttributes: mapping.prismaAttributes,
+        isSystemField: this.fieldTypeMapper.isSystemField(field.code),
+        prismaFieldDef: this.fieldTypeMapper.generatePrismaFieldDefinition(field),
+        tsFieldDef: this.fieldTypeMapper.generateTSFieldDefinition(field),
+        validationDecorators: this.fieldTypeMapper.getFieldValidationDecorators(field),
+      };
+    });
+
+    // 分离系统字段和业务字段
+    const businessFields = processedFields.filter(f => !f.isSystemField);
+    const systemFields = processedFields.filter(f => f.isSystemField);
+
+    // 生成系统字段定义
+    const systemFieldDefs = this.fieldTypeMapper.generateSystemFields({
+      enableAudit: project.settings?.enableAudit,
+      enableSoftDelete: project.settings?.enableSoftDelete,
+      enableVersioning: project.settings?.enableVersioning,
+      enableTenancy: project.settings?.enableTenancy,
+      enableStatus: project.settings?.enableStatus,
+    });
+
+    return {
+      // 基础实体信息
+      entityName: entity.name,
+      entityCode: entity.code,
+      tableName: entity.tableName,
+      entityDescription: entity.description,
+
+      // 字段信息
+      fields: processedFields,
+      businessFields,
+      systemFields,
+      systemFieldDefs,
+
+      // 项目信息
+      projectName: project.name,
+      projectCode: project.code,
+      framework: project.framework,
+      architecture: project.architecture,
+      language: project.language,
+      database: project.database,
+
+      // 项目设置
+      settings: project.settings || {},
+
+      // 关系信息
+      relationships: entity.relationships || [],
+
+      // 生成选项
+      generateOptions: {
+        enableSwagger: project.settings?.enableSwagger,
+        enableValidation: project.settings?.enableValidation,
+        enableAuth: project.settings?.enableAuth,
+        enableCaching: project.settings?.enableCaching,
+        enableLogging: project.settings?.enableLogging,
+      },
+
+      // 自定义变量
+      ...customVariables,
+    };
+  }
+
+  /**
+   * 验证模板内容
+   */
+  async validateTemplateContent(
+    templateContent: string,
+    variables: Array<{ name: string; type: string; required: boolean }> = []
+  ): Promise<{
+    isValid: boolean;
+    errors: string[];
+    warnings: string[];
+    suggestions: string[];
+  }> {
+    try {
+      const result = await this.templateValidation.validateTemplate(templateContent, variables, {
+        checkSecurity: true,
+        checkPerformance: true,
+      });
+
+      return {
+        isValid: result.isValid,
+        errors: result.errors.filter(e => e.severity === 'error').map(e => e.message),
+        warnings: result.warnings.map(w => w.message),
+        suggestions: result.suggestions.map(s => s.message),
+      };
+    } catch (error) {
+      this.logger.error('Template validation failed', error.stack);
+      return {
+        isValid: false,
+        errors: [`Template validation failed: ${error.message}`],
+        warnings: [],
+        suggestions: [],
+      };
+    }
+  }
+
+  /**
+   * 获取模板复杂度分析
+   */
+  getTemplateComplexity(templateContent: string): {
+    score: number;
+    level: 'simple' | 'moderate' | 'complex' | 'very_complex';
+    factors: Array<{ factor: string; impact: number; description: string }>;
+    recommendations: string[];
+  } {
+    const complexity = this.templateValidation.getComplexityScore(templateContent);
+
+    let level: 'simple' | 'moderate' | 'complex' | 'very_complex';
+    const recommendations: string[] = [];
+
+    if (complexity.score <= 5) {
+      level = 'simple';
+    } else if (complexity.score <= 15) {
+      level = 'moderate';
+    } else if (complexity.score <= 30) {
+      level = 'complex';
+      recommendations.push('Consider breaking down into smaller templates');
+    } else {
+      level = 'very_complex';
+      recommendations.push('Highly recommend refactoring into multiple smaller templates');
+      recommendations.push('Consider using template partials for reusability');
+    }
+
+    // 添加基于因子的建议
+    complexity.factors.forEach(factor => {
+      if (factor.factor === 'Nesting Depth' && factor.impact > 10) {
+        recommendations.push('Reduce nesting depth by using template partials');
+      }
+      if (factor.factor === 'Loop Count' && factor.impact > 5) {
+        recommendations.push('Consider optimizing data structure to reduce loops');
+      }
+    });
+
+    return {
+      score: complexity.score,
+      level,
+      factors: complexity.factors,
+      recommendations: [...new Set(recommendations)], // 去重
+    };
   }
 }

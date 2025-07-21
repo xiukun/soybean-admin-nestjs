@@ -1,0 +1,166 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsNumber, IsBoolean, IsOptional, IsUUID, IsEmail, IsUrl, IsEnum, IsArray, ValidateNested, IsDateString{{#if hasValidations}}, {{#each validationImports}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}} } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
+{{#if hasEnums}}
+{{#each enums}}
+import { {{name}} } from '../enums/{{kebabCase name}}.enum';
+{{/each}}
+{{/if}}
+{{#if hasRelatedDtos}}
+{{#each relatedDtos}}
+import { {{name}} } from './{{kebabCase name}}.dto';
+{{/each}}
+{{/if}}
+
+// Create DTO
+export class Create{{entityName}}Dto {
+{{#each fields}}
+{{#unless isPrimaryKey}}
+{{#unless isSystemField}}
+  {{#if required}}
+  @ApiProperty({
+    description: '{{description}}',
+    {{#if example}}example: {{#if (eq type 'STRING')}}'{{example}}'{{else}}{{example}}{{/if}},{{/if}}
+    {{#if enum}}enum: {{enum}},{{/if}}
+    {{#if (eq type 'STRING')}}{{#if minLength}}minLength: {{minLength}},{{/if}}{{#if maxLength}}maxLength: {{maxLength}},{{/if}}{{/if}}
+    {{#if (eq type 'NUMBER')}}{{#if min}}minimum: {{min}},{{/if}}{{#if max}}maximum: {{max}},{{/if}}{{/if}}
+  })
+  {{else}}
+  @ApiPropertyOptional({
+    description: '{{description}}',
+    {{#if example}}example: {{#if (eq type 'STRING')}}'{{example}}'{{else}}{{example}}{{/if}},{{/if}}
+    {{#if enum}}enum: {{enum}},{{/if}}
+    {{#if (eq type 'STRING')}}{{#if minLength}}minLength: {{minLength}},{{/if}}{{#if maxLength}}maxLength: {{maxLength}},{{/if}}{{/if}}
+    {{#if (eq type 'NUMBER')}}{{#if min}}minimum: {{min}},{{/if}}{{#if max}}maximum: {{max}},{{/if}}{{/if}}
+  })
+  {{/if}}
+  {{#generateValidationDecorators this}}{{/generateValidationDecorators}}
+  {{code}}: {{mapTypeToTS type}}{{#unless required}} | undefined{{/unless}};
+
+{{/unless}}
+{{/unless}}
+{{/each}}
+}
+
+// Update DTO
+export class Update{{entityName}}Dto {
+{{#each fields}}
+{{#unless isPrimaryKey}}
+{{#unless isSystemField}}
+  @ApiPropertyOptional({
+    description: '{{description}}',
+    {{#if example}}example: {{#if (eq type 'STRING')}}'{{example}}'{{else}}{{example}}{{/if}},{{/if}}
+    {{#if enum}}enum: {{enum}},{{/if}}
+    {{#if (eq type 'STRING')}}{{#if minLength}}minLength: {{minLength}},{{/if}}{{#if maxLength}}maxLength: {{maxLength}},{{/if}}{{/if}}
+    {{#if (eq type 'NUMBER')}}{{#if min}}minimum: {{min}},{{/if}}{{#if max}}maximum: {{max}},{{/if}}{{/if}}
+  })
+  @IsOptional()
+  {{#generateValidationDecorators this}}{{/generateValidationDecorators}}
+  {{code}}?: {{mapTypeToTS type}};
+
+{{/unless}}
+{{/unless}}
+{{/each}}
+}
+
+// Response DTO
+export class {{entityName}}ResponseDto {
+{{#each fields}}
+  @ApiProperty({
+    description: '{{description}}',
+    {{#if example}}example: {{#if (eq type 'STRING')}}'{{example}}'{{else}}{{example}}{{/if}},{{/if}}
+    {{#if enum}}enum: {{enum}},{{/if}}
+  })
+  {{code}}: {{mapTypeToTS type}}{{#if nullable}} | null{{/if}};
+
+{{/each}}
+{{#if hasRelations}}
+{{#each relations}}
+  {{#if includeInResponse}}
+  @ApiPropertyOptional({
+    description: '{{description}}',
+    {{#if (eq relationType 'OneToMany')}}type: [{{targetEntity}}ResponseDto],{{/if}}
+    {{#if (eq relationType 'ManyToMany')}}type: [{{targetEntity}}ResponseDto],{{/if}}
+    {{#if (eq relationType 'OneToOne')}}type: {{targetEntity}}ResponseDto,{{/if}}
+    {{#if (eq relationType 'ManyToOne')}}type: {{targetEntity}}ResponseDto,{{/if}}
+  })
+  @ValidateNested({{#if (or (eq relationType 'OneToMany') (eq relationType 'ManyToMany'))}}{ each: true }{{/if}})
+  @Type(() => {{targetEntity}}ResponseDto)
+  {{relationName}}?: {{targetEntity}}ResponseDto{{#if (or (eq relationType 'OneToMany') (eq relationType 'ManyToMany'))}}[]{{/if}};
+
+  {{/if}}
+{{/each}}
+{{/if}}
+}
+
+// Query DTO
+export class {{entityName}}QueryDto {
+  @ApiPropertyOptional({ description: 'Page number', example: 1, minimum: 1 })
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  current?: number;
+
+  @ApiPropertyOptional({ description: 'Page size', example: 10, minimum: 1, maximum: 100 })
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  size?: number;
+
+{{#each searchableFields}}
+  @ApiPropertyOptional({ description: 'Search by {{name}}' })
+  @IsOptional()
+  @IsString()
+  {{code}}?: string;
+
+{{/each}}
+{{#each filterableFields}}
+{{#unless (includes ../searchableFields this)}}
+  @ApiPropertyOptional({ description: 'Filter by {{name}}' })
+  @IsOptional()
+  {{#generateValidationDecorators this}}{{/generateValidationDecorators}}
+  {{code}}?: {{mapTypeToTS type}};
+
+{{/unless}}
+{{/each}}
+  @ApiPropertyOptional({ description: 'Sort field', example: 'createdAt' })
+  @IsOptional()
+  @IsString()
+  sortBy?: string;
+
+  @ApiPropertyOptional({ description: 'Sort order', enum: ['ASC', 'DESC'], example: 'DESC' })
+  @IsOptional()
+  @IsEnum(['ASC', 'DESC'])
+  sortOrder?: 'ASC' | 'DESC';
+
+{{#if enableStatus}}
+  @ApiPropertyOptional({ description: 'Filter by status', enum: ['ACTIVE', 'INACTIVE', 'DELETED'] })
+  @IsOptional()
+  @IsEnum(['ACTIVE', 'INACTIVE', 'DELETED'])
+  status?: string;
+
+{{/if}}
+{{#if enableSoftDelete}}
+  @ApiPropertyOptional({ description: 'Include deleted records', example: false })
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
+  includeDeleted?: boolean;
+
+{{/if}}
+}
+
+// List Response DTO
+export class {{entityName}}ListResponseDto {
+  @ApiProperty({ type: [{{entityName}}ResponseDto] })
+  records: {{entityName}}ResponseDto[];
+
+  @ApiProperty({ description: 'Total number of records' })
+  total: number;
+
+  @ApiProperty({ description: 'Current page number' })
+  current: number;
+
+  @ApiProperty({ description: 'Page size' })
+  size: number;
+}
