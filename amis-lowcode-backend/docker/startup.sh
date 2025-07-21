@@ -12,12 +12,14 @@ NODE_ENV=${NODE_ENV:-production}
 PORT=${PORT:-9522}
 AUTO_INIT_DATA=${AUTO_INIT_DATA:-true}
 FIRST_RUN_DETECTION=${FIRST_RUN_DETECTION:-true}
+DOCKER_ENV=${DOCKER_ENV:-true}
 
 echo "📋 Environment Configuration:"
 echo "  NODE_ENV: $NODE_ENV"
 echo "  PORT: $PORT"
 echo "  AUTO_INIT_DATA: $AUTO_INIT_DATA"
 echo "  FIRST_RUN_DETECTION: $FIRST_RUN_DETECTION"
+echo "  DOCKER_ENV: $DOCKER_ENV"
 
 # Function to check if database is accessible
 check_database() {

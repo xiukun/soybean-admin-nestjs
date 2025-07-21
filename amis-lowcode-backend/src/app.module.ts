@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { PrismaService } from '@shared/services/prisma.service';
 import { UserModule } from '@modules/user.module';
 import { RoleModule } from '@modules/role.module';
+import { DatabaseInitService } from '@shared/database/database-init.service';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { RoleModule } from '@modules/role.module';
     RoleModule
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [AppService, PrismaService, DatabaseInitService],
 })
 export class AppModule {
   // This module is dynamically updated by the code generator

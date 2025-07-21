@@ -29,6 +29,7 @@ import { JwtStrategy } from '@strategies/jwt.strategy';
 import { CodeGenerationModule } from '@lib/bounded-contexts/code-generation/code-generation.module';
 import { HealthModule } from '@api/health/health.module';
 import { MetadataModule } from '@lib/bounded-contexts/metadata/metadata.module';
+import { DatabaseInitService } from '@infra/database/database-init.service';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { MetadataModule } from '@lib/bounded-contexts/metadata/metadata.module';
   providers: [
     AppService,
     JwtStrategy,
+    DatabaseInitService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

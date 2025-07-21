@@ -91,6 +91,10 @@ services:
       BASE_SYSTEM_URL: 'http://backend:9528'
       AMIS_BACKEND_URL: 'http://amis-backend:9522'
       AMIS_BACKEND_PATH: '/app/amis-backend'
+      # 数据库初始化配置
+      RUN_MIGRATIONS: 'true'
+      AUTO_INIT_DATA: 'true'
+      FIRST_RUN_DETECTION: 'true'
       # 性能和监控配置
       METRICS_ENABLED: 'true'
       PERFORMANCE_MONITORING: 'true'

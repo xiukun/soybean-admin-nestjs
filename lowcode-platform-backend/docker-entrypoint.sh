@@ -32,17 +32,31 @@ if [ "$RUN_MIGRATIONS" = "true" ]; then
   echo "🔧 运行数据库迁移..."
   npx prisma db push --accept-data-loss
   echo "✅ 数据库迁移完成"
+
+  # 运行种子数据
+  if [ "$AUTO_INIT_DATA" = "true" ]; then
+    echo "🌱 运行种子数据..."
+    if npx prisma db seed; then
+      echo "✅ 种子数据初始化完成"
+    else
+      echo "⚠️ 种子数据初始化失败（继续启动）"
+    fi
+  fi
 fi
 
 # 设置环境变量默认值
 export NODE_ENV=${NODE_ENV:-production}
 export PORT=${PORT:-3000}
+export AUTO_INIT_DATA=${AUTO_INIT_DATA:-true}
+export DOCKER_ENV=${DOCKER_ENV:-true}
 
 echo "🌐 服务配置："
 echo "  - 环境: $NODE_ENV"
 echo "  - 端口: $PORT"
 echo "  - 数据库: $DATABASE_URL"
 echo "  - Redis: $REDIS_HOST:$REDIS_PORT"
+echo "  - 自动初始化: $AUTO_INIT_DATA"
+echo "  - Docker环境: $DOCKER_ENV"
 
 # 启动应用
 echo "🚀 启动应用服务器..."
