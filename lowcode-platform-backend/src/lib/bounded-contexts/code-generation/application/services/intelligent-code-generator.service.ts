@@ -53,10 +53,22 @@ export class IntelligentCodeGeneratorService {
       const templates = await this.getTemplates(request.templateIds);
       this.logger.log(`Loaded ${templates.length} templates`);
 
-      // 获取实体（如果指定了entityIds）
-      const entities = request.entityIds 
-        ? await this.getEntities(request.entityIds)
-        : [];
+      // 获取实体（如果指定了entityIds或entityName）
+      let entities: EntityMetadata[] = [];
+
+      if (request.entityIds && request.entityIds.length > 0) {
+        entities = await this.getEntities(request.entityIds);
+      } else if (request.variables.entityName) {
+        // 根据entityName查找实体
+        this.logger.log(`Looking for entity by name: ${request.variables.entityName} in project: ${request.projectId}`);
+        const entity = await this.getEntityByName(request.projectId, request.variables.entityName);
+        if (entity) {
+          this.logger.log(`Found entity: ${entity.name} with ${entity.fields.length} fields`);
+          entities = [entity];
+        } else {
+          this.logger.warn(`Entity not found: ${request.variables.entityName}`);
+        }
+      }
 
       const generatedFiles: GeneratedFile[] = [];
 
@@ -110,40 +122,136 @@ export class IntelligentCodeGeneratorService {
   }
 
   private async getEntities(entityIds: string[]): Promise<EntityMetadata[]> {
-    const entities = await this.prisma.entity.findMany({
-      where: {
-        id: { in: entityIds },
-      },
-      include: {
-        fields: {
-          orderBy: { sortOrder: 'asc' },
-        },
-      },
-    });
+    const entities: EntityMetadata[] = [];
 
-    return entities.map(entity => ({
-      id: entity.id,
-      name: entity.name,
-      code: entity.code,
-      tableName: entity.tableName,
-      description: entity.description,
-      fields: entity.fields.map(field => ({
-        id: field.id,
-        name: field.name,
-        code: field.code,
-        type: field.type,
-        length: field.length,
-        nullable: field.nullable,
-        isPrimaryKey: field.primaryKey,
-        isUnique: field.uniqueConstraint,
-        defaultValue: field.defaultValue,
-        description: field.comment,
-      })),
-      relationships: {
-        outgoing: [],
-        incoming: [],
-      },
-    }));
+    for (const entityId of entityIds) {
+      try {
+        const entityData = await this.prisma.$queryRaw<any[]>`
+          SELECT
+            e.id,
+            e.name,
+            e.code,
+            e.table_name as "tableName",
+            e.description,
+            json_agg(
+              json_build_object(
+                'id', f.id,
+                'name', f.name,
+                'code', f.code,
+                'type', f.type,
+                'length', f.length,
+                'nullable', f.nullable,
+                'primaryKey', f.primary_key,
+                'uniqueConstraint', f.unique_constraint,
+                'defaultValue', f.default_value,
+                'comment', f.comment,
+                'sortOrder', f.sort_order
+              ) ORDER BY f.sort_order ASC
+            ) as fields
+          FROM lowcode_entities e
+          LEFT JOIN lowcode_fields f ON e.id = f.entity_id
+          WHERE e.id = ${entityId}
+          GROUP BY e.id, e.name, e.code, e.table_name, e.description
+        `;
+
+        if (entityData && entityData.length > 0) {
+          const entity = entityData[0];
+          entities.push({
+            id: entity.id,
+            name: entity.name,
+            code: entity.code,
+            tableName: entity.tableName,
+            description: entity.description,
+            fields: (entity.fields || []).map((field: any) => ({
+              id: field.id,
+              name: field.name,
+              code: field.code,
+              type: field.type,
+              length: field.length,
+              nullable: field.nullable,
+              isPrimaryKey: field.primaryKey,
+              isUnique: field.uniqueConstraint,
+              defaultValue: field.defaultValue,
+              description: field.comment,
+              // 添加新的字段属性
+              tsType: this.mapFieldTypeToTypeScript(field.type),
+              prismaType: this.mapFieldTypeToPrisma(field.type, field.nullable),
+              prismaAttributes: this.buildPrismaAttributes(field),
+            })),
+            relationships: { outgoing: [], incoming: [] },
+          });
+        }
+      } catch (error) {
+        this.logger.error(`Failed to get entity ${entityId}:`, error);
+      }
+    }
+
+    return entities;
+  }
+
+  private async getEntityByName(projectId: string, entityName: string): Promise<EntityMetadata | null> {
+    try {
+      const entityData = await this.prisma.$queryRaw<any[]>`
+        SELECT
+          e.id,
+          e.name,
+          e.code,
+          e.table_name as "tableName",
+          e.description,
+          json_agg(
+            json_build_object(
+              'id', f.id,
+              'name', f.name,
+              'code', f.code,
+              'type', f.type,
+              'length', f.length,
+              'nullable', f.nullable,
+              'primaryKey', f.primary_key,
+              'uniqueConstraint', f.unique_constraint,
+              'defaultValue', f.default_value,
+              'comment', f.comment,
+              'sortOrder', f.sort_order
+            ) ORDER BY f.sort_order ASC
+          ) as fields
+        FROM lowcode_entities e
+        LEFT JOIN lowcode_fields f ON e.id = f.entity_id
+        WHERE e.project_id = ${projectId} AND (e.code = ${entityName} OR e.name = ${entityName})
+        GROUP BY e.id, e.name, e.code, e.table_name, e.description
+      `;
+
+      if (entityData && entityData.length > 0) {
+        const entity = entityData[0];
+        return {
+          id: entity.id,
+          name: entity.name,
+          code: entity.code,
+          tableName: entity.tableName,
+          description: entity.description,
+          fields: (entity.fields || []).map((field: any) => ({
+            id: field.id,
+            name: field.name,
+            code: field.code,
+            type: field.type,
+            length: field.length,
+            nullable: field.nullable,
+            isPrimaryKey: field.primaryKey,
+            isUnique: field.uniqueConstraint,
+            defaultValue: field.defaultValue,
+            description: field.comment,
+            // 添加新的字段属性
+            tsType: this.mapFieldTypeToTypeScript(field.type),
+            prismaType: this.mapFieldTypeToPrisma(field.type, field.nullable),
+            prismaAttributes: this.buildPrismaAttributes(field),
+          })),
+          relationships: { outgoing: [], incoming: [] },
+        };
+      }
+
+      return null;
+    } catch (error) {
+      this.logger.error(`Failed to get entity by name ${entityName}:`, error);
+      return null;
+    }
   }
 
   private async generateFilesForEntity(
@@ -151,7 +259,9 @@ export class IntelligentCodeGeneratorService {
     entity: EntityMetadata,
     request: GenerationRequest
   ): Promise<GeneratedFile[]> {
+    this.logger.log(`Generating files for entity: ${entity.name} with ${entity.fields.length} fields`);
     const context = this.buildTemplateContext(entity, request);
+    this.logger.log(`Template context fields count: ${context.fields ? context.fields.length : 0}`);
     const compiledTemplate = this.handlebars.compile(template.content);
     const generatedContent = compiledTemplate(context);
 
@@ -197,7 +307,9 @@ export class IntelligentCodeGeneratorService {
       tableName: request.variables.tableName || entity.tableName,
       fields: entity.fields.map(field => ({
         ...field,
-        tsType: this.mapFieldTypeToTypeScript(field.type),
+        tsType: field.tsType || this.mapFieldTypeToTypeScript(field.type),
+        prismaType: field.prismaType || this.mapFieldTypeToPrisma(field.type, field.nullable),
+        prismaAttributes: field.prismaAttributes || this.buildPrismaAttributes(field),
         columnOptions: this.buildColumnOptions(field)
       })),
       primaryKeyField: entity.fields.find(f => f.isPrimaryKey),
@@ -205,6 +317,8 @@ export class IntelligentCodeGeneratorService {
       requiredFields: entity.fields.filter(f => !f.nullable),
       optionalFields: entity.fields.filter(f => f.nullable),
       uniqueFields: entity.fields.filter(f => f.isUnique),
+      systemFields: entity.fields.filter(f => this.isSystemField(f.code)),
+      businessFields: entity.fields.filter(f => !this.isSystemField(f.code)),
       relationships: entity.relationships,
 
       // 生成选项
@@ -334,6 +448,72 @@ export class IntelligentCodeGeneratorService {
     }
 
     return options.length > 0 ? `{ ${options.join(', ')} }` : '';
+  }
+
+  private mapFieldTypeToPrisma(fieldType: string, nullable: boolean = false): string {
+    const typeMap: Record<string, string> = {
+      'STRING': 'String',
+      'TEXT': 'String',
+      'INTEGER': 'Int',
+      'BIGINT': 'BigInt',
+      'DECIMAL': 'Decimal',
+      'BOOLEAN': 'Boolean',
+      'DATE': 'DateTime',
+      'DATETIME': 'DateTime',
+      'TIMESTAMP': 'DateTime',
+      'JSON': 'Json',
+      'UUID': 'String',
+    };
+
+    let prismaType = typeMap[fieldType] || 'String';
+
+    // 处理可空字段
+    if (nullable) {
+      prismaType += '?';
+    }
+
+    return prismaType;
+  }
+
+  private buildPrismaAttributes(field: any): string[] {
+    const attributes: string[] = [];
+
+    // 主键
+    if (field.isPrimaryKey) {
+      if (field.type === 'UUID' || (field.type === 'STRING' && field.defaultValue === 'cuid()')) {
+        attributes.push('@id @default(cuid())');
+      } else {
+        attributes.push('@id');
+      }
+    }
+
+    // 唯一约束
+    if (field.isUnique && !field.isPrimaryKey) {
+      attributes.push('@unique');
+    }
+
+    // 默认值
+    if (field.defaultValue && !field.isPrimaryKey) {
+      if (field.defaultValue === 'now()') {
+        attributes.push('@default(now())');
+      } else if (field.defaultValue === 'cuid()') {
+        attributes.push('@default(cuid())');
+      } else {
+        attributes.push(`@default("${field.defaultValue}")`);
+      }
+    }
+
+    // 更新时间自动更新
+    if (field.code === 'updatedAt') {
+      attributes.push('@updatedAt');
+    }
+
+    return attributes;
+  }
+
+  private isSystemField(fieldCode: string): boolean {
+    const systemFields = ['id', 'tenantId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy'];
+    return systemFields.includes(fieldCode);
   }
 
   private registerHelpers(): void {

@@ -148,6 +148,18 @@ datasource db {
 
   private mapFieldTypeToPrisma(field: FieldMetadata): string {
     const typeMap: Record<string, string> = {
+      'STRING': 'String',
+      'TEXT': 'String',
+      'INTEGER': 'Int',
+      'BIGINT': 'BigInt',
+      'DECIMAL': 'Decimal',
+      'BOOLEAN': 'Boolean',
+      'DATE': 'DateTime',
+      'DATETIME': 'DateTime',
+      'TIMESTAMP': 'DateTime',
+      'JSON': 'Json',
+      'UUID': 'String',
+      // 兼容小写
       'string': 'String',
       'text': 'String',
       'integer': 'Int',
@@ -246,7 +258,7 @@ datasource db {
 
   async healthCheck(): Promise<boolean> {
     try {
-      const healthUrl = 'http://localhost:3001/api/v1/health';
+      const healthUrl = 'http://localhost:9522/api/v1/health';
       const { stdout } = await execAsync(`curl -s ${healthUrl}`);
       const response = JSON.parse(stdout);
       return response.status === 0;

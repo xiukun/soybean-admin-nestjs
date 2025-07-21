@@ -33,6 +33,10 @@ export interface FieldMetadata {
   isUnique: boolean;
   defaultValue?: string;
   description?: string;
+  // 新增字段
+  tsType?: string;
+  prismaType?: string;
+  prismaAttributes?: string[];
 }
 
 export interface RelationshipMetadata {

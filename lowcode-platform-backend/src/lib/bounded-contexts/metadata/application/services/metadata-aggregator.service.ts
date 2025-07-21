@@ -21,27 +21,47 @@ export class MetadataAggregatorService {
         throw new Error(`Project not found: ${projectId}`);
       }
 
-      // 获取项目的所有实体
-      const entities = await this.prisma.entity.findMany({
-        where: { projectId },
-        include: {
-          fields: {
-            orderBy: { sortOrder: 'asc' },
-          },
-        },
-      });
+      // 获取项目的所有实体和字段
+      const entitiesWithFields = await this.prisma.$queryRaw<any[]>`
+        SELECT
+          e.id,
+          e.name,
+          e.code,
+          e.table_name as "tableName",
+          e.description,
+          json_agg(
+            json_build_object(
+              'id', f.id,
+              'name', f.name,
+              'code', f.code,
+              'type', f.type,
+              'length', f.length,
+              'nullable', f.nullable,
+              'primaryKey', f.primary_key,
+              'uniqueConstraint', f.unique_constraint,
+              'defaultValue', f.default_value,
+              'comment', f.comment,
+              'sortOrder', f.sort_order
+            ) ORDER BY f.sort_order ASC
+          ) as fields
+        FROM lowcode_entities e
+        LEFT JOIN lowcode_fields f ON e.id = f.entity_id
+        WHERE e.project_id = ${projectId}
+        GROUP BY e.id, e.name, e.code, e.table_name, e.description
+        ORDER BY e.name
+      `;
 
       // 获取实体关系
       const relationships = await this.getEntityRelationships(projectId);
 
       // 构建实体元数据
-      const entityMetadata: EntityMetadata[] = entities.map(entity => ({
+      const entityMetadata: EntityMetadata[] = entitiesWithFields.map(entity => ({
         id: entity.id,
         name: entity.name,
         code: entity.code,
         tableName: entity.tableName,
         description: entity.description,
-        fields: entity.fields.map(field => this.mapFieldToMetadata(field)),
+        fields: (entity.fields || []).map((field: any) => this.mapFieldToMetadata(field)),
         relationships: {
           outgoing: relationships.filter(r => r.sourceEntityId === entity.id),
           incoming: relationships.filter(r => r.targetEntityId === entity.id),
@@ -72,18 +92,40 @@ export class MetadataAggregatorService {
     this.logger.log(`Getting metadata for entity: ${entityId}`);
 
     try {
-      const entity = await this.prisma.entity.findUnique({
-        where: { id: entityId },
-        include: {
-          fields: {
-            orderBy: { sortOrder: 'asc' },
-          },
-        },
-      });
+      const entityWithFields = await this.prisma.$queryRaw<any[]>`
+        SELECT
+          e.id,
+          e.name,
+          e.code,
+          e.table_name as "tableName",
+          e.description,
+          e.project_id as "projectId",
+          json_agg(
+            json_build_object(
+              'id', f.id,
+              'name', f.name,
+              'code', f.code,
+              'type', f.type,
+              'length', f.length,
+              'nullable', f.nullable,
+              'primaryKey', f.primary_key,
+              'uniqueConstraint', f.unique_constraint,
+              'defaultValue', f.default_value,
+              'comment', f.comment,
+              'sortOrder', f.sort_order
+            ) ORDER BY f.sort_order ASC
+          ) as fields
+        FROM lowcode_entities e
+        LEFT JOIN lowcode_fields f ON e.id = f.entity_id
+        WHERE e.id = ${entityId}
+        GROUP BY e.id, e.name, e.code, e.table_name, e.description, e.project_id
+      `;
 
-      if (!entity) {
+      if (!entityWithFields || entityWithFields.length === 0) {
         throw new Error(`Entity not found: ${entityId}`);
       }
+
+      const entity = entityWithFields[0];
 
       // 获取实体关系
       const relationships = await this.getEntityRelationships(entity.projectId);
@@ -94,7 +136,7 @@ export class MetadataAggregatorService {
         code: entity.code,
         tableName: entity.tableName,
         description: entity.description,
-        fields: entity.fields.map(field => this.mapFieldToMetadata(field)),
+        fields: (entity.fields || []).map((field: any) => this.mapFieldToMetadata(field)),
         relationships: {
           outgoing: relationships.filter(r => r.sourceEntityId === entity.id),
           incoming: relationships.filter(r => r.targetEntityId === entity.id),
@@ -193,11 +235,101 @@ export class MetadataAggregatorService {
       type: field.type,
       length: field.length,
       nullable: field.nullable,
-      isPrimaryKey: field.primaryKey,
-      isUnique: field.uniqueConstraint,
-      defaultValue: field.defaultValue,
+      isPrimaryKey: field.primaryKey || field.primary_key,
+      isUnique: field.uniqueConstraint || field.unique_constraint,
+      defaultValue: field.defaultValue || field.default_value,
       description: field.comment,
+      // 添加字段类型映射
+      tsType: this.mapFieldType(field.type),
+      prismaType: this.getPrismaFieldType(field),
+      prismaAttributes: this.getPrismaFieldAttributes(field),
     };
+  }
+
+  private mapFieldType(dbType: string): string {
+    const typeMap: Record<string, string> = {
+      'STRING': 'string',
+      'TEXT': 'string',
+      'INTEGER': 'number',
+      'BIGINT': 'number',
+      'DECIMAL': 'number',
+      'BOOLEAN': 'boolean',
+      'DATE': 'Date',
+      'DATETIME': 'Date',
+      'TIMESTAMP': 'Date',
+      'JSON': 'any',
+      'UUID': 'string',
+    };
+    return typeMap[dbType] || 'string';
+  }
+
+  private getPrismaFieldType(field: any): string {
+    const typeMap: Record<string, string> = {
+      'STRING': 'String',
+      'TEXT': 'String',
+      'INTEGER': 'Int',
+      'BIGINT': 'BigInt',
+      'DECIMAL': 'Decimal',
+      'BOOLEAN': 'Boolean',
+      'DATE': 'DateTime',
+      'DATETIME': 'DateTime',
+      'TIMESTAMP': 'DateTime',
+      'JSON': 'Json',
+      'UUID': 'String',
+    };
+
+    let prismaType = typeMap[field.type] || 'String';
+
+    // 处理可空字段
+    if ((field.nullable || field.nullable === true) && !(field.primary_key || field.primaryKey)) {
+      prismaType += '?';
+    }
+
+    return prismaType;
+  }
+
+  private getPrismaFieldAttributes(field: any): string[] {
+    const attributes: string[] = [];
+    const isPrimaryKey = field.primary_key || field.primaryKey;
+    const isUnique = field.unique_constraint || field.uniqueConstraint;
+    const defaultValue = field.default_value || field.defaultValue;
+
+    // 主键
+    if (isPrimaryKey) {
+      if (field.type === 'UUID' || (field.type === 'STRING' && defaultValue === 'cuid()')) {
+        attributes.push('@id @default(cuid())');
+      } else {
+        attributes.push('@id');
+      }
+    }
+
+    // 唯一约束
+    if (isUnique && !isPrimaryKey) {
+      attributes.push('@unique');
+    }
+
+    // 默认值
+    if (defaultValue && !isPrimaryKey) {
+      if (defaultValue === 'now()') {
+        attributes.push('@default(now())');
+      } else if (defaultValue === 'cuid()') {
+        attributes.push('@default(cuid())');
+      } else {
+        attributes.push(`@default("${defaultValue}")`);
+      }
+    }
+
+    // 更新时间自动更新
+    if (field.code === 'updatedAt') {
+      attributes.push('@updatedAt');
+    }
+
+    return attributes;
+  }
+
+  private isSystemField(fieldCode: string): boolean {
+    const systemFields = ['id', 'tenantId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy'];
+    return systemFields.includes(fieldCode);
   }
 
   private generateTableDDL(entity: EntityMetadata): string {

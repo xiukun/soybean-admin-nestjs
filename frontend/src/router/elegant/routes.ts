@@ -164,16 +164,6 @@ export const generatedRoutes: GeneratedRoute[] = [
         }
       },
       {
-        name: 'lowcode_api-config-test',
-        path: '/lowcode/api-config/test',
-        component: 'view.lowcode_api-config_test_api-config-test',
-        meta: {
-          title: 'lowcode_api-config-test',
-          i18nKey: 'route.lowcode_api-config-test',
-          hideInMenu: true
-        }
-      },
-      {
         name: 'lowcode_api-test',
         path: '/lowcode/api-test',
         component: 'view.lowcode_api-test',
