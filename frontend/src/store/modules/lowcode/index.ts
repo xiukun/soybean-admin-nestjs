@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { fetchGetAllProjects, fetchGetProjectById } from '@/service/api';
+import { fetchGetAllProjects, fetchGetProject } from '@/service/api';
 
 export interface Project {
   id: string;
@@ -10,7 +10,7 @@ export interface Project {
   status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
   config?: Record<string, any>;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface Entity {
@@ -152,7 +152,7 @@ export const useLowcodeStore = defineStore('lowcode', () => {
         ]);
       } else {
         // Fetch project details if not in cache
-        const { data } = await fetchGetProjectById(projectId);
+        const { data } = await fetchGetProject(projectId);
         if (data) {
           currentProject.value = data;
           localStorage.setItem('lowcode_current_project', projectId);

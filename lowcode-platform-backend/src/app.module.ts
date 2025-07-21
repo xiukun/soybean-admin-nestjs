@@ -28,6 +28,7 @@ import { JwtAuthGuard } from '@guards/jwt-auth.guard';
 import { JwtStrategy } from '@strategies/jwt.strategy';
 import { CodeGenerationModule } from '@lib/bounded-contexts/code-generation/code-generation.module';
 import { HealthModule } from '@api/health/health.module';
+import { MetadataModule } from '@lib/bounded-contexts/metadata/metadata.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { HealthModule } from '@api/health/health.module';
     FieldModule,
     CodeGenerationModule,
     HealthModule,
+    MetadataModule,
   ],
   controllers: [AppController, EntityController, ProjectController, RelationshipController, ApiConfigController, QueryController, FieldController, TemplateController, AmisDemoController, CodeGenerationController],
   providers: [

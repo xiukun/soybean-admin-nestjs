@@ -1,60 +1,84 @@
-# Multi-stage build for Amis Low-code Backend
-FROM node:18-alpine AS base
+# syntax=docker/dockerfile:1
 
-# Install dependencies only when needed
+ARG NODE_VERSION=20.11.1
+ARG PNPM_VERSION=9.1.2
+
+################################################################################
+# Use node image for base image for all stages.
+FROM node:${NODE_VERSION}-alpine AS base
+
+# Set working directory for all build stages.
+WORKDIR /usr/src/app/amis-lowcode-backend
+
+# Install system dependencies and pnpm
+RUN apk --no-cache add curl
+# Install pnpm.
+RUN --mount=type=cache,target=/root/.npm \
+    npm install -g pnpm@${PNPM_VERSION}
+
+################################################################################
+# Create a stage for installing production dependencies.
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat curl
 
-WORKDIR /app
+# Download dependencies as a separate step to take advantage of Docker's caching.
+# Leverage a cache mount to /root/.local/share/pnpm/store to speed up subsequent builds.
+# Leverage bind mounts to package.json and pnpm-lock.yaml to avoid having to copy them
+# into this layer.
+RUN --mount=type=bind,source=package.json,target=package.json \
+    --mount=type=bind,source=pnpm-lock.yaml,target=pnpm-lock.yaml \
+    --mount=type=cache,target=/root/.local/share/pnpm/store/amis-lowcode-backend \
+    pnpm install --prod --frozen-lockfile
 
-# Install dependencies based on the preferred package manager
-COPY package.json package-lock.json* ./
-RUN npm ci --only=production && npm cache clean --force
+################################################################################
+# Create a stage for building the application.
+FROM deps AS build
 
-# Rebuild the source code only when needed
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# Download additional development dependencies before building, as some projects require
+# "devDependencies" to be installed to build. If you don't need this, remove this step.
+RUN --mount=type=bind,source=package.json,target=package.json \
+    --mount=type=bind,source=pnpm-lock.yaml,target=pnpm-lock.yaml \
+    --mount=type=cache,target=/root/.local/share/pnpm/store/amis-lowcode-backend \
+    pnpm install --frozen-lockfile
+
+# Copy the rest of the source files into the image.
 COPY . .
 
-# Install all dependencies (including dev dependencies) for building
-RUN npm ci
+# Generate Prisma client and build the application
+RUN pnpm prisma:generate && pnpm build
 
-# Generate Prisma client
-RUN npx prisma generate
+################################################################################
+# Create a new stage to run the application with minimal runtime dependencies
+# where the necessary files are copied from the build stage.
+FROM base AS final
 
-# Build the application
-RUN npm run build
-
-# Production image, copy all the files and run nest
-FROM base AS runner
-WORKDIR /app
-
-# Install curl for health checks
-RUN apk add --no-cache curl
-
+# Use production node environment by default.
 ENV NODE_ENV=production
 
-# Create a non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nestjs
+# Create log directory and other necessary directories
+USER root
+RUN mkdir -p /usr/src/app/amis-lowcode-backend/logs \
+             /usr/src/app/amis-lowcode-backend/generated \
+             /usr/src/app/amis-lowcode-backend/uploads && \
+    chown -R node:node /usr/src/app/amis-lowcode-backend
 
-# Copy the built application
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/prisma ./prisma
+# Run the application as a non-root user.
+USER node
+
+# Copy package.json so that package manager commands can be used.
+COPY package.json .
+
+# Copy the production dependencies from the deps stage and also
+# the built application from the build stage into the image.
+COPY --from=deps /usr/src/app/amis-lowcode-backend/node_modules ./node_modules
+COPY --from=build /usr/src/app/amis-lowcode-backend/dist ./dist
+COPY --from=build /usr/src/app/amis-lowcode-backend/prisma ./prisma
 
 # Copy startup script
 COPY docker/startup.sh ./startup.sh
-RUN chmod +x ./startup.sh
-
-# Create necessary directories
-RUN mkdir -p /app/generated /app/logs /app/uploads
-RUN chown -R nestjs:nodejs /app
-
-USER nestjs
+USER root
+RUN chmod +x ./startup.sh && \
+    chown node:node ./startup.sh
+USER node
 
 EXPOSE 9522
 

@@ -53,7 +53,8 @@ is_first_run() {
     # Check if schema exists and has tables
     if npx prisma db pull --preview-feature 2>/dev/null; then
         # Check if we have any tables (basic check)
-        if npx prisma db execute --stdin <<< "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null | grep -q "0"; then
+        TABLE_COUNT=$(echo "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" | npx prisma db execute --stdin 2>/dev/null | tail -n 1 | tr -d ' ')
+        if [ "$TABLE_COUNT" = "0" ] || [ -z "$TABLE_COUNT" ]; then
             echo "  📦 No tables found - this appears to be the first run"
             return 0
         else
