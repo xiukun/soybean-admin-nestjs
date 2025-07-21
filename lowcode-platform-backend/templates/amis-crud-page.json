@@ -1,0 +1,330 @@
+{
+  "type": "page",
+  "title": "{{entityName}} Management",
+  "subTitle": "Manage {{entityName}} records",
+  "body": [
+    {
+      "type": "crud",
+      "name": "{{camelCase entityName}}Table",
+      "api": {
+        "method": "get",
+        "url": "/api/v1/{{kebabCase entityName}}s",
+        "data": {
+          "page": "${page}",
+          "pageSize": "${perPage}",
+          "search": "${search}",
+          {{#each filterableFields}}
+          "{{name}}": "${{{name}}}",
+          {{/each}}
+          "sortBy": "${orderBy}",
+          "sortOrder": "${orderDir}"
+        },
+        "responseData": {
+          "items": "${data.items}",
+          "total": "${data.total}"
+        }
+      },
+      "interval": 3000,
+      "silentPolling": true,
+      "defaultParams": {
+        "perPage": 10
+      },
+      "pageField": "page",
+      "perPageField": "pageSize",
+      "perPageAvailable": [10, 20, 50, 100],
+      "orderField": "sortBy",
+      "orderDirField": "sortOrder",
+      "defaultOrderBy": "{{primaryKey}}",
+      "defaultOrderDir": "desc",
+      "autoGenerateFilter": {
+        "columnsNum": 3,
+        "showBtnToolbar": true
+      },
+      "headerToolbar": [
+        {
+          "type": "tpl",
+          "tpl": "Total: ${total} records",
+          "className": "v-middle"
+        },
+        {
+          "type": "columns-toggler",
+          "align": "right"
+        },
+        {
+          "type": "drag-toggler",
+          "align": "right"
+        },
+        {
+          "type": "reload",
+          "align": "right"
+        },
+        {
+          "type": "filter-toggler",
+          "align": "right"
+        },
+        "bulkActions",
+        {
+          "type": "button",
+          "actionType": "dialog",
+          "label": "Add {{entityName}}",
+          "icon": "fa fa-plus",
+          "primary": true,
+          "dialog": {
+            "title": "Add New {{entityName}}",
+            "body": {
+              "type": "form",
+              "api": {
+                "method": "post",
+                "url": "/api/v1/{{kebabCase entityName}}s"
+              },
+              "body": [
+                {{#each fields}}
+                {{#unless isPrimaryKey}}
+                {
+                  "type": "{{#if (eq type 'string')}}{{#if isEmail}}email{{else if isPassword}}password{{else if isTextarea}}textarea{{else}}input-text{{/if}}{{else if (eq type 'number')}}input-number{{else if (eq type 'boolean')}}switch{{else if (eq type 'date')}}input-datetime{{else if (eq type 'enum')}}select{{else if (eq type 'array')}}input-tag{{else}}input-text{{/if}}",
+                  "name": "{{name}}",
+                  "label": "{{label}}",
+                  {{#if description}}"description": "{{description}}",{{/if}}
+                  {{#if placeholder}}"placeholder": "{{placeholder}}",{{/if}}
+                  {{#if isRequired}}"required": true,{{/if}}
+                  {{#if maxLength}}"maxLength": {{maxLength}},{{/if}}
+                  {{#if minLength}}"minLength": {{minLength}},{{/if}}
+                  {{#if (eq type 'enum')}}
+                  "options": [
+                    {{#each enumOptions}}
+                    {"label": "{{label}}", "value": "{{value}}"}{{#unless @last}},{{/unless}}
+                    {{/each}}
+                  ],
+                  {{/if}}
+                  {{#if (eq type 'date')}}
+                  "format": "YYYY-MM-DD HH:mm:ss",
+                  "inputFormat": "YYYY-MM-DD HH:mm:ss",
+                  {{/if}}
+                  {{#if validationRules}}
+                  "validations": {
+                    {{#each validationRules}}
+                    "{{type}}": {{#if message}}"{{message}}"{{else}}true{{/if}}{{#unless @last}},{{/unless}}
+                    {{/each}}
+                  },
+                  {{/if}}
+                  "clearable": true
+                }{{#unless @last}},{{/unless}}
+                {{/unless}}
+                {{/each}}
+              ]
+            }
+          }
+        }
+      ],
+      "footerToolbar": ["switch-per-page", "pagination"],
+      "columns": [
+        {{#each fields}}
+        {
+          "name": "{{name}}",
+          "label": "{{label}}",
+          {{#if (eq type 'boolean')}}
+          "type": "status",
+          "map": {
+            "true": "<span class='label label-success'>Yes</span>",
+            "false": "<span class='label label-default'>No</span>"
+          },
+          {{else if (eq type 'date')}}
+          "type": "datetime",
+          "format": "YYYY-MM-DD HH:mm:ss",
+          {{else if (eq type 'enum')}}
+          "type": "mapping",
+          "map": {
+            {{#each enumOptions}}
+            "{{value}}": "<span class='label label-{{color}}'>{{label}}</span>"{{#unless @last}},{{/unless}}
+            {{/each}}
+          },
+          {{else if (eq type 'array')}}
+          "type": "each",
+          "items": {
+            "type": "tpl",
+            "tpl": "<span class='label label-info'>${item}</span>"
+          },
+          {{else}}
+          "type": "text",
+          {{/if}}
+          {{#if sortable}}"sortable": true,{{/if}}
+          {{#if searchable}}"searchable": true,{{/if}}
+          {{#if width}}"width": {{width}},{{/if}}
+          "toggled": {{#if defaultVisible}}true{{else}}false{{/if}}
+        }{{#unless @last}},{{/unless}}
+        {{/each}},
+        {
+          "type": "operation",
+          "label": "Actions",
+          "width": 150,
+          "buttons": [
+            {
+              "type": "button",
+              "icon": "fa fa-eye",
+              "actionType": "dialog",
+              "tooltip": "View Details",
+              "dialog": {
+                "title": "{{entityName}} Details",
+                "body": {
+                  "type": "service",
+                  "api": "/api/v1/{{kebabCase entityName}}s/${id}",
+                  "body": [
+                    {
+                      "type": "property",
+                      "title": "{{entityName}} Information",
+                      "items": [
+                        {{#each fields}}
+                        {
+                          "label": "{{label}}",
+                          "content": "${data.{{name}}}"
+                        }{{#unless @last}},{{/unless}}
+                        {{/each}}
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "type": "button",
+              "icon": "fa fa-pencil",
+              "actionType": "dialog",
+              "tooltip": "Edit",
+              "dialog": {
+                "title": "Edit {{entityName}}",
+                "body": {
+                  "type": "form",
+                  "api": {
+                    "method": "put",
+                    "url": "/api/v1/{{kebabCase entityName}}s/${id}"
+                  },
+                  "initApi": "/api/v1/{{kebabCase entityName}}s/${id}",
+                  "body": [
+                    {{#each fields}}
+                    {{#unless isPrimaryKey}}
+                    {
+                      "type": "{{#if (eq type 'string')}}{{#if isEmail}}email{{else if isPassword}}password{{else if isTextarea}}textarea{{else}}input-text{{/if}}{{else if (eq type 'number')}}input-number{{else if (eq type 'boolean')}}switch{{else if (eq type 'date')}}input-datetime{{else if (eq type 'enum')}}select{{else if (eq type 'array')}}input-tag{{else}}input-text{{/if}}",
+                      "name": "{{name}}",
+                      "label": "{{label}}",
+                      {{#if description}}"description": "{{description}}",{{/if}}
+                      {{#if placeholder}}"placeholder": "{{placeholder}}",{{/if}}
+                      {{#if isRequired}}"required": true,{{/if}}
+                      {{#if (eq type 'enum')}}
+                      "options": [
+                        {{#each enumOptions}}
+                        {"label": "{{label}}", "value": "{{value}}"}{{#unless @last}},{{/unless}}
+                        {{/each}}
+                      ],
+                      {{/if}}
+                      "clearable": true
+                    }{{#unless @last}},{{/unless}}
+                    {{/unless}}
+                    {{/each}}
+                  ]
+                }
+              }
+            },
+            {
+              "type": "button",
+              "icon": "fa fa-times text-danger",
+              "actionType": "ajax",
+              "tooltip": "Delete",
+              "confirmText": "Are you sure you want to delete this {{entityName}}?",
+              "api": {
+                "method": "delete",
+                "url": "/api/v1/{{kebabCase entityName}}s/${id}"
+              }
+            }
+          ]
+        }
+      ],
+      "bulkActions": [
+        {
+          "label": "Batch Delete",
+          "actionType": "ajax",
+          "api": {
+            "method": "delete",
+            "url": "/api/v1/{{kebabCase entityName}}s/batch",
+            "data": {
+              "ids": "${ids}"
+            }
+          },
+          "confirmText": "Are you sure you want to delete the selected {{entityName}}s?",
+          "type": "button",
+          "level": "danger"
+        }
+      ],
+      "itemActions": [
+        {
+          "type": "button",
+          "icon": "fa fa-eye",
+          "actionType": "dialog",
+          "tooltip": "Quick View",
+          "dialog": {
+            "title": "Quick View",
+            "body": "ID: ${id}, Name: ${name}"
+          }
+        }
+      ]
+    }
+  ],
+  "aside": {
+    "type": "wrapper",
+    "size": "xs",
+    "body": [
+      {
+        "type": "tpl",
+        "tpl": "<h5>Quick Stats</h5>"
+      },
+      {
+        "type": "service",
+        "api": "/api/v1/{{kebabCase entityName}}s/stats",
+        "body": [
+          {
+            "type": "cards",
+            "source": "${stats}",
+            "card": {
+              "body": [
+                {
+                  "type": "tpl",
+                  "tpl": "<div class='text-center'><h4>${count}</h4><small>${label}</small></div>"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "toolbar": [
+    {
+      "type": "button",
+      "actionType": "ajax",
+      "label": "Export Excel",
+      "api": "/api/v1/{{kebabCase entityName}}s/export/excel",
+      "icon": "fa fa-download"
+    },
+    {
+      "type": "button",
+      "actionType": "dialog",
+      "label": "Import Excel",
+      "icon": "fa fa-upload",
+      "dialog": {
+        "title": "Import {{entityName}}s",
+        "body": {
+          "type": "form",
+          "api": "/api/v1/{{kebabCase entityName}}s/import/excel",
+          "body": [
+            {
+              "type": "input-file",
+              "name": "file",
+              "label": "Excel File",
+              "accept": ".xlsx,.xls",
+              "required": true
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

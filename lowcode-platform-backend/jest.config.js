@@ -18,7 +18,7 @@ module.exports = {
   },
 
   // Module resolution
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@src/(.*)$': '<rootDir>/src/$1',
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@app/(.*)$': '<rootDir>/src/app/$1',

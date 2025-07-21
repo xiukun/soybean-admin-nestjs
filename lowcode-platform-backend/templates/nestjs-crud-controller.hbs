@@ -1,0 +1,145 @@
+import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { {{entityName}}Service } from '../services/{{kebabCase entityName}}.service';
+import { Create{{entityName}}Dto, Update{{entityName}}Dto, {{entityName}}QueryDto } from '../dto/{{kebabCase entityName}}.dto';
+
+@Controller('{{kebabCase entityName}}s')
+@ApiTags('{{entityName}} Management')
+export class {{entityName}}Controller {
+  constructor(private readonly {{camelCase entityName}}Service: {{entityName}}Service) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Get paginated {{entityName}} list' })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
+  @ApiQuery({ name: 'pageSize', required: false, type: Number, description: 'Page size' })
+  @ApiQuery({ name: 'search', required: false, type: String, description: 'Search keyword' })
+  @ApiResponse({ status: 200, description: 'Success' })
+  async findAll(@Query() query: {{entityName}}QueryDto) {
+    const { page = 1, pageSize = 10, search } = query;
+    const result = await this.{{camelCase entityName}}Service.findAll({
+      page: Number(page),
+      pageSize: Number(pageSize),
+      search,
+    });
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: {
+        items: result.items,
+        total: result.total,
+        page: Number(page),
+        pageSize: Number(pageSize),
+      },
+    };
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get {{entityName}} by ID' })
+  @ApiParam({ name: 'id', type: 'string', description: '{{entityName}} ID' })
+  @ApiResponse({ status: 200, description: 'Success' })
+  @ApiResponse({ status: 404, description: '{{entityName}} not found' })
+  async findOne(@Param('id') id: string) {
+    const {{camelCase entityName}} = await this.{{camelCase entityName}}Service.findOne(id);
+    return {
+      status: 0,
+      msg: 'success',
+      data: {{camelCase entityName}},
+    };
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'Create new {{entityName}}' })
+  @ApiResponse({ status: 201, description: '{{entityName}} created successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
+  async create(@Body() create{{entityName}}Dto: Create{{entityName}}Dto) {
+    const {{camelCase entityName}} = await this.{{camelCase entityName}}Service.create(create{{entityName}}Dto);
+    return {
+      status: 0,
+      msg: 'success',
+      data: {{camelCase entityName}},
+    };
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Update {{entityName}}' })
+  @ApiParam({ name: 'id', type: 'string', description: '{{entityName}} ID' })
+  @ApiResponse({ status: 200, description: '{{entityName}} updated successfully' })
+  @ApiResponse({ status: 404, description: '{{entityName}} not found' })
+  async update(
+    @Param('id') id: string,
+    @Body() update{{entityName}}Dto: Update{{entityName}}Dto,
+  ) {
+    const {{camelCase entityName}} = await this.{{camelCase entityName}}Service.update(id, update{{entityName}}Dto);
+    return {
+      status: 0,
+      msg: 'success',
+      data: {{camelCase entityName}},
+    };
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete {{entityName}}' })
+  @ApiParam({ name: 'id', type: 'string', description: '{{entityName}} ID' })
+  @ApiResponse({ status: 200, description: '{{entityName}} deleted successfully' })
+  @ApiResponse({ status: 404, description: '{{entityName}} not found' })
+  async remove(@Param('id') id: string) {
+    await this.{{camelCase entityName}}Service.remove(id);
+    return {
+      status: 0,
+      msg: 'success',
+    };
+  }
+
+  @Get(':id/statistics')
+  @ApiOperation({ summary: 'Get {{entityName}} statistics' })
+  @ApiParam({ name: 'id', type: 'string', description: '{{entityName}} ID' })
+  @ApiResponse({ status: 200, description: 'Success' })
+  async getStatistics(@Param('id') id: string) {
+    const stats = await this.{{camelCase entityName}}Service.getStatistics(id);
+    return {
+      status: 0,
+      msg: 'success',
+      data: stats,
+    };
+  }
+
+  @Post('batch')
+  @ApiOperation({ summary: 'Batch create {{entityName}}s' })
+  @ApiResponse({ status: 201, description: '{{entityName}}s created successfully' })
+  async batchCreate(@Body() create{{entityName}}Dtos: Create{{entityName}}Dto[]) {
+    const {{camelCase entityName}}s = await this.{{camelCase entityName}}Service.batchCreate(create{{entityName}}Dtos);
+    return {
+      status: 0,
+      msg: 'success',
+      data: {{camelCase entityName}}s,
+    };
+  }
+
+  @Delete('batch')
+  @ApiOperation({ summary: 'Batch delete {{entityName}}s' })
+  @ApiResponse({ status: 200, description: '{{entityName}}s deleted successfully' })
+  async batchDelete(@Body() ids: string[]) {
+    await this.{{camelCase entityName}}Service.batchDelete(ids);
+    return {
+      status: 0,
+      msg: 'success',
+    };
+  }
+
+  @Get('export/excel')
+  @ApiOperation({ summary: 'Export {{entityName}}s to Excel' })
+  @ApiQuery({ name: 'search', required: false, type: String, description: 'Search keyword' })
+  @ApiResponse({ status: 200, description: 'Excel file generated' })
+  async exportExcel(@Query() query: {{entityName}}QueryDto) {
+    const buffer = await this.{{camelCase entityName}}Service.exportToExcel(query);
+    return {
+      status: 0,
+      msg: 'success',
+      data: {
+        filename: '{{kebabCase entityName}}s-export.xlsx',
+        buffer: buffer.toString('base64'),
+      },
+    };
+  }
+}

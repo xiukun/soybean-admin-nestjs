@@ -121,7 +121,8 @@ async function bootstrap() {
       },
     });
 
-    logger.log('Swagger documentation available at: http://localhost:3000/api-docs');
+    const port = parseInt(process.env.PORT || '3000');
+    logger.log(`Swagger documentation available at: http://localhost:${port}/api-docs`);
   }
 
   // Graceful shutdown handlers

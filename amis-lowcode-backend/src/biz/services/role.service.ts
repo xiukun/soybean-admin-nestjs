@@ -65,7 +65,7 @@ export class RoleService {
   async findOne(id: string): Promise<any> {
     try {
       const role = await this.prisma.role.findUnique({
-        where: { id },
+        where: { id: parseInt(id) },
       });
 
       if (!role) {
@@ -95,7 +95,7 @@ export class RoleService {
   async update(id: string, updateRoleDto: any): Promise<any> {
     try {
       const role = await this.prisma.role.update({
-        where: { id },
+        where: { id: parseInt(id) },
         data: updateRoleDto,
       });
 
@@ -108,7 +108,7 @@ export class RoleService {
   async remove(id: string): Promise<void> {
     try {
       await this.prisma.role.delete({
-        where: { id },
+        where: { id: parseInt(id) },
       });
     } catch (error) {
       throw new NotFoundException(`Role with ID ${id} not found`);

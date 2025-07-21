@@ -1,0 +1,252 @@
+import { IsString, IsOptional, IsEmail, IsBoolean, IsEnum, IsDateString, IsNumber, IsArray, ValidateNested, IsNotEmpty, MaxLength, MinLength } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+
+{{#if enums}}
+// Enums
+{{#each enums}}
+export enum {{name}} {
+  {{#each values}}
+  {{key}} = '{{value}}',
+  {{/each}}
+}
+{{/each}}
+{{/if}}
+
+// Create DTO
+export class Create{{entityName}}Dto {
+  {{#each fields}}
+  {{#unless isPrimaryKey}}
+  {{#if isRequired}}
+  @ApiProperty({ 
+    description: '{{description}}',
+    {{#if example}}example: {{#if (eq type 'string')}}'{{example}}'{{else}}{{example}}{{/if}},{{/if}}
+    {{#if maxLength}}maxLength: {{maxLength}},{{/if}}
+    {{#if minLength}}minLength: {{minLength}},{{/if}}
+    {{#if enum}}enum: {{enum}},{{/if}}
+  })
+  {{#if (eq type 'string')}}
+  @IsString()
+  @IsNotEmpty()
+  {{#if maxLength}}@MaxLength({{maxLength}}){{/if}}
+  {{#if minLength}}@MinLength({{minLength}}){{/if}}
+  {{#if isEmail}}@IsEmail(){{/if}}
+  {{else if (eq type 'number')}}
+  @IsNumber()
+  {{else if (eq type 'boolean')}}
+  @IsBoolean()
+  {{else if (eq type 'date')}}
+  @IsDateString()
+  {{else if (eq type 'enum')}}
+  @IsEnum({{enum}})
+  {{else if (eq type 'array')}}
+  @IsArray()
+  {{#if itemType}}
+  @IsString({ each: true })
+  {{/if}}
+  {{/if}}
+  {{name}}: {{#if (eq type 'string')}}string{{else if (eq type 'number')}}number{{else if (eq type 'boolean')}}boolean{{else if (eq type 'date')}}string{{else if (eq type 'enum')}}{{enum}}{{else if (eq type 'array')}}{{itemType}}[]{{else}}any{{/if}};
+  {{else}}
+  @ApiPropertyOptional({ 
+    description: '{{description}}',
+    {{#if example}}example: {{#if (eq type 'string')}}'{{example}}'{{else}}{{example}}{{/if}},{{/if}}
+    {{#if maxLength}}maxLength: {{maxLength}},{{/if}}
+    {{#if minLength}}minLength: {{minLength}},{{/if}}
+    {{#if enum}}enum: {{enum}},{{/if}}
+  })
+  @IsOptional()
+  {{#if (eq type 'string')}}
+  @IsString()
+  {{#if maxLength}}@MaxLength({{maxLength}}){{/if}}
+  {{#if minLength}}@MinLength({{minLength}}){{/if}}
+  {{#if isEmail}}@IsEmail(){{/if}}
+  {{else if (eq type 'number')}}
+  @IsNumber()
+  {{else if (eq type 'boolean')}}
+  @IsBoolean()
+  {{else if (eq type 'date')}}
+  @IsDateString()
+  {{else if (eq type 'enum')}}
+  @IsEnum({{enum}})
+  {{else if (eq type 'array')}}
+  @IsArray()
+  {{#if itemType}}
+  @IsString({ each: true })
+  {{/if}}
+  {{/if}}
+  {{name}}?: {{#if (eq type 'string')}}string{{else if (eq type 'number')}}number{{else if (eq type 'boolean')}}boolean{{else if (eq type 'date')}}string{{else if (eq type 'enum')}}{{enum}}{{else if (eq type 'array')}}{{itemType}}[]{{else}}any{{/if}};
+  {{/if}}
+  {{/unless}}
+  {{/each}}
+
+  {{#if hasRelations}}
+  // Relations
+  {{#each relations}}
+  {{#if isRequired}}
+  @ApiProperty({ description: '{{description}}' })
+  @IsString()
+  @IsNotEmpty()
+  {{name}}Id: string;
+  {{else}}
+  @ApiPropertyOptional({ description: '{{description}}' })
+  @IsOptional()
+  @IsString()
+  {{name}}Id?: string;
+  {{/if}}
+  {{/each}}
+  {{/if}}
+}
+
+// Update DTO
+export class Update{{entityName}}Dto extends PartialType(Create{{entityName}}Dto) {
+  {{#each fields}}
+  {{#if isPrimaryKey}}
+  @ApiPropertyOptional({ description: '{{description}}' })
+  @IsOptional()
+  {{#if (eq type 'string')}}
+  @IsString()
+  {{else if (eq type 'number')}}
+  @IsNumber()
+  {{/if}}
+  {{name}}?: {{#if (eq type 'string')}}string{{else if (eq type 'number')}}number{{else}}any{{/if}};
+  {{/if}}
+  {{/each}}
+}
+
+// Query DTO
+export class {{entityName}}QueryDto {
+  @ApiPropertyOptional({ description: 'Page number', example: 1 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  page?: number;
+
+  @ApiPropertyOptional({ description: 'Page size', example: 10 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  pageSize?: number;
+
+  @ApiPropertyOptional({ description: 'Search keyword' })
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  {{#each filterableFields}}
+  @ApiPropertyOptional({ 
+    description: '{{description}}',
+    {{#if enum}}enum: {{enum}},{{/if}}
+  })
+  @IsOptional()
+  {{#if (eq type 'string')}}
+  @IsString()
+  {{else if (eq type 'number')}}
+  @Type(() => Number)
+  @IsNumber()
+  {{else if (eq type 'boolean')}}
+  @Transform(({ value }) => value === 'true')
+  @IsBoolean()
+  {{else if (eq type 'enum')}}
+  @IsEnum({{enum}})
+  {{else if (eq type 'date')}}
+  @IsDateString()
+  {{/if}}
+  {{name}}?: {{#if (eq type 'string')}}string{{else if (eq type 'number')}}number{{else if (eq type 'boolean')}}boolean{{else if (eq type 'date')}}string{{else if (eq type 'enum')}}{{enum}}{{else}}any{{/if}};
+
+  {{#if (eq type 'date')}}
+  @ApiPropertyOptional({ description: '{{description}} start date' })
+  @IsOptional()
+  @IsDateString()
+  {{name}}Start?: string;
+
+  @ApiPropertyOptional({ description: '{{description}} end date' })
+  @IsOptional()
+  @IsDateString()
+  {{name}}End?: string;
+  {{/if}}
+  {{/each}}
+
+  {{#if hasStatusField}}
+  @ApiPropertyOptional({ description: 'Status filter', enum: ['active', 'inactive', 'pending'] })
+  @IsOptional()
+  @IsEnum(['active', 'inactive', 'pending'])
+  status?: 'active' | 'inactive' | 'pending';
+  {{/if}}
+
+  @ApiPropertyOptional({ description: 'Sort field' })
+  @IsOptional()
+  @IsString()
+  sortBy?: string;
+
+  @ApiPropertyOptional({ description: 'Sort order', enum: ['asc', 'desc'] })
+  @IsOptional()
+  @IsEnum(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc';
+}
+
+// Response DTOs
+export class {{entityName}}ResponseDto {
+  @ApiProperty({ description: '{{entityName}} ID' })
+  {{primaryKey}}: {{#if (eq primaryKeyType 'string')}}string{{else}}number{{/if}};
+
+  {{#each fields}}
+  {{#unless isPrimaryKey}}
+  {{#if isRequired}}
+  @ApiProperty({ description: '{{description}}' })
+  {{else}}
+  @ApiPropertyOptional({ description: '{{description}}' })
+  {{/if}}
+  {{name}}: {{#if (eq type 'string')}}string{{else if (eq type 'number')}}number{{else if (eq type 'boolean')}}boolean{{else if (eq type 'date')}}Date{{else if (eq type 'enum')}}{{enum}}{{else if (eq type 'array')}}{{itemType}}[]{{else}}any{{/if}};
+  {{/unless}}
+  {{/each}}
+
+  @ApiProperty({ description: 'Created at' })
+  createdAt: Date;
+
+  @ApiProperty({ description: 'Updated at' })
+  updatedAt: Date;
+
+  {{#if hasRelations}}
+  // Relations
+  {{#each relations}}
+  @ApiPropertyOptional({ description: '{{description}}' })
+  {{name}}?: any;
+  {{/each}}
+  {{/if}}
+}
+
+export class {{entityName}}ListResponseDto {
+  @ApiProperty({ description: 'Status code', example: 0 })
+  status: number;
+
+  @ApiProperty({ description: 'Message', example: 'success' })
+  msg: string;
+
+  @ApiProperty({ 
+    description: 'Data',
+    type: 'object',
+    properties: {
+      items: { type: 'array', items: { $ref: '#/components/schemas/{{entityName}}ResponseDto' } },
+      total: { type: 'number' },
+      page: { type: 'number' },
+      pageSize: { type: 'number' },
+    }
+  })
+  data: {
+    items: {{entityName}}ResponseDto[];
+    total: number;
+    page: number;
+    pageSize: number;
+  };
+}
+
+export class {{entityName}}DetailResponseDto {
+  @ApiProperty({ description: 'Status code', example: 0 })
+  status: number;
+
+  @ApiProperty({ description: 'Message', example: 'success' })
+  msg: string;
+
+  @ApiProperty({ description: '{{entityName}} data', type: {{entityName}}ResponseDto })
+  data: {{entityName}}ResponseDto;
+}

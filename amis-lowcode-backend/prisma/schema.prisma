@@ -1,5 +1,5 @@
 // Auto-generated Prisma schema for 演示项目
-// Generated at: 2025-07-21T01:32:30.937Z
+// Generated at: 2025-07-21T02:35:56.582Z
 
 generator client {
   provider = "prisma-client-js"
@@ -11,8 +11,8 @@ datasource db {
 }
 
 model User {
-  id String @id @default(cuid())
   tenantId String?
+  id String @id
   username String @unique
   email String @unique
   password String
@@ -20,21 +20,21 @@ model User {
   avatar String?
   status String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now())
   createdBy String?
   updatedBy String?
 
   @@map("demo_users")
 }
 model Role {
-  id String @id @default(cuid())
   tenantId String?
+  id String @id
   name String @unique
   code String @unique
   description String?
   status String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now())
   createdBy String?
   updatedBy String?
 
