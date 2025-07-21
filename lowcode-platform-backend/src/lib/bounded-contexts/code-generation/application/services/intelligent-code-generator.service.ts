@@ -1,7 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import * as Handlebars from 'handlebars';
-import { GeneratedFile, ProjectMetadata, EntityMetadata } from '../../../shared/types/metadata.types';
+import { GeneratedFile, ProjectMetadata, EntityMetadata, FieldMetadata } from '../../../shared/types/metadata.types';
+import { MetadataAggregatorService } from '../../../metadata/application/services/metadata-aggregator.service';
+import { TemplateEngineService } from '../../infrastructure/template-engine.service';
 
 export interface GenerationRequest {
   projectId: string;
@@ -40,7 +42,11 @@ export class IntelligentCodeGeneratorService {
   private readonly logger = new Logger(IntelligentCodeGeneratorService.name);
   private handlebars: typeof Handlebars;
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly metadataAggregator: MetadataAggregatorService,
+    private readonly templateEngine: TemplateEngineService,
+  ) {
     this.handlebars = Handlebars.create();
     this.registerHelpers();
   }
@@ -49,40 +55,57 @@ export class IntelligentCodeGeneratorService {
     this.logger.log(`Starting code generation for project: ${request.projectId}`);
 
     try {
-      // 获取模板
+      // Validate project exists
+      const projectMetadata = await this.metadataAggregator.getProjectMetadata(request.projectId);
+      this.logger.log(`Project validated: ${projectMetadata.project.name}`);
+
+      // Get templates
       const templates = await this.getTemplates(request.templateIds);
       this.logger.log(`Loaded ${templates.length} templates`);
 
-      // 获取实体（如果指定了entityIds或entityName）
+      // Get entities using the improved metadata service
       let entities: EntityMetadata[] = [];
 
       if (request.entityIds && request.entityIds.length > 0) {
-        entities = await this.getEntities(request.entityIds);
+        // Get specific entities by ID
+        for (const entityId of request.entityIds) {
+          try {
+            const entity = await this.metadataAggregator.getEntityMetadata(entityId);
+            entities.push(entity);
+          } catch (error) {
+            this.logger.warn(`Failed to get entity ${entityId}:`, error.message);
+          }
+        }
       } else if (request.variables.entityName) {
-        // 根据entityName查找实体
-        this.logger.log(`Looking for entity by name: ${request.variables.entityName} in project: ${request.projectId}`);
-        const entity = await this.getEntityByName(request.projectId, request.variables.entityName);
+        // Find entity by name in project
+        const entity = projectMetadata.entities.find(e =>
+          e.name === request.variables.entityName || e.code === request.variables.entityName
+        );
         if (entity) {
           this.logger.log(`Found entity: ${entity.name} with ${entity.fields.length} fields`);
           entities = [entity];
         } else {
           this.logger.warn(`Entity not found: ${request.variables.entityName}`);
         }
+      } else {
+        // Use all entities from project if none specified
+        entities = projectMetadata.entities;
+        this.logger.log(`Using all ${entities.length} entities from project`);
       }
 
       const generatedFiles: GeneratedFile[] = [];
 
-      // 为每个模板生成文件
+      // Generate files for each template
       for (const template of templates) {
         if (entities.length > 0) {
-          // 为每个实体生成文件
+          // Generate files for each entity
           for (const entity of entities) {
-            const files = await this.generateFilesForEntity(template, entity, request);
+            const files = await this.generateFilesForEntity(template, entity, request, projectMetadata);
             generatedFiles.push(...files);
           }
         } else {
-          // 生成项目级别的文件
-          const files = await this.generateProjectFiles(template, request);
+          // Generate project-level files
+          const files = await this.generateProjectFiles(template, request, projectMetadata);
           generatedFiles.push(...files);
         }
       }
@@ -92,7 +115,10 @@ export class IntelligentCodeGeneratorService {
 
     } catch (error) {
       this.logger.error('Code generation failed:', error);
-      throw error;
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(`Code generation failed: ${error.message}`);
     }
   }
 
@@ -257,77 +283,142 @@ export class IntelligentCodeGeneratorService {
   private async generateFilesForEntity(
     template: TemplateMetadata,
     entity: EntityMetadata,
-    request: GenerationRequest
+    request: GenerationRequest,
+    projectMetadata: ProjectMetadata
   ): Promise<GeneratedFile[]> {
     this.logger.log(`Generating files for entity: ${entity.name} with ${entity.fields.length} fields`);
-    const context = this.buildTemplateContext(entity, request);
-    this.logger.log(`Template context fields count: ${context.fields ? context.fields.length : 0}`);
-    const compiledTemplate = this.handlebars.compile(template.content);
-    const generatedContent = compiledTemplate(context);
 
-    const filename = this.generateFilename(template, entity, request.options.architecture);
-    const filePath = this.generateFilePath(template, entity, request);
+    try {
+      // Build enhanced template context
+      const context = this.buildTemplateContext(entity, request);
+      this.logger.log(`Template context built with ${context.fields ? context.fields.length : 0} fields`);
 
-    return [{
-      filename,
-      path: filePath,
-      content: generatedContent,
-      language: template.language,
-      size: generatedContent.length,
-    }];
+      // Add project metadata to context
+      context.project = projectMetadata.project;
+      context.allEntities = projectMetadata.entities;
+      context.allRelationships = projectMetadata.relationships;
+
+      // Render template using enhanced engine
+      const generatedContent = await this.renderTemplate(template, context);
+
+      const filename = this.generateFilename(template, entity, request.options.architecture);
+      const filePath = this.generateFilePath(template, entity, request);
+
+      this.logger.log(`Generated file: ${filePath} (${generatedContent.length} bytes)`);
+
+      return [{
+        filename,
+        path: filePath,
+        content: generatedContent,
+        language: template.language,
+        size: generatedContent.length,
+      }];
+    } catch (error) {
+      this.logger.error(`Failed to generate files for entity ${entity.name}:`, error);
+      throw new BadRequestException(`File generation failed for entity ${entity.name}: ${error.message}`);
+    }
   }
 
   private async generateProjectFiles(
     template: TemplateMetadata,
-    request: GenerationRequest
+    request: GenerationRequest,
+    projectMetadata: ProjectMetadata
   ): Promise<GeneratedFile[]> {
-    const context = this.buildProjectContext(request);
-    const compiledTemplate = this.handlebars.compile(template.content);
-    const generatedContent = compiledTemplate(context);
+    try {
+      // Build project context with metadata
+      const context = this.buildProjectContext(request);
+      context.project = projectMetadata.project;
+      context.allEntities = projectMetadata.entities;
+      context.allRelationships = projectMetadata.relationships;
 
-    const filename = this.generateProjectFilename(template);
-    const filePath = this.generateProjectFilePath(template, request);
+      // Render template using enhanced engine
+      const generatedContent = await this.renderTemplate(template, context);
 
-    return [{
-      filename,
-      path: filePath,
-      content: generatedContent,
-      language: template.language,
-      size: generatedContent.length,
-    }];
+      const filename = this.generateProjectFilename(template);
+      const filePath = this.generateProjectFilePath(template, request);
+
+      this.logger.log(`Generated project file: ${filePath} (${generatedContent.length} bytes)`);
+
+      return [{
+        filename,
+        path: filePath,
+        content: generatedContent,
+        language: template.language,
+        size: generatedContent.length,
+      }];
+    } catch (error) {
+      this.logger.error(`Failed to generate project files:`, error);
+      throw new BadRequestException(`Project file generation failed: ${error.message}`);
+    }
   }
 
   private buildTemplateContext(entity: EntityMetadata, request: GenerationRequest): any {
-    // 合并请求变量和实体数据
+    // Enhanced field processing with better type mapping
+    const processedFields = entity.fields.map(field => ({
+      ...field,
+      // Ensure all type mappings are present
+      tsType: field.tsType || this.mapFieldTypeToTypeScript(field.type),
+      prismaType: field.prismaType || this.mapFieldTypeToPrisma(field.type, field.nullable),
+      prismaAttributes: field.prismaAttributes || this.buildPrismaAttributes(field),
+      columnOptions: this.buildColumnOptions(field),
+      // Additional metadata for templates
+      isSearchable: this.isSearchableField(field),
+      isFilterable: this.isFilterableField(field),
+      isSortable: this.isSortableField(field),
+      validationRules: this.buildValidationRules(field),
+      formComponent: this.getFormComponent(field),
+      displayComponent: this.getDisplayComponent(field),
+    }));
+
+    // Categorize fields for easier template usage
+    const fieldCategories = {
+      primaryKeyField: processedFields.find(f => f.isPrimaryKey),
+      systemFields: processedFields.filter(f => this.isSystemField(f.code)),
+      businessFields: processedFields.filter(f => !this.isSystemField(f.code)),
+      requiredFields: processedFields.filter(f => !f.nullable && !f.isPrimaryKey),
+      optionalFields: processedFields.filter(f => f.nullable),
+      uniqueFields: processedFields.filter(f => f.isUnique && !f.isPrimaryKey),
+      searchableFields: processedFields.filter(f => this.isSearchableField(f)),
+      filterableFields: processedFields.filter(f => this.isFilterableField(f)),
+      sortableFields: processedFields.filter(f => this.isSortableField(f)),
+      dateFields: processedFields.filter(f => ['DATE', 'DATETIME', 'TIMESTAMP'].includes(f.type)),
+      enumFields: processedFields.filter(f => f.type === 'ENUM'),
+      relationFields: processedFields.filter(f => f.code.endsWith('Id') && !this.isSystemField(f.code)),
+    };
+
+    // Build comprehensive context
     const context = {
-      // 实体相关
+      // Entity information
       entity,
       entityName: request.variables.entityName || entity.name,
       entityCode: entity.code,
       tableName: request.variables.tableName || entity.tableName,
-      fields: entity.fields.map(field => ({
-        ...field,
-        tsType: field.tsType || this.mapFieldTypeToTypeScript(field.type),
-        prismaType: field.prismaType || this.mapFieldTypeToPrisma(field.type, field.nullable),
-        prismaAttributes: field.prismaAttributes || this.buildPrismaAttributes(field),
-        columnOptions: this.buildColumnOptions(field)
-      })),
-      primaryKeyField: entity.fields.find(f => f.isPrimaryKey),
-      nonPrimaryKeyFields: entity.fields.filter(f => !f.isPrimaryKey),
-      requiredFields: entity.fields.filter(f => !f.nullable),
-      optionalFields: entity.fields.filter(f => f.nullable),
-      uniqueFields: entity.fields.filter(f => f.isUnique),
-      systemFields: entity.fields.filter(f => this.isSystemField(f.code)),
-      businessFields: entity.fields.filter(f => !this.isSystemField(f.code)),
-      relationships: entity.relationships,
 
-      // 生成选项
+      // All fields with enhanced metadata
+      fields: processedFields,
+
+      // Field categories for easy template access
+      ...fieldCategories,
+
+      // Relationships
+      relationships: entity.relationships,
+      hasRelationships: entity.relationships.outgoing.length > 0 || entity.relationships.incoming.length > 0,
+
+      // Generation options
       options: request.options,
 
-      // 时间戳
-      timestamp: new Date().toISOString(),
+      // Metadata for template logic
+      hasSearchableFields: fieldCategories.searchableFields.length > 0,
+      hasFilterableFields: fieldCategories.filterableFields.length > 0,
+      hasDateFields: fieldCategories.dateFields.length > 0,
+      hasEnumFields: fieldCategories.enumFields.length > 0,
+      hasUniqueFields: fieldCategories.uniqueFields.length > 0,
 
-      // 合并所有请求变量
+      // Utility data
+      timestamp: new Date().toISOString(),
+      generatedBy: 'IntelligentCodeGeneratorService',
+
+      // Merge all request variables
       ...request.variables
     };
 
@@ -388,7 +479,7 @@ export class IntelligentCodeGeneratorService {
     return `${template.code}${extension}`;
   }
 
-  private generateProjectFilePath(template: TemplateMetadata, request: GenerationRequest): string {
+  private generateProjectFilePath(template: TemplateMetadata, _request: GenerationRequest): string {
     const filename = this.generateProjectFilename(template);
     return `src/${filename}`;
   }
@@ -523,7 +614,7 @@ export class IntelligentCodeGeneratorService {
     });
 
     this.handlebars.registerHelper('camelCase', (str: string) => {
-      return str.replace(/(?:^|[-_])(\w)/g, (match, c, index) => 
+      return str.replace(/(?:^|[-_])(\w)/g, (_match, c, index) =>
         index === 0 ? c.toLowerCase() : c.toUpperCase()
       );
     });
@@ -588,10 +679,139 @@ export class IntelligentCodeGeneratorService {
       return new Date().toISOString();
     });
 
-    this.handlebars.registerHelper('formatDate', (date: Date, format: string = 'YYYY-MM-DD') => {
+    this.handlebars.registerHelper('formatDate', (date: Date, _format: string = 'YYYY-MM-DD') => {
       // 简单的日期格式化
       const d = new Date(date);
       return d.toISOString().split('T')[0];
     });
+  }
+
+  // Enhanced field analysis methods
+  private isSearchableField(field: FieldMetadata): boolean {
+    const searchableTypes = ['STRING', 'TEXT', 'UUID'];
+    return searchableTypes.includes(field.type) && !this.isSystemField(field.code);
+  }
+
+  private isFilterableField(field: FieldMetadata): boolean {
+    const filterableTypes = ['STRING', 'TEXT', 'INTEGER', 'BOOLEAN', 'DATE', 'DATETIME', 'TIMESTAMP', 'UUID'];
+    return filterableTypes.includes(field.type);
+  }
+
+  private isSortableField(field: FieldMetadata): boolean {
+    const sortableTypes = ['STRING', 'TEXT', 'INTEGER', 'BIGINT', 'DECIMAL', 'DATE', 'DATETIME', 'TIMESTAMP'];
+    return sortableTypes.includes(field.type);
+  }
+
+  private buildValidationRules(field: FieldMetadata): any[] {
+    const rules: any[] = [];
+
+    if (!field.nullable && !field.isPrimaryKey) {
+      rules.push({ type: 'required', message: `${field.name} is required` });
+    }
+
+    if (field.type === 'STRING' && field.length) {
+      rules.push({ type: 'maxLength', value: field.length, message: `Maximum length is ${field.length}` });
+    }
+
+    if (field.code.toLowerCase().includes('email')) {
+      rules.push({ type: 'email', message: 'Invalid email format' });
+    }
+
+    if (field.isUnique) {
+      rules.push({ type: 'unique', message: `${field.name} must be unique` });
+    }
+
+    return rules;
+  }
+
+  private getFormComponent(field: FieldMetadata): string {
+    if (field.code.toLowerCase().includes('password')) return 'input-password';
+    if (field.code.toLowerCase().includes('email')) return 'input-email';
+    if (field.type === 'TEXT') return 'textarea';
+    if (field.type === 'BOOLEAN') return 'switch';
+    if (['DATE', 'DATETIME', 'TIMESTAMP'].includes(field.type)) return 'input-datetime';
+    if (field.type === 'INTEGER' || field.type === 'BIGINT' || field.type === 'DECIMAL') return 'input-number';
+    if (field.type === 'JSON') return 'json-editor';
+    return 'input-text';
+  }
+
+  private getDisplayComponent(field: FieldMetadata): string {
+    if (field.type === 'BOOLEAN') return 'status';
+    if (['DATE', 'DATETIME', 'TIMESTAMP'].includes(field.type)) return 'datetime';
+    if (field.type === 'JSON') return 'json';
+    if (field.code.toLowerCase().includes('avatar') || field.code.toLowerCase().includes('image')) return 'image';
+    return 'text';
+  }
+
+  // Enhanced template rendering using TemplateEngineService
+  private async renderTemplate(template: TemplateMetadata, context: any): Promise<string> {
+    try {
+      // Use the enhanced template engine if available
+      if (this.templateEngine) {
+        return this.templateEngine.compileTemplateFromString(template.content, context);
+      }
+
+      // Fallback to handlebars
+      const compiledTemplate = this.handlebars.compile(template.content);
+      return compiledTemplate(context);
+    } catch (error) {
+      this.logger.error(`Template rendering failed for ${template.name}:`, error);
+      throw new BadRequestException(`Template rendering failed: ${error.message}`);
+    }
+  }
+
+  // Method to validate template variables
+  public async validateTemplateVariables(templateId: string, variables: Record<string, any>): Promise<{ isValid: boolean; errors: string[] }> {
+    try {
+      const template = await this.getTemplates([templateId]);
+      if (template.length === 0) {
+        return { isValid: false, errors: ['Template not found'] };
+      }
+
+      const templateMeta = template[0];
+      const errors: string[] = [];
+
+      // Check required variables
+      for (const variable of templateMeta.variables) {
+        if (variable.required && !(variable.name in variables)) {
+          errors.push(`Required variable missing: ${variable.name}`);
+        }
+      }
+
+      // Check variable types
+      for (const [name, value] of Object.entries(variables)) {
+        const variableDef = templateMeta.variables.find(v => v.name === name);
+        if (variableDef && !this.validateVariableType(value, variableDef.type)) {
+          errors.push(`Invalid type for variable ${name}: expected ${variableDef.type}`);
+        }
+      }
+
+      return {
+        isValid: errors.length === 0,
+        errors,
+      };
+    } catch (error) {
+      return {
+        isValid: false,
+        errors: [`Validation failed: ${error.message}`],
+      };
+    }
+  }
+
+  private validateVariableType(value: any, expectedType: string): boolean {
+    switch (expectedType.toLowerCase()) {
+      case 'string':
+        return typeof value === 'string';
+      case 'number':
+        return typeof value === 'number';
+      case 'boolean':
+        return typeof value === 'boolean';
+      case 'array':
+        return Array.isArray(value);
+      case 'object':
+        return typeof value === 'object' && value !== null && !Array.isArray(value);
+      default:
+        return true; // Unknown types are considered valid
+    }
   }
 }

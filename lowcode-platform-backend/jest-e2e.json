@@ -1,0 +1,39 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "collectCoverageFrom": [
+    "src/**/*.(t|j)s"
+  ],
+  "coverageDirectory": "./coverage",
+  "moduleNameMapper": {
+    "^@src/(.*)$": "<rootDir>/src/$1",
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^@app/(.*)$": "<rootDir>/src/app/$1",
+    "^@api/(.*)$": "<rootDir>/src/api/$1",
+    "^@lib/(.*)$": "<rootDir>/src/lib/$1",
+    "^@shared/(.*)$": "<rootDir>/src/lib/shared/$1",
+    "^@common/(.*)$": "<rootDir>/src/lib/shared/common/$1",
+    "^@config/(.*)$": "<rootDir>/src/lib/shared/config/$1",
+    "^@utils/(.*)$": "<rootDir>/src/lib/shared/utils/$1",
+    "^@types/(.*)$": "<rootDir>/src/lib/shared/types/$1",
+    "^@constants/(.*)$": "<rootDir>/src/lib/shared/constants/$1",
+    "^@exceptions/(.*)$": "<rootDir>/src/lib/shared/exceptions/$1",
+    "^@filters/(.*)$": "<rootDir>/src/lib/shared/filters/$1",
+    "^@pipes/(.*)$": "<rootDir>/src/lib/shared/pipes/$1",
+    "^@decorators/(.*)$": "<rootDir>/src/lib/shared/decorators/$1",
+    "^@guards/(.*)$": "<rootDir>/src/lib/shared/guards/$1",
+    "^@strategies/(.*)$": "<rootDir>/src/lib/shared/strategies/$1",
+    "^@interceptors/(.*)$": "<rootDir>/src/lib/shared/interceptors/$1",
+    "^@dto/(.*)$": "<rootDir>/src/lib/shared/dto/$1",
+    "^@prisma/(.*)$": "<rootDir>/src/lib/shared/prisma/$1",
+    "^@test/(.*)$": "<rootDir>/test/$1",
+    "^@test-utils/(.*)$": "<rootDir>/test/utils/$1"
+  },
+  "setupFilesAfterEnv": ["<rootDir>/test/setup.ts"],
+  "testTimeout": 30000
+}

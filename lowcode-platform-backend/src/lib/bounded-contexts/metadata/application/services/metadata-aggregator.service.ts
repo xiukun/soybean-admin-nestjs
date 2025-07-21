@@ -1,72 +1,246 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import { ProjectMetadata, EntityMetadata, FieldMetadata, RelationshipMetadata } from '../../../shared/types/metadata.types';
 
 @Injectable()
 export class MetadataAggregatorService {
   private readonly logger = new Logger(MetadataAggregatorService.name);
+  private readonly metadataCache = new Map<string, { data: any; timestamp: number }>();
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+  // Default fields that should be added to every entity
+  private readonly DEFAULT_FIELDS: Partial<FieldMetadata>[] = [
+    {
+      name: 'id',
+      code: 'id',
+      type: 'UUID',
+      nullable: false,
+      isPrimaryKey: true,
+      defaultValue: 'cuid()',
+      description: 'Primary key',
+      tsType: 'string',
+      prismaType: 'String',
+      prismaAttributes: ['@id', '@default(cuid())'],
+    },
+    {
+      name: 'tenantId',
+      code: 'tenantId',
+      type: 'STRING',
+      nullable: true,
+      isPrimaryKey: false,
+      description: 'Tenant ID for multi-tenancy',
+      tsType: 'string',
+      prismaType: 'String?',
+      prismaAttributes: [],
+    },
+    {
+      name: 'createdAt',
+      code: 'createdAt',
+      type: 'DATETIME',
+      nullable: false,
+      isPrimaryKey: false,
+      defaultValue: 'now()',
+      description: 'Creation timestamp',
+      tsType: 'Date',
+      prismaType: 'DateTime',
+      prismaAttributes: ['@default(now())'],
+    },
+    {
+      name: 'updatedAt',
+      code: 'updatedAt',
+      type: 'DATETIME',
+      nullable: false,
+      isPrimaryKey: false,
+      defaultValue: 'now()',
+      description: 'Last update timestamp',
+      tsType: 'Date',
+      prismaType: 'DateTime',
+      prismaAttributes: ['@default(now())', '@updatedAt'],
+    },
+    {
+      name: 'createdBy',
+      code: 'createdBy',
+      type: 'STRING',
+      nullable: true,
+      isPrimaryKey: false,
+      description: 'User who created this record',
+      tsType: 'string',
+      prismaType: 'String?',
+      prismaAttributes: [],
+    },
+    {
+      name: 'updatedBy',
+      code: 'updatedBy',
+      type: 'STRING',
+      nullable: true,
+      isPrimaryKey: false,
+      description: 'User who last updated this record',
+      tsType: 'string',
+      prismaType: 'String?',
+      prismaAttributes: [],
+    },
+  ];
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async getProjectMetadata(projectId: string): Promise<ProjectMetadata> {
+  // Cache management methods
+  private getCachedData<T>(key: string): T | null {
+    const cached = this.metadataCache.get(key);
+    if (!cached) return null;
+
+    const now = Date.now();
+    if (now - cached.timestamp > this.CACHE_TTL) {
+      this.metadataCache.delete(key);
+      return null;
+    }
+
+    return cached.data as T;
+  }
+
+  private setCachedData<T>(key: string, data: T): void {
+    this.metadataCache.set(key, {
+      data,
+      timestamp: Date.now(),
+    });
+  }
+
+  private clearCache(pattern?: string): void {
+    if (pattern) {
+      for (const key of this.metadataCache.keys()) {
+        if (key.includes(pattern)) {
+          this.metadataCache.delete(key);
+        }
+      }
+    } else {
+      this.metadataCache.clear();
+    }
+  }
+
+  // Helper methods for metadata processing
+  private async getEntitiesWithFields(projectId: string): Promise<any[]> {
+    return await this.prisma.$queryRaw<any[]>`
+      SELECT
+        e.id,
+        e.name,
+        e.code,
+        e.table_name as "tableName",
+        e.description,
+        json_agg(
+          CASE
+            WHEN f.id IS NOT NULL THEN
+              json_build_object(
+                'id', f.id,
+                'name', f.name,
+                'code', f.code,
+                'type', f.type,
+                'length', f.length,
+                'nullable', f.nullable,
+                'primaryKey', f.primary_key,
+                'uniqueConstraint', f.unique_constraint,
+                'defaultValue', f.default_value,
+                'comment', f.comment,
+                'sortOrder', f.sort_order
+              )
+            ELSE NULL
+          END
+          ORDER BY f.sort_order ASC
+        ) FILTER (WHERE f.id IS NOT NULL) as fields
+      FROM lowcode_entities e
+      LEFT JOIN lowcode_fields f ON e.id = f.entity_id
+      WHERE e.project_id = ${projectId}
+      GROUP BY e.id, e.name, e.code, e.table_name, e.description
+      ORDER BY e.name
+    `;
+  }
+
+  private mergeWithDefaultFields(customFields: FieldMetadata[]): FieldMetadata[] {
+    const customFieldCodes = new Set(customFields.map(f => f.code));
+    const defaultFields = this.DEFAULT_FIELDS
+      .filter(df => !customFieldCodes.has(df.code!))
+      .map((df, index) => ({
+        id: `default_${df.code}_${index}`,
+        name: df.name!,
+        code: df.code!,
+        type: df.type!,
+        length: df.length,
+        nullable: df.nullable!,
+        isPrimaryKey: df.isPrimaryKey!,
+        isUnique: df.isUnique || false,
+        defaultValue: df.defaultValue,
+        description: df.description!,
+        tsType: df.tsType!,
+        prismaType: df.prismaType!,
+        prismaAttributes: df.prismaAttributes!,
+      }));
+
+    // Sort fields: primary key first, then default fields, then custom fields
+    const allFields = [...defaultFields, ...customFields];
+    return allFields.sort((a, b) => {
+      if (a.isPrimaryKey && !b.isPrimaryKey) return -1;
+      if (!a.isPrimaryKey && b.isPrimaryKey) return 1;
+      if (a.code === 'tenantId') return -1;
+      if (b.code === 'tenantId') return 1;
+      return 0;
+    });
+  }
+
+  private generateTableName(entityCode: string): string {
+    // Convert PascalCase to snake_case
+    return entityCode
+      .replace(/([a-z])([A-Z])/g, '$1_$2')
+      .toLowerCase();
+  }
+
+  async getProjectMetadata(projectId: string, useCache: boolean = true): Promise<ProjectMetadata> {
     this.logger.log(`Aggregating metadata for project: ${projectId}`);
 
+    // Check cache first
+    if (useCache) {
+      const cached = this.getCachedData<ProjectMetadata>(`project_${projectId}`);
+      if (cached) {
+        this.logger.log(`Returning cached metadata for project: ${projectId}`);
+        return cached;
+      }
+    }
+
     try {
-      // 获取项目信息
+      // Validate project exists
       const project = await this.prisma.project.findUnique({
         where: { id: projectId },
       });
 
       if (!project) {
-        throw new Error(`Project not found: ${projectId}`);
+        throw new NotFoundException(`Project not found: ${projectId}`);
       }
 
-      // 获取项目的所有实体和字段
-      const entitiesWithFields = await this.prisma.$queryRaw<any[]>`
-        SELECT
-          e.id,
-          e.name,
-          e.code,
-          e.table_name as "tableName",
-          e.description,
-          json_agg(
-            json_build_object(
-              'id', f.id,
-              'name', f.name,
-              'code', f.code,
-              'type', f.type,
-              'length', f.length,
-              'nullable', f.nullable,
-              'primaryKey', f.primary_key,
-              'uniqueConstraint', f.unique_constraint,
-              'defaultValue', f.default_value,
-              'comment', f.comment,
-              'sortOrder', f.sort_order
-            ) ORDER BY f.sort_order ASC
-          ) as fields
-        FROM lowcode_entities e
-        LEFT JOIN lowcode_fields f ON e.id = f.entity_id
-        WHERE e.project_id = ${projectId}
-        GROUP BY e.id, e.name, e.code, e.table_name, e.description
-        ORDER BY e.name
-      `;
+      // Get project entities and fields in parallel
+      const [entitiesWithFields, relationships] = await Promise.all([
+        this.getEntitiesWithFields(projectId),
+        this.getEntityRelationships(projectId),
+      ]);
 
-      // 获取实体关系
-      const relationships = await this.getEntityRelationships(projectId);
+      // Build entity metadata with default fields
+      const entityMetadata: EntityMetadata[] = entitiesWithFields.map(entity => {
+        const customFields = (entity.fields || [])
+          .filter((field: any) => field.id) // Only include fields with IDs (from database)
+          .map((field: any) => this.mapFieldToMetadata(field));
 
-      // 构建实体元数据
-      const entityMetadata: EntityMetadata[] = entitiesWithFields.map(entity => ({
-        id: entity.id,
-        name: entity.name,
-        code: entity.code,
-        tableName: entity.tableName,
-        description: entity.description,
-        fields: (entity.fields || []).map((field: any) => this.mapFieldToMetadata(field)),
-        relationships: {
-          outgoing: relationships.filter(r => r.sourceEntityId === entity.id),
-          incoming: relationships.filter(r => r.targetEntityId === entity.id),
-        },
-      }));
+        // Merge default fields with custom fields, avoiding duplicates
+        const allFields = this.mergeWithDefaultFields(customFields);
+
+        return {
+          id: entity.id,
+          name: entity.name,
+          code: entity.code,
+          tableName: entity.tableName || this.generateTableName(entity.code),
+          description: entity.description,
+          fields: allFields,
+          relationships: {
+            outgoing: relationships.filter(r => r.sourceEntityId === entity.id),
+            incoming: relationships.filter(r => r.targetEntityId === entity.id),
+          },
+        };
+      });
 
       const metadata: ProjectMetadata = {
         project: {
@@ -79,17 +253,34 @@ export class MetadataAggregatorService {
         relationships,
       };
 
+      // Cache the result
+      if (useCache) {
+        this.setCachedData(`project_${projectId}`, metadata);
+      }
+
       this.logger.log(`Aggregated metadata for ${entityMetadata.length} entities`);
       return metadata;
 
     } catch (error) {
       this.logger.error(`Failed to aggregate metadata for project ${projectId}:`, error);
-      throw error;
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(`Failed to aggregate project metadata: ${error.message}`);
     }
   }
 
-  async getEntityMetadata(entityId: string): Promise<EntityMetadata> {
+  async getEntityMetadata(entityId: string, useCache: boolean = true): Promise<EntityMetadata> {
     this.logger.log(`Getting metadata for entity: ${entityId}`);
+
+    // Check cache first
+    if (useCache) {
+      const cached = this.getCachedData<EntityMetadata>(`entity_${entityId}`);
+      if (cached) {
+        this.logger.log(`Returning cached metadata for entity: ${entityId}`);
+        return cached;
+      }
+    }
 
     try {
       const entityWithFields = await this.prisma.$queryRaw<any[]>`
@@ -101,20 +292,25 @@ export class MetadataAggregatorService {
           e.description,
           e.project_id as "projectId",
           json_agg(
-            json_build_object(
-              'id', f.id,
-              'name', f.name,
-              'code', f.code,
-              'type', f.type,
-              'length', f.length,
-              'nullable', f.nullable,
-              'primaryKey', f.primary_key,
-              'uniqueConstraint', f.unique_constraint,
-              'defaultValue', f.default_value,
-              'comment', f.comment,
-              'sortOrder', f.sort_order
-            ) ORDER BY f.sort_order ASC
-          ) as fields
+            CASE
+              WHEN f.id IS NOT NULL THEN
+                json_build_object(
+                  'id', f.id,
+                  'name', f.name,
+                  'code', f.code,
+                  'type', f.type,
+                  'length', f.length,
+                  'nullable', f.nullable,
+                  'primaryKey', f.primary_key,
+                  'uniqueConstraint', f.unique_constraint,
+                  'defaultValue', f.default_value,
+                  'comment', f.comment,
+                  'sortOrder', f.sort_order
+                )
+              ELSE NULL
+            END
+            ORDER BY f.sort_order ASC
+          ) FILTER (WHERE f.id IS NOT NULL) as fields
         FROM lowcode_entities e
         LEFT JOIN lowcode_fields f ON e.id = f.entity_id
         WHERE e.id = ${entityId}
@@ -122,32 +318,47 @@ export class MetadataAggregatorService {
       `;
 
       if (!entityWithFields || entityWithFields.length === 0) {
-        throw new Error(`Entity not found: ${entityId}`);
+        throw new NotFoundException(`Entity not found: ${entityId}`);
       }
 
       const entity = entityWithFields[0];
 
-      // 获取实体关系
+      // Get entity relationships
       const relationships = await this.getEntityRelationships(entity.projectId);
+
+      // Process fields with default fields
+      const customFields = (entity.fields || [])
+        .filter((field: any) => field.id)
+        .map((field: any) => this.mapFieldToMetadata(field));
+
+      const allFields = this.mergeWithDefaultFields(customFields);
 
       const metadata: EntityMetadata = {
         id: entity.id,
         name: entity.name,
         code: entity.code,
-        tableName: entity.tableName,
+        tableName: entity.tableName || this.generateTableName(entity.code),
         description: entity.description,
-        fields: (entity.fields || []).map((field: any) => this.mapFieldToMetadata(field)),
+        fields: allFields,
         relationships: {
           outgoing: relationships.filter(r => r.sourceEntityId === entity.id),
           incoming: relationships.filter(r => r.targetEntityId === entity.id),
         },
       };
 
+      // Cache the result
+      if (useCache) {
+        this.setCachedData(`entity_${entityId}`, metadata);
+      }
+
       return metadata;
 
     } catch (error) {
       this.logger.error(`Failed to get entity metadata for ${entityId}:`, error);
-      throw error;
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(`Failed to get entity metadata: ${error.message}`);
     }
   }
 
@@ -192,22 +403,24 @@ export class MetadataAggregatorService {
 
   private async getEntityRelationships(projectId: string): Promise<RelationshipMetadata[]> {
     try {
-      // 这里需要根据实际的关系表结构来查询
-      // 假设有一个 EntityRelationship 表
+      // Query relationships using the correct table structure
       const relationships = await this.prisma.$queryRaw<any[]>`
-        SELECT 
-          er.id,
-          er.source_entity_id as "sourceEntityId",
-          er.target_entity_id as "targetEntityId",
+        SELECT
+          r.id,
+          r.source_entity_id as "sourceEntityId",
+          r.target_entity_id as "targetEntityId",
           se.name as "sourceEntityName",
           te.name as "targetEntityName",
-          er.relation_type as "relationType",
-          er.relationship_name as "relationshipName",
-          er.description
-        FROM entity_relationships er
-        JOIN entities se ON er.source_entity_id = se.id
-        JOIN entities te ON er.target_entity_id = te.id
+          r.relation_type as "relationType",
+          r.relationship_name as "relationshipName",
+          r.description,
+          r.source_field as "sourceField",
+          r.target_field as "targetField"
+        FROM lowcode_relationships r
+        JOIN lowcode_entities se ON r.source_entity_id = se.id
+        JOIN lowcode_entities te ON r.target_entity_id = te.id
         WHERE se.project_id = ${projectId} OR te.project_id = ${projectId}
+        ORDER BY r.created_at DESC
       `;
 
       return relationships.map(r => ({
@@ -219,10 +432,12 @@ export class MetadataAggregatorService {
         relationType: r.relationType,
         relationshipName: r.relationshipName,
         description: r.description,
+        sourceField: r.sourceField,
+        targetField: r.targetField,
       }));
 
     } catch (error) {
-      this.logger.warn('Failed to get entity relationships, returning empty array:', error);
+      this.logger.warn('Failed to get entity relationships, returning empty array:', error.message);
       return [];
     }
   }
@@ -330,6 +545,72 @@ export class MetadataAggregatorService {
   private isSystemField(fieldCode: string): boolean {
     const systemFields = ['id', 'tenantId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy'];
     return systemFields.includes(fieldCode);
+  }
+
+  // Public methods for cache management
+  public invalidateProjectCache(projectId: string): void {
+    this.clearCache(`project_${projectId}`);
+    this.logger.log(`Invalidated cache for project: ${projectId}`);
+  }
+
+  public invalidateEntityCache(entityId: string): void {
+    this.clearCache(`entity_${entityId}`);
+    this.logger.log(`Invalidated cache for entity: ${entityId}`);
+  }
+
+  public invalidateAllCache(): void {
+    this.clearCache();
+    this.logger.log('Invalidated all metadata cache');
+  }
+
+  // Utility method to get field metadata by entity and field code
+  public async getFieldMetadata(entityId: string, fieldCode: string): Promise<FieldMetadata | null> {
+    try {
+      const entityMetadata = await this.getEntityMetadata(entityId);
+      return entityMetadata.fields.find(f => f.code === fieldCode) || null;
+    } catch (error) {
+      this.logger.error(`Failed to get field metadata for ${entityId}.${fieldCode}:`, error);
+      return null;
+    }
+  }
+
+  // Method to validate entity structure
+  public async validateEntityStructure(entityId: string): Promise<{ isValid: boolean; errors: string[] }> {
+    try {
+      const metadata = await this.getEntityMetadata(entityId);
+      const errors: string[] = [];
+
+      // Check for primary key
+      const primaryKeys = metadata.fields.filter(f => f.isPrimaryKey);
+      if (primaryKeys.length === 0) {
+        errors.push('Entity must have at least one primary key field');
+      }
+
+      // Check for required default fields
+      const requiredFields = ['id', 'createdAt', 'updatedAt'];
+      for (const requiredField of requiredFields) {
+        if (!metadata.fields.some(f => f.code === requiredField)) {
+          errors.push(`Missing required field: ${requiredField}`);
+        }
+      }
+
+      // Check for duplicate field codes
+      const fieldCodes = metadata.fields.map(f => f.code);
+      const duplicates = fieldCodes.filter((code, index) => fieldCodes.indexOf(code) !== index);
+      if (duplicates.length > 0) {
+        errors.push(`Duplicate field codes found: ${duplicates.join(', ')}`);
+      }
+
+      return {
+        isValid: errors.length === 0,
+        errors,
+      };
+    } catch (error) {
+      return {
+        isValid: false,
+        errors: [`Failed to validate entity structure: ${error.message}`],
+      };
+    }
   }
 
   private generateTableDDL(entity: EntityMetadata): string {
