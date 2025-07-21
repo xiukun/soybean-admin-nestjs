@@ -235,7 +235,7 @@ export class AppModule {
   }
 
   private buildPrismaSchema(metadata: ProjectMetadata): string {
-    let schema = `// Auto-generated Prisma schema for ${metadata.project.name}
+    let schema = `// Auto-generated Prisma schema for ${metadata.name}
 // Generated at: ${new Date().toISOString()}
 
 generator client {

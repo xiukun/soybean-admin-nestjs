@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
   output   = "../node_modules/.prisma/client"
@@ -11,297 +8,490 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 项目管理表
 model Project {
-  id          String  @id @default(uuid())
-  name        String  @db.VarChar(100)
-  code        String  @unique @db.VarChar(100)
-  description String? @db.Text
-  version     String  @default("1.0.0") @db.VarChar(20)
-  
-  // 项目配置
-  config Json @default("{}")
-  
-  // 状态管理
-  status String @default("ACTIVE") @db.VarChar(20) // ACTIVE, INACTIVE, ARCHIVED
-  
-  // 审计字段
-  createdBy String   @map("created_by")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedBy String?  @map("updated_by")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  
-  // 关联关系
-  entities   Entity[]
-  apis       Api[]
-  relations  Relation[]
-  apiConfigs ApiConfig[]
-  queries    LowcodeQuery[]
-  
+  id          String         @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
+  name        String         @db.VarChar(100)
+  code        String         @unique @db.VarChar(100)
+  description String?
+  version     String?        @default("1.0.0") @db.VarChar(20)
+  config      Json?          @default("{}")
+  status      String?        @default("ACTIVE") @db.VarChar(20)
+  createdBy   String         @map("created_by") @db.VarChar(36)
+  createdAt   DateTime?      @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedBy   String?        @map("updated_by") @db.VarChar(36)
+  updatedAt   DateTime?      @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  apiConfigs  ApiConfig[]
+  apis        Api[]
+  entities    Entity[]
+  queries     LowcodeQuery[]
+  relations   Relation[]
+
   @@map("lowcode_projects")
 }
 
-// 实体管理表
 model Entity {
-  id          String  @id @default(uuid())
-  projectId   String  @map("project_id")
-  name        String  @db.VarChar(100)
-  code        String  @db.VarChar(100)
-  tableName   String  @map("table_name") @db.VarChar(100)
-  description String? @db.Text
-  category    String? @db.VarChar(50)
-  
-  // ER图位置信息
-  diagramPosition Json? @map("diagram_position")
-  
-  // 实体配置
-  config Json @default("{}")
-  
-  // 版本控制
-  version String @default("1.0.0") @db.VarChar(20)
-  
-  // 状态管理
-  status String @default("DRAFT") @db.VarChar(20) // DRAFT, PUBLISHED, DEPRECATED
-  
-  // 审计字段
-  createdBy String   @map("created_by")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedBy String?  @map("updated_by")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  
-  // 关联关系
-  project         Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id              String         @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
+  projectId       String         @map("project_id") @db.VarChar(36)
+  name            String         @db.VarChar(100)
+  code            String         @db.VarChar(100)
+  tableName       String         @map("table_name") @db.VarChar(100)
+  description     String?
+  category        String?        @db.VarChar(50)
+  diagramPosition Json?          @map("diagram_position")
+  config          Json?          @default("{}")
+  version         String?        @default("1.0.0") @db.VarChar(20)
+  status          String?        @default("DRAFT") @db.VarChar(20)
+  createdBy       String         @map("created_by") @db.VarChar(36)
+  createdAt       DateTime?      @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedBy       String?        @map("updated_by") @db.VarChar(36)
+  updatedAt       DateTime?      @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  apiConfigs      ApiConfig[]
+  apis            Api[]
+  project         Project        @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   fields          Field[]
+  queries         LowcodeQuery[]
   sourceRelations Relation[]     @relation("SourceEntity")
   targetRelations Relation[]     @relation("TargetEntity")
-  apis            Api[]
-  apiConfigs      ApiConfig[]
-  queries         LowcodeQuery[]
-  
+
   @@unique([projectId, code])
   @@unique([projectId, tableName])
+  @@index([projectId], map: "idx_lowcode_entities_project_id")
+  @@index([status], map: "idx_lowcode_entities_status")
   @@map("lowcode_entities")
 }
 
-// 字段管理表
 model Field {
-  id               String  @id @default(uuid())
-  entityId         String  @map("entity_id")
-  name             String  @db.VarChar(100)
-  code             String  @db.VarChar(100)
-  type             String  @db.VarChar(50) // STRING, INTEGER, DECIMAL, BOOLEAN, DATE, DATETIME, TIME, UUID, JSON, TEXT
+  id               String     @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
+  entityId         String     @map("entity_id") @db.VarChar(36)
+  name             String     @db.VarChar(100)
+  code             String     @db.VarChar(100)
+  type             String     @db.VarChar(50)
   length           Int?
   precision        Int?
   scale            Int?
-  nullable         Boolean @default(true)
-  uniqueConstraint Boolean @default(false) @map("unique_constraint")
-  indexed          Boolean @default(false)
-  primaryKey       Boolean @default(false) @map("primary_key")
-  defaultValue     String? @map("default_value") @db.Text
-  validationRules  Json?   @map("validation_rules")
-  referenceConfig  Json?   @map("reference_config")
-  enumOptions      Json?   @map("enum_options")
-  comment          String? @db.Text
-  sortOrder        Int     @default(0) @map("sort_order")
-  
-  // 审计字段
-  createdBy String   @map("created_by")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedBy String?  @map("updated_by")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  
-  // 关联关系
-  entity          Entity     @relation(fields: [entityId], references: [id], onDelete: Cascade)
-  sourceRelations Relation[] @relation("SourceField")
-  targetRelations Relation[] @relation("TargetField")
-  
+  nullable         Boolean?   @default(true)
+  uniqueConstraint Boolean?   @default(false) @map("unique_constraint")
+  indexed          Boolean?   @default(false)
+  primaryKey       Boolean?   @default(false) @map("primary_key")
+  defaultValue     String?    @map("default_value")
+  validationRules  Json?      @map("validation_rules")
+  referenceConfig  Json?      @map("reference_config")
+  enumOptions      Json?      @map("enum_options")
+  comment          String?
+  sortOrder        Int?       @default(0) @map("sort_order")
+  createdBy        String     @map("created_by") @db.VarChar(36)
+  createdAt        DateTime?  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedBy        String?    @map("updated_by") @db.VarChar(36)
+  updatedAt        DateTime?  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  entity           Entity     @relation(fields: [entityId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  sourceRelations  Relation[] @relation("SourceField")
+  targetRelations  Relation[] @relation("TargetField")
+
   @@unique([entityId, code])
+  @@index([entityId], map: "idx_lowcode_fields_entity_id")
   @@map("lowcode_fields")
 }
 
-// 关系管理表
 model Relation {
-  id               String  @id @default(uuid())
-  projectId        String  @map("project_id")
-  name             String  @db.VarChar(100)
-  code             String  @db.VarChar(100)
-  description      String? @db.Text
-  type             String  @db.VarChar(50) // ONE_TO_ONE, ONE_TO_MANY, MANY_TO_ONE, MANY_TO_MANY
-  sourceEntityId   String  @map("source_entity_id")
-  sourceFieldId    String? @map("source_field_id")
-  targetEntityId   String  @map("target_entity_id")
-  targetFieldId    String? @map("target_field_id")
-  foreignKeyName   String? @map("foreign_key_name") @db.VarChar(100)
-  joinTableConfig  Json?   @map("join_table_config")
-  onDelete         String? @default("RESTRICT") @map("on_delete") @db.VarChar(20) // CASCADE, SET_NULL, RESTRICT, NO_ACTION
-  onUpdate         String? @default("RESTRICT") @map("on_update") @db.VarChar(20)
-  config           Json    @default("{}")
-  status           String  @default("ACTIVE") @db.VarChar(20) // ACTIVE, INACTIVE
-  indexed          Boolean @default(true)
-  indexName        String? @map("index_name") @db.VarChar(100)
-
-  // 审计字段
-  createdBy String   @map("created_by")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedBy String?  @map("updated_by")
-  updatedAt DateTime? @updatedAt @map("updated_at")
-
-  // 关联关系
-  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  sourceEntity Entity  @relation("SourceEntity", fields: [sourceEntityId], references: [id], onDelete: Cascade)
-  sourceField  Field?  @relation("SourceField", fields: [sourceFieldId], references: [id], onDelete: Cascade)
-  targetEntity Entity  @relation("TargetEntity", fields: [targetEntityId], references: [id], onDelete: Cascade)
-  targetField  Field?  @relation("TargetField", fields: [targetFieldId], references: [id], onDelete: Cascade)
+  id              String    @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
+  projectId       String    @map("project_id") @db.VarChar(36)
+  name            String    @db.VarChar(100)
+  code            String    @db.VarChar(100)
+  description     String?
+  type            String    @db.VarChar(50)
+  sourceEntityId  String    @map("source_entity_id") @db.VarChar(36)
+  sourceFieldId   String?   @map("source_field_id") @db.VarChar(36)
+  targetEntityId  String    @map("target_entity_id") @db.VarChar(36)
+  targetFieldId   String?   @map("target_field_id") @db.VarChar(36)
+  foreignKeyName  String?   @map("foreign_key_name") @db.VarChar(100)
+  joinTableConfig Json?     @map("join_table_config")
+  onDelete        String?   @default("RESTRICT") @map("on_delete") @db.VarChar(20)
+  onUpdate        String?   @default("RESTRICT") @map("on_update") @db.VarChar(20)
+  config          Json?     @default("{}")
+  status          String?   @default("ACTIVE") @db.VarChar(20)
+  indexed         Boolean?  @default(true)
+  indexName       String?   @map("index_name") @db.VarChar(100)
+  createdBy       String    @map("created_by") @db.VarChar(36)
+  createdAt       DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedBy       String?   @map("updated_by") @db.VarChar(36)
+  updatedAt       DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  sourceEntity    Entity    @relation("SourceEntity", fields: [sourceEntityId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  sourceField     Field?    @relation("SourceField", fields: [sourceFieldId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  targetEntity    Entity    @relation("TargetEntity", fields: [targetEntityId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  targetField     Field?    @relation("TargetField", fields: [targetFieldId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([projectId, code])
+  @@index([projectId], map: "idx_lowcode_relations_project_id")
+  @@index([sourceEntityId], map: "idx_lowcode_relations_source_entity")
+  @@index([targetEntityId], map: "idx_lowcode_relations_target_entity")
   @@map("lowcode_relations")
 }
 
-// API配置管理表
 model ApiConfig {
-  id          String   @id @default(uuid())
-  projectId   String   @map("project_id")
-  name        String   @db.VarChar(100)
-  code        String   @db.VarChar(100)
-  description String?  @db.Text
-  method      String   @db.VarChar(10) // GET, POST, PUT, DELETE, PATCH
-  path        String   @db.VarChar(500)
-  entityId    String?  @map("entity_id")
-  parameters  Json     @default("[]")
-  responses   Json     @default("[]")
-  security    Json     @default("{\"type\":\"none\"}")
-  config      Json     @default("{}")
-  status      String   @default("DRAFT") @db.VarChar(20) // DRAFT, PUBLISHED, DEPRECATED
-  version     String   @default("1.0.0") @db.VarChar(20)
-
-  // 审计字段
-  createdBy String   @map("created_by")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedBy String?  @map("updated_by")
-  updatedAt DateTime? @updatedAt @map("updated_at")
-
-  // 关联关系
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  entity  Entity? @relation(fields: [entityId], references: [id], onDelete: SetNull)
+  id          String    @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
+  projectId   String    @map("project_id") @db.VarChar(36)
+  name        String    @db.VarChar(100)
+  code        String    @db.VarChar(100)
+  description String?
+  method      String    @db.VarChar(10)
+  path        String    @db.VarChar(500)
+  entityId    String?   @map("entity_id") @db.VarChar(36)
+  parameters  Json?     @default("[]")
+  responses   Json?     @default("[]")
+  security    Json?     @default("{\"type\": \"none\"}")
+  config      Json?     @default("{}")
+  status      String?   @default("DRAFT") @db.VarChar(20)
+  version     String?   @default("1.0.0") @db.VarChar(20)
+  createdBy   String    @map("created_by") @db.VarChar(36)
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedBy   String?   @map("updated_by") @db.VarChar(36)
+  updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  entity      Entity?   @relation(fields: [entityId], references: [id], onUpdate: NoAction)
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([projectId, code])
   @@unique([projectId, method, path])
+  @@index([projectId], map: "idx_lowcode_api_configs_project_id")
   @@map("lowcode_api_configs")
 }
 
-// API管理表
 model Api {
-  id          String  @id @default(uuid())
-  projectId   String  @map("project_id")
-  entityId    String? @map("entity_id")
-  name        String  @db.VarChar(100)
-  code        String  @db.VarChar(100)
-  path        String  @db.VarChar(200)
-  method      String  @db.VarChar(10) // GET, POST, PUT, DELETE, PATCH
-  description String? @db.Text
-  
-  // API配置
-  requestConfig  Json? @map("request_config")
-  responseConfig Json? @map("response_config")
-  queryConfig    Json? @map("query_config")
-  authConfig     Json? @map("auth_config")
-  
-  // 版本控制
-  version String @default("1.0.0") @db.VarChar(20)
-  
-  // 状态管理
-  status String @default("DRAFT") @db.VarChar(20) // DRAFT, PUBLISHED, DEPRECATED
-  
-  // 审计字段
-  createdBy String   @map("created_by")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedBy String?  @map("updated_by")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  
-  // 关联关系
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  entity  Entity? @relation(fields: [entityId], references: [id], onDelete: Cascade)
-  
+  id             String    @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
+  projectId      String    @map("project_id") @db.VarChar(36)
+  entityId       String?   @map("entity_id") @db.VarChar(36)
+  name           String    @db.VarChar(100)
+  code           String    @db.VarChar(100)
+  path           String    @db.VarChar(200)
+  method         String    @db.VarChar(10)
+  description    String?
+  requestConfig  Json?     @map("request_config")
+  responseConfig Json?     @map("response_config")
+  queryConfig    Json?     @map("query_config")
+  authConfig     Json?     @map("auth_config")
+  version        String?   @default("1.0.0") @db.VarChar(20)
+  status         String?   @default("DRAFT") @db.VarChar(20)
+  createdBy      String    @map("created_by") @db.VarChar(36)
+  createdAt      DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedBy      String?   @map("updated_by") @db.VarChar(36)
+  updatedAt      DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  entity         Entity?   @relation(fields: [entityId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
   @@unique([projectId, code])
   @@unique([projectId, path, method])
+  @@index([entityId], map: "idx_lowcode_apis_entity_id")
+  @@index([projectId], map: "idx_lowcode_apis_project_id")
   @@map("lowcode_apis")
 }
 
-// 查询管理表
 model LowcodeQuery {
-  id              String   @id @default(cuid())
-  projectId       String   @map("project_id")
-  name            String
-  description     String?
-  baseEntityId    String   @map("base_entity_id")
-  baseEntityAlias String   @map("base_entity_alias") @default("main")
-  joins           Json     @default("[]")
-  fields          Json     @default("[]")
-  filters         Json     @default("[]")
-  sorting         Json     @default("[]")
-  groupBy         Json     @default("[]") @map("group_by")
-  having          Json     @default("[]")
-  limit           Int?     @map("limit_count")
-  offset          Int?     @map("offset_count")
-  status          String   @default("DRAFT")
-  sqlQuery        String?  @map("sql_query")
-  executionStats  Json?    @map("execution_stats")
-  createdBy       String   @map("created_by")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedBy       String?  @map("updated_by")
-  updatedAt       DateTime @updatedAt @map("updated_at")
-
-  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  baseEntity Entity  @relation(fields: [baseEntityId], references: [id], onDelete: Cascade)
+  id                String    @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
+  projectId         String    @map("project_id") @db.VarChar(36)
+  name              String    @db.VarChar(100)
+  description       String?
+  baseEntityId      String    @map("base_entity_id") @db.VarChar(36)
+  baseEntityAlias   String?   @default("main") @map("base_entity_alias") @db.VarChar(50)
+  joins             Json?     @default("[]")
+  fields            Json?     @default("[]")
+  filters           Json?     @default("[]")
+  sorting           Json?     @default("[]")
+  groupBy           Json?     @default("[]") @map("group_by")
+  having_conditions Json?     @default("[]")
+  limit             Int?      @map("limit_count")
+  offset            Int?      @map("offset_count")
+  status            String?   @default("DRAFT") @db.VarChar(20)
+  sqlQuery          String?   @map("sql_query")
+  executionStats    Json?     @map("execution_stats")
+  createdBy         String    @map("created_by") @db.VarChar(36)
+  createdAt         DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedBy         String?   @map("updated_by") @db.VarChar(36)
+  updatedAt         DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  baseEntity        Entity    @relation(fields: [baseEntityId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  project           Project   @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([projectId, name])
+  @@index([baseEntityId], map: "idx_lowcode_queries_base_entity_id")
+  @@index([projectId], map: "idx_lowcode_queries_project_id")
+  @@index([status], map: "idx_lowcode_queries_status")
   @@map("lowcode_queries")
 }
 
-// 代码生成任务表
 model CodegenTask {
-  id          String  @id @default(uuid())
-  projectId   String  @map("project_id")
-  name        String  @db.VarChar(100)
-  type        String  @db.VarChar(50) // ENTITY, API, FULL_PROJECT
-  config      Json    @default("{}")
-  status      String  @default("PENDING") @db.VarChar(20) // PENDING, RUNNING, COMPLETED, FAILED
-  progress    Int     @default(0)
-  result      Json?
-  errorMsg    String? @map("error_msg") @db.Text
-  outputPath  String? @map("output_path") @db.VarChar(500)
-  
-  // 审计字段
-  createdBy String   @map("created_by")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  
+  id         String    @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
+  projectId  String    @map("project_id") @db.VarChar(36)
+  name       String    @db.VarChar(100)
+  type       String    @db.VarChar(50)
+  config     Json?     @default("{}")
+  status     String?   @default("PENDING") @db.VarChar(20)
+  progress   Int?      @default(0)
+  result     Json?
+  errorMsg   String?   @map("error_msg")
+  outputPath String?   @map("output_path") @db.VarChar(500)
+  createdBy  String    @map("created_by") @db.VarChar(36)
+  createdAt  DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  @@index([projectId], map: "idx_lowcode_codegen_tasks_project_id")
+  @@index([status], map: "idx_lowcode_codegen_tasks_status")
   @@map("lowcode_codegen_tasks")
 }
 
-// 代码模板表
 model CodeTemplate {
-  id          String  @id @default(uuid())
-  name        String  @db.VarChar(100)
-  code        String  @unique @db.VarChar(100)
-  type        String  @db.VarChar(50) // ENTITY_MODEL, ENTITY_DTO, ENTITY_SERVICE, ENTITY_CONTROLLER, API_CONTROLLER
-  language    String  @db.VarChar(20) // TYPESCRIPT, JAVASCRIPT, JAVA, PYTHON
-  framework   String  @db.VarChar(50) // NESTJS, EXPRESS, SPRING_BOOT, FASTAPI
-  description String? @db.Text
-  template    String  @db.Text
-  variables   Json?   @default("[]")
-  
-  // 版本控制
-  version String @default("1.0.0") @db.VarChar(20)
-  
-  // 状态管理
-  status String @default("ACTIVE") @db.VarChar(20) // ACTIVE, INACTIVE
-  
-  // 审计字段
-  createdBy String   @map("created_by")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedBy String?  @map("updated_by")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  
+  id          String    @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
+  name        String    @db.VarChar(100)
+  code        String    @unique @db.VarChar(100)
+  type        String    @db.VarChar(50)
+  language    String    @db.VarChar(20)
+  framework   String    @db.VarChar(50)
+  description String?
+  template    String
+  variables   Json?     @default("[]")
+  version     String?   @default("1.0.0") @db.VarChar(20)
+  status      String?   @default("ACTIVE") @db.VarChar(20)
+  createdBy   String    @map("created_by") @db.VarChar(36)
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedBy   String?   @map("updated_by") @db.VarChar(36)
+  updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
   @@map("lowcode_code_templates")
+}
+
+model casbin_rule {
+  id    Int     @id @default(autoincrement())
+  ptype String
+  v0    String?
+  v1    String?
+  v2    String?
+  v3    String?
+  v4    String?
+  v5    String?
+}
+
+model sys_access_key {
+  id                String   @id
+  domain            String
+  access_key_id     String
+  access_key_secret String   @unique
+  status            Status
+  description       String?
+  created_at        DateTime @default(now())
+  created_by        String
+}
+
+model sys_domain {
+  id          String    @id
+  code        String    @unique
+  name        String
+  description String?
+  status      Status
+  created_at  DateTime  @default(now())
+  created_by  String
+  updated_at  DateTime?
+  updated_by  String?
+}
+
+model sys_endpoint {
+  id         String    @id
+  path       String
+  method     String
+  action     String
+  resource   String
+  controller String
+  summary    String?
+  created_at DateTime  @default(now())
+  updated_at DateTime?
+
+  @@unique([path, method])
+}
+
+model sys_login_log {
+  id         String   @id
+  user_id    String
+  username   String
+  domain     String
+  login_time DateTime @default(now())
+  ip         String
+  port       Int?
+  address    String
+  user_agent String
+  request_id String
+  type       String
+  created_at DateTime @default(now())
+  created_by String
+}
+
+model sys_lowcode_page {
+  id                       String                     @id
+  name                     String                     @db.VarChar(100)
+  title                    String                     @db.VarChar(100)
+  code                     String                     @unique @db.VarChar(100)
+  description              String?
+  schema                   Json
+  status                   Status                     @default(ENABLED)
+  created_at               DateTime                   @default(now())
+  created_by               String
+  updated_at               DateTime?
+  updated_by               String?
+  sys_lowcode_page_version sys_lowcode_page_version[]
+  sys_menu                 sys_menu[]
+}
+
+model sys_lowcode_page_version {
+  id               String           @id
+  page_id          String
+  version          String           @db.VarChar(20)
+  schema           Json
+  changelog        String?
+  created_at       DateTime         @default(now())
+  created_by       String
+  sys_lowcode_page sys_lowcode_page @relation(fields: [page_id], references: [id], onDelete: Cascade)
+}
+
+model sys_menu {
+  id               Int               @id @default(autoincrement())
+  menu_type        MenuType
+  menu_name        String            @db.VarChar(64)
+  icon_type        Int?              @default(1)
+  icon             String?           @db.VarChar(64)
+  route_name       String            @db.VarChar(64)
+  route_path       String            @db.VarChar(128)
+  component        String            @db.VarChar(64)
+  path_param       String?           @db.VarChar(64)
+  status           Status
+  active_menu      String?           @db.VarChar(64)
+  hide_in_menu     Boolean?          @default(false)
+  pid              Int               @default(0)
+  sequence         Int
+  i18n_key         String?           @db.VarChar(64)
+  keep_alive       Boolean?          @default(false)
+  constant         Boolean           @default(false)
+  href             String?           @db.VarChar(64)
+  multi_tab        Boolean?          @default(false)
+  lowcode_page_id  String?           @db.VarChar(36)
+  created_at       DateTime          @default(now())
+  created_by       String
+  updated_at       DateTime?
+  updated_by       String?
+  sys_lowcode_page sys_lowcode_page? @relation(fields: [lowcode_page_id], references: [id])
+  sys_role_menu    sys_role_menu[]
+}
+
+model sys_operation_log {
+  id          String   @id
+  user_id     String
+  username    String
+  domain      String
+  module_name String
+  description String
+  request_id  String
+  method      String
+  url         String
+  ip          String
+  user_agent  String?
+  params      Json?
+  body        Json?
+  response    Json?
+  start_time  DateTime
+  end_time    DateTime
+  duration    Int
+  created_at  DateTime @default(now())
+}
+
+model sys_organization {
+  id          String    @id
+  code        String    @unique
+  name        String
+  description String?
+  pid         String    @default("0")
+  status      Status
+  created_at  DateTime  @default(now())
+  created_by  String
+  updated_at  DateTime?
+  updated_by  String?
+}
+
+model sys_role {
+  id            String          @id
+  code          String          @unique
+  name          String
+  description   String?
+  pid           String          @default("0")
+  status        Status
+  created_at    DateTime        @default(now())
+  created_by    String
+  updated_at    DateTime?
+  updated_by    String?
+  sys_role_menu sys_role_menu[]
+  sys_user_role sys_user_role[]
+}
+
+model sys_role_menu {
+  role_id  String
+  menu_id  Int
+  domain   String
+  sys_menu sys_menu @relation(fields: [menu_id], references: [id], onDelete: Cascade)
+  sys_role sys_role @relation(fields: [role_id], references: [id], onDelete: Cascade)
+
+  @@id([role_id, menu_id, domain])
+}
+
+model sys_tokens {
+  id            String   @id
+  access_token  String
+  refresh_token String
+  status        String
+  user_id       String
+  username      String
+  domain        String
+  login_time    DateTime @default(now())
+  ip            String
+  port          Int?
+  address       String
+  user_agent    String
+  request_id    String
+  type          String
+  created_at    DateTime @default(now())
+  created_by    String
+}
+
+model sys_user {
+  id            String          @id
+  username      String
+  password      String
+  domain        String
+  built_in      Boolean         @default(false)
+  avatar        String?
+  email         String?
+  phone_number  String?
+  nick_name     String
+  status        Status
+  created_at    DateTime        @default(now())
+  created_by    String
+  updated_at    DateTime?
+  updated_by    String?
+  sys_user_role sys_user_role[]
+
+  @@unique([username, domain])
+}
+
+model sys_user_role {
+  user_id  String
+  role_id  String
+  sys_role sys_role @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  sys_user sys_user @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, role_id])
+}
+
+enum MenuType {
+  directory
+  menu
+  lowcode
+}
+
+enum Status {
+  ENABLED
+  DISABLED
+  BANNED
 }

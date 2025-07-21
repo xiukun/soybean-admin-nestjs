@@ -5,6 +5,7 @@ import { EnhancedLoggerService } from '@lib/shared/logging/enhanced-logger.servi
 import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { ApiHealthCheckResponses, ApiSuccessResponse } from '@lib/shared/decorators/api-response.decorators';
+import { Public } from '@lib/shared/decorators/public.decorator';
 
 export interface HealthCheckResponse {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -54,7 +55,8 @@ export class HealthController {
   }
 
   @Get()
-  @ApiOperation({ 
+  @Public()
+  @ApiOperation({
     summary: 'Health check endpoint',
     description: 'Returns the overall health status of the application and its dependencies'
   })
@@ -148,7 +150,8 @@ export class HealthController {
   }
 
   @Get('detailed')
-  @ApiOperation({ 
+  @Public()
+  @ApiOperation({
     summary: 'Detailed health check',
     description: 'Returns detailed health information including performance metrics and service diagnostics'
   })
@@ -217,7 +220,8 @@ export class HealthController {
   }
 
   @Get('metrics')
-  @ApiOperation({ 
+  @Public()
+  @ApiOperation({
     summary: 'Performance metrics',
     description: 'Returns current performance metrics and statistics'
   })
@@ -250,7 +254,8 @@ export class HealthController {
   }
 
   @Get('ready')
-  @ApiOperation({ 
+  @Public()
+  @ApiOperation({
     summary: 'Readiness check',
     description: 'Returns whether the application is ready to serve requests'
   })
@@ -292,7 +297,8 @@ export class HealthController {
   }
 
   @Get('live')
-  @ApiOperation({ 
+  @Public()
+  @ApiOperation({
     summary: 'Liveness check',
     description: 'Returns whether the application is alive and responding'
   })

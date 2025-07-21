@@ -8,7 +8,7 @@ import {
 } from '../commands/update-template.command';
 import { TemplateRepository } from '../../domain/template.repository';
 import { TemplateEngineService } from '../../../code-generation/infrastructure/template-engine.service';
-import { TemplateStatus } from '../../domain/code-template.model';
+import { TemplateStatus, TemplateVariable } from '../../domain/code-template.model';
 
 @CommandHandler(UpdateTemplateCommand)
 export class UpdateTemplateHandler implements ICommandHandler<UpdateTemplateCommand> {
@@ -31,18 +31,20 @@ export class UpdateTemplateHandler implements ICommandHandler<UpdateTemplateComm
     }
 
     // Update template
-    const updatedTemplate = template.update({
-      name: command.name,
-      description: command.description,
-      category: command.category,
-      language: command.language,
-      framework: command.framework,
-      content: command.content,
-      variables: command.variables,
-      tags: command.tags,
-      isPublic: command.isPublic,
-      updatedBy: command.updatedBy,
-    });
+    const templateVariables = this.convertToTemplateVariables(command.variables);
+
+    const updatedTemplate = template.update(
+      command.name,
+      command.description,
+      command.category,
+      command.language,
+      command.framework,
+      command.content,
+      templateVariables,
+      command.tags,
+      command.isPublic,
+      command.updatedBy,
+    );
 
     await this.templateRepository.save(updatedTemplate);
 
@@ -88,6 +90,48 @@ export class UpdateTemplateHandler implements ICommandHandler<UpdateTemplateComm
     });
     return sampleData;
   }
+
+  /**
+   * 转换变量类型为TemplateVariable
+   */
+  private convertToTemplateVariables(variables: any[]): TemplateVariable[] {
+    return variables.map(variable => ({
+      name: variable.name,
+      type: this.mapVariableType(variable.type),
+      description: variable.description,
+      defaultValue: variable.defaultValue,
+      required: variable.required,
+      validation: {
+        pattern: variable.pattern,
+        minLength: variable.minLength,
+        maxLength: variable.maxLength,
+        min: variable.min,
+        max: variable.max,
+      },
+    }));
+  }
+
+  /**
+   * 映射变量类型
+   */
+  private mapVariableType(type: string): 'string' | 'number' | 'boolean' | 'array' | 'object' {
+    const typeMap: Record<string, 'string' | 'number' | 'boolean' | 'array' | 'object'> = {
+      'string': 'string',
+      'text': 'string',
+      'varchar': 'string',
+      'number': 'number',
+      'integer': 'number',
+      'float': 'number',
+      'decimal': 'number',
+      'boolean': 'boolean',
+      'bool': 'boolean',
+      'array': 'array',
+      'object': 'object',
+      'json': 'object',
+    };
+
+    return typeMap[type.toLowerCase()] || 'string';
+  }
 }
 
 @CommandHandler(CreateTemplateVersionCommand)
@@ -105,13 +149,16 @@ export class CreateTemplateVersionHandler implements ICommandHandler<CreateTempl
       throw new NotFoundException(`Template with ID ${command.templateId} not found`);
     }
 
+    // Convert variables to proper type
+    const templateVariables = this.convertToTemplateVariables(command.variables);
+
     // Validate template content
-    await this.validateTemplateContent(command.content, command.variables);
+    await this.validateTemplateContent(command.content, templateVariables);
 
     // Create new version
     const updatedTemplate = template.createVersion(
       command.content,
-      command.variables,
+      templateVariables,
       command.version,
       command.changelog,
       command.createdBy,
@@ -161,6 +208,48 @@ export class CreateTemplateVersionHandler implements ICommandHandler<CreateTempl
     });
     return sampleData;
   }
+
+  /**
+   * 转换变量类型为TemplateVariable
+   */
+  private convertToTemplateVariables(variables: any[]): TemplateVariable[] {
+    return variables.map(variable => ({
+      name: variable.name,
+      type: this.mapVariableType(variable.type),
+      description: variable.description,
+      defaultValue: variable.defaultValue,
+      required: variable.required,
+      validation: {
+        pattern: variable.pattern,
+        minLength: variable.minLength,
+        maxLength: variable.maxLength,
+        min: variable.min,
+        max: variable.max,
+      },
+    }));
+  }
+
+  /**
+   * 映射变量类型
+   */
+  private mapVariableType(type: string): 'string' | 'number' | 'boolean' | 'array' | 'object' {
+    const typeMap: Record<string, 'string' | 'number' | 'boolean' | 'array' | 'object'> = {
+      'string': 'string',
+      'text': 'string',
+      'varchar': 'string',
+      'number': 'number',
+      'integer': 'number',
+      'float': 'number',
+      'decimal': 'number',
+      'boolean': 'boolean',
+      'bool': 'boolean',
+      'array': 'array',
+      'object': 'object',
+      'json': 'object',
+    };
+
+    return typeMap[type.toLowerCase()] || 'string';
+  }
 }
 
 @CommandHandler(PublishTemplateCommand)
@@ -177,7 +266,7 @@ export class PublishTemplateHandler implements ICommandHandler<PublishTemplateCo
       throw new NotFoundException(`Template with ID ${command.templateId} not found`);
     }
 
-    const publishedTemplate = template.publish(command.publishedBy);
+    const publishedTemplate = template.publish();
     await this.templateRepository.save(publishedTemplate);
 
     // Publish domain events
@@ -206,5 +295,47 @@ export class DeleteTemplateHandler implements ICommandHandler<DeleteTemplateComm
 
     // Publish domain events if needed
     // template.delete(command.deletedBy);
+  }
+
+  /**
+   * 转换变量类型为TemplateVariable
+   */
+  private convertToTemplateVariables(variables: any[]): TemplateVariable[] {
+    return variables.map(variable => ({
+      name: variable.name,
+      type: this.mapVariableType(variable.type),
+      description: variable.description,
+      defaultValue: variable.defaultValue,
+      required: variable.required,
+      validation: {
+        pattern: variable.pattern,
+        minLength: variable.minLength,
+        maxLength: variable.maxLength,
+        min: variable.min,
+        max: variable.max,
+      },
+    }));
+  }
+
+  /**
+   * 映射变量类型
+   */
+  private mapVariableType(type: string): 'string' | 'number' | 'boolean' | 'array' | 'object' {
+    const typeMap: Record<string, 'string' | 'number' | 'boolean' | 'array' | 'object'> = {
+      'string': 'string',
+      'text': 'string',
+      'varchar': 'string',
+      'number': 'number',
+      'integer': 'number',
+      'float': 'number',
+      'decimal': 'number',
+      'boolean': 'boolean',
+      'bool': 'boolean',
+      'array': 'array',
+      'object': 'object',
+      'json': 'object',
+    };
+
+    return typeMap[type.toLowerCase()] || 'string';
   }
 }

@@ -212,13 +212,49 @@ export class FieldTypeMapperService {
    * 获取完整的类型映射结果
    */
   getTypeMappingResult(field: FieldMetadata): TypeMappingResult {
+    const attributes = this.generatePrismaAttributes(field);
     return {
       prismaType: this.mapToPrismaType(field),
       tsType: this.mapToTsType(field),
       sqlType: this.mapToSqlType(field),
       defaultValue: this.formatDefaultValue(field),
-      attributes: this.generatePrismaAttributes(field),
+      attributes,
+      validationType: this.mapToValidationType(field),
+      prismaAttributes: attributes,
     };
+  }
+
+  /**
+   * 映射到验证类型
+   */
+  mapToValidationType(field: FieldMetadata): string {
+    const fieldType = this.normalizeFieldType(field.type);
+
+    const validationMap: Record<string, string> = {
+      'STRING': 'string',
+      'TEXT': 'string',
+      'VARCHAR': 'string',
+      'CHAR': 'string',
+      'INTEGER': 'number',
+      'INT': 'number',
+      'BIGINT': 'number',
+      'DECIMAL': 'number',
+      'NUMERIC': 'number',
+      'FLOAT': 'number',
+      'DOUBLE': 'number',
+      'REAL': 'number',
+      'BOOLEAN': 'boolean',
+      'BOOL': 'boolean',
+      'DATE': 'date',
+      'DATETIME': 'date',
+      'TIMESTAMP': 'date',
+      'TIME': 'string',
+      'UUID': 'string',
+      'JSON': 'object',
+      'JSONB': 'object',
+    };
+
+    return validationMap[fieldType] || 'string';
   }
 
   /**
@@ -254,7 +290,7 @@ export class FieldTypeMapperService {
 
     // 布尔类型
     if (fieldType === 'BOOLEAN' || fieldType === 'BOOL') {
-      const boolValue = defaultValue === 'true' || defaultValue === true || defaultValue === 'TRUE' || defaultValue === '1';
+      const boolValue = defaultValue === 'true' || defaultValue === 'TRUE' || defaultValue === '1' || String(defaultValue) === 'true';
       return boolValue.toString();
     }
 
@@ -312,11 +348,11 @@ export class FieldTypeMapperService {
    * 获取小数精度
    */
   private getDecimalPrecision(field: FieldMetadata): number {
-    // 如果length是字符串格式 "10,2"，解析精度
-    if (typeof field.length === 'string' && field.length.includes(',')) {
-      const [precision] = field.length.split(',').map(n => parseInt(n.trim()));
-      return precision || 10;
+    // 优先使用precision字段
+    if (field.precision) {
+      return field.precision;
     }
+    // 否则使用length字段
     return field.length || 10;
   }
 
@@ -324,10 +360,9 @@ export class FieldTypeMapperService {
    * 获取小数位数
    */
   private getDecimalScale(field: FieldMetadata): number {
-    // 如果length是字符串格式 "10,2"，解析小数位数
-    if (typeof field.length === 'string' && field.length.includes(',')) {
-      const [, scale] = field.length.split(',').map(n => parseInt(n.trim()));
-      return scale || 2;
+    // 优先使用scale字段
+    if (field.scale) {
+      return field.scale;
     }
     return 2; // 默认2位小数
   }
@@ -386,11 +421,10 @@ export class FieldTypeMapperService {
       length: field.length,
       precision: field.precision,
       scale: field.scale,
-      nullable: field.nullable,
     });
 
     const sqlType = this.mapToSqlType(field);
-    const attributes = this.getPrismaAttributes(field);
+    const attributes = this.generatePrismaAttributes(field);
 
     return {
       prismaType: prismaMapping.prismaType,

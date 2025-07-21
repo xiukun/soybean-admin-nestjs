@@ -7,53 +7,9 @@ async function main() {
   console.log('🌱 Starting database seeding...');
 
   try {
-    // Seed system configuration
-    console.log('📋 Seeding system configuration...');
-    
-    const systemConfigs = [
-      {
-        key: 'app.name',
-        value: 'Amis Low-code Backend',
-        description: 'Application name',
-        category: 'general',
-      },
-      {
-        key: 'app.version',
-        value: '1.0.0',
-        description: 'Application version',
-        category: 'general',
-      },
-      {
-        key: 'api.rate_limit',
-        value: '1000',
-        description: 'API rate limit per hour',
-        category: 'api',
-      },
-      {
-        key: 'security.jwt_expiry',
-        value: '3600',
-        description: 'JWT token expiry in seconds',
-        category: 'security',
-      },
-    ];
-
-    // Check if SystemConfig model exists
-    try {
-      for (const config of systemConfigs) {
-        await prisma.systemConfig.upsert({
-          where: { key: config.key },
-          update: config,
-          create: config,
-        });
-      }
-      console.log('  ✅ System configuration seeded');
-    } catch (error) {
-      console.log('  ℹ️ SystemConfig model not found, skipping system config seeding');
-    }
-
     // Seed default users
     console.log('👥 Seeding default users...');
-    
+
     const defaultUsers = [
       {
         id: 'admin-001',
@@ -93,7 +49,7 @@ async function main() {
 
     // Seed default roles
     console.log('🔐 Seeding default roles...');
-    
+
     const defaultRoles = [
       {
         id: 'role-admin',
@@ -137,66 +93,6 @@ async function main() {
       });
     }
     console.log('  ✅ Default roles seeded');
-
-    // Seed API endpoints (if model exists)
-    console.log('🔗 Seeding API endpoints...');
-    
-    try {
-      const apiEndpoints = [
-        {
-          path: '/api/v1/health',
-          method: 'GET',
-          handler: 'HealthController.check',
-          description: 'Health check endpoint',
-        },
-        {
-          path: '/api/v1/users',
-          method: 'GET',
-          handler: 'UserController.findAll',
-          description: 'Get all users',
-        },
-        {
-          path: '/api/v1/users/:id',
-          method: 'GET',
-          handler: 'UserController.findOne',
-          description: 'Get user by ID',
-        },
-        {
-          path: '/api/v1/roles',
-          method: 'GET',
-          handler: 'RoleController.findAll',
-          description: 'Get all roles',
-        },
-      ];
-
-      for (const endpoint of apiEndpoints) {
-        await prisma.apiEndpoint.upsert({
-          where: { path: endpoint.path },
-          update: endpoint,
-          create: endpoint,
-        });
-      }
-      console.log('  ✅ API endpoints seeded');
-    } catch (error) {
-      console.log('  ℹ️ ApiEndpoint model not found, skipping API endpoints seeding');
-    }
-
-    // Create initial health check record
-    console.log('🏥 Creating initial health check...');
-    
-    try {
-      await prisma.healthCheck.create({
-        data: {
-          service: 'amis-backend',
-          status: 'healthy',
-          message: 'Initial health check after seeding',
-          responseTime: 0,
-        },
-      });
-      console.log('  ✅ Initial health check created');
-    } catch (error) {
-      console.log('  ℹ️ HealthCheck model not found, skipping health check creation');
-    }
 
     console.log('🎉 Database seeding completed successfully!');
     

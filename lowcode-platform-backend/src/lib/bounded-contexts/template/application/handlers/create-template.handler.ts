@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler, EventBus } from '@nestjs/cqrs';
 import { Inject, BadRequestException } from '@nestjs/common';
 import { CreateTemplateCommand } from '../commands/create-template.command';
-import { CodeTemplate } from '../../domain/code-template.model';
+import { CodeTemplate, TemplateVariable } from '../../domain/code-template.model';
 import { TemplateRepository } from '../../domain/template.repository';
 import { TemplateEngineService } from '../../../code-generation/infrastructure/template-engine.service';
 
@@ -29,8 +29,11 @@ export class CreateTemplateHandler implements ICommandHandler<CreateTemplateComm
       createdBy,
     } = command;
 
+    // Convert variables to proper type
+    const templateVariables = this.convertToTemplateVariables(variables);
+
     // Validate template content syntax
-    await this.validateTemplateContent(content, variables);
+    await this.validateTemplateContent(content, templateVariables);
 
     // Check for duplicate template names in the project
     const existingTemplate = await this.templateRepository.findByProjectAndName(projectId, name);
@@ -47,7 +50,7 @@ export class CreateTemplateHandler implements ICommandHandler<CreateTemplateComm
       language,
       framework,
       content,
-      variables,
+      variables: templateVariables,
       tags,
       isPublic,
       createdBy,
@@ -65,7 +68,7 @@ export class CreateTemplateHandler implements ICommandHandler<CreateTemplateComm
     return template.id;
   }
 
-  private async validateTemplateContent(content: string, variables: any[]): Promise<void> {
+  private async validateTemplateContent(content: string, variables: TemplateVariable[]): Promise<void> {
     try {
       // Test compile with sample data
       const sampleData = this.generateSampleData(variables);
@@ -89,7 +92,7 @@ export class CreateTemplateHandler implements ICommandHandler<CreateTemplateComm
     }
   }
 
-  private generateSampleData(variables: any[]): Record<string, any> {
+  private generateSampleData(variables: TemplateVariable[]): Record<string, any> {
     const sampleData: Record<string, any> = {};
 
     variables.forEach(variable => {
@@ -98,7 +101,6 @@ export class CreateTemplateHandler implements ICommandHandler<CreateTemplateComm
           sampleData[variable.name] = variable.defaultValue || 'SampleString';
           break;
         case 'number':
-        case 'integer':
           sampleData[variable.name] = variable.defaultValue || 42;
           break;
         case 'boolean':
@@ -133,5 +135,47 @@ export class CreateTemplateHandler implements ICommandHandler<CreateTemplateComm
     }
 
     return variables;
+  }
+
+  /**
+   * 转换变量类型为TemplateVariable
+   */
+  private convertToTemplateVariables(variables: any[]): TemplateVariable[] {
+    return variables.map(variable => ({
+      name: variable.name,
+      type: this.mapVariableType(variable.type),
+      description: variable.description,
+      defaultValue: variable.defaultValue,
+      required: variable.required,
+      validation: {
+        pattern: variable.pattern,
+        minLength: variable.minLength,
+        maxLength: variable.maxLength,
+        min: variable.min,
+        max: variable.max,
+      },
+    }));
+  }
+
+  /**
+   * 映射变量类型
+   */
+  private mapVariableType(type: string): 'string' | 'number' | 'boolean' | 'array' | 'object' {
+    const typeMap: Record<string, 'string' | 'number' | 'boolean' | 'array' | 'object'> = {
+      'string': 'string',
+      'text': 'string',
+      'varchar': 'string',
+      'number': 'number',
+      'integer': 'number',
+      'float': 'number',
+      'decimal': 'number',
+      'boolean': 'boolean',
+      'bool': 'boolean',
+      'array': 'array',
+      'object': 'object',
+      'json': 'object',
+    };
+
+    return typeMap[type.toLowerCase()] || 'string';
   }
 }

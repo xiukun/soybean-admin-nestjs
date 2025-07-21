@@ -385,7 +385,7 @@ export class ResourceLockedException extends LowcodeException {
   constructor(resource: string, resourceId: string, lockedBy: string) {
     super(
       `Resource locked: ${resource} ${resourceId} is locked by ${lockedBy}`,
-      HttpStatus.LOCKED,
+      HttpStatus.CONFLICT,
       'RESOURCE_LOCKED',
       { resource, resourceId, lockedBy },
     );

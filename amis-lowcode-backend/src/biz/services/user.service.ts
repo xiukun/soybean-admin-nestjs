@@ -34,38 +34,28 @@ export class UserService {
       where.status = filters.status;
     }
 
-    try {
-      const [items, total] = await Promise.all([
-        this.prisma.user.findMany({
-          where,
-          skip,
-          take: pageSize,
-          orderBy: { id: 'desc' },
-        }),
-        this.prisma.user.count({ where }),
-      ]);
+    const [items, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: { id: 'desc' },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
 
-      return {
-        items,
-        total,
-        page,
-        pageSize,
-      };
-    } catch (error) {
-      // 如果User表不存在，返回空结果
-      return {
-        items: [],
-        total: 0,
-        page,
-        pageSize,
-      };
-    }
+    return {
+      items,
+      total,
+      page,
+      pageSize,
+    };
   }
 
   async findOne(id: string): Promise<any> {
     try {
       const user = await this.prisma.user.findUnique({
-        where: { id: parseInt(id) },
+        where: { id },
       });
 
       if (!user) {
@@ -95,7 +85,7 @@ export class UserService {
   async update(id: string, updateUserDto: any): Promise<any> {
     try {
       const user = await this.prisma.user.update({
-        where: { id: parseInt(id) },
+        where: { id },
         data: updateUserDto,
       });
 
@@ -108,7 +98,7 @@ export class UserService {
   async remove(id: string): Promise<void> {
     try {
       await this.prisma.user.delete({
-        where: { id: parseInt(id) },
+        where: { id },
       });
     } catch (error) {
       throw new NotFoundException(`User with ID ${id} not found`);

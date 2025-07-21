@@ -332,13 +332,19 @@ export class MetadataAggregatorService {
         };
       });
 
+      // 安全地解析项目配置
+      const config = project.config ? (typeof project.config === 'string' ? JSON.parse(project.config) : project.config) : {};
+
       const metadata: ProjectMetadata = {
-        project: {
-          id: project.id,
-          name: project.name,
-          code: project.code,
-          description: project.description,
-        },
+        id: project.id,
+        name: project.name,
+        code: project.code,
+        description: project.description,
+        framework: config.framework || 'nestjs',
+        architecture: config.architecture || 'ddd',
+        language: config.language || 'typescript',
+        database: config.database || 'postgresql',
+        settings: config.settings,
         entities: entityMetadata,
         relationships,
       };
@@ -457,7 +463,7 @@ export class MetadataAggregatorService {
 
     try {
       const metadata = await this.getProjectMetadata(projectId);
-      let ddl = `-- Auto-generated DDL for project: ${metadata.project.name}\n`;
+      let ddl = `-- Auto-generated DDL for project: ${metadata.name}\n`;
       ddl += `-- Generated at: ${new Date().toISOString()}\n\n`;
 
       // 生成表结构

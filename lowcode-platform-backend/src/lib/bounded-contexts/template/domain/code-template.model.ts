@@ -57,6 +57,8 @@ export enum TemplateStatus {
 }
 
 export class CodeTemplate {
+  private uncommittedEvents: any[] = [];
+
   private constructor(
     public readonly id: string,
     public readonly projectId: string,
@@ -524,5 +526,29 @@ export class CodeTemplate {
       updatedAt: this.updatedAt,
       updatedBy: this.updatedBy,
     };
+  }
+
+  /**
+   * 获取未提交的事件
+   * Get uncommitted events
+   */
+  getUncommittedEvents(): any[] {
+    return [...this.uncommittedEvents];
+  }
+
+  /**
+   * 标记事件为已提交
+   * Mark events as committed
+   */
+  markEventsAsCommitted(): void {
+    this.uncommittedEvents = [];
+  }
+
+  /**
+   * 添加领域事件
+   * Add domain event
+   */
+  private addEvent(event: any): void {
+    this.uncommittedEvents.push(event);
   }
 }

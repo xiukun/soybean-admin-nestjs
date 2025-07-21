@@ -13,6 +13,36 @@ export interface LogContext {
   operation?: string;
   duration?: number;
   metadata?: Record<string, any>;
+  // Cache service properties
+  key?: string;
+  keys?: number;
+  namespace?: string;
+  hit?: boolean;
+  hits?: number;
+  ttl?: number;
+  // Database service properties
+  model?: string;
+  cacheKey?: string;
+  total?: number;
+  where?: any;
+  found?: boolean;
+  count?: number;
+  id?: string;
+  // Exception filter properties
+  error?: string;
+  errorDetails?: any;
+  status?: number | string;
+  path?: string;
+  method?: string;
+  // Additional properties
+  responseTime?: number;
+  size?: number;
+  pagination?: any;
+  cached?: boolean;
+  response?: any;
+  services?: string[];
+  compressed?: boolean;
+  current?: number;
 }
 
 export interface PerformanceMetrics {

@@ -11,7 +11,7 @@ datasource db {
 }
 
 model User {
-  tenantId String?
+  tenantId String? @map("tenant_id")
   id String @id
   username String @unique
   email String @unique
@@ -19,24 +19,24 @@ model User {
   nickname String?
   avatar String?
   status String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-  createdBy String?
-  updatedBy String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+  createdBy String? @map("created_by")
+  updatedBy String? @map("updated_by")
 
   @@map("demo_users")
 }
 model Role {
-  tenantId String?
+  tenantId String? @map("tenant_id")
   id String @id
   name String @unique
   code String @unique
   description String?
   status String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-  createdBy String?
-  updatedBy String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+  createdBy String? @map("created_by")
+  updatedBy String? @map("updated_by")
 
   @@map("demo_roles")
 }
