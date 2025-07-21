@@ -7,7 +7,8 @@ import { lowcodeRequest as request } from '../request';
  */
 export function fetchGenerateCode(data: {
   projectId: string;
-  templateId: string;
+  templateId?: string;
+  templateIds?: string[];
   entityIds: string[];
   outputPath: string;
   variables: Record<string, any>;
@@ -74,7 +75,8 @@ export function fetchGetGeneratedFileContent(filePath: string) {
  */
 export function fetchPreviewCodeGeneration(data: {
   projectId: string;
-  templateId: string;
+  templateId?: string;
+  templateIds?: string[];
   entityIds: string[];
   variables: Record<string, any>;
 }) {
@@ -138,9 +140,8 @@ export function fetchGetGenerationHistory(projectId: string, params?: {
 export function fetchDownloadGeneratedCode(taskId: string) {
   return request<Blob>({
     url: `/code-generation/download/${taskId}`,
-    method: 'get',
-    responseType: 'blob'
-  });
+    method: 'get'
+  } as any);
 }
 
 /**

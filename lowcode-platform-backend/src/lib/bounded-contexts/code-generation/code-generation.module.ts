@@ -4,6 +4,7 @@ import { GenerateCodeHandler } from './application/handlers/generate-code.handle
 import { GetGenerationProgressHandler } from './application/handlers/get-generation-progress.handler';
 import { IntelligentCodeGeneratorService } from './application/services/intelligent-code-generator.service';
 import { AmisBackendManagerService } from './application/services/amis-backend-manager.service';
+import { FieldTypeMapperService } from './application/services/field-type-mapper.service';
 import { MetadataAggregatorService } from '../metadata/application/services/metadata-aggregator.service';
 
 const CommandHandlers = [
@@ -17,6 +18,7 @@ const QueryHandlers = [
 const Services = [
   IntelligentCodeGeneratorService,
   AmisBackendManagerService,
+  FieldTypeMapperService,
   MetadataAggregatorService,
 ];
 

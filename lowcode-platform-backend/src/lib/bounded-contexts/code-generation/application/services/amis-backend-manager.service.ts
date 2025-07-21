@@ -3,7 +3,8 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { ProjectMetadata, EntityMetadata, FieldMetadata, RelationshipMetadata, GeneratedFile } from '../../../shared/types/metadata.types';
+import { ProjectMetadata, EntityMetadata, FieldMetadata, GeneratedFile } from '../../../shared/types/metadata.types';
+import { FieldTypeMapperService } from './field-type-mapper.service';
 
 const execAsync = promisify(exec);
 
@@ -12,17 +13,65 @@ export class AmisBackendManagerService {
   private readonly amisBackendPath = path.resolve(__dirname, '../../../../../../../amis-lowcode-backend');
   private readonly logger = new Logger(AmisBackendManagerService.name);
 
+  constructor(private readonly fieldTypeMapper: FieldTypeMapperService) {}
+
   async writeGeneratedFiles(files: GeneratedFile[]): Promise<void> {
     this.logger.log(`Writing ${files.length} generated files to amis-lowcode-backend`);
 
-    for (const file of files) {
-      const fullPath = path.join(this.amisBackendPath, file.path);
-      await fs.ensureDir(path.dirname(fullPath));
-      await fs.writeFile(fullPath, file.content);
-      this.logger.debug(`Generated file: ${file.path}`);
-    }
+    // 创建备份目录
+    const backupPath = path.join(this.amisBackendPath, '.backup', new Date().toISOString().replace(/[:.]/g, '-'));
+    await fs.ensureDir(backupPath);
 
-    this.logger.log('All files written successfully');
+    const writtenFiles: string[] = [];
+    const backupFiles: string[] = [];
+
+    try {
+      for (const file of files) {
+        const fullPath = path.join(this.amisBackendPath, file.path);
+        const dir = path.dirname(fullPath);
+
+        // 确保目录存在
+        await fs.ensureDir(dir);
+
+        // 备份现有文件
+        if (await fs.pathExists(fullPath)) {
+          const backupFilePath = path.join(backupPath, file.path);
+          const backupDir = path.dirname(backupFilePath);
+          await fs.ensureDir(backupDir);
+          await fs.copy(fullPath, backupFilePath);
+          backupFiles.push(backupFilePath);
+          this.logger.debug(`Backed up existing file: ${fullPath} -> ${backupFilePath}`);
+        }
+
+        // 写入文件
+        await fs.writeFile(fullPath, file.content, 'utf8');
+        writtenFiles.push(fullPath);
+
+        this.logger.debug(`Generated file: ${file.path} (${file.content.length} bytes)`);
+      }
+
+      this.logger.log(`Successfully wrote ${writtenFiles.length} files to amis-lowcode-backend`);
+      if (backupFiles.length > 0) {
+        this.logger.log(`Backed up ${backupFiles.length} existing files to ${backupPath}`);
+      }
+
+    } catch (writeError) {
+      // 如果写入失败，尝试恢复备份文件
+      this.logger.error('Failed to write files, attempting to restore backups', writeError);
+
+      for (const backupFile of backupFiles) {
+        try {
+          const relativePath = path.relative(backupPath, backupFile);
+          const originalPath = path.join(this.amisBackendPath, relativePath);
+          await fs.copy(backupFile, originalPath);
+          this.logger.log(`Restored backup: ${backupFile} -> ${originalPath}`);
+        } catch (restoreError) {
+          this.logger.error(`Failed to restore backup ${backupFile}`, restoreError);
+        }
+      }
+
+      throw new Error(`Failed to write generated files: ${writeError.message}`);
+    }
   }
 
   async updateAppModule(entities: EntityMetadata[]): Promise<void> {
@@ -67,34 +116,122 @@ export class AppModule {
   async generatePrismaSchema(metadata: ProjectMetadata): Promise<void> {
     const schemaPath = path.join(this.amisBackendPath, 'prisma/schema.prisma');
     const schemaContent = this.buildPrismaSchema(metadata);
-    
-    await fs.writeFile(schemaPath, schemaContent);
-    this.logger.log('Generated Prisma schema');
-    
+
     try {
+      // 确保prisma目录存在
+      await fs.ensureDir(path.dirname(schemaPath));
+
+      // 备份现有schema
+      if (await fs.pathExists(schemaPath)) {
+        const backupPath = `${schemaPath}.backup.${Date.now()}`;
+        await fs.copy(schemaPath, backupPath);
+        this.logger.log(`Backed up existing schema to ${backupPath}`);
+      }
+
+      // 写入新schema
+      await fs.writeFile(schemaPath, schemaContent, 'utf8');
+      this.logger.log(`Generated Prisma schema (${schemaContent.length} bytes)`);
+
+      // 验证schema语法
+      try {
+        const validateCommand = `cd ${this.amisBackendPath} && npx prisma validate`;
+        await execAsync(validateCommand);
+        this.logger.log('Prisma schema validation passed');
+      } catch (validateError) {
+        this.logger.warn('Prisma schema validation failed', validateError.message);
+        // 不抛出错误，继续生成客户端
+      }
+
       // 生成Prisma客户端
       const generateCommand = `cd ${this.amisBackendPath} && npx prisma generate`;
-      await execAsync(generateCommand);
-      this.logger.log('Generated Prisma client');
+      const { stdout, stderr } = await execAsync(generateCommand);
+
+      if (stdout) this.logger.log(`Prisma generate output: ${stdout}`);
+      if (stderr) this.logger.warn(`Prisma generate warnings: ${stderr}`);
+
+      this.logger.log('Generated Prisma client successfully');
+
     } catch (error) {
-      this.logger.error('Failed to generate Prisma client', error);
-      throw error;
+      this.logger.error('Failed to generate Prisma schema or client', error);
+      throw new Error(`Failed to generate Prisma schema: ${error.message}`);
     }
   }
 
   async restartAmisBackend(): Promise<void> {
     try {
       this.logger.log('Restarting amis-lowcode-backend service...');
-      
-      // 发送重启信号
-      const restartCommand = `cd ${this.amisBackendPath} && npm run restart:dev`;
-      await execAsync(restartCommand);
-      
-      this.logger.log('Amis backend service restarted successfully');
+
+      // 检查服务是否正在运行
+      const isRunning = await this.healthCheck();
+      if (!isRunning) {
+        this.logger.log('Amis backend service is not running, starting it...');
+        const startCommand = `cd ${this.amisBackendPath} && npm run start:dev`;
+        execAsync(startCommand).catch(error => {
+          this.logger.warn('Failed to start amis backend service', error.message);
+        });
+        return;
+      }
+
+      // 尝试优雅重启
+      try {
+        const restartCommand = `cd ${this.amisBackendPath} && npm run restart:dev`;
+        const { stdout, stderr } = await execAsync(restartCommand, { timeout: 30000 });
+
+        if (stdout) this.logger.log(`Restart output: ${stdout}`);
+        if (stderr) this.logger.warn(`Restart warnings: ${stderr}`);
+
+        // 等待服务重新启动
+        await this.waitForServiceReady(10000);
+
+        this.logger.log('Amis backend service restarted successfully');
+      } catch (restartError) {
+        this.logger.warn('Graceful restart failed, attempting force restart', restartError.message);
+
+        // 强制重启
+        try {
+          const killCommand = `cd ${this.amisBackendPath} && pkill -f "nest start" || true`;
+          await execAsync(killCommand);
+
+          // 等待进程结束
+          await new Promise(resolve => setTimeout(resolve, 2000));
+
+          const startCommand = `cd ${this.amisBackendPath} && npm run start:dev`;
+          execAsync(startCommand).catch(error => {
+            this.logger.warn('Failed to start amis backend service after force kill', error.message);
+          });
+
+          this.logger.log('Amis backend service force restarted');
+        } catch (forceError) {
+          this.logger.error('Failed to force restart amis backend service', forceError.message);
+        }
+      }
+
     } catch (error) {
       this.logger.warn('Failed to restart amis backend service automatically', error.message);
       // 不抛出错误，因为重启失败不应该影响代码生成的成功状态
     }
+  }
+
+  private async waitForServiceReady(timeoutMs: number = 10000): Promise<boolean> {
+    const startTime = Date.now();
+    const checkInterval = 1000;
+
+    while (Date.now() - startTime < timeoutMs) {
+      try {
+        const isReady = await this.healthCheck();
+        if (isReady) {
+          this.logger.log('Amis backend service is ready');
+          return true;
+        }
+      } catch (error) {
+        // 忽略健康检查错误，继续等待
+      }
+
+      await new Promise(resolve => setTimeout(resolve, checkInterval));
+    }
+
+    this.logger.warn(`Service not ready after ${timeoutMs}ms timeout`);
+    return false;
   }
 
   private buildPrismaSchema(metadata: ProjectMetadata): string {
@@ -128,9 +265,12 @@ datasource db {
 
     // 生成字段
     for (const field of entity.fields) {
-      const fieldType = this.mapFieldTypeToPrisma(field);
-      const attributes = this.buildFieldAttributes(field);
-      model += `  ${field.code} ${fieldType}${attributes}\n`;
+      const typeMapping = this.fieldTypeMapper.getTypeMappingResult(field);
+      const fieldType = typeMapping.prismaType;
+      const nullable = field.nullable && !field.isPrimaryKey ? '?' : '';
+      const attributes = typeMapping.attributes.length > 0 ? ' ' + typeMapping.attributes.join(' ') : '';
+
+      model += `  ${field.code} ${fieldType}${nullable}${attributes}\n`;
     }
 
     // 生成关系
@@ -146,72 +286,9 @@ datasource db {
     return model;
   }
 
-  private mapFieldTypeToPrisma(field: FieldMetadata): string {
-    const typeMap: Record<string, string> = {
-      'STRING': 'String',
-      'TEXT': 'String',
-      'INTEGER': 'Int',
-      'BIGINT': 'BigInt',
-      'DECIMAL': 'Decimal',
-      'BOOLEAN': 'Boolean',
-      'DATE': 'DateTime',
-      'DATETIME': 'DateTime',
-      'TIMESTAMP': 'DateTime',
-      'JSON': 'Json',
-      'UUID': 'String',
-      // 兼容小写
-      'string': 'String',
-      'text': 'String',
-      'integer': 'Int',
-      'bigint': 'BigInt',
-      'decimal': 'Decimal',
-      'boolean': 'Boolean',
-      'date': 'DateTime',
-      'datetime': 'DateTime',
-      'timestamp': 'DateTime',
-      'json': 'Json',
-      'uuid': 'String',
-    };
 
-    return typeMap[field.type] || 'String';
-  }
 
-  private buildFieldAttributes(field: FieldMetadata): string {
-    let attributes = '';
-    
-    if (field.isPrimaryKey) {
-      attributes += ' @id';
-      if (field.type === 'string') {
-        attributes += ' @default(cuid())';
-      }
-    }
-    
-    if (field.isUnique && !field.isPrimaryKey) {
-      attributes += ' @unique';
-    }
-    
-    if (!field.nullable && !field.isPrimaryKey) {
-      // Prisma默认字段为必填，只有可空字段需要标记
-    } else if (field.nullable) {
-      attributes += '?';
-    }
-    
-    if (field.defaultValue && !field.isPrimaryKey) {
-      if (field.type === 'datetime' && field.defaultValue === 'now()') {
-        attributes += ' @default(now())';
-      } else if (field.type === 'datetime' && field.code === 'updatedAt') {
-        attributes += ' @updatedAt';
-      } else {
-        attributes += ` @default(${field.defaultValue})`;
-      }
-    }
-    
-    if (field.length && (field.type === 'string' || field.type === 'text')) {
-      attributes += ` @db.VarChar(${field.length})`;
-    }
 
-    return attributes;
-  }
 
   async getFileTree(basePath: string = 'src'): Promise<any[]> {
     const fullPath = path.join(this.amisBackendPath, basePath);
@@ -258,12 +335,100 @@ datasource db {
 
   async healthCheck(): Promise<boolean> {
     try {
-      const healthUrl = 'http://localhost:9522/api/v1/health';
-      const { stdout } = await execAsync(`curl -s ${healthUrl}`);
-      const response = JSON.parse(stdout);
-      return response.status === 0;
-    } catch {
+      // 尝试多个可能的端口
+      const ports = [9522, 3000, 3001];
+
+      for (const port of ports) {
+        try {
+          const healthUrl = `http://localhost:${port}/api/v1/health`;
+          const { stdout } = await execAsync(`curl -s -m 5 ${healthUrl}`, { timeout: 5000 });
+
+          if (stdout) {
+            try {
+              const response = JSON.parse(stdout);
+              if (response.status === 0 || response.status === 'ok') {
+                this.logger.debug(`Health check passed on port ${port}`);
+                return true;
+              }
+            } catch (parseError) {
+              // 如果不是JSON响应，检查是否包含成功指示符
+              if (stdout.includes('ok') || stdout.includes('healthy') || stdout.includes('running')) {
+                this.logger.debug(`Health check passed on port ${port} (non-JSON response)`);
+                return true;
+              }
+            }
+          }
+        } catch (portError) {
+          this.logger.debug(`Health check failed on port ${port}: ${portError.message}`);
+          continue;
+        }
+      }
+
+      // 如果HTTP健康检查失败，尝试检查进程是否存在
+      try {
+        const { stdout } = await execAsync('ps aux | grep "nest start" | grep -v grep');
+        if (stdout && stdout.trim()) {
+          this.logger.debug('Found nest process running');
+          return true;
+        }
+      } catch (processError) {
+        this.logger.debug('No nest process found');
+      }
+
+      return false;
+    } catch (error) {
+      this.logger.debug(`Health check error: ${error.message}`);
       return false;
     }
+  }
+
+  async getServiceInfo(): Promise<{
+    isRunning: boolean;
+    port?: number;
+    version?: string;
+    uptime?: number;
+  }> {
+    const info = {
+      isRunning: false,
+      port: undefined as number | undefined,
+      version: undefined as string | undefined,
+      uptime: undefined as number | undefined,
+    };
+
+    try {
+      const ports = [9522, 3000, 3001];
+
+      for (const port of ports) {
+        try {
+          const healthUrl = `http://localhost:${port}/api/v1/health`;
+          const { stdout } = await execAsync(`curl -s -m 5 ${healthUrl}`, { timeout: 5000 });
+
+          if (stdout) {
+            try {
+              const response = JSON.parse(stdout);
+              if (response.status === 0 || response.status === 'ok') {
+                info.isRunning = true;
+                info.port = port;
+                info.version = response.version;
+                info.uptime = response.uptime;
+                break;
+              }
+            } catch (parseError) {
+              if (stdout.includes('ok') || stdout.includes('healthy')) {
+                info.isRunning = true;
+                info.port = port;
+                break;
+              }
+            }
+          }
+        } catch (portError) {
+          continue;
+        }
+      }
+    } catch (error) {
+      this.logger.debug(`Failed to get service info: ${error.message}`);
+    }
+
+    return info;
   }
 }
