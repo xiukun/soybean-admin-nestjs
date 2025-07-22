@@ -40,3 +40,35 @@ model Role {
 
   @@map("demo_roles")
 }
+
+model TestUser {
+  id String @id @unique @default(cuid()) // 用户唯一标识
+  username String @unique(map: "test_user_username_key") // 用户登录名
+  email String @unique(map: "test_user_email_key") // 用户邮箱地址
+  phone String? // 用户手机号码
+  realName String? // 用户真实姓名
+  age Int? // 用户年龄
+  gender String? @default("UNKNOWN") // 用户性别
+  birthday DateTime? // 用户生日
+  avatar String? // 用户头像链接
+  bio String? // 用户个人简介
+  isActive Boolean @default(true) // 用户账户是否激活
+  lastLoginAt DateTime? // 用户最后登录时间
+  settings Json? @default("{}") // 用户个性化配置
+
+  // 系统字段
+  createdBy String   @map("created_by") @db.VarChar(36)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedBy String?  @map("updated_by") @db.VarChar(36)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  @@index([username], name: "idx_test_users_username")
+  @@index([email], name: "idx_test_users_email")
+  @@index([phone], name: "idx_test_users_phone")
+  @@index([createdAt], name: "idx_test_users_created_at")
+
+  @@unique([username], name: "uk_test_users_username")
+  @@unique([email], name: "uk_test_users_email")
+
+  @@map("test_users")
+}

@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaService } from '@shared/services/prisma.service';
-import { UserModule } from '@modules/user.module';
+import { TestUserModule } from './biz/modules/test-user.module';
 import { RoleModule } from '@modules/role.module';
 import { DatabaseInitService } from '@shared/database/database-init.service';
 
@@ -13,7 +13,7 @@ import { DatabaseInitService } from '@shared/database/database-init.service';
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
     }),
-    UserModule,
+    TestUserModule,
     RoleModule
   ],
   controllers: [AppController],

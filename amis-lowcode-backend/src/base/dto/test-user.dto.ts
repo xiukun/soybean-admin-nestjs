@@ -2,9 +2,9 @@ import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { IsString, IsEmail, IsOptional, IsBoolean, IsNumber, IsDateString } from 'class-validator';
 
 /**
- * 创建用户DTO
+ * 创建测试用户DTO
  */
-export class CreateUserDto {
+export class CreateTestUserDto {
   @ApiProperty({ description: '用户登录名' })
   @IsString()
   
@@ -67,14 +67,14 @@ export class CreateUserDto {
 }
 
 /**
- * 更新用户DTO
+ * 更新测试用户DTO
  */
-export class UpdateUserDto extends PartialType(CreateUserDto) {}
+export class UpdateTestUserDto extends PartialType(CreateTestUserDto) {}
 
 /**
- * 用户查询DTO
+ * 测试用户查询DTO
  */
-export class UserQueryDto {
+export class TestUserQueryDto {
   @ApiPropertyOptional({ description: '当前页码', example: 1 })
   @IsOptional()
   @IsNumber()

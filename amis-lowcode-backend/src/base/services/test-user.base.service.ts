@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@shared/services/prisma.service';
+import { PrismaService } from '../../shared/services/prisma.service';
 import {
-  CreateUserDto,
-  UpdateUserDto,
-  UserQueryDto
-} from '../dto/user.dto';
+  CreateTestUserDto,
+  UpdateTestUserDto,
+  TestUserQueryDto
+} from '../dto/test-user.dto';
 
 export interface PaginatedResult<T> {
   data: T[];
@@ -15,56 +15,53 @@ export interface PaginatedResult<T> {
 }
 
 /**
- * 用户基础服务类
+ * 测试用户基础服务类
  *
  * 此类由代码生成器自动生成，请勿手动修改
- * 如需扩展功能，请在 biz/services/user.service.ts 中继承此类
+ * 如需扩展功能，请在 biz/services/test-user.service.ts 中继承此类
  */
 @Injectable()
-export abstract class UserBaseService {
+export abstract class TestUserBaseService {
   constructor(protected readonly prisma: PrismaService) {}
 
   /**
-   * 创建用户
+   * 创建测试用户
    */
-  async create(data: CreateUserDto, createdBy: string = 'system') {
-    return await this.prisma.user.create({
+  async create(data: CreateTestUserDto, createdBy: string = 'system') {
+    return await this.prisma.testUser.create({
       data: {
         ...data,
         createdBy,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-      include: {
-      },
+
     });
   }
 
   /**
-   * 根据ID查找用户
+   * 根据ID查找测试用户
    */
   async findById(id: string) {
-    return await this.prisma.user.findUnique({
+    return await this.prisma.testUser.findUnique({
       where: { id },
-      include: {
-        userProfiles: true,
-      },
+
     });
   }
 
   /**
-   * 根据ID获取用户（不存在时抛出异常）
+   * 根据ID获取测试用户（不存在时抛出异常）
    */
   async getById(id: string) {
-    const user = await this.findById(id);
-    if (!user) {
-      throw new NotFoundException(`用户 with id '${id}' not found`);
+    const testUser = await this.findById(id);
+    if (!testUser) {
+      throw new NotFoundException(`测试用户 with id '${id}' not found`);
     }
-    return user;
+    return testUser;
   }
 
   /**
-   * 分页查询用户
+   * 分页查询测试用户
    */
   async findMany(options?: {
     page?: number;
@@ -98,15 +95,14 @@ export abstract class UserBaseService {
     }
 
     const [data, total] = await Promise.all([
-      this.prisma.user.findMany({
+      this.prisma.testUser.findMany({
         where,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: sort ? { [sort.field]: sort.order } : { createdAt: 'desc' },
-        include: {
-        },
+
       }),
-      this.prisma.user.count({ where }),
+      this.prisma.testUser.count({ where }),
     ]);
 
     return {
@@ -119,34 +115,33 @@ export abstract class UserBaseService {
   }
 
   /**
-   * 更新用户
+   * 更新测试用户
    */
-  async update(id: string, data: UpdateUserDto, updatedBy: string = 'system') {
-    return await this.prisma.user.update({
+  async update(id: string, data: UpdateTestUserDto, updatedBy: string = 'system') {
+    return await this.prisma.testUser.update({
       where: { id },
       data: {
         ...data,
         updatedBy,
         updatedAt: new Date(),
       },
-      include: {
-      },
+
     });
   }
 
   /**
-   * 删除用户
+   * 删除测试用户
    */
   async delete(id: string): Promise<void> {
-    await this.prisma.user.delete({
+    await this.prisma.testUser.delete({
       where: { id },
     });
   }
 
   /**
-   * 批量创建用户
+   * 批量创建测试用户
    */
-  async batchCreate(items: CreateUserDto[]): Promise<Array<{
+  async batchCreate(items: CreateTestUserDto[]): Promise<Array<{
     success: boolean;
     data?: any;
     input: any;
@@ -175,7 +170,7 @@ export abstract class UserBaseService {
   }
 
   /**
-   * 批量删除用户
+   * 批量删除测试用户
    */
   async batchDelete(ids: string[]): Promise<Array<{
     success: boolean;
@@ -227,15 +222,9 @@ export abstract class UserBaseService {
       ];
     }
 
-    const [data, total] = await Promise.all([
-      this.prisma.userProfile.findMany({
-        where,
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: sort ? { [sort.field]: sort.order } : { createdAt: 'desc' },
-      }),
-      this.prisma.userProfile.count({ where }),
-    ]);
+    // TestUser模型暂无关联关系，返回空结果
+    const data: any[] = [];
+    const total = 0;
 
     return {
       data,
