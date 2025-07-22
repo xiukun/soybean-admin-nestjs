@@ -21,8 +21,8 @@ services:
       REDIS_PORT: 26379
       REDIS_PASSWORD: '123456'
       REDIS_DB: 6
-      # JWT配置
-      JWT_SECRET: 'JWT_SECRET-lowcode-platform@123456!@#.'
+      # JWT配置 - 与主系统保持一致
+      JWT_SECRET: 'JWT_SECRET-soybean-admin-nest@123456!@#.'
       JWT_EXPIRES_IN: '7d'
       # CORS配置
       CORS_ORIGIN: 'http://localhost:9527,http://localhost:9528'
