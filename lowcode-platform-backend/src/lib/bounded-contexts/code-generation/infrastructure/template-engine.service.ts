@@ -118,6 +118,161 @@ export class TemplateEngineService {
       return d.toISOString().split('T')[0];
     });
 
+    // Type mapping helpers for Prisma
+    this.handlebars.registerHelper('prismaType', (type: string) => {
+      const typeMap = {
+        'STRING': 'String',
+        'TEXT': 'String',
+        'INTEGER': 'Int',
+        'BIGINT': 'BigInt',
+        'FLOAT': 'Float',
+        'DOUBLE': 'Float',
+        'DECIMAL': 'Decimal',
+        'BOOLEAN': 'Boolean',
+        'DATE': 'DateTime',
+        'DATETIME': 'DateTime',
+        'TIME': 'DateTime',
+        'TIMESTAMP': 'DateTime',
+        'JSON': 'Json',
+        'UUID': 'String',
+        'ENUM': 'String'
+      };
+      return typeMap[type] || 'String';
+    });
+
+    // TypeScript type mapping helpers
+    this.handlebars.registerHelper('typescriptType', (type: string) => {
+      const typeMap = {
+        'STRING': 'string',
+        'TEXT': 'string',
+        'INTEGER': 'number',
+        'BIGINT': 'number',
+        'FLOAT': 'number',
+        'DOUBLE': 'number',
+        'DECIMAL': 'number',
+        'BOOLEAN': 'boolean',
+        'DATE': 'Date',
+        'DATETIME': 'Date',
+        'TIME': 'Date',
+        'TIMESTAMP': 'Date',
+        'JSON': 'any',
+        'UUID': 'string',
+        'ENUM': 'string'
+      };
+      return typeMap[type] || 'any';
+    });
+
+    // Amis form type mapping helpers
+    this.handlebars.registerHelper('amisFormType', (type: string) => {
+      const typeMap = {
+        'STRING': 'text',
+        'TEXT': 'textarea',
+        'INTEGER': 'number',
+        'BIGINT': 'number',
+        'FLOAT': 'number',
+        'DOUBLE': 'number',
+        'DECIMAL': 'number',
+        'BOOLEAN': 'switch',
+        'DATE': 'datetime',
+        'DATETIME': 'datetime',
+        'TIME': 'time',
+        'TIMESTAMP': 'datetime',
+        'JSON': 'json',
+        'UUID': 'text',
+        'ENUM': 'select'
+      };
+      return typeMap[type] || 'text';
+    });
+
+    // Amis column type mapping helpers
+    this.handlebars.registerHelper('amisColumnType', (type: string) => {
+      const typeMap = {
+        'STRING': 'text',
+        'TEXT': 'text',
+        'INTEGER': 'number',
+        'BIGINT': 'number',
+        'FLOAT': 'number',
+        'DOUBLE': 'number',
+        'DECIMAL': 'number',
+        'BOOLEAN': 'status',
+        'DATE': 'datetime',
+        'DATETIME': 'datetime',
+        'TIME': 'time',
+        'TIMESTAMP': 'datetime',
+        'JSON': 'json',
+        'UUID': 'text',
+        'ENUM': 'text'
+      };
+      return typeMap[type] || 'text';
+    });
+
+    // Default value formatting helper
+    this.handlebars.registerHelper('formatDefaultValue', (value: any, type: string) => {
+      if (value === null || value === undefined) {
+        return 'null';
+      }
+
+      switch (type) {
+        case 'STRING':
+        case 'TEXT':
+        case 'UUID':
+          return `"${value}"`;
+        case 'BOOLEAN':
+          return value ? 'true' : 'false';
+        case 'INTEGER':
+        case 'BIGINT':
+        case 'FLOAT':
+        case 'DOUBLE':
+        case 'DECIMAL':
+          return value.toString();
+        case 'DATE':
+        case 'DATETIME':
+        case 'TIMESTAMP':
+          return `"${value}"`;
+        case 'JSON':
+          return JSON.stringify(value);
+        default:
+          return `"${value}"`;
+      }
+    });
+
+    // Validation rules helper
+    this.handlebars.registerHelper('generateValidationRules', (field: any) => {
+      const rules: any = {};
+
+      if (!field.nullable) {
+        rules.required = true;
+      }
+
+      if (field.type === 'STRING' || field.type === 'TEXT') {
+        if (field.minLength) {
+          rules.minLength = field.minLength;
+        }
+        if (field.maxLength) {
+          rules.maxLength = field.maxLength;
+        }
+        if (field.pattern) {
+          rules.pattern = field.pattern;
+        }
+      }
+
+      if (field.type === 'INTEGER' || field.type === 'FLOAT') {
+        if (field.min !== undefined) {
+          rules.min = field.min;
+        }
+        if (field.max !== undefined) {
+          rules.max = field.max;
+        }
+      }
+
+      return Object.keys(rules).length > 0 ? JSON.stringify(rules) : null;
+    });
+
+    // JSON helper
+    this.handlebars.registerHelper('json', (obj: any) => {
+      return JSON.stringify(obj);
+    });
+
     // Type checking helpers
     this.handlebars.registerHelper('isString', (value: any) => {
       return typeof value === 'string';

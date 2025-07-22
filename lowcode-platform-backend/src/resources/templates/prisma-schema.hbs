@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+{{#each entities}}
+model {{pascalCase code}} {
+{{#each fields}}
+  {{camelCase code}} {{prismaType type}}{{#if nullable}}?{{/if}}{{#if primaryKey}} @id{{#if autoIncrement}} @default(autoincrement()){{else if (eq type 'STRING')}} @default(dbgenerated("(gen_random_uuid())::text")){{/if}}{{/if}}{{#if uniqueConstraint}} @unique{{/if}}{{#if defaultValue}} @default({{formatDefaultValue defaultValue type}}){{/if}}{{#if comment}} // {{comment}}{{/if}}
+{{/each}}
+  
+  // 系统字段
+  createdBy String   @map("created_by") @db.VarChar(36)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedBy String?  @map("updated_by") @db.VarChar(36)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  
+{{#if relationships}}
+  // 关系字段
+{{#each relationships}}
+{{#if (eq type 'ONE_TO_MANY')}}
+  {{camelCase targetEntity.code}}s {{pascalCase targetEntity.code}}[]
+{{/if}}
+{{#if (eq type 'MANY_TO_ONE')}}
+  {{camelCase targetEntity.code}} {{pascalCase targetEntity.code}}? @relation(fields: [{{camelCase sourceField.code}}], references: [{{camelCase targetField.code}}])
+  {{camelCase sourceField.code}} String? @map("{{snakeCase sourceField.code}}")
+{{/if}}
+{{#if (eq type 'ONE_TO_ONE')}}
+  {{camelCase targetEntity.code}} {{pascalCase targetEntity.code}}? @relation(fields: [{{camelCase sourceField.code}}], references: [{{camelCase targetField.code}}])
+  {{camelCase sourceField.code}} String? @unique @map("{{snakeCase sourceField.code}}")
+{{/if}}
+{{#if (eq type 'MANY_TO_MANY')}}
+  {{camelCase targetEntity.code}}s {{pascalCase targetEntity.code}}[]
+{{/if}}
+{{/each}}
+{{/if}}
+
+{{#if indexes}}
+{{#each indexes}}
+  @@index([{{#each fields}}{{camelCase this}}{{#unless @last}}, {{/unless}}{{/each}}]{{#if name}}, name: "{{name}}"{{/if}})
+{{/each}}
+{{/if}}
+
+{{#if uniqueConstraints}}
+{{#each uniqueConstraints}}
+  @@unique([{{#each fields}}{{camelCase this}}{{#unless @last}}, {{/unless}}{{/each}}]{{#if name}}, name: "{{name}}"{{/if}})
+{{/each}}
+{{/if}}
+
+  @@map("{{tableName}}")
+}
+
+{{/each}}

@@ -151,6 +151,9 @@ export class AppModule {
 
       this.logger.log('Generated Prisma client successfully');
 
+      // 处理数据库迁移（可选）
+      await this.handleDatabaseMigration();
+
     } catch (error) {
       this.logger.error('Failed to generate Prisma schema or client', error);
       throw new Error(`Failed to generate Prisma schema: ${error.message}`);
@@ -286,7 +289,50 @@ datasource db {
     return model;
   }
 
+  private async handleDatabaseMigration(): Promise<void> {
+    try {
+      this.logger.log('Handling database migration...');
 
+      // 检查是否需要迁移
+      const statusCommand = `cd ${this.amisBackendPath} && npx prisma migrate status`;
+      try {
+        const { stdout } = await execAsync(statusCommand);
+        if (stdout.includes('Database is up to date')) {
+          this.logger.log('Database is already up to date');
+          return;
+        }
+      } catch (statusError) {
+        this.logger.debug('Migration status check failed, proceeding with migration');
+      }
+
+      // 在开发环境中使用 db push，在生产环境中使用 migrate deploy
+      const isDevelopment = process.env.NODE_ENV !== 'production';
+
+      if (isDevelopment) {
+        // 开发环境：使用 db push 快速同步
+        const pushCommand = `cd ${this.amisBackendPath} && npx prisma db push --accept-data-loss`;
+        const { stdout: pushStdout, stderr: pushStderr } = await execAsync(pushCommand);
+
+        if (pushStdout) this.logger.log(`DB push output: ${pushStdout}`);
+        if (pushStderr) this.logger.warn(`DB push warnings: ${pushStderr}`);
+
+        this.logger.log('Database schema synchronized successfully');
+      } else {
+        // 生产环境：使用 migrate deploy
+        const deployCommand = `cd ${this.amisBackendPath} && npx prisma migrate deploy`;
+        const { stdout: deployStdout, stderr: deployStderr } = await execAsync(deployCommand);
+
+        if (deployStdout) this.logger.log(`Migration deploy output: ${deployStdout}`);
+        if (deployStderr) this.logger.warn(`Migration deploy warnings: ${deployStderr}`);
+
+        this.logger.log('Database migrations applied successfully');
+      }
+
+    } catch (error) {
+      this.logger.warn('Database migration failed, but continuing with code generation', error.message);
+      // 不抛出错误，因为迁移失败不应该阻止代码生成
+    }
+  }
 
 
 

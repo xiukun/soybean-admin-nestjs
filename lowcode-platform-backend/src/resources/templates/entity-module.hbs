@@ -1,0 +1,33 @@
+import { Module } from '@nestjs/common';
+import { {{pascalCase entity.code}}Controller } from '../controllers/{{kebabCase entity.code}}.controller';
+import { {{pascalCase entity.code}}Service } from '../services/{{kebabCase entity.code}}.service';
+import { {{pascalCase entity.code}}BaseController } from '../../base/controllers/{{kebabCase entity.code}}.base.controller';
+import { {{pascalCase entity.code}}BaseService } from '../../base/services/{{kebabCase entity.code}}.base.service';
+import { PrismaModule } from '../../shared/database/prisma.module';
+{{#if relationships}}
+{{#each relationships}}
+import { {{pascalCase targetEntity.code}}Module } from './{{kebabCase targetEntity.code}}.module';
+{{/each}}
+{{/if}}
+
+@Module({
+  imports: [
+    PrismaModule,
+{{#if relationships}}
+{{#each relationships}}
+    {{pascalCase targetEntity.code}}Module,
+{{/each}}
+{{/if}}
+  ],
+  controllers: [{{pascalCase entity.code}}Controller],
+  providers: [
+    {{pascalCase entity.code}}Service,
+    {{pascalCase entity.code}}BaseService,
+    {{pascalCase entity.code}}BaseController,
+  ],
+  exports: [
+    {{pascalCase entity.code}}Service,
+    {{pascalCase entity.code}}BaseService,
+  ],
+})
+export class {{pascalCase entity.code}}Module {}

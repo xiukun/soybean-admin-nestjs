@@ -1,0 +1,175 @@
+{
+  "type": "page",
+  "title": "{{entity.name}}管理",
+  "body": [
+    {
+      "type": "crud",
+      "api": {
+        "method": "get",
+        "url": "/api/v1/{{kebabCase entity.code}}",
+        "data": {
+          "current": "${page}",
+          "size": "${perPage}",
+          "sort": "${orderBy}:${orderDir}",
+          "search": "${keywords}"
+        }
+      },
+      "syncLocation": false,
+      "title": "",
+      "perPageAvailable": [10, 20, 50, 100],
+      "perPage": 10,
+      "orderField": "createdAt",
+      "defaultOrderDir": "desc",
+      "autoGenerateFilter": true,
+      "columns": [
+{{#each fields}}
+{{#unless (eq code 'id')}}
+        {
+          "name": "{{camelCase code}}",
+          "label": "{{name}}",
+          "type": "{{amisColumnType type}}",
+          "sortable": {{#if sortable}}true{{else}}false{{/if}}{{#if (eq type 'DATE')}},
+          "format": "YYYY-MM-DD HH:mm:ss"{{/if}}{{#if (eq type 'BOOLEAN')}},
+          "type": "status",
+          "map": {
+            "true": "<span class='label label-success'>是</span>",
+            "false": "<span class='label label-default'>否</span>"
+          }{{/if}}
+        },
+{{/unless}}
+{{/each}}
+        {
+          "name": "createdAt",
+          "label": "创建时间",
+          "type": "datetime",
+          "format": "YYYY-MM-DD HH:mm:ss",
+          "sortable": true
+        },
+        {
+          "type": "operation",
+          "label": "操作",
+          "width": 200,
+          "buttons": [
+            {
+              "type": "button",
+              "label": "查看",
+              "actionType": "dialog",
+              "level": "link",
+              "dialog": {
+                "title": "查看{{entity.name}}",
+                "body": {
+                  "type": "form",
+                  "api": "/api/v1/{{kebabCase entity.code}}/${id}",
+                  "controls": [
+{{#each fields}}
+{{#unless (eq code 'id')}}
+                    {
+                      "type": "{{amisFormType type}}",
+                      "name": "{{camelCase code}}",
+                      "label": "{{name}}",
+                      "disabled": true{{#if (eq type 'DATE')}},
+                      "format": "YYYY-MM-DD HH:mm:ss"{{/if}}
+                    },
+{{/unless}}
+{{/each}}
+                    {
+                      "type": "datetime",
+                      "name": "createdAt",
+                      "label": "创建时间",
+                      "disabled": true,
+                      "format": "YYYY-MM-DD HH:mm:ss"
+                    },
+                    {
+                      "type": "datetime",
+                      "name": "updatedAt",
+                      "label": "更新时间",
+                      "disabled": true,
+                      "format": "YYYY-MM-DD HH:mm:ss"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "type": "button",
+              "label": "编辑",
+              "actionType": "dialog",
+              "level": "link",
+              "dialog": {
+                "title": "编辑{{entity.name}}",
+                "body": {
+                  "type": "form",
+                  "api": "put:/api/v1/{{kebabCase entity.code}}/${id}",
+                  "controls": [
+{{#each fields}}
+{{#unless (eq code 'id')}}
+                    {
+                      "type": "{{amisFormType type}}",
+                      "name": "{{camelCase code}}",
+                      "label": "{{name}}",
+                      "required": {{#unless nullable}}true{{else}}false{{/unless}}{{#if validationRules}},
+                      "validations": {{json validationRules}}{{/if}}{{#if (eq type 'DATE')}},
+                      "format": "YYYY-MM-DD HH:mm:ss"{{/if}}
+                    },
+{{/unless}}
+{{/each}}
+                  ]
+                }
+              }
+            },
+            {
+              "type": "button",
+              "label": "删除",
+              "actionType": "ajax",
+              "level": "link",
+              "className": "text-danger",
+              "confirmText": "确定要删除这条{{entity.name}}记录吗？",
+              "api": "delete:/api/v1/{{kebabCase entity.code}}/${id}"
+            }
+          ]
+        }
+      ],
+      "headerToolbar": [
+        {
+          "type": "button",
+          "label": "新增{{entity.name}}",
+          "actionType": "dialog",
+          "level": "primary",
+          "dialog": {
+            "title": "新增{{entity.name}}",
+            "body": {
+              "type": "form",
+              "api": "post:/api/v1/{{kebabCase entity.code}}",
+              "controls": [
+{{#each fields}}
+{{#unless (eq code 'id')}}
+                {
+                  "type": "{{amisFormType type}}",
+                  "name": "{{camelCase code}}",
+                  "label": "{{name}}",
+                  "required": {{#unless nullable}}true{{else}}false{{/unless}}{{#if validationRules}},
+                  "validations": {{json validationRules}}{{/if}}{{#if (eq type 'DATE')}},
+                  "format": "YYYY-MM-DD HH:mm:ss"{{/if}}{{#if defaultValue}},
+                  "value": {{json defaultValue}}{{/if}}
+                },
+{{/unless}}
+{{/each}}
+              ]
+            }
+          }
+        },
+        "bulkActions",
+        "reload"
+      ],
+      "bulkActions": [
+        {
+          "label": "批量删除",
+          "actionType": "ajax",
+          "api": "delete:/api/v1/{{kebabCase entity.code}}/batch",
+          "confirmText": "确定要删除选中的{{entity.name}}记录吗？",
+          "type": "button"
+        }
+      ]
+    }
+  ]
+}

@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../shared/services/prisma.service';
+import { PrismaService } from '@shared/services/prisma.service';
 import {
-  Create{{pascalCase entity.code}}Dto,
-  Update{{pascalCase entity.code}}Dto,
-  {{pascalCase entity.code}}QueryDto
-} from '../dto/{{kebabCase entity.code}}.dto';
+  CreateUserDto,
+  UpdateUserDto,
+  UserQueryDto
+} from '../dto/user.dto';
 
 export interface PaginatedResult<T> {
   data: T[];
@@ -15,72 +15,56 @@ export interface PaginatedResult<T> {
 }
 
 /**
- * {{entity.name}}基础服务类
+ * 用户基础服务类
  *
  * 此类由代码生成器自动生成，请勿手动修改
- * 如需扩展功能，请在 biz/services/{{kebabCase entity.code}}.service.ts 中继承此类
+ * 如需扩展功能，请在 biz/services/user.service.ts 中继承此类
  */
 @Injectable()
-export abstract class {{pascalCase entity.code}}BaseService {
+export abstract class UserBaseService {
   constructor(protected readonly prisma: PrismaService) {}
 
   /**
-   * 创建{{entity.name}}
+   * 创建用户
    */
-  async create(data: Create{{pascalCase entity.code}}Dto, createdBy: string = 'system') {
-    return await this.prisma.{{camelCase entity.code}}.create({
+  async create(data: CreateUserDto, createdBy: string = 'system') {
+    return await this.prisma.user.create({
       data: {
         ...data,
         createdBy,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-{{#if relationships}}
       include: {
-{{#each relationships}}
-{{#if (eq type 'MANY_TO_ONE')}}
-        {{camelCase targetEntity.code}}: true,
-{{/if}}
-{{/each}}
       },
-{{/if}}
     });
   }
 
   /**
-   * 根据ID查找{{entity.name}}
+   * 根据ID查找用户
    */
   async findById(id: string) {
-    return await this.prisma.{{camelCase entity.code}}.findUnique({
+    return await this.prisma.user.findUnique({
       where: { id },
-{{#if relationships}}
       include: {
-{{#each relationships}}
-{{#if (eq type 'MANY_TO_ONE')}}
-        {{camelCase targetEntity.code}}: true,
-{{/if}}
-{{#if (eq type 'ONE_TO_MANY')}}
-        {{camelCase targetEntity.code}}s: true,
-{{/if}}
-{{/each}}
+        userProfiles: true,
       },
-{{/if}}
     });
   }
 
   /**
-   * 根据ID获取{{entity.name}}（不存在时抛出异常）
+   * 根据ID获取用户（不存在时抛出异常）
    */
   async getById(id: string) {
-    const {{camelCase entity.code}} = await this.findById(id);
-    if (!{{camelCase entity.code}}) {
-      throw new NotFoundException(`{{entity.name}} with id '${id}' not found`);
+    const user = await this.findById(id);
+    if (!user) {
+      throw new NotFoundException(`用户 with id '${id}' not found`);
     }
-    return {{camelCase entity.code}};
+    return user;
   }
 
   /**
-   * 分页查询{{entity.name}}
+   * 分页查询用户
    */
   async findMany(options?: {
     page?: number;
@@ -96,11 +80,13 @@ export abstract class {{pascalCase entity.code}}BaseService {
     // 搜索逻辑
     if (search) {
       const searchFields = [
-{{#each fields}}
-{{#if (or (eq type 'STRING') (eq type 'TEXT'))}}
-        '{{camelCase code}}',
-{{/if}}
-{{/each}}
+        'username',
+        'email',
+        'phone',
+        'realName',
+        'gender',
+        'avatar',
+        'bio',
       ];
 
       where.OR = searchFields.map(field => ({
@@ -112,22 +98,15 @@ export abstract class {{pascalCase entity.code}}BaseService {
     }
 
     const [data, total] = await Promise.all([
-      this.prisma.{{camelCase entity.code}}.findMany({
+      this.prisma.user.findMany({
         where,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: sort ? { [sort.field]: sort.order } : { createdAt: 'desc' },
-{{#if relationships}}
         include: {
-{{#each relationships}}
-{{#if (eq type 'MANY_TO_ONE')}}
-          {{camelCase targetEntity.code}}: true,
-{{/if}}
-{{/each}}
         },
-{{/if}}
       }),
-      this.prisma.{{camelCase entity.code}}.count({ where }),
+      this.prisma.user.count({ where }),
     ]);
 
     return {
@@ -140,41 +119,34 @@ export abstract class {{pascalCase entity.code}}BaseService {
   }
 
   /**
-   * 更新{{entity.name}}
+   * 更新用户
    */
-  async update(id: string, data: Update{{pascalCase entity.code}}Dto, updatedBy: string = 'system') {
-    return await this.prisma.{{camelCase entity.code}}.update({
+  async update(id: string, data: UpdateUserDto, updatedBy: string = 'system') {
+    return await this.prisma.user.update({
       where: { id },
       data: {
         ...data,
         updatedBy,
         updatedAt: new Date(),
       },
-{{#if relationships}}
       include: {
-{{#each relationships}}
-{{#if (eq type 'MANY_TO_ONE')}}
-        {{camelCase targetEntity.code}}: true,
-{{/if}}
-{{/each}}
       },
-{{/if}}
     });
   }
 
   /**
-   * 删除{{entity.name}}
+   * 删除用户
    */
   async delete(id: string): Promise<void> {
-    await this.prisma.{{camelCase entity.code}}.delete({
+    await this.prisma.user.delete({
       where: { id },
     });
   }
 
   /**
-   * 批量创建{{entity.name}}
+   * 批量创建用户
    */
-  async batchCreate(items: Create{{pascalCase entity.code}}Dto[]): Promise<Array<{
+  async batchCreate(items: CreateUserDto[]): Promise<Array<{
     success: boolean;
     data?: any;
     input: any;
@@ -203,7 +175,7 @@ export abstract class {{pascalCase entity.code}}BaseService {
   }
 
   /**
-   * 批量删除{{entity.name}}
+   * 批量删除用户
    */
   async batchDelete(ids: string[]): Promise<Array<{
     success: boolean;
@@ -231,11 +203,8 @@ export abstract class {{pascalCase entity.code}}BaseService {
     return results;
   }
 
-{{#if relationships}}
-{{#each relationships}}
-{{#if (eq type 'ONE_TO_MANY')}}
   /**
-   * 获取{{entity.name}}的关联{{targetEntity.name}}列表
+   * 获取的关联用户档案列表
    */
   async findRelated(id: string, relation: string, options?: {
     page?: number;
@@ -248,24 +217,24 @@ export abstract class {{pascalCase entity.code}}BaseService {
 
     const where: any = {
       ...filters,
-      {{camelCase sourceField.code}}: id,
+      id: id,
     };
 
     if (search) {
       // Add search logic for related entity
       where.OR = [
-        // Add searchable fields for {{targetEntity.name}}
+        // Add searchable fields for 用户档案
       ];
     }
 
     const [data, total] = await Promise.all([
-      this.prisma.{{camelCase targetEntity.code}}.findMany({
+      this.prisma.userProfile.findMany({
         where,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: sort ? { [sort.field]: sort.order } : { createdAt: 'desc' },
       }),
-      this.prisma.{{camelCase targetEntity.code}}.count({ where }),
+      this.prisma.userProfile.count({ where }),
     ]);
 
     return {
@@ -276,7 +245,4 @@ export abstract class {{pascalCase entity.code}}BaseService {
       totalPages: Math.ceil(total / limit),
     };
   }
-{{/if}}
-{{/each}}
-{{/if}}
 }
