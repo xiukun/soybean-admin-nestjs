@@ -62,11 +62,24 @@
                 />
               </NFormItem>
 
+              <NFormItem :label="$t('page.lowcode.codeGeneration.targetProject')" path="targetProject">
+                <NSelect
+                  v-model:value="generationForm.targetProject"
+                  :placeholder="$t('page.lowcode.codeGeneration.form.targetProject.placeholder')"
+                  :options="targetProjectOptions"
+                  :loading="targetProjectLoading"
+                  clearable
+                  filterable
+                  @update:value="handleTargetProjectChange"
+                />
+              </NFormItem>
+
               <NFormItem :label="$t('page.lowcode.codeGeneration.outputPath')" path="outputPath">
                 <NInputGroup>
                   <NInput
                     v-model:value="generationForm.outputPath"
                     :placeholder="$t('page.lowcode.codeGeneration.form.outputPath.placeholder')"
+                    readonly
                   />
                   <NButton @click="handleBrowseOutputPath">
                     <template #icon>
@@ -160,22 +173,67 @@
                   </NFormItem>
                 </NGridItem>
                 <NGridItem>
-                  <NFormItem :label="$t('page.lowcode.codeGeneration.generateTests')" path="generateTests">
-                    <NSwitch v-model:value="generationForm.generateTests" />
+                  <NFormItem :label="$t('page.lowcode.codeGeneration.createDirectories')" path="createDirectories">
+                    <NSwitch v-model:value="generationForm.createDirectories" />
                   </NFormItem>
                 </NGridItem>
                 <NGridItem>
-                  <NFormItem :label="$t('page.lowcode.codeGeneration.generateDocs')" path="generateDocs">
-                    <NSwitch v-model:value="generationForm.generateDocs" />
+                  <NFormItem :label="$t('page.lowcode.codeGeneration.format')" path="format">
+                    <NSwitch v-model:value="generationForm.format" />
                   </NFormItem>
                 </NGridItem>
                 <NGridItem>
-                  <NFormItem :label="$t('page.lowcode.codeGeneration.architecture')" path="architecture">
-                    <NSelect
-                      v-model:value="generationForm.architecture"
-                      :options="architectureOptions"
-                      :placeholder="$t('page.lowcode.codeGeneration.form.architecture.placeholder')"
+                  <NFormItem :label="$t('page.lowcode.codeGeneration.dryRun')" path="dryRun">
+                    <NSwitch v-model:value="generationForm.dryRun" />
+                  </NFormItem>
+                </NGridItem>
+              </NGrid>
+
+              <NDivider title-placement="left">{{ $t('page.lowcode.codeGeneration.gitIntegration') }}</NDivider>
+
+              <NGrid :cols="2" :x-gap="16">
+                <NGridItem>
+                  <NFormItem :label="$t('page.lowcode.codeGeneration.gitEnabled')" path="gitEnabled">
+                    <NSwitch v-model:value="generationForm.gitEnabled" @update:value="handleGitEnabledChange" />
+                  </NFormItem>
+                </NGridItem>
+                <NGridItem>
+                  <NFormItem
+                    v-if="generationForm.gitEnabled"
+                    :label="$t('page.lowcode.codeGeneration.gitAutoCommit')"
+                    path="gitAutoCommit"
+                  >
+                    <NSwitch v-model:value="generationForm.gitAutoCommit" />
+                  </NFormItem>
+                </NGridItem>
+                <NGridItem>
+                  <NFormItem
+                    v-if="generationForm.gitEnabled && generationForm.gitAutoCommit"
+                    :label="$t('page.lowcode.codeGeneration.gitCreateBranch')"
+                    path="gitCreateBranch"
+                  >
+                    <NSwitch v-model:value="generationForm.gitCreateBranch" />
+                  </NFormItem>
+                </NGridItem>
+                <NGridItem>
+                  <NFormItem
+                    v-if="generationForm.gitEnabled && generationForm.gitAutoCommit && generationForm.gitCreateBranch"
+                    :label="$t('page.lowcode.codeGeneration.gitBranchName')"
+                    path="gitBranchName"
+                  >
+                    <NInput
+                      v-model:value="generationForm.gitBranchName"
+                      :placeholder="$t('page.lowcode.codeGeneration.form.gitBranchName.placeholder')"
                     />
+                  </NFormItem>
+                </NGridItem>
+                <NGridItem>
+                  <NFormItem
+                    v-if="generationForm.gitEnabled && generationForm.gitAutoCommit"
+                    :label="$t('page.lowcode.codeGeneration.gitPush')"
+                    path="gitPush"
+                  >
+                    <NSwitch v-model:value="generationForm.gitPush" />
                   </NFormItem>
                 </NGridItem>
               </NGrid>
@@ -305,7 +363,6 @@ import {
   fetchGetAllProjects,
   fetchGetAllTemplates,
   fetchGetAllEntities,
-  fetchGenerateCode,
   fetchGetGeneratedFileContent,
   fetchGetTemplateVariables
 } from '@/service/api';
@@ -323,13 +380,18 @@ interface GenerationForm {
   projectId: string;
   templateIds: string[];
   entityIds: string[];
+  targetProject: string;
   outputPath: string;
   variables: Record<string, any>;
   overwriteExisting: boolean;
-  generateTests: boolean;
-  generateDocs: boolean;
-  architecture: string;
-  framework: string;
+  createDirectories: boolean;
+  format: boolean;
+  dryRun: boolean;
+  gitEnabled: boolean;
+  gitAutoCommit: boolean;
+  gitCreateBranch: boolean;
+  gitBranchName: string;
+  gitPush: boolean;
 }
 
 interface GenerationProgress {
@@ -359,10 +421,12 @@ const generating = ref(false);
 const previewing = ref(false);
 const templateLoading = ref(false);
 const entityLoading = ref(false);
+const targetProjectLoading = ref(false);
 
 const projectOptions = ref<Array<{ label: string; value: string }>>([]);
 const templateOptions = ref<Array<{ label: string; value: string }>>([]);
 const entityOptions = ref<Array<{ label: string; value: string }>>([]);
+const targetProjectOptions = ref<Array<{ label: string; value: string }>>([]);
 const templateVariables = ref<Api.Lowcode.TemplateVariable[]>([]);
 
 const previewMode = ref<'files' | 'structure' | 'validation'>('files');
@@ -385,13 +449,18 @@ const generationForm = reactive<GenerationForm>({
   projectId: props.projectId || '',
   templateIds: [],
   entityIds: [],
-  outputPath: './generated',
+  targetProject: 'amis-lowcode-backend',
+  outputPath: '',
   variables: {},
-  overwriteExisting: false,
-  generateTests: true,
-  generateDocs: true,
-  architecture: 'base-biz',
-  framework: 'nestjs'
+  overwriteExisting: true,
+  createDirectories: true,
+  format: true,
+  dryRun: false,
+  gitEnabled: false,
+  gitAutoCommit: true,
+  gitCreateBranch: true,
+  gitBranchName: '',
+  gitPush: false
 });
 
 const generationProgress = ref<GenerationProgress | null>(null);
@@ -492,6 +561,27 @@ async function loadEntities(projectId: string) {
   }
 }
 
+async function loadTargetProjects() {
+  try {
+    targetProjectLoading.value = true;
+    // 调用新的目标项目API
+    const response = await fetch('/api/api/v1/target-projects');
+    const result = await response.json();
+
+    if (result.success && result.data?.projects) {
+      targetProjectOptions.value = result.data.projects.map((project: any) => ({
+        label: `${project.displayName} (${project.type})`,
+        value: project.name,
+        description: project.description
+      }));
+    }
+  } catch (error) {
+    console.error('Failed to load target projects:', error);
+  } finally {
+    targetProjectLoading.value = false;
+  }
+}
+
 // Global project change handler
 function handleGlobalProjectChange(projectId: string | null) {
   if (projectId) {
@@ -520,6 +610,30 @@ function handleProjectChange(projectId: string) {
 
   loadTemplates(projectId);
   loadEntities(projectId);
+}
+
+function handleTargetProjectChange(targetProject: string) {
+  // 根据目标项目更新输出路径
+  const project = targetProjectOptions.value.find(p => p.value === targetProject);
+  if (project) {
+    // 这里可以根据项目类型设置默认输出路径
+    generationForm.outputPath = targetProject === 'amis-lowcode-backend'
+      ? '../amis-lowcode-backend'
+      : './generated';
+  }
+}
+
+function handleGitEnabledChange(enabled: boolean) {
+  if (!enabled) {
+    generationForm.gitAutoCommit = false;
+    generationForm.gitCreateBranch = false;
+    generationForm.gitPush = false;
+    generationForm.gitBranchName = '';
+  } else {
+    generationForm.gitAutoCommit = true;
+    generationForm.gitCreateBranch = true;
+    generationForm.gitBranchName = `feature/generated-code-${Date.now()}`;
+  }
 }
 
 function handleEntityChange() {
@@ -652,31 +766,59 @@ async function handleGenerate() {
       logs: []
     };
 
-    const { data: result } = await fetchGenerateCode({
-      projectId: generationForm.projectId,
-      templateIds: generationForm.templateIds,
+    // 使用新的代码生成API
+    const requestData = {
       entityIds: generationForm.entityIds,
-      outputPath: generationForm.outputPath,
-      variables: generationForm.variables,
+      targetProject: generationForm.targetProject,
       options: {
-        overwriteExisting: generationForm.overwriteExisting,
-        generateTests: generationForm.generateTests,
-        generateDocs: generationForm.generateDocs,
-        architecture: generationForm.architecture,
-        framework: generationForm.framework
+        overwrite: generationForm.overwriteExisting,
+        createDirectories: generationForm.createDirectories,
+        format: generationForm.format,
+        dryRun: generationForm.dryRun
+      },
+      git: generationForm.gitEnabled ? {
+        enabled: true,
+        autoCommit: generationForm.gitAutoCommit,
+        createBranch: generationForm.gitCreateBranch,
+        branchName: generationForm.gitBranchName || undefined,
+        push: generationForm.gitPush
+      } : {
+        enabled: false
       }
+    };
+
+    const response = await fetch('/api/v1/code-generation/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestData)
     });
 
-    if (result) {
-      generationResult.value = result;
+    const result = await response.json();
+
+    if (result.success) {
+      generationResult.value = {
+        success: result.result.success,
+        filesGenerated: result.result.metadata?.totalFiles || 0,
+        outputPath: generationForm.outputPath,
+        errors: result.result.errors || [],
+        fileTree: result.result.generatedFiles?.map((file: string) => ({
+          name: file.split('/').pop(),
+          path: file
+        })) || []
+      };
+
       generationProgress.value = {
         percentage: 100,
-        status: result.success ? 'success' : 'error',
-        message: result.success ? 'Code generation completed' : 'Code generation failed',
+        status: result.result.success ? 'success' : 'error',
+        message: result.result.success ? 'Code generation completed' : 'Code generation failed',
         logs: generationProgress.value?.logs || []
       };
 
       window.$message?.success('Code generation completed successfully');
+    } else {
+      throw new Error(result.message || 'Code generation failed');
     }
   } catch (error: any) {
     generationProgress.value = {
@@ -694,13 +836,18 @@ async function handleGenerate() {
 function handleReset() {
   generationForm.templateIds = [];
   generationForm.entityIds = [];
-  generationForm.outputPath = './generated';
+  generationForm.targetProject = 'amis-lowcode-backend';
+  generationForm.outputPath = '';
   generationForm.variables = {};
-  generationForm.overwriteExisting = false;
-  generationForm.generateTests = true;
-  generationForm.generateDocs = true;
-  generationForm.architecture = 'base-biz';
-  generationForm.framework = 'nestjs';
+  generationForm.overwriteExisting = true;
+  generationForm.createDirectories = true;
+  generationForm.format = true;
+  generationForm.dryRun = false;
+  generationForm.gitEnabled = false;
+  generationForm.gitAutoCommit = true;
+  generationForm.gitCreateBranch = true;
+  generationForm.gitBranchName = '';
+  generationForm.gitPush = false;
 
   templateVariables.value = [];
   generationProgress.value = null;
@@ -826,6 +973,7 @@ async function handleFileSelect(selectedKeys: string[]) {
 
 onMounted(() => {
   loadProjects();
+  loadTargetProjects();
   if (props.projectId) {
     loadTemplates(props.projectId);
     loadEntities(props.projectId);

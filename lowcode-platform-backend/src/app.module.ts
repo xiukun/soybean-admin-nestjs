@@ -24,9 +24,11 @@ import { FieldController } from '@api/lowcode/field.controller';
 import { TemplateController } from '@api/lowcode/template.controller';
 import { AmisDemoController } from '@api/lowcode/amis-demo.controller';
 import { CodeGenerationController } from '@api/lowcode/code-generation.controller';
+import { CodeGenerationPageController } from '@api/lowcode/code-generation-page.controller';
+import { TargetProjectController } from '@api/lowcode/target-project.controller';
 import { JwtAuthGuard } from '@guards/jwt-auth.guard';
 import { JwtStrategy } from '@strategies/jwt.strategy';
-import { CodeGenerationModule } from '@lib/bounded-contexts/code-generation/code-generation.module';
+import { CodeGenerationModule } from '@lib/code-generation/code-generation.module';
 import { HealthModule } from '@api/health/health.module';
 import { MetadataModule } from '@lib/bounded-contexts/metadata/metadata.module';
 import { DatabaseInitService } from '@infra/database/database-init.service';
@@ -73,7 +75,20 @@ import { DatabaseInitService } from '@infra/database/database-init.service';
     HealthModule,
     MetadataModule,
   ],
-  controllers: [AppController, EntityController, ProjectController, RelationshipController, ApiConfigController, QueryController, FieldController, TemplateController, AmisDemoController, CodeGenerationController],
+  controllers: [
+    AppController,
+    EntityController,
+    ProjectController,
+    RelationshipController,
+    ApiConfigController,
+    QueryController,
+    FieldController,
+    TemplateController,
+    AmisDemoController,
+    CodeGenerationController,
+    CodeGenerationPageController,
+    TargetProjectController
+  ],
   providers: [
     AppService,
     JwtStrategy,

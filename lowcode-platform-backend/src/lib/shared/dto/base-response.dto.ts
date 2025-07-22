@@ -29,7 +29,7 @@ export class PaginationResponseDto<T> extends BaseResponseDto {
   @ApiProperty({
     description: '分页数据',
   })
-  data: {
+  declare data: {
     options: T[];
     page: number;
     perPage: number;
@@ -44,7 +44,7 @@ export class ListResponseDto<T> extends BaseResponseDto {
   @ApiProperty({
     description: '列表数据',
   })
-  data: {
+  declare data: {
     items: T[];
     current: number;
     size: number;
@@ -60,7 +60,7 @@ export class EntityResponseDto<T> extends BaseResponseDto {
   @ApiProperty({
     description: '实体数据',
   })
-  data: T;
+  declare data: T;
 }
 
 /**
@@ -70,7 +70,7 @@ export class DeleteResponseDto extends BaseResponseDto {
   @ApiProperty({
     description: '删除结果',
   })
-  data: {
+  declare data: {
     id: string;
     deletedAt: string;
   };
@@ -83,7 +83,7 @@ export class BatchCreateResponseDto<T> extends BaseResponseDto {
   @ApiProperty({
     description: '批量创建结果',
   })
-  data: {
+  declare data: {
     success: T[];
     failed: Array<{
       item: any;
@@ -102,7 +102,7 @@ export class BatchDeleteResponseDto extends BaseResponseDto {
   @ApiProperty({
     description: '批量删除结果',
   })
-  data: {
+  declare data: {
     deletedIds: string[];
     failedIds: Array<{
       id: string;
@@ -121,19 +121,19 @@ export class ErrorResponseDto extends BaseResponseDto {
     description: '错误状态码',
     example: 1,
   })
-  status: number;
+  declare status: number;
 
   @ApiProperty({
     description: '错误消息',
     example: '操作失败',
   })
-  msg: string;
+  declare msg: string;
 
   @ApiProperty({
     description: '错误详情',
     example: {},
   })
-  data: any;
+  declare data: any;
 }
 
 /**
@@ -143,7 +143,7 @@ export class RelationResponseDto<T> extends BaseResponseDto {
   @ApiProperty({
     description: '关系查询结果',
   })
-  data: {
+  declare data: {
     items: T[];
     total: number;
     current: number;
@@ -165,7 +165,7 @@ export class OperationResultDto extends BaseResponseDto {
   @ApiProperty({
     description: '操作结果',
   })
-  data: {
+  declare data: {
     success: boolean;
     message?: string;
     affectedRows?: number;
@@ -180,7 +180,7 @@ export class StatisticsResponseDto extends BaseResponseDto {
   @ApiProperty({
     description: '统计数据',
   })
-  data: {
+  declare data: {
     total: number;
     active?: number;
     inactive?: number;

@@ -35,6 +35,7 @@
     "import-example": "ts-node scripts/import-example.ts",
     "list-examples": "ts-node scripts/import-example.ts --list",
     "init-db": "ts-node scripts/init-database.ts",
+    "init-code-generation": "node scripts/init-code-generation.js",
     "health-check": "node scripts/health-check.js",
     "health-monitor": "node scripts/health-check.js --monitor",
     "dev-setup": "./scripts/dev-setup.sh",

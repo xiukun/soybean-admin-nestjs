@@ -17,7 +17,9 @@ import {
   ApiResponse,
   ApiParam,
   ApiBearerAuth,
+  ApiBody,
 } from '@nestjs/swagger';
+import { CodeGenerationService } from '@lib/code-generation/services/code-generation.service';
 import {
   CreateEntityDto,
   UpdateEntityDto,
@@ -35,6 +37,7 @@ import {
   GetEntitiesPaginatedQuery,
   GetEntityStatsQuery,
 } from '@entity/application/queries/get-entity.query';
+import * as path from 'path';
 
 @ApiTags('entities')
 @ApiBearerAuth()
@@ -43,6 +46,7 @@ export class EntityController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
+    private readonly codeGenerationService: CodeGenerationService,
   ) {}
 
   @Post()
@@ -232,6 +236,176 @@ export class EntityController {
   async deleteEntity(@Param('id') id: string): Promise<void> {
     const command = new DeleteEntityCommand(id);
     await this.commandBus.execute(command);
+  }
+
+  @Post(':id/generate-code')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Generate code for entity' })
+  @ApiParam({ name: 'id', description: 'Entity ID' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        targetProject: { type: 'string', example: 'amis-lowcode-backend' },
+        options: {
+          type: 'object',
+          properties: {
+            overwrite: { type: 'boolean', default: true },
+            createDirectories: { type: 'boolean', default: true },
+            format: { type: 'boolean', default: true },
+            dryRun: { type: 'boolean', default: false },
+          },
+        },
+      },
+      required: ['targetProject'],
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Code generated successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Entity not found',
+  })
+  async generateCodeForEntity(
+    @Param('id') id: string,
+    @Body() body: { targetProject: string; options?: any },
+  ) {
+    // Get entity with fields
+    const entity = await this.queryBus.execute(new GetEntityQuery(id));
+    if (!entity) {
+      throw new Error('Entity not found');
+    }
+
+    // Transform entity to the format expected by CodeGenerationService
+    const entityDefinition = {
+      id: entity.id,
+      code: entity.code,
+      name: entity.name,
+      tableName: entity.tableName || entity.code.toLowerCase(),
+      description: entity.description,
+      fields: entity.fields?.map(field => ({
+        id: field.id,
+        code: field.code,
+        name: field.name,
+        type: field.type,
+        nullable: field.nullable,
+        defaultValue: field.defaultValue,
+        comment: field.comment,
+        validation: (field as any).validation,
+      })) || [],
+      relationships: [],
+      indexes: [],
+      uniqueConstraints: [],
+    };
+
+    // Prepare generation options
+    const options = {
+      targetProject: body.targetProject,
+      outputPath: this.getTargetProjectPath(body.targetProject),
+      overwrite: body.options?.overwrite ?? true,
+      createDirectories: body.options?.createDirectories ?? true,
+      format: body.options?.format ?? true,
+      dryRun: body.options?.dryRun ?? false,
+    };
+
+    // Generate code
+    const result = await this.codeGenerationService.generateCode(
+      [entityDefinition],
+      options
+    );
+
+    return result;
+  }
+
+  @Post('batch/generate-code')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Generate code for multiple entities' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        entityIds: { type: 'array', items: { type: 'string' } },
+        targetProject: { type: 'string', example: 'amis-lowcode-backend' },
+        options: {
+          type: 'object',
+          properties: {
+            overwrite: { type: 'boolean', default: true },
+            createDirectories: { type: 'boolean', default: true },
+            format: { type: 'boolean', default: true },
+            dryRun: { type: 'boolean', default: false },
+          },
+        },
+      },
+      required: ['entityIds', 'targetProject'],
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Code generated successfully for all entities',
+  })
+  async generateCodeForEntities(
+    @Body() body: { entityIds: string[]; targetProject: string; options?: any },
+  ) {
+    // Get entities with fields
+    const entities = await Promise.all(
+      body.entityIds.map(id => this.queryBus.execute(new GetEntityQuery(id)))
+    );
+
+    const validEntities = entities.filter(entity => entity !== null);
+    if (validEntities.length === 0) {
+      throw new Error('No valid entities found');
+    }
+
+    // Transform entities to the format expected by CodeGenerationService
+    const entityDefinitions = validEntities.map(entity => ({
+      id: entity.id,
+      code: entity.code,
+      name: entity.name,
+      tableName: entity.tableName || entity.code.toLowerCase(),
+      description: entity.description,
+      fields: entity.fields?.map(field => ({
+        id: field.id,
+        code: field.code,
+        name: field.name,
+        type: field.type,
+        nullable: field.nullable,
+        defaultValue: field.defaultValue,
+        comment: field.comment,
+        validation: (field as any).validation,
+      })) || [],
+      relationships: [],
+      indexes: [],
+      uniqueConstraints: [],
+    }));
+
+    // Prepare generation options
+    const options = {
+      targetProject: body.targetProject,
+      outputPath: this.getTargetProjectPath(body.targetProject),
+      overwrite: body.options?.overwrite ?? true,
+      createDirectories: body.options?.createDirectories ?? true,
+      format: body.options?.format ?? true,
+      dryRun: body.options?.dryRun ?? false,
+    };
+
+    // Generate code
+    const result = await this.codeGenerationService.generateCode(
+      entityDefinitions,
+      options
+    );
+
+    return result;
+  }
+
+  private getTargetProjectPath(projectName: string): string {
+    const projectPaths = {
+      'amis-lowcode-backend': path.join(__dirname, '../../../amis-lowcode-backend'),
+      'default': path.join(__dirname, '../../../generated'),
+    };
+
+    return projectPaths[projectName] || projectPaths['default'];
   }
 
   private mapToResponseDto(entity: any): EntityResponseDto {

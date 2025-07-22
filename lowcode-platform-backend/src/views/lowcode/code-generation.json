@@ -1,0 +1,446 @@
+{
+  "type": "page",
+  "title": "代码生成器",
+  "subTitle": "从实体定义生成完整的业务代码",
+  "body": [
+    {
+      "type": "tabs",
+      "tabs": [
+        {
+          "title": "代码生成",
+          "body": [
+            {
+              "type": "form",
+              "title": "代码生成配置",
+              "mode": "horizontal",
+              "api": {
+                "method": "post",
+                "url": "/api/v1/code-generation/generate",
+                "adaptor": "return {\n  ...payload,\n  status: payload.success ? 0 : 1,\n  msg: payload.success ? '代码生成成功' : '代码生成失败'\n};"
+              },
+              "body": [
+                {
+                  "type": "divider",
+                  "title": "实体选择"
+                },
+                {
+                  "type": "select",
+                  "name": "entityIds",
+                  "label": "选择实体",
+                  "multiple": true,
+                  "required": true,
+                  "source": {
+                    "method": "get",
+                    "url": "/api/v1/entities?size=100",
+                    "adaptor": "return {\n  options: payload.data.items.map(item => ({\n    label: `${item.name} (${item.code})`,\n    value: item.id,\n    description: item.description\n  }))\n};"
+                  },
+                  "description": "选择要生成代码的实体，支持多选"
+                },
+                {
+                  "type": "divider",
+                  "title": "目标项目"
+                },
+                {
+                  "type": "select",
+                  "name": "targetProject",
+                  "label": "目标项目",
+                  "required": true,
+                  "value": "amis-lowcode-backend",
+                  "source": {
+                    "method": "get",
+                    "url": "/api/v1/target-projects",
+                    "adaptor": "return {\n  options: payload.data.projects.map(item => ({\n    label: `${item.displayName} (${item.type})`,\n    value: item.name,\n    description: item.description\n  }))\n};"
+                  },
+                  "description": "选择代码生成的目标项目"
+                },
+                {
+                  "type": "divider",
+                  "title": "生成选项"
+                },
+                {
+                  "type": "group",
+                  "body": [
+                    {
+                      "type": "switch",
+                      "name": "options.overwrite",
+                      "label": "覆盖现有文件",
+                      "value": true,
+                      "description": "是否覆盖已存在的文件"
+                    },
+                    {
+                      "type": "switch",
+                      "name": "options.createDirectories",
+                      "label": "自动创建目录",
+                      "value": true,
+                      "description": "自动创建不存在的目录"
+                    },
+                    {
+                      "type": "switch",
+                      "name": "options.format",
+                      "label": "格式化代码",
+                      "value": true,
+                      "description": "生成后自动格式化代码"
+                    },
+                    {
+                      "type": "switch",
+                      "name": "options.dryRun",
+                      "label": "预览模式",
+                      "value": false,
+                      "description": "仅预览，不实际生成文件"
+                    }
+                  ]
+                },
+                {
+                  "type": "divider",
+                  "title": "Git 集成"
+                },
+                {
+                  "type": "group",
+                  "body": [
+                    {
+                      "type": "switch",
+                      "name": "git.enabled",
+                      "label": "启用 Git 集成",
+                      "value": false,
+                      "description": "是否启用 Git 版本控制集成"
+                    },
+                    {
+                      "type": "switch",
+                      "name": "git.autoCommit",
+                      "label": "自动提交",
+                      "value": true,
+                      "visibleOn": "${git.enabled}",
+                      "description": "生成代码后自动提交到 Git"
+                    },
+                    {
+                      "type": "switch",
+                      "name": "git.createBranch",
+                      "label": "创建新分支",
+                      "value": true,
+                      "visibleOn": "${git.enabled && git.autoCommit}",
+                      "description": "在新分支中提交代码"
+                    },
+                    {
+                      "type": "input-text",
+                      "name": "git.branchName",
+                      "label": "分支名称",
+                      "placeholder": "feature/generated-code-{timestamp}",
+                      "visibleOn": "${git.enabled && git.autoCommit && git.createBranch}",
+                      "description": "新分支的名称，留空则自动生成"
+                    },
+                    {
+                      "type": "switch",
+                      "name": "git.push",
+                      "label": "推送到远程",
+                      "value": false,
+                      "visibleOn": "${git.enabled && git.autoCommit}",
+                      "description": "提交后推送到远程仓库"
+                    }
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "type": "button",
+                  "actionType": "submit",
+                  "label": "生成代码",
+                  "level": "primary",
+                  "size": "lg"
+                },
+                {
+                  "type": "button",
+                  "actionType": "reset",
+                  "label": "重置",
+                  "size": "lg"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "代码预览",
+          "body": [
+            {
+              "type": "form",
+              "title": "代码预览",
+              "mode": "horizontal",
+              "api": {
+                "method": "post",
+                "url": "/api/v1/code-generation/preview"
+              },
+              "body": [
+                {
+                  "type": "select",
+                  "name": "entityId",
+                  "label": "选择实体",
+                  "required": true,
+                  "source": {
+                    "method": "get",
+                    "url": "/api/v1/entities?size=100",
+                    "adaptor": "return {\n  options: payload.data.items.map(item => ({\n    label: `${item.name} (${item.code})`,\n    value: item.id,\n    description: item.description\n  }))\n};"
+                  },
+                  "description": "选择要预览代码的实体"
+                },
+                {
+                  "type": "input-text",
+                  "name": "templateName",
+                  "label": "模板名称",
+                  "placeholder": "留空预览所有模板",
+                  "description": "指定要预览的模板，留空则预览所有模板"
+                }
+              ],
+              "actions": [
+                {
+                  "type": "button",
+                  "actionType": "submit",
+                  "label": "预览代码",
+                  "level": "primary"
+                }
+              ]
+            },
+            {
+              "type": "service",
+              "name": "previewService",
+              "api": {
+                "method": "get",
+                "url": "/api/v1/code-generation/status"
+              },
+              "body": [
+                {
+                  "type": "tabs",
+                  "name": "previewTabs",
+                  "tabs": [
+                    {
+                      "title": "控制器",
+                      "body": [
+                        {
+                          "type": "code",
+                          "language": "typescript",
+                          "value": "// 控制器代码预览\n// 请先选择实体并点击预览代码按钮"
+                        }
+                      ]
+                    },
+                    {
+                      "title": "服务",
+                      "body": [
+                        {
+                          "type": "code",
+                          "language": "typescript",
+                          "value": "// 服务代码预览\n// 请先选择实体并点击预览代码按钮"
+                        }
+                      ]
+                    },
+                    {
+                      "title": "模块",
+                      "body": [
+                        {
+                          "type": "code",
+                          "language": "typescript",
+                          "value": "// 模块代码预览\n// 请先选择实体并点击预览代码按钮"
+                        }
+                      ]
+                    },
+                    {
+                      "title": "DTO",
+                      "body": [
+                        {
+                          "type": "code",
+                          "language": "typescript",
+                          "value": "// DTO代码预览\n// 请先选择实体并点击预览代码按钮"
+                        }
+                      ]
+                    },
+                    {
+                      "title": "Amis页面",
+                      "body": [
+                        {
+                          "type": "code",
+                          "language": "json",
+                          "value": "{\n  \"// Amis页面配置预览\": \"请先选择实体并点击预览代码按钮\"\n}"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "目标项目管理",
+          "body": [
+            {
+              "type": "crud",
+              "title": "目标项目列表",
+              "api": {
+                "method": "get",
+                "url": "/api/v1/target-projects"
+              },
+              "columns": [
+                {
+                  "name": "displayName",
+                  "label": "项目名称",
+                  "type": "text"
+                },
+                {
+                  "name": "name",
+                  "label": "项目标识",
+                  "type": "text"
+                },
+                {
+                  "name": "type",
+                  "label": "项目类型",
+                  "type": "mapping",
+                  "map": {
+                    "nestjs": "<span class='label label-info'>NestJS</span>",
+                    "react": "<span class='label label-success'>React</span>",
+                    "vue": "<span class='label label-warning'>Vue.js</span>",
+                    "angular": "<span class='label label-danger'>Angular</span>",
+                    "other": "<span class='label label-default'>其他</span>"
+                  }
+                },
+                {
+                  "name": "framework",
+                  "label": "框架",
+                  "type": "text"
+                },
+                {
+                  "name": "language",
+                  "label": "语言",
+                  "type": "text"
+                },
+                {
+                  "name": "status",
+                  "label": "状态",
+                  "type": "mapping",
+                  "map": {
+                    "active": "<span class='label label-success'>活跃</span>",
+                    "inactive": "<span class='label label-default'>非活跃</span>"
+                  }
+                },
+                {
+                  "type": "operation",
+                  "label": "操作",
+                  "buttons": [
+                    {
+                      "type": "button",
+                      "label": "验证",
+                      "level": "link",
+                      "actionType": "ajax",
+                      "api": {
+                        "method": "get",
+                        "url": "/api/v1/target-projects/${id}/validate"
+                      },
+                      "confirmText": "确认验证此项目配置？"
+                    },
+                    {
+                      "type": "button",
+                      "label": "统计",
+                      "level": "link",
+                      "actionType": "dialog",
+                      "dialog": {
+                        "title": "项目统计信息",
+                        "body": {
+                          "type": "service",
+                          "api": {
+                            "method": "get",
+                            "url": "/api/v1/target-projects/${id}/statistics"
+                          },
+                          "body": [
+                            {
+                              "type": "property",
+                              "title": "项目信息",
+                              "items": [
+                                {
+                                  "label": "项目名称",
+                                  "content": "${projectName}"
+                                },
+                                {
+                                  "label": "项目路径",
+                                  "content": "${projectPath}"
+                                },
+                                {
+                                  "label": "项目类型",
+                                  "content": "${type}"
+                                },
+                                {
+                                  "label": "框架",
+                                  "content": "${framework}"
+                                },
+                                {
+                                  "label": "语言",
+                                  "content": "${language}"
+                                },
+                                {
+                                  "label": "支持的模板数",
+                                  "content": "${supportedTemplates}"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "生成历史",
+          "body": [
+            {
+              "type": "crud",
+              "title": "代码生成历史",
+              "api": {
+                "method": "get",
+                "url": "/api/v1/code-generation/history"
+              },
+              "columns": [
+                {
+                  "name": "timestamp",
+                  "label": "生成时间",
+                  "type": "datetime"
+                },
+                {
+                  "name": "entities",
+                  "label": "实体",
+                  "type": "text"
+                },
+                {
+                  "name": "targetProject",
+                  "label": "目标项目",
+                  "type": "text"
+                },
+                {
+                  "name": "totalFiles",
+                  "label": "生成文件数",
+                  "type": "text"
+                },
+                {
+                  "name": "success",
+                  "label": "状态",
+                  "type": "mapping",
+                  "map": {
+                    "true": "<span class='label label-success'>成功</span>",
+                    "false": "<span class='label label-danger'>失败</span>"
+                  }
+                },
+                {
+                  "name": "gitCommitted",
+                  "label": "Git提交",
+                  "type": "mapping",
+                  "map": {
+                    "true": "<span class='label label-info'>已提交</span>",
+                    "false": "<span class='label label-default'>未提交</span>"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -35,6 +35,7 @@ export const views: Record<LastLevelRouteKey, RouteComponent | (() => Promise<Ro
   lowcode_project: () => import("@/views/lowcode/project/index.vue"),
   lowcode_query: () => import("@/views/lowcode/query/index.vue"),
   lowcode_relationship: () => import("@/views/lowcode/relationship/index.vue"),
+  lowcode_target_project: () => import("@/views/lowcode/target-project/index.vue"),
   lowcode_template: () => import("@/views/lowcode/template/index.vue"),
   manage_menu: () => import("@/views/manage/menu/index.vue"),
   manage_role: () => import("@/views/manage/role/index.vue"),

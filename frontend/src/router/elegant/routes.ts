@@ -227,6 +227,15 @@ export const generatedRoutes: GeneratedRoute[] = [
         }
       },
       {
+        name: 'lowcode_target-project',
+        path: '/lowcode/target-project',
+        component: 'view.lowcode_target_project',
+        meta: {
+          title: 'lowcode_target-project',
+          i18nKey: 'route.lowcode_target-project'
+        }
+      },
+      {
         name: 'lowcode_template',
         path: '/lowcode/template',
         component: 'view.lowcode_template',
