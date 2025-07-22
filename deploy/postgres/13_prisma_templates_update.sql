@@ -1,3 +1,6 @@
+-- Lowcode Platform Schema Tables
+SET search_path TO lowcode, backend, public;
+
 -- 更新现有模板为Prisma兼容版本
 -- 执行时间: 2024-01-01
 
@@ -9,7 +12,7 @@ DELETE FROM lowcode_code_templates WHERE code IN (
 );
 
 -- 插入新的Prisma兼容模板
-INSERT INTO lowcode_code_templates (id, name, code, type, language, framework, description, template, variables, created_by) VALUES
+INSERT INTO lowcode.lowcode_code_templates (id, name, code, type, language, framework, description, template, variables, created_by) VALUES
 
 -- Prisma Schema 模板
 ('tpl-prisma-schema', 'Prisma Schema模型', 'prisma-schema', 'ENTITY_MODEL', 'TYPESCRIPT', 'NESTJS', 'Prisma Schema模型定义',

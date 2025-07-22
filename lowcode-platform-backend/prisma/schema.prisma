@@ -1,11 +1,17 @@
+// Lowcode Platform Backend Service - Core Low-code Platform Tables
+// This schema contains only low-code platform specific tables
+// System management tables are handled by the backend service
+
 generator client {
-  provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
+  provider        = "prisma-client-js"
+  output          = "../node_modules/.prisma/client"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["lowcode"]
 }
 
 model Project {
@@ -27,6 +33,7 @@ model Project {
   relations   Relation[]
 
   @@map("lowcode_projects")
+  @@schema("lowcode")
 }
 
 model Entity {
@@ -58,6 +65,7 @@ model Entity {
   @@index([projectId], map: "idx_lowcode_entities_project_id")
   @@index([status], map: "idx_lowcode_entities_status")
   @@map("lowcode_entities")
+  @@schema("lowcode")
 }
 
 model Field {
@@ -93,6 +101,7 @@ model Field {
   @@unique([entityId, code])
   @@index([entityId], map: "idx_lowcode_fields_entity_id")
   @@map("lowcode_fields")
+  @@schema("lowcode")
 }
 
 model Relation {
@@ -129,6 +138,7 @@ model Relation {
   @@index([sourceEntityId], map: "idx_lowcode_relations_source_entity")
   @@index([targetEntityId], map: "idx_lowcode_relations_target_entity")
   @@map("lowcode_relations")
+  @@schema("lowcode")
 }
 
 model ApiConfig {
@@ -157,6 +167,7 @@ model ApiConfig {
   @@unique([projectId, method, path])
   @@index([projectId], map: "idx_lowcode_api_configs_project_id")
   @@map("lowcode_api_configs")
+  @@schema("lowcode")
 }
 
 model Api {
@@ -186,6 +197,7 @@ model Api {
   @@index([entityId], map: "idx_lowcode_apis_entity_id")
   @@index([projectId], map: "idx_lowcode_apis_project_id")
   @@map("lowcode_apis")
+  @@schema("lowcode")
 }
 
 model LowcodeQuery {
@@ -218,6 +230,7 @@ model LowcodeQuery {
   @@index([projectId], map: "idx_lowcode_queries_project_id")
   @@index([status], map: "idx_lowcode_queries_status")
   @@map("lowcode_queries")
+  @@schema("lowcode")
 }
 
 model CodegenTask {
@@ -238,6 +251,7 @@ model CodegenTask {
   @@index([projectId], map: "idx_lowcode_codegen_tasks_project_id")
   @@index([status], map: "idx_lowcode_codegen_tasks_status")
   @@map("lowcode_codegen_tasks")
+  @@schema("lowcode")
 }
 
 model CodeTemplate {
@@ -258,243 +272,7 @@ model CodeTemplate {
   updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
 
   @@map("lowcode_code_templates")
+  @@schema("lowcode")
 }
 
-model casbin_rule {
-  id    Int     @id @default(autoincrement())
-  ptype String
-  v0    String?
-  v1    String?
-  v2    String?
-  v3    String?
-  v4    String?
-  v5    String?
-}
 
-model sys_access_key {
-  id                String   @id
-  domain            String
-  access_key_id     String
-  access_key_secret String   @unique
-  status            Status
-  description       String?
-  created_at        DateTime @default(now())
-  created_by        String
-}
-
-model sys_domain {
-  id          String    @id
-  code        String    @unique
-  name        String
-  description String?
-  status      Status
-  created_at  DateTime  @default(now())
-  created_by  String
-  updated_at  DateTime?
-  updated_by  String?
-}
-
-model sys_endpoint {
-  id         String    @id
-  path       String
-  method     String
-  action     String
-  resource   String
-  controller String
-  summary    String?
-  created_at DateTime  @default(now())
-  updated_at DateTime?
-
-  @@unique([path, method])
-}
-
-model sys_login_log {
-  id         String   @id
-  user_id    String
-  username   String
-  domain     String
-  login_time DateTime @default(now())
-  ip         String
-  port       Int?
-  address    String
-  user_agent String
-  request_id String
-  type       String
-  created_at DateTime @default(now())
-  created_by String
-}
-
-model sys_lowcode_page {
-  id                       String                     @id
-  name                     String                     @db.VarChar(100)
-  title                    String                     @db.VarChar(100)
-  code                     String                     @unique @db.VarChar(100)
-  description              String?
-  schema                   Json
-  status                   Status                     @default(ENABLED)
-  created_at               DateTime                   @default(now())
-  created_by               String
-  updated_at               DateTime?
-  updated_by               String?
-  sys_lowcode_page_version sys_lowcode_page_version[]
-  sys_menu                 sys_menu[]
-}
-
-model sys_lowcode_page_version {
-  id               String           @id
-  page_id          String
-  version          String           @db.VarChar(20)
-  schema           Json
-  changelog        String?
-  created_at       DateTime         @default(now())
-  created_by       String
-  sys_lowcode_page sys_lowcode_page @relation(fields: [page_id], references: [id], onDelete: Cascade)
-}
-
-model sys_menu {
-  id               Int               @id @default(autoincrement())
-  menu_type        MenuType
-  menu_name        String            @db.VarChar(64)
-  icon_type        Int?              @default(1)
-  icon             String?           @db.VarChar(64)
-  route_name       String            @db.VarChar(64)
-  route_path       String            @db.VarChar(128)
-  component        String            @db.VarChar(64)
-  path_param       String?           @db.VarChar(64)
-  status           Status
-  active_menu      String?           @db.VarChar(64)
-  hide_in_menu     Boolean?          @default(false)
-  pid              Int               @default(0)
-  sequence         Int
-  i18n_key         String?           @db.VarChar(64)
-  keep_alive       Boolean?          @default(false)
-  constant         Boolean           @default(false)
-  href             String?           @db.VarChar(64)
-  multi_tab        Boolean?          @default(false)
-  lowcode_page_id  String?           @db.VarChar(36)
-  created_at       DateTime          @default(now())
-  created_by       String
-  updated_at       DateTime?
-  updated_by       String?
-  sys_lowcode_page sys_lowcode_page? @relation(fields: [lowcode_page_id], references: [id])
-  sys_role_menu    sys_role_menu[]
-}
-
-model sys_operation_log {
-  id          String   @id
-  user_id     String
-  username    String
-  domain      String
-  module_name String
-  description String
-  request_id  String
-  method      String
-  url         String
-  ip          String
-  user_agent  String?
-  params      Json?
-  body        Json?
-  response    Json?
-  start_time  DateTime
-  end_time    DateTime
-  duration    Int
-  created_at  DateTime @default(now())
-}
-
-model sys_organization {
-  id          String    @id
-  code        String    @unique
-  name        String
-  description String?
-  pid         String    @default("0")
-  status      Status
-  created_at  DateTime  @default(now())
-  created_by  String
-  updated_at  DateTime?
-  updated_by  String?
-}
-
-model sys_role {
-  id            String          @id
-  code          String          @unique
-  name          String
-  description   String?
-  pid           String          @default("0")
-  status        Status
-  created_at    DateTime        @default(now())
-  created_by    String
-  updated_at    DateTime?
-  updated_by    String?
-  sys_role_menu sys_role_menu[]
-  sys_user_role sys_user_role[]
-}
-
-model sys_role_menu {
-  role_id  String
-  menu_id  Int
-  domain   String
-  sys_menu sys_menu @relation(fields: [menu_id], references: [id], onDelete: Cascade)
-  sys_role sys_role @relation(fields: [role_id], references: [id], onDelete: Cascade)
-
-  @@id([role_id, menu_id, domain])
-}
-
-model sys_tokens {
-  id            String   @id
-  access_token  String
-  refresh_token String
-  status        String
-  user_id       String
-  username      String
-  domain        String
-  login_time    DateTime @default(now())
-  ip            String
-  port          Int?
-  address       String
-  user_agent    String
-  request_id    String
-  type          String
-  created_at    DateTime @default(now())
-  created_by    String
-}
-
-model sys_user {
-  id            String          @id
-  username      String
-  password      String
-  domain        String
-  built_in      Boolean         @default(false)
-  avatar        String?
-  email         String?
-  phone_number  String?
-  nick_name     String
-  status        Status
-  created_at    DateTime        @default(now())
-  created_by    String
-  updated_at    DateTime?
-  updated_by    String?
-  sys_user_role sys_user_role[]
-
-  @@unique([username, domain])
-}
-
-model sys_user_role {
-  user_id  String
-  role_id  String
-  sys_role sys_role @relation(fields: [role_id], references: [id], onDelete: Cascade)
-  sys_user sys_user @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@id([user_id, role_id])
-}
-
-enum MenuType {
-  directory
-  menu
-  lowcode
-}
-
-enum Status {
-  ENABLED
-  DISABLED
-  BANNED
-}

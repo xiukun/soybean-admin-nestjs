@@ -1,8 +1,11 @@
+-- Lowcode Platform Schema Tables
+SET search_path TO lowcode, backend, public;
+
 -- 低代码平台查询管理初始化脚本
 -- Low-code Platform Query Management Initialization Script
 
 -- 确保查询管理表存在
-CREATE TABLE IF NOT EXISTS lowcode_queries (
+CREATE TABLE IF NOT EXISTS lowcode.lowcode_queries (
     id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
     project_id VARCHAR(36) NOT NULL,
     name VARCHAR(100) NOT NULL,
@@ -61,7 +64,7 @@ COMMENT ON COLUMN lowcode_queries.sql_query IS '生成的SQL查询语句';
 COMMENT ON COLUMN lowcode_queries.execution_stats IS '执行统计信息JSON';
 
 -- 插入高级示例查询数据
-INSERT INTO lowcode_queries (id, project_id, name, description, base_entity_id, base_entity_alias, fields, filters, sorting, group_by, status, created_by) VALUES 
+INSERT INTO lowcode.lowcode_queries (id, project_id, name, description, base_entity_id, base_entity_alias, fields, filters, sorting, group_by, status, created_by) VALUES 
 -- 复杂用户统计查询
 ('query-user-status-stats', 'demo-project-1', '用户状态统计', '按用户状态分组统计用户数量和最近注册时间', 'demo-entity-user', 'u',
 '[

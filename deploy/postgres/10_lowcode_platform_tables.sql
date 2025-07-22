@@ -1,8 +1,11 @@
 -- 低代码平台数据库表结构
 -- Low-code Platform Database Tables
 
+-- 设置当前schema为lowcode
+SET search_path TO lowcode, backend, public;
+
 -- 项目管理表
-CREATE TABLE IF NOT EXISTS lowcode_projects (
+CREATE TABLE IF NOT EXISTS lowcode.lowcode_projects (
     id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
     name VARCHAR(100) NOT NULL,
     code VARCHAR(100) UNIQUE NOT NULL,
@@ -17,7 +20,7 @@ CREATE TABLE IF NOT EXISTS lowcode_projects (
 );
 
 -- 实体管理表
-CREATE TABLE IF NOT EXISTS lowcode_entities (
+CREATE TABLE IF NOT EXISTS lowcode.lowcode_entities (
     id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
     project_id VARCHAR(36) NOT NULL,
     name VARCHAR(100) NOT NULL,
@@ -39,7 +42,7 @@ CREATE TABLE IF NOT EXISTS lowcode_entities (
 );
 
 -- 字段管理表
-CREATE TABLE IF NOT EXISTS lowcode_fields (
+CREATE TABLE IF NOT EXISTS lowcode.lowcode_fields (
     id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
     entity_id VARCHAR(36) NOT NULL,
     name VARCHAR(100) NOT NULL,
@@ -67,7 +70,7 @@ CREATE TABLE IF NOT EXISTS lowcode_fields (
 );
 
 -- 关系管理表
-CREATE TABLE IF NOT EXISTS lowcode_relations (
+CREATE TABLE IF NOT EXISTS lowcode.lowcode_relations (
     id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
     project_id VARCHAR(36) NOT NULL,
     name VARCHAR(100) NOT NULL,
@@ -99,7 +102,7 @@ CREATE TABLE IF NOT EXISTS lowcode_relations (
 );
 
 -- API配置管理表
-CREATE TABLE IF NOT EXISTS lowcode_api_configs (
+CREATE TABLE IF NOT EXISTS lowcode.lowcode_api_configs (
     id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
     project_id VARCHAR(36) NOT NULL,
     name VARCHAR(100) NOT NULL,
@@ -125,7 +128,7 @@ CREATE TABLE IF NOT EXISTS lowcode_api_configs (
 );
 
 -- API管理表
-CREATE TABLE IF NOT EXISTS lowcode_apis (
+CREATE TABLE IF NOT EXISTS lowcode.lowcode_apis (
     id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
     project_id VARCHAR(36) NOT NULL,
     entity_id VARCHAR(36),
@@ -151,7 +154,7 @@ CREATE TABLE IF NOT EXISTS lowcode_apis (
 );
 
 -- 查询管理表
-CREATE TABLE IF NOT EXISTS lowcode_queries (
+CREATE TABLE IF NOT EXISTS lowcode.lowcode_queries (
     id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
     project_id VARCHAR(36) NOT NULL,
     name VARCHAR(100) NOT NULL,
@@ -179,7 +182,7 @@ CREATE TABLE IF NOT EXISTS lowcode_queries (
 );
 
 -- 代码生成任务表
-CREATE TABLE IF NOT EXISTS lowcode_codegen_tasks (
+CREATE TABLE IF NOT EXISTS lowcode.lowcode_codegen_tasks (
     id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
     project_id VARCHAR(36) NOT NULL,
     name VARCHAR(100) NOT NULL,
@@ -196,7 +199,7 @@ CREATE TABLE IF NOT EXISTS lowcode_codegen_tasks (
 );
 
 -- 代码模板表
-CREATE TABLE IF NOT EXISTS lowcode_code_templates (
+CREATE TABLE IF NOT EXISTS lowcode.lowcode_code_templates (
     id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
     name VARCHAR(100) NOT NULL,
     code VARCHAR(100) UNIQUE NOT NULL,

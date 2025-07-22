@@ -1,8 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Backend Service - System Management Core
+// This schema contains core system management tables for the backend service
+// Other services should access these tables through API calls, not direct database access
 
 generator client {
   provider        = "prisma-client-js"
@@ -13,6 +11,7 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_DATABASE_URL")
+  schemas   = ["backend"]
 }
 
 model SysTokens {
@@ -34,6 +33,7 @@ model SysTokens {
   createdBy    String   @map("created_by")
 
   @@map("sys_tokens")
+  @@schema("backend")
 }
 
 // 用户表
@@ -54,12 +54,15 @@ model SysUser {
   updatedBy   String?   @map("updated_by")
 
   @@map("sys_user")
+  @@schema("backend")
 }
 
 enum Status {
   ENABLED
   DISABLED
   BANNED
+
+  @@schema("backend")
 }
 
 // casbin_rule
@@ -74,6 +77,7 @@ model CasbinRule {
   v5    String?
 
   @@map("casbin_rule")
+  @@schema("backend")
 }
 
 // domain 租户/域
@@ -89,6 +93,7 @@ model SysDomain {
   updatedBy   String?   @map("updated_by")
 
   @@map("sys_domain")
+  @@schema("backend")
 }
 
 // 角色表
@@ -105,6 +110,7 @@ model SysRole {
   updatedBy   String?   @map("updated_by")
 
   @@map("sys_role")
+  @@schema("backend")
 }
 
 model SysUserRole {
@@ -113,6 +119,7 @@ model SysUserRole {
 
   @@id([userId, roleId])
   @@map("sys_user_role")
+  @@schema("backend")
 }
 
 // 接口资源表
@@ -128,6 +135,7 @@ model SysEndpoint {
   updatedAt  DateTime? @updatedAt @map("updated_at")
 
   @@map("sys_endpoint")
+  @@schema("backend")
 }
 
 // 组织机构
@@ -144,6 +152,7 @@ model SysOrganization {
   updatedBy   String?   @map("updated_by")
 
   @@map("sys_organization")
+  @@schema("backend")
 }
 
 model SysLoginLog {
@@ -162,6 +171,7 @@ model SysLoginLog {
   createdBy String   @map("created_by")
 
   @@map("sys_login_log")
+  @@schema("backend")
 }
 
 model SysOperationLog {
@@ -185,12 +195,15 @@ model SysOperationLog {
   createdAt   DateTime @default(now()) @map("created_at")
 
   @@map("sys_operation_log")
+  @@schema("backend")
 }
 
 enum MenuType {
   directory
   menu
   lowcode
+
+  @@schema("backend")
 }
 
 model SysMenu {
@@ -227,6 +240,7 @@ model SysMenu {
   updatedBy String?   @map("updated_by")
 
   @@map("sys_menu")
+  @@schema("backend")
 }
 
 model SysRoleMenu {
@@ -236,6 +250,7 @@ model SysRoleMenu {
 
   @@id([roleId, menuId, domain])
   @@map("sys_role_menu")
+  @@schema("backend")
 }
 
 // 低代码页面表
@@ -259,6 +274,7 @@ model SysLowcodePage {
   menus SysMenu[]
 
   @@map("sys_lowcode_page")
+  @@schema("backend")
 }
 
 // 低代码页面版本表
@@ -275,6 +291,7 @@ model SysLowcodePageVersion {
   page SysLowcodePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
 
   @@map("sys_lowcode_page_version")
+  @@schema("backend")
 }
 
 model SysAccessKey {
@@ -288,4 +305,5 @@ model SysAccessKey {
   createdBy       String   @map("created_by")
 
   @@map("sys_access_key")
+  @@schema("backend")
 }

@@ -1,9 +1,12 @@
+-- Lowcode Platform Schema Tables
+SET search_path TO lowcode, backend, public;
+
 -- 低代码平台初始数据
 -- Low-code Platform Initial Data
 -- 执行时间: 2024-07-21
 
 -- 插入默认代码模板
-INSERT INTO lowcode_code_templates (id, name, code, type, language, framework, description, template, variables, created_by) VALUES 
+INSERT INTO lowcode.lowcode_code_templates (id, name, code, type, language, framework, description, template, variables, created_by) VALUES 
 -- NestJS Prisma Entity Model 模板
 ('tpl-nestjs-entity-model', 'NestJS Prisma实体模型', 'nestjs-prisma-entity-model', 'ENTITY_MODEL', 'TYPESCRIPT', 'NESTJS', 'NestJS Prisma实体模型代码模板',
 '// Prisma Schema Model for {{entityName}}
@@ -451,13 +454,13 @@ export class {{entityName}}Repository {
 'system');
 
 -- 插入示例项目
-INSERT INTO lowcode_projects (id, name, code, description, config, created_by) VALUES 
+INSERT INTO lowcode.lowcode_projects (id, name, code, description, config, created_by) VALUES 
 ('demo-project-1', '示例项目', 'demo-project', '这是一个演示低代码平台功能的示例项目', 
 '{"database":{"type":"postgresql","host":"localhost","port":5432},"api":{"baseUrl":"/api/v1","prefix":"demo"}}', 
 'system');
 
 -- 插入示例实体
-INSERT INTO lowcode_entities (id, project_id, name, code, table_name, description, category, config, created_by) VALUES 
+INSERT INTO lowcode.lowcode_entities (id, project_id, name, code, table_name, description, category, config, created_by) VALUES 
 ('demo-entity-user', 'demo-project-1', '用户', 'User', 'demo_users', '用户实体，包含基本的用户信息', '用户管理', 
 '{"displayName":"用户","icon":"user","color":"#1890ff"}', 
 'system'),
@@ -466,7 +469,7 @@ INSERT INTO lowcode_entities (id, project_id, name, code, table_name, descriptio
 'system');
 
 -- 插入示例字段
-INSERT INTO lowcode_fields (id, entity_id, name, code, type, length, nullable, unique_constraint, primary_key, comment, sort_order, created_by) VALUES 
+INSERT INTO lowcode.lowcode_fields (id, entity_id, name, code, type, length, nullable, unique_constraint, primary_key, comment, sort_order, created_by) VALUES 
 -- 用户实体字段
 ('field-user-id', 'demo-entity-user', 'ID', 'id', 'UUID', NULL, false, true, true, '用户唯一标识', 1, 'system'),
 ('field-user-username', 'demo-entity-user', '用户名', 'username', 'STRING', 50, false, true, false, '用户登录名', 2, 'system'),
@@ -483,14 +486,14 @@ INSERT INTO lowcode_fields (id, entity_id, name, code, type, length, nullable, u
 ('field-role-status', 'demo-entity-role', '状态', 'status', 'STRING', 20, false, false, false, '角色状态：ACTIVE, INACTIVE', 5, 'system');
 
 -- 插入示例关系
-INSERT INTO lowcode_relations (id, project_id, name, code, description, type, source_entity_id, target_entity_id, config, created_by) VALUES 
+INSERT INTO lowcode.lowcode_relations (id, project_id, name, code, description, type, source_entity_id, target_entity_id, config, created_by) VALUES 
 ('rel-user-role', 'demo-project-1', '用户角色关系', 'user-roles', '用户与角色的多对多关系', 'MANY_TO_MANY', 
 'demo-entity-user', 'demo-entity-role', 
 '{"joinTable":"demo_user_roles","sourceColumn":"user_id","targetColumn":"role_id"}', 
 'system');
 
 -- 插入示例API配置
-INSERT INTO lowcode_api_configs (id, project_id, name, code, description, method, path, entity_id, parameters, responses, created_by) VALUES
+INSERT INTO lowcode.lowcode_api_configs (id, project_id, name, code, description, method, path, entity_id, parameters, responses, created_by) VALUES
 ('api-user-list', 'demo-project-1', '获取用户列表', 'get-users', '获取用户列表API', 'GET', '/users', 'demo-entity-user',
 '[{"name":"page","type":"number","description":"页码","required":false},{"name":"limit","type":"number","description":"每页数量","required":false}]',
 '[{"status":200,"description":"成功","schema":{"type":"array","items":{"$ref":"#/components/schemas/User"}}}]',
@@ -501,7 +504,7 @@ INSERT INTO lowcode_api_configs (id, project_id, name, code, description, method
 'system');
 
 -- 插入示例查询
-INSERT INTO lowcode_queries (id, project_id, name, description, base_entity_id, base_entity_alias, fields, filters, sorting, status, created_by) VALUES
+INSERT INTO lowcode.lowcode_queries (id, project_id, name, description, base_entity_id, base_entity_alias, fields, filters, sorting, status, created_by) VALUES
 ('query-active-users', 'demo-project-1', '活跃用户查询', '查询所有状态为活跃的用户', 'demo-entity-user', 'user',
 '[{"field":"id","alias":"用户ID","type":"UUID"},{"field":"username","alias":"用户名","type":"STRING"},{"field":"email","alias":"邮箱","type":"STRING"},{"field":"nickname","alias":"昵称","type":"STRING"},{"field":"status","alias":"状态","type":"STRING"}]',
 '[{"field":"status","operator":"eq","value":"ACTIVE","type":"STRING"}]',
@@ -522,7 +525,7 @@ INSERT INTO lowcode_queries (id, project_id, name, description, base_entity_id, 
 'system');
 
 -- 为低代码平台菜单添加权限（ID从100开始）
-INSERT INTO public.sys_menu (id, menu_type, menu_name, icon_type, icon, route_name, route_path, component, path_param, status, active_menu, hide_in_menu, pid, sequence, i18n_key, keep_alive, constant, href, multi_tab, lowcode_page_id, created_at, created_by, updated_at, updated_by) VALUES
+INSERT INTO backend.sys_menu (id, menu_type, menu_name, icon_type, icon, route_name, route_path, component, path_param, status, active_menu, hide_in_menu, pid, sequence, i18n_key, keep_alive, constant, href, multi_tab, lowcode_page_id, created_at, created_by, updated_at, updated_by) VALUES
 (100, 'directory', 'lowcode', 1, 'carbon:application-web', 'lowcode', '/lowcode', 'layout.base', null, 'ENABLED', null, false, 0, 6, 'route.lowcode', false, false, null, false, null, '2024-07-18 00:00:00.000', 'system', null, null),
 (101, 'menu', 'lowcode_project', 1, 'carbon:folder-details', 'lowcode_project', '/lowcode/project', 'view.lowcode_project', null, 'ENABLED', null, false, 100, 1, 'route.lowcode_project', false, false, null, false, null, '2024-07-18 00:00:00.000', 'system', null, null),
 (102, 'menu', 'lowcode_entity', 1, 'carbon:data-table', 'lowcode_entity', '/lowcode/entity', 'view.lowcode_entity', null, 'ENABLED', null, false, 100, 2, 'route.lowcode_entity', false, false, null, false, null, '2024-07-18 00:00:00.000', 'system', null, null),
@@ -535,7 +538,7 @@ INSERT INTO public.sys_menu (id, menu_type, menu_name, icon_type, icon, route_na
 (109, 'menu', 'lowcode_code-generation', 1, 'carbon:code', 'lowcode_code-generation', '/lowcode/code-generation', 'view.lowcode_code-generation', null, 'ENABLED', null, false, 100, 9, 'route.lowcode_code-generation', false, false, null, false, null, '2024-07-18 00:00:00.000', 'system', null, null);
 
 -- 为管理员角色添加低代码平台菜单权限
-INSERT INTO public.sys_role_menu (role_id, menu_id, domain) VALUES 
+INSERT INTO backend.sys_role_menu (role_id, menu_id, domain) VALUES 
 ('1', 100, 'built-in'),
 ('1', 101, 'built-in'),
 ('1', 102, 'built-in'),

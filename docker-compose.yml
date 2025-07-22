@@ -54,9 +54,9 @@ services:
       APP_PORT: 9528
       DOC_SWAGGER_ENABLE: 'true'
       DOC_SWAGGER_PATH: 'api-docs'
-      # 数据库配置
-      DATABASE_URL: 'postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend?schema=public'
-      DIRECT_DATABASE_URL: 'postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend?schema=public'
+      # 数据库配置 - Backend Schema
+      DATABASE_URL: 'postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend?schema=backend'
+      DIRECT_DATABASE_URL: 'postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend?schema=backend'
       # Redis配置
       REDIS_HOST: 'redis'
       REDIS_PORT: 6379
@@ -116,8 +116,8 @@ services:
       NODE_ENV: production
       PORT: 3000
       SERVICE_NAME: 'lowcode-platform'
-      # 数据库配置 - 独立数据库
-      DATABASE_URL: 'postgresql://soybean:soybean@123.@postgres:5432/lowcode-platform-backend?schema=public'
+      # 数据库配置 - Lowcode Schema
+      DATABASE_URL: 'postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend?schema=lowcode'
       # Redis配置 - 独立DB
       REDIS_HOST: 'redis'
       REDIS_PORT: 6379
@@ -191,8 +191,8 @@ services:
       NODE_ENV: production
       PORT: 9522
       SERVICE_NAME: 'amis-backend'
-      # 数据库配置 - 共享数据库
-      DATABASE_URL: 'postgresql://soybean:soybean@123.@postgres:5432/lowcode-platform-backend?schema=public'
+      # 数据库配置 - AMIS Schema
+      DATABASE_URL: 'postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend?schema=amis'
       # Redis配置 - 独立DB
       REDIS_HOST: 'redis'
       REDIS_PORT: 6379

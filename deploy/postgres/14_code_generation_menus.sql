@@ -1,8 +1,11 @@
+-- Lowcode Platform Schema Tables
+SET search_path TO lowcode, backend, public;
+
 -- 代码生成器菜单和权限初始化
 -- 此文件包含代码生成器相关的菜单项、页面配置和权限设置
 
 -- 首先插入低代码页面配置
-INSERT INTO public.sys_lowcode_page (id, name, title, code, description, schema, status, created_by, created_at) VALUES 
+INSERT INTO backend.sys_lowcode_page (id, name, title, code, description, schema, status, created_by, created_at) VALUES 
 ('code-generation-page', '代码生成器', '代码生成器', 'code-generation', '从实体定义生成完整的业务代码',
  '{
    "type": "page",
@@ -193,7 +196,7 @@ INSERT INTO public.sys_lowcode_page (id, name, title, code, description, schema,
  'ENABLED', 'system', NOW());
 
 -- 插入低代码页面版本数据
-INSERT INTO public.sys_lowcode_page_version (id, page_id, version, schema, changelog, created_by, created_at) VALUES 
+INSERT INTO backend.sys_lowcode_page_version (id, page_id, version, schema, changelog, created_by, created_at) VALUES 
 ('code-generation-version-1', 'code-generation-page', '1.0.0', 
  '{"type":"page","title":"代码生成器","body":[{"type":"form","api":"/api/v1/code-generation/generate"}]}',
  '初始版本 - 代码生成器功能', 'system', NOW()),
@@ -202,12 +205,12 @@ INSERT INTO public.sys_lowcode_page_version (id, page_id, version, schema, chang
  '初始版本 - 目标项目管理功能', 'system', NOW());
 
 -- 添加低代码平台主菜单（如果不存在）
-INSERT INTO public.sys_menu (id, menu_type, menu_name, icon_type, icon, route_name, route_path, component, path_param, status, active_menu, hide_in_menu, pid, sequence, i18n_key, keep_alive, constant, href, multi_tab, lowcode_page_id, created_at, created_by, updated_at, updated_by) 
+INSERT INTO backend.sys_menu (id, menu_type, menu_name, icon_type, icon, route_name, route_path, component, path_param, status, active_menu, hide_in_menu, pid, sequence, i18n_key, keep_alive, constant, href, multi_tab, lowcode_page_id, created_at, created_by, updated_at, updated_by) 
 SELECT 100, 'directory', '低代码平台', 1, 'mdi:code-braces', 'lowcode', '/lowcode', 'layout.base', null, 'ENABLED', null, false, 0, 3, 'route.lowcode', false, false, null, false, null, NOW(), 'system', null, null
 WHERE NOT EXISTS (SELECT 1 FROM public.sys_menu WHERE route_name = 'lowcode');
 
 -- 添加低代码平台子菜单
-INSERT INTO public.sys_menu (id, menu_type, menu_name, icon_type, icon, route_name, route_path, component, path_param, status, active_menu, hide_in_menu, pid, sequence, i18n_key, keep_alive, constant, href, multi_tab, lowcode_page_id, created_at, created_by, updated_at, updated_by) VALUES
+INSERT INTO backend.sys_menu (id, menu_type, menu_name, icon_type, icon, route_name, route_path, component, path_param, status, active_menu, hide_in_menu, pid, sequence, i18n_key, keep_alive, constant, href, multi_tab, lowcode_page_id, created_at, created_by, updated_at, updated_by) VALUES
 -- 实体管理
 (101, 'menu', '实体管理', 1, 'mdi:database-outline', 'lowcode_entity', '/lowcode/entity', 'view.lowcode_entity', null, 'ENABLED', null, false, 100, 1, 'route.lowcode_entity', true, false, null, false, null, NOW(), 'system', null, null),
 -- 字段管理
@@ -231,7 +234,7 @@ INSERT INTO public.sys_menu (id, menu_type, menu_name, icon_type, icon, route_na
 
 -- 为超级管理员角色添加新菜单权限
 -- 注意：这里假设超级管理员角色ID为'1'，domain为'soybean'
-INSERT INTO public.sys_role_menu (role_id, menu_id, domain) VALUES 
+INSERT INTO backend.sys_role_menu (role_id, menu_id, domain) VALUES 
 ('1', 100, 'soybean'),  -- 低代码平台主菜单
 ('1', 101, 'soybean'),  -- 实体管理
 ('1', 102, 'soybean'),  -- 字段管理
@@ -245,7 +248,7 @@ INSERT INTO public.sys_role_menu (role_id, menu_id, domain) VALUES
 ('1', 110, 'soybean');  -- 目标项目管理
 
 -- 为管理员角色添加新菜单权限（如果存在管理员角色）
-INSERT INTO public.sys_role_menu (role_id, menu_id, domain) 
+INSERT INTO backend.sys_role_menu (role_id, menu_id, domain) 
 SELECT 'admin-role-001', menu_id, 'soybean' 
 FROM (VALUES (100), (101), (102), (103), (104), (105), (106), (107), (108), (109), (110)) AS menu_ids(menu_id)
 WHERE EXISTS (SELECT 1 FROM public.sys_role WHERE id = 'admin-role-001');
