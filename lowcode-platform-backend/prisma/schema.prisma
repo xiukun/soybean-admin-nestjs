@@ -70,12 +70,15 @@ model Field {
   precision        Int?
   scale            Int?
   nullable         Boolean?   @default(true)
+  required         Boolean?   @default(false)
   uniqueConstraint Boolean?   @default(false) @map("unique_constraint")
   indexed          Boolean?   @default(false)
   primaryKey       Boolean?   @default(false) @map("primary_key")
   defaultValue     String?    @map("default_value")
   validationRules  Json?      @map("validation_rules")
+  validation       Json?
   referenceConfig  Json?      @map("reference_config")
+  config           Json?
   enumOptions      Json?      @map("enum_options")
   comment          String?
   sortOrder        Int?       @default(0) @map("sort_order")

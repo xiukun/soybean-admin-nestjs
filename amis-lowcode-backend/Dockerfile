@@ -11,7 +11,7 @@ FROM node:${NODE_VERSION}-alpine AS base
 WORKDIR /usr/src/app/amis-lowcode-backend
 
 # Install system dependencies and pnpm
-RUN apk --no-cache add curl
+RUN apk --no-cache add curl sudo
 # Install pnpm.
 RUN --mount=type=cache,target=/root/.npm \
     npm install -g pnpm@${PNPM_VERSION}
@@ -46,6 +46,14 @@ COPY . .
 # Generate Prisma client and build the application
 RUN pnpm prisma:generate && pnpm build
 
+# Copy generated Prisma client to a temporary location for later use
+RUN if [ -d "node_modules/.prisma" ]; then \
+        cp -r node_modules/.prisma /tmp/prisma-client; \
+    else \
+        echo "No .prisma directory found, creating empty directory"; \
+        mkdir -p /tmp/prisma-client; \
+    fi
+
 ################################################################################
 # Create a new stage to run the application with minimal runtime dependencies
 # where the necessary files are copied from the build stage.
@@ -72,6 +80,8 @@ COPY package.json .
 COPY --from=deps /usr/src/app/amis-lowcode-backend/node_modules ./node_modules
 COPY --from=build /usr/src/app/amis-lowcode-backend/dist ./dist
 COPY --from=build /usr/src/app/amis-lowcode-backend/prisma ./prisma
+# Copy the generated Prisma client from temporary location
+COPY --from=build /tmp/prisma-client ./node_modules/.prisma
 
 # Copy startup script
 COPY docker/startup.sh ./startup.sh

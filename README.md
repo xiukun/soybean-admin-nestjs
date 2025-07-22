@@ -149,7 +149,34 @@ docker-compose logs -f [service_name]
 docker-compose down
 
 # 测试部署
-./test-docker-deployment.sh
+./test-docker.sh full
+```
+
+### 🛠️ 管理工具脚本
+
+项目提供了完整的管理工具脚本，方便日常运维：
+
+```bash
+# 快速部署脚本
+./quick-deploy.sh full        # 完整部署流程
+./quick-deploy.sh start       # 启动服务
+./quick-deploy.sh status      # 查看状态
+
+# 系统监控脚本
+./monitor.sh status           # 显示服务状态
+./monitor.sh health           # 健康检查
+./monitor.sh watch            # 持续监控模式
+./monitor.sh report           # 生成监控报告
+
+# 数据备份脚本
+./backup.sh backup            # 创建完整备份
+./backup.sh backup-db         # 仅备份数据库
+./backup.sh list              # 列出所有备份
+./backup.sh restore <file>    # 恢复备份
+
+# 健康检查脚本
+./health-check.sh check       # 检查所有服务
+./health-check.sh monitor 30  # 每30秒监控一次
 ```
 
 详细的 Docker 部署说明请参考：[DOCKER_DEPLOYMENT.md](./DOCKER_DEPLOYMENT.md)

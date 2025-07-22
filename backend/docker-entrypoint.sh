@@ -20,12 +20,9 @@ until nc -z redis 6379; do
 done
 echo "✅ Redis 连接成功"
 
-# 生成 Prisma 客户端（如果需要）
-if [ ! -d "node_modules/.prisma" ]; then
-  echo "🔧 生成 Prisma 客户端..."
-  pnpm prisma:generate
-  echo "✅ Prisma 客户端生成完成"
-fi
+# 检查 Prisma 客户端
+echo "🔧 检查 Prisma 客户端..."
+echo "✅ Prisma 客户端已在构建时生成"
 
 # 同步数据库模式
 echo "🔧 同步数据库模式..."

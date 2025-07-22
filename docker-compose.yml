@@ -4,35 +4,49 @@ services:
     build:
       context: frontend/
     # image: soybean-admin-frontend:1.2.7
+    container_name: soybean-frontend
     environment:
       TZ: Asia/Shanghai
+      # 前端环境变量
+      VITE_SERVICE_BASE_URL: 'http://localhost:9528/v1'
+      VITE_OTHER_SERVICE_BASE_URL: '{"lowcodeService": "http://localhost:3000/api/v1", "amisService": "http://localhost:9522/api/v1"}'
     depends_on:
       backend:
+        condition: service_healthy
+      lowcode-platform:
         condition: service_healthy
     ports:
       - '9527:80'
     networks:
       - soybean-admin
+    restart: unless-stopped
 
   lowcode-designer:
     build:
       context: .
       dockerfile: lowcode-designer/Dockerfile
     # image: soybean-admin-lowcode-designer:1.0.0
+    container_name: soybean-lowcode-designer
     environment:
       TZ: Asia/Shanghai
+      # 设计器环境变量
+      VITE_API_BASE_URL: 'http://localhost:3000/api/v1'
     depends_on:
       backend:
+        condition: service_healthy
+      lowcode-platform:
         condition: service_healthy
     ports:
       - '9555:80'
     networks:
       - soybean-admin
+    restart: unless-stopped
 
   backend:
     build:
       context: backend/
     # image: soybean-admin-backend:0.0.1
+    container_name: soybean-backend
     environment:
       TZ: Asia/Shanghai
       CASBIN_MODEL: 'model.conf'
@@ -40,19 +54,26 @@ services:
       APP_PORT: 9528
       DOC_SWAGGER_ENABLE: 'true'
       DOC_SWAGGER_PATH: 'api-docs'
-      DATABASE_URL: 'postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend?schema=public'
-      DIRECT_DATABASE_URL: 'postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend?schema=public'
+      # 数据库配置
+      DATABASE_URL: 'postgresql://soybean:soybean%40123.@postgres:5432/soybean-admin-nest-backend?schema=public'
+      DIRECT_DATABASE_URL: 'postgresql://soybean:soybean%40123.@postgres:5432/soybean-admin-nest-backend?schema=public'
+      # Redis配置
       REDIS_HOST: 'redis'
       REDIS_PORT: 6379
       REDIS_PASSWORD: '123456'
       REDIS_DB: 1
+      # JWT配置 - 统一密钥
       JWT_SECRET: 'JWT_SECRET-soybean-admin-nest@123456!@#.'
       JWT_EXPIRE_IN: 3600
       REFRESH_TOKEN_SECRET: 'REFRESH_TOKEN_EXPIRE_IN-soybean-admin-nest@123456!@#.'
       REFRESH_TOKEN_EXPIRE_IN: 7200
+      # 服务间通信配置
+      SERVICE_NAME: 'backend'
+      LOWCODE_PLATFORM_URL: 'http://lowcode-platform:3000'
+      AMIS_BACKEND_URL: 'http://amis-backend:9522'
       # CORS配置
       CORS_ENABLED: 'true'
-      CORS_ORIGIN: 'http://localhost:9527,http://127.0.0.1:9527,http://localhost:9528,http://127.0.0.1:9528,http://localhost:9529,http://127.0.0.1:9529,http://localhost:9555,http://127.0.0.1:9555,http://localhost:3000,http://127.0.0.1:3000'
+      CORS_ORIGIN: 'http://localhost:9527,http://127.0.0.1:9527,http://localhost:9528,http://127.0.0.1:9528,http://localhost:9555,http://127.0.0.1:9555,http://localhost:3000,http://127.0.0.1:3000,http://localhost:9522,http://127.0.0.1:9522'
       CORS_METHODS: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS'
       CORS_CREDENTIALS: 'true'
       CORS_MAX_AGE: 3600
@@ -65,36 +86,58 @@ services:
       - '9528:9528'
     networks:
       - soybean-admin
+    volumes:
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
     healthcheck:
       test: ["CMD", "curl", "-f", "http://backend:9528/v1/route/getConstantRoutes"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 60s
-    cpus: 2
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 1G
+          cpus: '1.0'
 
   # Low-code Platform Backend (3000)
   lowcode-platform:
     build:
       context: lowcode-platform-backend/
     # image: lowcode-platform-backend:1.0.0
+    container_name: soybean-lowcode-platform
     environment:
       TZ: Asia/Shanghai
       NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: 'postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend?schema=public'
+      SERVICE_NAME: 'lowcode-platform'
+      # 数据库配置 - 共享数据库
+      DATABASE_URL: 'postgresql://soybean:soybean%40123.@postgres:5432/soybean-admin-nest-backend?schema=public'
+      # Redis配置 - 独立DB
       REDIS_HOST: 'redis'
       REDIS_PORT: 6379
       REDIS_PASSWORD: '123456'
       REDIS_DB: 2
+      # JWT配置 - 统一密钥
       JWT_SECRET: 'JWT_SECRET-soybean-admin-nest@123456!@#.'
-      BASE_SYSTEM_URL: 'http://backend:9528'
+      JWT_EXPIRES_IN: '7d'
+      # 服务间通信配置
+      BACKEND_URL: 'http://backend:9528'
       AMIS_BACKEND_URL: 'http://amis-backend:9522'
       AMIS_BACKEND_PATH: '/app/amis-backend'
       # 数据库初始化配置
       RUN_MIGRATIONS: 'true'
       AUTO_INIT_DATA: 'true'
       FIRST_RUN_DETECTION: 'true'
+      # 数据同步配置
+      DATA_SYNC_ENABLED: 'true'
+      DATA_SYNC_INTERVAL: '30000'
+      DATA_SYNC_BATCH_SIZE: '100'
       # 性能和监控配置
       METRICS_ENABLED: 'true'
       PERFORMANCE_MONITORING: 'true'
@@ -122,11 +165,12 @@ services:
       - ./uploads:/app/uploads
       - ./examples:/app/examples:ro
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://lowcode-platform:3000/api/v1/projects"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -141,22 +185,35 @@ services:
     build:
       context: amis-lowcode-backend/
     # image: amis-lowcode-backend:1.0.0
+    container_name: soybean-amis-backend
     environment:
       TZ: Asia/Shanghai
       NODE_ENV: production
       PORT: 9522
-      DATABASE_URL: 'postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend?schema=public'
+      SERVICE_NAME: 'amis-backend'
+      # 数据库配置 - 共享数据库
+      DATABASE_URL: 'postgresql://soybean:soybean%40123.@postgres:5432/soybean-admin-nest-backend?schema=public'
+      # Redis配置 - 独立DB
       REDIS_HOST: 'redis'
       REDIS_PORT: 6379
       REDIS_PASSWORD: '123456'
       REDIS_DB: 3
+      # JWT配置 - 统一密钥
       JWT_SECRET: 'JWT_SECRET-soybean-admin-nest@123456!@#.'
+      JWT_EXPIRES_IN: '7d'
+      # 服务间通信配置
+      BACKEND_URL: 'http://backend:9528'
+      LOWCODE_PLATFORM_URL: 'http://lowcode-platform:3000'
       # 自动初始化配置
       AUTO_INIT_DATA: 'true'
       FIRST_RUN_DETECTION: 'true'
+      DOCKER_ENV: 'true'
+      # 数据同步配置
+      DATA_SYNC_ENABLED: 'true'
+      DATA_SYNC_INTERVAL: '30000'
       # CORS配置
       CORS_ENABLED: 'true'
-      CORS_ORIGIN: 'http://localhost:9527,http://127.0.0.1:9527,http://localhost:3000,http://127.0.0.1:3000'
+      CORS_ORIGIN: 'http://localhost:9527,http://127.0.0.1:9527,http://localhost:3000,http://127.0.0.1:3000,http://localhost:9555,http://127.0.0.1:9555'
       CORS_METHODS: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS'
       CORS_CREDENTIALS: 'true'
     depends_on:
@@ -177,6 +234,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -188,15 +246,18 @@ services:
 
   postgres:
     image: postgres:16.3
+    container_name: soybean-postgres
     environment:
       TZ: Asia/Shanghai
       POSTGRES_PASSWORD: soybean@123.
       POSTGRES_USER: soybean
       POSTGRES_DB: soybean-admin-nest-backend
+      # 性能优化配置
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     ports:
       - '25432:5432'
     volumes:
-      - soybean-admin-postgres_data:/usr/share/docker/postgresql
+      - soybean-admin-postgres_data:/var/lib/postgresql/data
       - ./deploy/postgres:/docker-entrypoint-initdb.d
     networks:
       - soybean-admin
@@ -205,29 +266,48 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
 
   pgbouncer:
     image: bitnami/pgbouncer:1.23.1
-    container_name: pgbouncer
+    container_name: soybean-pgbouncer
     hostname: pgbouncer
-    restart: always
+    restart: unless-stopped
     environment:
-      - PGBOUNCER_DATABASE=*
-      - POSTGRESQL_USERNAME=soybean
-      - POSTGRESQL_PASSWORD=soybean@123.
-      - POSTGRESQL_DATABASE=soybean-admin-nest-backend
-      - POSTGRESQL_HOST=postgres
-      - POSTGRESQL_PORT=5432
+      TZ: Asia/Shanghai
+      PGBOUNCER_DATABASE: '*'
+      POSTGRESQL_USERNAME: soybean
+      POSTGRESQL_PASSWORD: 'soybean@123.'
+      POSTGRESQL_DATABASE: soybean-admin-nest-backend
+      POSTGRESQL_HOST: postgres
+      POSTGRESQL_PORT: 5432
+      # 连接池配置
+      PGBOUNCER_POOL_MODE: transaction
+      PGBOUNCER_MAX_CLIENT_CONN: 100
+      PGBOUNCER_DEFAULT_POOL_SIZE: 20
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
-      - 6432:6432
+      - '6432:6432'
     networks:
       - soybean-admin
 
   redis:
     image: redis/redis-stack:7.2.0-v11
+    container_name: soybean-redis
     environment:
       TZ: Asia/Shanghai
-    command: redis-server --requirepass 123456
+    command: redis-server --requirepass 123456 --maxmemory 256mb --maxmemory-policy allkeys-lru
     ports:
       - '26379:6379'
     volumes:
@@ -239,10 +319,26 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
 
 volumes:
   soybean-admin-postgres_data:
+    driver: local
+    name: soybean-admin-postgres_data
   soybean-admin-redis_data:
+    driver: local
+    name: soybean-admin-redis_data
 
 networks:
   soybean-admin:
+    driver: bridge
+    name: soybean-admin-network

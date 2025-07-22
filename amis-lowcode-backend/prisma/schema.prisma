@@ -3,11 +3,13 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["amis"]
 }
 
 model User {
@@ -24,7 +26,11 @@ model User {
   createdBy String? @map("created_by")
   updatedBy String? @map("updated_by")
 
+  // 关联关系
+  userRoles UserRole[]
+
   @@map("demo_users")
+  @@schema("amis")
 }
 model Role {
   tenantId String? @map("tenant_id")
@@ -38,7 +44,45 @@ model Role {
   createdBy String? @map("created_by")
   updatedBy String? @map("updated_by")
 
+  // 关联关系
+  userRoles UserRole[]
+
   @@map("demo_roles")
+  @@schema("amis")
+}
+
+model UserRole {
+  id String @id @default(cuid())
+  userId String @map("user_id")
+  roleId String @map("role_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // 关联关系
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId], name: "userId_roleId")
+  @@map("demo_user_roles")
+  @@schema("amis")
+}
+
+model PageTemplate {
+  id String @id @default(cuid())
+  name String
+  description String?
+  content String // JSON格式的页面配置
+  category String?
+  tags String[] // 标签数组
+  isPublic Boolean @default(false) @map("is_public")
+  status String @default("ACTIVE")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+  createdBy String? @map("created_by")
+  updatedBy String? @map("updated_by")
+
+  @@map("demo_page_templates")
+  @@schema("amis")
 }
 
 model TestUser {
@@ -71,4 +115,5 @@ model TestUser {
   @@unique([email], name: "uk_test_users_email")
 
   @@map("test_users")
+  @@schema("amis")
 }

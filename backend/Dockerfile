@@ -74,11 +74,14 @@ COPY package.json .
 # the built application from the build stage into the image.
 COPY --from=build /usr/src/app/soybean/backend/node_modules ./node_modules
 COPY --from=build /usr/src/app/soybean/backend/dist ./dist
+COPY --from=build /usr/src/app/soybean/backend/prisma ./prisma
 COPY ./ecosystem.config.js ./ecosystem.config.js
 
+# Copy and make the entrypoint script executable
+COPY --chmod=755 ./docker-entrypoint.sh ./docker-entrypoint.sh
 
 # Expose the port that the application listens on.
 EXPOSE 9528
 
 # Run the application.
-CMD ["pm2-runtime", "./ecosystem.config.js"]
+ENTRYPOINT ["./docker-entrypoint.sh"]

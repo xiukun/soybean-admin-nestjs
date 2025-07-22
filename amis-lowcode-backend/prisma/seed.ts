@@ -136,7 +136,7 @@ async function main() {
         name: 'CRUD列表页面',
         description: '标准的增删改查列表页面模板',
         category: '数据管理',
-        schema: {
+        content: JSON.stringify({
           type: 'page',
           title: '数据管理',
           body: [
@@ -172,8 +172,7 @@ async function main() {
               ]
             }
           ]
-        },
-        variables: ['entityName', 'apiPath', 'fields'],
+        }),
         status: 'ACTIVE',
         createdBy: 'system',
       },
@@ -182,7 +181,7 @@ async function main() {
         name: '表单页面',
         description: '标准的表单页面模板',
         category: '表单',
-        schema: {
+        content: JSON.stringify({
           type: 'page',
           title: '表单页面',
           body: {
@@ -196,8 +195,7 @@ async function main() {
               { type: 'switch', name: 'enabled', label: '启用状态' }
             ]
           }
-        },
-        variables: ['formFields', 'submitApi'],
+        }),
         status: 'ACTIVE',
         createdBy: 'system',
       }
@@ -210,8 +208,7 @@ async function main() {
           name: template.name,
           description: template.description,
           category: template.category,
-          schema: template.schema,
-          variables: template.variables,
+          content: template.content,
           status: template.status,
           updatedAt: new Date(),
         },

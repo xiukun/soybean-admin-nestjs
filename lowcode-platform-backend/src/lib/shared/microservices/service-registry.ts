@@ -289,10 +289,11 @@ export abstract class ServiceDTO {
   traceId?: string;
 
   constructor() {
-    const context = ServiceTracing.getCurrentContext();
-    if (context) {
-      this.traceId = context.traceId;
-    }
+    // TODO: Implement tracing context when ServiceTracing is properly implemented
+    // const context = ServiceTracing.getCurrentContext();
+    // if (context) {
+    //   this.traceId = context.traceId;
+    // }
   }
 }
 

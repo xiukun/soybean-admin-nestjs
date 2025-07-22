@@ -24,13 +24,18 @@ echo "  DOCKER_ENV: $DOCKER_ENV"
 # Function to check if database is accessible
 check_database() {
     echo "🔍 Checking database connection..."
-    
+
     # Extract database connection details from DATABASE_URL
     if [ -n "$DATABASE_URL" ]; then
         echo "  Database URL configured: ${DATABASE_URL%@*}@***"
-        
-        # Try to connect to database using Prisma
-        if npx prisma db pull --preview-feature 2>/dev/null; then
+
+        # Extract connection details from DATABASE_URL
+        # Format: postgresql://user:password@host:port/database
+        DB_HOST=$(echo "$DATABASE_URL" | sed -n 's/.*@\([^:]*\):.*/\1/p')
+        DB_PORT=$(echo "$DATABASE_URL" | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
+
+        # Use nc (netcat) to check if database port is accessible
+        if nc -z "$DB_HOST" "$DB_PORT" 2>/dev/null; then
             echo "  ✅ Database connection successful"
             return 0
         else
@@ -81,12 +86,25 @@ init_database_schema() {
         exit 1
     fi
     
-    # Generate Prisma client
+    # Generate Prisma client in runtime with proper permissions
+    echo "  🔧 Generating Prisma client..."
+
+    # Create .prisma directory with proper permissions
+    sudo mkdir -p node_modules/.prisma/client
+    sudo chown -R node:node node_modules/.prisma
+
     if npx prisma generate; then
         echo "  ✅ Prisma client generated successfully"
     else
-        echo "  ❌ Failed to generate Prisma client"
-        exit 1
+        echo "  ⚠️ Failed to generate Prisma client, trying with sudo..."
+        # Try to generate as root and then change ownership
+        if sudo npx prisma generate; then
+            sudo chown -R node:node node_modules/.prisma
+            echo "  ✅ Prisma client generated with sudo"
+        else
+            echo "  ❌ Failed to generate Prisma client"
+            exit 1
+        fi
     fi
 }
 

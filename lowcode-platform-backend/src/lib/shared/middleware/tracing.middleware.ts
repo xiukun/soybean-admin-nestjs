@@ -288,19 +288,19 @@ export class ServiceTracing {
     const startTime = Date.now();
     const callId = uuidv4();
 
-    this.logger.log(`Service call started: ${serviceName}.${operation}`, {
+    this.logger.log(`Service call started: ${serviceName}.${operation}`, JSON.stringify({
       traceId: context?.traceId,
       parentRequestId: context?.requestId,
       callId,
       serviceName,
       operation,
-    });
+    }));
 
     try {
       const result = await fn();
       const duration = Date.now() - startTime;
       
-      this.logger.log(`Service call completed: ${serviceName}.${operation} (${duration}ms)`, {
+      this.logger.log(`Service call completed: ${serviceName}.${operation} (${duration}ms)`, JSON.stringify({
         traceId: context?.traceId,
         parentRequestId: context?.requestId,
         callId,
@@ -308,13 +308,13 @@ export class ServiceTracing {
         operation,
         duration,
         success: true,
-      });
+      }));
 
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
       
-      this.logger.error(`Service call failed: ${serviceName}.${operation} (${duration}ms)`, error.stack, {
+      this.logger.error(`Service call failed: ${serviceName}.${operation} (${duration}ms)`, error.stack, JSON.stringify({
         traceId: context?.traceId,
         parentRequestId: context?.requestId,
         callId,
@@ -326,7 +326,7 @@ export class ServiceTracing {
           name: error.name,
           message: error.message,
         },
-      });
+      }));
 
       throw error;
     }

@@ -156,11 +156,11 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted } from 'vue';
+import { reactive, ref, onMounted, h } from 'vue';
 import type { Ref } from 'vue';
 import { NButton, NTag, NPopconfirm, NSpace } from 'naive-ui';
 import type { DataTableColumns, FormInst, FormRules } from 'naive-ui';
-import { fetchDeleteTargetProject } from '@/service/api';
+import { fetchDeleteProject } from '@/service/api';
 
 defineOptions({
   name: 'TargetProjectManagement'
@@ -278,7 +278,7 @@ const columns: DataTableColumns<TargetProject> = [
         other: { label: '其他', type: 'default' }
       };
       const config = typeMap[row.type] || typeMap.other;
-      return <NTag type={config.type}>{config.label}</NTag>;
+      return h(NTag, { type: config.type }, { default: () => config.label });
     }
   },
   {
@@ -295,29 +295,26 @@ const columns: DataTableColumns<TargetProject> = [
     title: '状态',
     key: 'status',
     minWidth: 80,
-    render: (row) => (
-      <NTag type={row.status === 'active' ? 'success' : 'default'}>
-        {row.status === 'active' ? '活跃' : '非活跃'}
-      </NTag>
+    render: (row) => h(NTag,
+      { type: row.status === 'active' ? 'success' : 'default' },
+      { default: () => row.status === 'active' ? '活跃' : '非活跃' }
     )
   },
   {
     title: '操作',
     key: 'actions',
     width: 200,
-    render: (row) => (
-      <NSpace size={8}>
-        <NButton size="small" onClick={() => handleEdit(row)}>编辑</NButton>
-        <NButton size="small" type="info" onClick={() => handleValidate(row.id)}>验证</NButton>
-        <NButton size="small" type="success" onClick={() => handleStatistics(row.id)}>统计</NButton>
-        <NPopconfirm onPositiveClick={() => handleDelete(row.id)}>
-          {{
-            default: () => '确认删除这个项目吗？',
-            trigger: () => <NButton size="small" type="error">删除</NButton>
-          }}
-        </NPopconfirm>
-      </NSpace>
-    )
+    render: (row) => h(NSpace, { size: 8 }, {
+      default: () => [
+        h(NButton, { size: 'small', onClick: () => handleEdit(row) }, { default: () => '编辑' }),
+        h(NButton, { size: 'small', type: 'info', onClick: () => handleValidate(row.id) }, { default: () => '验证' }),
+        h(NButton, { size: 'small', type: 'success', onClick: () => handleStatistics(row.id) }, { default: () => '统计' }),
+        h(NPopconfirm, { onPositiveClick: () => handleDelete(row.id) }, {
+          default: () => '确认删除这个项目吗？',
+          trigger: () => h(NButton, { size: 'small', type: 'error' }, { default: () => '删除' })
+        })
+      ]
+    })
   }
 ];
 
@@ -382,7 +379,7 @@ function handleEdit(row: TargetProject) {
 
 async function handleDelete(id: string) {
   try {
-    await fetchDeleteTargetProject(id);
+    await fetchDeleteProject(id);
     window.$message?.success('删除成功');
     getTableData();
   } catch (error) {

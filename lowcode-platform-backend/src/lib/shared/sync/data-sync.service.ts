@@ -161,8 +161,8 @@ export class DataSyncService {
       const entities = await this.prisma.entity.findMany({
         include: {
           fields: true,
-          sourceRelationships: true,
-          targetRelationships: true,
+          sourceRelations: true,
+          targetRelations: true,
         },
         where: {
           // 只同步已发布的实体
@@ -186,7 +186,7 @@ export class DataSyncService {
           config: field.config,
         })),
         relationships: [
-          ...entity.sourceRelationships.map(rel => ({
+          ...entity.sourceRelations.map(rel => ({
             id: rel.id,
             type: rel.type,
             sourceEntityId: rel.sourceEntityId,
@@ -195,7 +195,7 @@ export class DataSyncService {
             targetFieldId: rel.targetFieldId,
             config: rel.config,
           })),
-          ...entity.targetRelationships.map(rel => ({
+          ...entity.targetRelations.map(rel => ({
             id: rel.id,
             type: rel.type,
             sourceEntityId: rel.sourceEntityId,
@@ -416,8 +416,8 @@ datasource db {
         },
         include: {
           fields: true,
-          sourceRelationships: true,
-          targetRelationships: true,
+          sourceRelations: true,
+          targetRelations: true,
         },
       });
 
