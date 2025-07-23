@@ -44,9 +44,8 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     category: '实体分类',
     status: {
       DRAFT: '草稿',
-      ACTIVE: '活跃',
-      INACTIVE: '非活跃',
-      ARCHIVED: '已归档'
+      PUBLISHED: '已发布',
+      DEPRECATED: '已废弃'
     },
     categories: {
       core: '核心',

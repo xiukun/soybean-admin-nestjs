@@ -724,9 +724,8 @@ declare namespace App {
             category: string;
             status: {
               DRAFT: string;
-              ACTIVE: string;
-              INACTIVE: string;
-              ARCHIVED: string;
+              PUBLISHED: string;
+              DEPRECATED: string;
             };
             categories: {
               core: string;

@@ -40,7 +40,10 @@
                 {{ $t('page.lowcode.entity.status.DRAFT') }}
               </NRadio>
               <NRadio value="PUBLISHED">
-                {{ $t('page.lowcode.api.status.PUBLISHED') }}
+                {{ $t('page.lowcode.entity.status.PUBLISHED') }}
+              </NRadio>
+              <NRadio value="DEPRECATED">
+                {{ $t('page.lowcode.entity.status.DEPRECATED') }}
               </NRadio>
             </NSpace>
           </NRadioGroup>

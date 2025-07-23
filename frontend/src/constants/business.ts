@@ -15,12 +15,20 @@ export const userGenderRecord: Record<Api.SystemManage.UserGender, App.I18n.I18n
 export const userGenderOptions = transformRecordToOption(userGenderRecord);
 
 export const queryStatusRecord: Record<Api.Lowcode.QueryStatus, App.I18n.I18nKey> = {
-  DRAFT: 'page.lowcode.api.status.DRAFT',
-  PUBLISHED: 'page.lowcode.api.status.PUBLISHED',
-  DEPRECATED: 'page.lowcode.api.status.DEPRECATED'
+  DRAFT: 'page.lowcode.query.status.DRAFT',
+  PUBLISHED: 'page.lowcode.query.status.PUBLISHED',
+  DEPRECATED: 'page.lowcode.query.status.DEPRECATED'
 };
 
 export const queryStatusOptions = transformRecordToOption(queryStatusRecord);
+
+export const entityStatusRecord: Record<Api.Lowcode.EntityStatus, App.I18n.I18nKey> = {
+  DRAFT: 'page.lowcode.entity.status.DRAFT',
+  PUBLISHED: 'page.lowcode.entity.status.PUBLISHED',
+  DEPRECATED: 'page.lowcode.entity.status.DEPRECATED'
+};
+
+export const entityStatusOptions = transformRecordToOption(entityStatusRecord);
 
 export const menuTypeRecord: Record<Api.SystemManage.MenuType, App.I18n.I18nKey> = {
   directory: 'page.manage.menu.type.directory',

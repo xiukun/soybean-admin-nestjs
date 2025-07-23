@@ -46,6 +46,7 @@
 import { computed, ref } from 'vue';
 import type { FormInst } from 'naive-ui';
 import { $t } from '@/locales';
+import { entityStatusOptions } from '@/constants/business';
 
 defineOptions({
   name: 'EntitySearch'
@@ -66,20 +67,7 @@ const props = defineProps<Props>();
 
 const formRef = ref<FormInst | null>(null);
 
-const statusOptions = computed(() => [
-  {
-    label: $t('page.lowcode.entity.status.DRAFT'),
-    value: 'DRAFT'
-  },
-  {
-    label: $t('page.lowcode.api.status.PUBLISHED'),
-    value: 'PUBLISHED'
-  },
-  {
-    label: $t('page.lowcode.api.status.DEPRECATED'),
-    value: 'DEPRECATED'
-  }
-]);
+const statusOptions = entityStatusOptions;
 
 const categoryOptions = computed(() => [
   {

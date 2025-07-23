@@ -44,9 +44,8 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     category: 'Entity Category',
     status: {
       DRAFT: 'Draft',
-      ACTIVE: 'Active',
-      INACTIVE: 'Inactive',
-      ARCHIVED: 'Archived'
+      PUBLISHED: 'Published',
+      DEPRECATED: 'Deprecated'
     },
     categories: {
       core: 'Core',

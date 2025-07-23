@@ -187,7 +187,7 @@ const {
           DEPRECATED: 'error'
         };
 
-        const label = row.status || '未知';
+        const label = row.status ? $t(`page.lowcode.entity.status.${row.status}` as any) : '未知';
 
         return <NTag type={row.status ? (tagMap[row.status] || 'default') : 'default'}>{label}</NTag>;
       }
