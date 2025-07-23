@@ -27,7 +27,7 @@
             :placeholder="$t('page.lowcode.template.form.content.placeholder')"
           />
         </NFormItem>
-        <NFormItem :label="$t('page.lowcode.template.status')" path="status">
+        <NFormItem :label="$t('common.status')" path="status">
           <NRadioGroup v-model:value="formModel.status">
             <NRadio v-for="item in enableStatusOptions" :key="item.value" :value="item.value" :label="item.label" />
           </NRadioGroup>

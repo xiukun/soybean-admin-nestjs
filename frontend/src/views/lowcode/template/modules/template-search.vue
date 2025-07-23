@@ -13,11 +13,11 @@
             clearable
           />
         </NFormItemGi>
-        <NFormItemGi span="24 s:12 m:6" :label="$t('page.lowcode.template.status')" path="status" class="pr-24px">
+        <NFormItemGi span="24 s:12 m:6" :label="$t('common.status')" path="status" class="pr-24px">
           <NSelect
             v-model:value="model.status"
             :placeholder="$t('page.lowcode.template.form.status.placeholder')"
-            :options="statusOptions"
+            :options="entityStatusOptions"
             clearable
           />
         </NFormItemGi>
@@ -44,6 +44,7 @@
 
 <script setup lang="ts">
 import { $t } from '@/locales';
+import { entityStatusOptions } from '@/constants/business';
 
 export interface Emits {
   (e: 'reset'): void;
@@ -67,12 +68,6 @@ const categoryOptions = [
   { label: $t('page.lowcode.template.categories.DTO'), value: 'DTO' },
   { label: $t('page.lowcode.template.categories.CONFIG'), value: 'CONFIG' },
   { label: $t('page.lowcode.template.categories.TEST'), value: 'TEST' }
-];
-
-const statusOptions = [
-  { label: $t('page.lowcode.template.status.DRAFT'), value: 'DRAFT' },
-  { label: $t('page.lowcode.template.status.PUBLISHED'), value: 'PUBLISHED' },
-  { label: $t('page.lowcode.template.status.DEPRECATED'), value: 'DEPRECATED' }
 ];
 
 async function reset() {

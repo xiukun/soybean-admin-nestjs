@@ -340,6 +340,73 @@ export class ApiConfigController {
     return apiConfigs.map((apiConfig: any) => this.mapToResponseDto(apiConfig));
   }
 
+  @Post(':id/test')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Test API configuration' })
+  @ApiParam({ name: 'id', description: 'API configuration ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'API configuration test executed successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'API configuration not found',
+  })
+  async testApiConfig(@Param('id') id: string, @Body() testData?: any): Promise<any> {
+    // First, get the API configuration
+    const query = new GetApiConfigQuery(id);
+    const apiConfig = await this.queryBus.execute(query);
+
+    if (!apiConfig) {
+      return {
+        success: false,
+        error: 'API configuration not found',
+        executionTime: 0
+      };
+    }
+
+    const startTime = Date.now();
+
+    try {
+      // Mock test execution - in a real implementation, this would execute the actual API
+      const mockResponse = {
+        data: {
+          message: `Test execution for API: ${apiConfig.name}`,
+          method: apiConfig.method,
+          path: apiConfig.path,
+          parameters: testData?.parameters || {},
+          timestamp: new Date().toISOString()
+        },
+        status: 200,
+        headers: {
+          'content-type': 'application/json'
+        }
+      };
+
+      const executionTime = Date.now() - startTime;
+
+      return {
+        success: true,
+        response: mockResponse,
+        executionTime,
+        apiConfig: {
+          id: apiConfig.id,
+          name: apiConfig.name,
+          method: apiConfig.method,
+          path: apiConfig.path
+        }
+      };
+    } catch (error) {
+      const executionTime = Date.now() - startTime;
+
+      return {
+        success: false,
+        error: error.message,
+        executionTime
+      };
+    }
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get API configuration by ID' })
   @ApiParam({ name: 'id', description: 'API configuration ID' })

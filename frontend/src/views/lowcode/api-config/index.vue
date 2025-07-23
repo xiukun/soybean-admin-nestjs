@@ -397,7 +397,7 @@ const {
           INACTIVE: 'warning'
         };
 
-        const label = $t(`page.lowcode.apiConfig.status.${row.status}` as any);
+        const label = $t(`page.lowcode.entity.status.${row.status}` as any);
         return <NTag type={tagMap[row.status as Api.Lowcode.ApiConfigStatus]}>{label}</NTag>;
       }
     },
