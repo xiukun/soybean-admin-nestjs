@@ -62,10 +62,10 @@ services:
       REDIS_PORT: 6379
       REDIS_PASSWORD: '123456'
       REDIS_DB: 1
-      # JWT配置 - 统一密钥
-      JWT_SECRET: 'JWT_SECRET-soybean-admin-nest@123456!@#.'
+      # JWT配置 - 统一密钥 (与主后端保持一致)
+      JWT_SECRET: 'JWT_SECRET-soybean-admin-nest!@#123.'
       JWT_EXPIRE_IN: 3600
-      REFRESH_TOKEN_SECRET: 'REFRESH_TOKEN_EXPIRE_IN-soybean-admin-nest@123456!@#.'
+      REFRESH_TOKEN_SECRET: 'REFRESH_TOKEN_SECRET-soybean-admin-nest!@#123.'
       REFRESH_TOKEN_EXPIRE_IN: 7200
       # 服务间通信配置
       SERVICE_NAME: 'backend'
@@ -123,8 +123,8 @@ services:
       REDIS_PORT: 6379
       REDIS_PASSWORD: '123456'
       REDIS_DB: 2
-      # JWT配置 - 统一密钥
-      JWT_SECRET: 'JWT_SECRET-soybean-admin-nest@123456!@#.'
+      # JWT配置 - 统一密钥 (与主后端保持一致)
+      JWT_SECRET: 'JWT_SECRET-soybean-admin-nest!@#123.'
       JWT_EXPIRES_IN: '7d'
       # 服务间通信配置
       BACKEND_URL: 'http://backend:9528'
@@ -198,8 +198,8 @@ services:
       REDIS_PORT: 6379
       REDIS_PASSWORD: '123456'
       REDIS_DB: 3
-      # JWT配置 - 统一密钥
-      JWT_SECRET: 'JWT_SECRET-soybean-admin-nest@123456!@#.'
+      # JWT配置 - 统一密钥 (与主后端保持一致)
+      JWT_SECRET: 'JWT_SECRET-soybean-admin-nest!@#123.'
       JWT_EXPIRES_IN: '7d'
       # 服务间通信配置
       BACKEND_URL: 'http://backend:9528'
