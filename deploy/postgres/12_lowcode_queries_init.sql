@@ -134,19 +134,19 @@ INSERT INTO lowcode.lowcode_queries (id, project_id, name, description, base_ent
 'system');
 
 -- 插入查询执行统计示例数据
-UPDATE lowcode_queries SET 
+UPDATE lowcode.lowcode_queries SET
     execution_stats = '{"totalExecutions":156,"avgExecutionTime":45,"lastExecuted":"2024-07-20T10:30:00Z","errorCount":2,"successRate":98.7}',
-    sql_query = 'SELECT status as "用户状态", COUNT(*) as "用户数量", MAX(created_at) as "最近注册时间", MIN(created_at) as "最早注册时间" FROM demo_users u WHERE created_at >= ''2024-01-01'' GROUP BY status ORDER BY COUNT(*) DESC, status ASC'
+    sql_query = 'SELECT status as "用户状态", COUNT(*) as "用户数量", MAX(created_at) as "最近注册时间", MIN(created_at) as "最早注册时间" FROM amis.demo_users u WHERE created_at >= ''2024-01-01'' GROUP BY status ORDER BY COUNT(*) DESC, status ASC'
 WHERE id = 'query-user-status-stats';
 
-UPDATE lowcode_queries SET 
+UPDATE lowcode.lowcode_queries SET
     execution_stats = '{"totalExecutions":89,"avgExecutionTime":78,"lastExecuted":"2024-07-20T09:15:00Z","errorCount":0,"successRate":100}',
-    sql_query = 'SELECT u.id as "用户ID", u.username as "用户名", u.email as "邮箱", u.nickname as "昵称", u.status as "用户状态", r.name as "角色名称", r.code as "角色编码", r.description as "角色描述" FROM demo_users u LEFT JOIN demo_user_roles ur ON u.id = ur.user_id LEFT JOIN demo_roles r ON ur.role_id = r.id WHERE u.status = ''ACTIVE'' AND r.status = ''ACTIVE'' ORDER BY u.username ASC, r.name ASC'
+    sql_query = 'SELECT u.id as "用户ID", u.username as "用户名", u.email as "邮箱", u.nickname as "昵称", u.status as "用户状态", r.name as "角色名称", r.code as "角色编码", r.description as "角色描述" FROM amis.demo_users u LEFT JOIN amis.demo_user_roles ur ON u.id = ur.user_id LEFT JOIN amis.demo_roles r ON ur.role_id = r.id WHERE u.status = ''ACTIVE'' AND r.status = ''ACTIVE'' ORDER BY u.username ASC, r.name ASC'
 WHERE id = 'query-user-role-details';
 
-UPDATE lowcode_queries SET 
+UPDATE lowcode.lowcode_queries SET
     execution_stats = '{"totalExecutions":234,"avgExecutionTime":32,"lastExecuted":"2024-07-20T11:45:00Z","errorCount":1,"successRate":99.6}',
-    sql_query = 'SELECT id as "用户ID", username as "用户名", email as "邮箱", nickname as "昵称", avatar as "头像", created_at as "注册时间", updated_at as "更新时间" FROM demo_users WHERE status = ''ACTIVE'' AND (username LIKE ''%{search}%'' OR ''{search}'' IS NULL) ORDER BY created_at DESC, username ASC'
+    sql_query = 'SELECT id as "用户ID", username as "用户名", email as "邮箱", nickname as "昵称", avatar as "头像", created_at as "注册时间", updated_at as "更新时间" FROM amis.demo_users WHERE status = ''ACTIVE'' AND (username LIKE ''%{search}%'' OR ''{search}'' IS NULL) ORDER BY created_at DESC, username ASC'
 WHERE id = 'query-active-users-paginated';
 
 -- 创建查询执行日志表（可选）

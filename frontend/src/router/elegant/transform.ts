@@ -185,6 +185,7 @@ const routeMap: RouteMap = {
   "lowcode_project": "/lowcode/project",
   "lowcode_query": "/lowcode/query",
   "lowcode_relationship": "/lowcode/relationship",
+  "lowcode_target-project": "/lowcode/target-project",
   "lowcode_template": "/lowcode/template",
   "manage": "/manage",
   "manage_menu": "/manage/menu",

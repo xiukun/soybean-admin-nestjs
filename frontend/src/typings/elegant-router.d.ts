@@ -39,6 +39,7 @@ declare module "@elegant-router/types" {
     "lowcode_project": "/lowcode/project";
     "lowcode_query": "/lowcode/query";
     "lowcode_relationship": "/lowcode/relationship";
+    "lowcode_target-project": "/lowcode/target-project";
     "lowcode_template": "/lowcode/template";
     "manage": "/manage";
     "manage_menu": "/manage/menu";
@@ -126,6 +127,7 @@ declare module "@elegant-router/types" {
     | "lowcode_project"
     | "lowcode_query"
     | "lowcode_relationship"
+    | "lowcode_target-project"
     | "lowcode_template"
     | "manage_menu"
     | "manage_role"

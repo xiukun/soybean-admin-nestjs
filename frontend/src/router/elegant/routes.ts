@@ -229,7 +229,7 @@ export const generatedRoutes: GeneratedRoute[] = [
       {
         name: 'lowcode_target-project',
         path: '/lowcode/target-project',
-        component: 'view.lowcode_target_project',
+        component: 'view.lowcode_target-project',
         meta: {
           title: 'lowcode_target-project',
           i18nKey: 'route.lowcode_target-project'

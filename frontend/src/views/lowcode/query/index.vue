@@ -51,6 +51,7 @@
       :query-name="queryResult?.query?.name || ''"
       :execute-time="calculateExecuteTime(queryResult?.query?.executedAt)"
       :loading="resultLoading"
+      :error="queryResult?.error"
     />
   </div>
 </template>
@@ -262,12 +263,27 @@ async function handleExecute(id: string) {
   try {
     resultLoading.value = true;
     resultModalVisible.value = true;
-    
+    queryResult.value = null; // 清空之前的结果
+
+    const startTime = Date.now();
     const result = await fetchExecuteQuery(id);
+    const endTime = Date.now();
+
+    // 添加执行时间到结果中
+    if (result && result.query) {
+      result.query.executeTime = endTime - startTime;
+    }
+
     queryResult.value = result;
-    
+
     window.$message?.success($t('page.lowcode.query.executeSuccess'));
-  } catch (error) {
+  } catch (error: any) {
+    // 设置错误状态，让弹窗显示错误信息
+    queryResult.value = {
+      data: [],
+      query: null,
+      error: error?.message || $t('page.lowcode.query.executeFailed')
+    };
     window.$message?.error($t('page.lowcode.query.executeFailed'));
     console.error('Query execution error:', error);
   } finally {
@@ -275,11 +291,23 @@ async function handleExecute(id: string) {
   }
 }
 
-// 计算执行时间（简化版本，返回固定值）
+// 计算执行时间
 function calculateExecuteTime(executedAt?: string): number {
-  // 这里可以根据实际需求计算执行时间
-  // 目前返回一个默认值
-  return executedAt ? 100 : 0;
+  if (!executedAt) return 0;
+
+  // 如果查询结果中有执行时间，直接使用
+  if (queryResult.value?.query?.executeTime) {
+    return queryResult.value.query.executeTime;
+  }
+
+  // 否则计算从执行时间到现在的差值（这不是真正的执行时间，只是一个估算）
+  try {
+    const executedTime = new Date(executedAt).getTime();
+    const now = Date.now();
+    return Math.max(0, now - executedTime);
+  } catch {
+    return 0;
+  }
 }
 
 // 加载项目列表
