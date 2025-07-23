@@ -47,9 +47,9 @@
     />
     <QueryResultModal
       v-model:visible="resultModalVisible"
-      :data="queryResult?.data || []"
+      :data="modalData"
       :query-name="queryResult?.query?.name || ''"
-      :execute-time="calculateExecuteTime(queryResult?.query?.executedAt)"
+      :execute-time="queryResult?.query?.executeTime || 0"
       :loading="resultLoading"
       :error="queryResult?.error"
     />
@@ -81,6 +81,21 @@ const props = withDefaults(defineProps<Props>(), {
 const resultModalVisible = ref(false);
 const queryResult = ref<any>(null);
 const resultLoading = ref(false);
+
+// 计算属性确保数据类型正确
+const modalData = computed(() => {
+  const result = queryResult.value;
+  if (!result) return [];
+
+  // 如果 result 本身就是数组，直接返回
+  if (Array.isArray(result)) return result;
+
+  // 如果 result 有 data 属性且是数组，返回 data
+  if (result.data && Array.isArray(result.data)) return result.data;
+
+  // 其他情况返回空数组
+  return [];
+});
 
 // 项目选择相关状态
 const selectedProjectId = ref<string>(props.projectId || '');
@@ -270,8 +285,8 @@ async function handleExecute(id: string) {
     const endTime = Date.now();
 
     // 添加执行时间到结果中
-    if (result && result.query) {
-      result.query.executeTime = endTime - startTime;
+    if (result && typeof result === 'object' && 'query' in result && result.query) {
+      (result as any).query.executeTime = endTime - startTime;
     }
 
     queryResult.value = result;
@@ -291,24 +306,7 @@ async function handleExecute(id: string) {
   }
 }
 
-// 计算执行时间
-function calculateExecuteTime(executedAt?: string): number {
-  if (!executedAt) return 0;
 
-  // 如果查询结果中有执行时间，直接使用
-  if (queryResult.value?.query?.executeTime) {
-    return queryResult.value.query.executeTime;
-  }
-
-  // 否则计算从执行时间到现在的差值（这不是真正的执行时间，只是一个估算）
-  try {
-    const executedTime = new Date(executedAt).getTime();
-    const now = Date.now();
-    return Math.max(0, now - executedTime);
-  } catch {
-    return 0;
-  }
-}
 
 // 加载项目列表
 async function loadProjects() {

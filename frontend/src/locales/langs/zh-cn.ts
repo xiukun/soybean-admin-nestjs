@@ -30,6 +30,8 @@ const local: App.I18n.Schema = {
     deleteSuccess: '删除成功',
     confirmDelete: '确认删除吗？',
     edit: '编辑',
+    export: '导出',
+    pleaseSelect: '请选择',
     warning: '警告',
     error: '错误',
     index: '序号',

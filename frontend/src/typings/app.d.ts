@@ -330,6 +330,7 @@ declare namespace App {
         deleteSuccess: string;
         confirmDelete: string;
         edit: string;
+        export: string;
         warning: string;
         error: string;
         index: string;
@@ -342,6 +343,7 @@ declare namespace App {
         noData: string;
         operate: string;
         pleaseCheckValue: string;
+        pleaseSelect: string;
         refresh: string;
         reset: string;
         search: string;

@@ -239,14 +239,14 @@ watch(visible, newVal => {
   }
 });
 
-// 监听数据变化
-watch(() => props.data, (newData) => {
-  console.log('Query result data changed:', {
-    data: newData,
-    type: Array.isArray(newData) ? 'array' : typeof newData,
-    length: Array.isArray(newData) ? newData.length : 'N/A'
-  });
-}, { deep: true });
+// // 监听数据变化
+// watch(() => props.data, (newData) => {
+//   console.log('Query result data changed:', {
+//     data: newData,
+//     type: Array.isArray(newData) ? 'array' : typeof newData,
+//     length: Array.isArray(newData) ? newData.length : 'N/A'
+//   });
+// }, { deep: true });
 </script>
 
 <style scoped></style>

@@ -30,6 +30,8 @@ const local: App.I18n.Schema = {
     deleteSuccess: 'Delete Success',
     confirmDelete: 'Are you sure you want to delete?',
     edit: 'Edit',
+    export: 'Export',
+    pleaseSelect: 'Please select',
     warning: 'Warning',
     error: 'Error',
     index: 'Index',
