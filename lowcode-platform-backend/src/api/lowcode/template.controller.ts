@@ -9,6 +9,7 @@ import {
   Query,
   HttpStatus,
   HttpCode,
+  Req,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import {
@@ -24,11 +25,25 @@ import {
   TemplateResponseDto,
   TemplateListQueryDto,
   TemplateListResponseDto,
+  TemplateVersionDto,
   TemplateCategory,
   TemplateLanguage,
   TemplateFramework,
   TemplateStatus,
 } from '@api/lowcode/dto/template.dto';
+import {
+  GetTemplatesQuery,
+  GetTemplateByIdQuery,
+  GetTemplateByCodeQuery,
+  GetTemplateVersionsQuery,
+} from '@lib/bounded-contexts/template/application/queries/get-templates.query';
+import {
+  CreateTemplateCommand,
+  UpdateTemplateCommand,
+  DeleteTemplateCommand,
+  CreateTemplateVersionCommand,
+  RestoreTemplateVersionCommand,
+} from '@lib/bounded-contexts/template/application/commands/template.commands';
 
 @ApiTags('templates')
 @ApiBearerAuth()
@@ -47,29 +62,65 @@ export class TemplateController {
     description: 'Template created successfully',
     type: TemplateResponseDto,
   })
-  async createTemplate(@Body() createTemplateDto: CreateTemplateDto): Promise<any> {
-    const { CreateTemplateCommand } = await import('@lib/bounded-contexts/template/application/commands/create-template.command');
+  async createTemplate(@Body() createTemplateDto: CreateTemplateDto, @Req() req: any): Promise<any> {
+    const command = new CreateTemplateCommand({
+      name: createTemplateDto.name,
+      code: `${createTemplateDto.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`,
+      type: createTemplateDto.category === 'CONTROLLER' ? 'ENTITY_CONTROLLER' :
+            createTemplateDto.category === 'SERVICE' ? 'ENTITY_SERVICE' :
+            createTemplateDto.category === 'DTO' ? 'ENTITY_DTO' :
+            createTemplateDto.category === 'MODEL' ? 'ENTITY_MODEL' :
+            'API_CONTROLLER', // 映射category到正确的type值
+      category: createTemplateDto.category,
+      language: createTemplateDto.language,
+      framework: createTemplateDto.framework,
+      description: createTemplateDto.description,
+      content: createTemplateDto.content,
+      variables: createTemplateDto.variables || [],
+      tags: createTemplateDto.tags || [],
+      isPublic: createTemplateDto.isPublic || false,
+      createdBy: req.user?.uid || 'system',
+    });
 
-    const command = new CreateTemplateCommand(
-      createTemplateDto.projectId,
-      createTemplateDto.name,
-      createTemplateDto.description,
-      createTemplateDto.category,
-      createTemplateDto.language,
-      createTemplateDto.framework,
-      createTemplateDto.content,
-      createTemplateDto.variables || [],
-      createTemplateDto.tags || [],
-      createTemplateDto.isPublic || false,
-      'system', // TODO: Get from authenticated user
-    );
-
-    const templateId = await this.commandBus.execute(command);
+    const template = await this.commandBus.execute(command);
 
     return {
       status: 0,
       msg: 'success',
-      data: { id: templateId },
+      data: template,
+    };
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get all templates' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Templates retrieved successfully',
+    type: TemplateListResponseDto,
+  })
+  async getTemplates(@Query() query: TemplateListQueryDto): Promise<any> {
+    const templatesQuery = new GetTemplatesQuery(
+      {
+        category: query.category,
+        language: query.language,
+        framework: query.framework,
+        status: query.status === TemplateStatus.PUBLISHED ? 'ACTIVE' : 'INACTIVE',
+        search: query.search,
+      },
+      {
+        page: query.current || 1,
+        limit: query.size || 10,
+        orderBy: 'createdAt',
+        orderDir: 'desc',
+      },
+    );
+
+    const result = await this.queryBus.execute(templatesQuery);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
     };
   }
 
@@ -81,9 +132,23 @@ export class TemplateController {
     description: 'Template found',
     type: TemplateResponseDto,
   })
-  async getTemplateById(@Param('id') id: string): Promise<TemplateResponseDto> {
-    // TODO: Implement get template query
-    throw new Error('Not implemented yet');
+  async getTemplateById(@Param('id') id: string): Promise<any> {
+    const query = new GetTemplateByIdQuery(id);
+    const template = await this.queryBus.execute(query);
+
+    if (!template) {
+      return {
+        status: 404,
+        msg: 'Template not found',
+        data: null,
+      };
+    }
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: template,
+    };
   }
 
   @Put(':id')
@@ -97,43 +162,46 @@ export class TemplateController {
   async updateTemplate(
     @Param('id') id: string,
     @Body() updateTemplateDto: UpdateTemplateDto,
+    @Req() req: any,
   ): Promise<any> {
-    const { UpdateTemplateCommand } = await import('@lib/bounded-contexts/template/application/commands/update-template.command');
+    const command = new UpdateTemplateCommand(id, {
+      name: updateTemplateDto.name,
+      category: updateTemplateDto.category,
+      language: updateTemplateDto.language,
+      framework: updateTemplateDto.framework,
+      description: updateTemplateDto.description,
+      content: updateTemplateDto.content,
+      variables: updateTemplateDto.variables,
+      tags: updateTemplateDto.tags,
+      isPublic: updateTemplateDto.isPublic,
+      updatedBy: req.user?.uid || 'system',
+    });
 
-    const command = new UpdateTemplateCommand(
-      id,
-      updateTemplateDto.name,
-      updateTemplateDto.description,
-      updateTemplateDto.category,
-      updateTemplateDto.language,
-      updateTemplateDto.framework,
-      updateTemplateDto.content,
-      updateTemplateDto.variables,
-      updateTemplateDto.tags,
-      updateTemplateDto.isPublic,
-      'system', // TODO: Get from authenticated user
-    );
+    const template = await this.commandBus.execute(command);
 
+    return {
+      status: 0,
+      msg: 'success',
+      data: template,
+    };
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete template' })
+  @ApiParam({ name: 'id', description: 'Template ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Template deleted successfully',
+  })
+  async deleteTemplate(@Param('id') id: string, @Req() req: any): Promise<any> {
+    const command = new DeleteTemplateCommand(id, req.user?.uid || 'system');
     await this.commandBus.execute(command);
 
     return {
       status: 0,
       msg: 'success',
-      data: { id },
+      data: null,
     };
-  }
-
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete template' })
-  @ApiParam({ name: 'id', description: 'Template ID' })
-  @ApiResponse({
-    status: HttpStatus.NO_CONTENT,
-    description: 'Template deleted successfully',
-  })
-  async deleteTemplate(@Param('id') id: string): Promise<void> {
-    // TODO: Implement delete template command
-    throw new Error('Not implemented yet');
   }
 
   @Get('project/:projectId')

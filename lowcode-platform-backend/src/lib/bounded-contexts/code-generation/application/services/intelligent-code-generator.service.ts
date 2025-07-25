@@ -142,7 +142,7 @@ export class IntelligentCodeGeneratorService {
       category: template.type,
       language: template.language,
       framework: template.framework,
-      content: template.template,
+      content: template.content,
       variables: Array.isArray(template.variables) ? template.variables.map((v: any) => ({
         name: v.name,
         type: v.type,

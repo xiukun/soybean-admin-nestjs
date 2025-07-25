@@ -255,23 +255,50 @@ model CodegenTask {
 }
 
 model CodeTemplate {
-  id          String    @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
-  name        String    @db.VarChar(100)
-  code        String    @unique @db.VarChar(100)
-  type        String    @db.VarChar(50)
-  language    String    @db.VarChar(20)
-  framework   String    @db.VarChar(50)
+  id          String             @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
+  name        String             @db.VarChar(100)
+  code        String             @unique @db.VarChar(100)
+  type        String             @db.VarChar(50)
+  language    String             @db.VarChar(20)
+  framework   String             @db.VarChar(50)
   description String?
-  template    String
-  variables   Json?     @default("[]")
-  version     String?   @default("1.0.0") @db.VarChar(20)
-  status      String?   @default("ACTIVE") @db.VarChar(20)
-  createdBy   String    @map("created_by") @db.VarChar(36)
-  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedBy   String?   @map("updated_by") @db.VarChar(36)
-  updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  content     String
+  variables   Json?              @default("[]")
+  version     String?            @default("1.0.0") @db.VarChar(20)
+  status      String?            @default("ACTIVE") @db.VarChar(20)
+  createdBy   String             @map("created_by") @db.VarChar(36)
+  createdAt   DateTime?          @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedBy   String?            @map("updated_by") @db.VarChar(36)
+  updatedAt   DateTime?          @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  category    String?            @default("CONTROLLER") @db.VarChar(50)
+  tags        Json?              @default("[]")
+  isPublic    Boolean?           @default(false) @map("is_public")
+  versions    TemplateVersion[]
 
+  @@index([category], map: "idx_lowcode_code_templates_category")
+  @@index([language], map: "idx_lowcode_code_templates_language")
+  @@index([framework], map: "idx_lowcode_code_templates_framework")
+  @@index([status], map: "idx_lowcode_code_templates_status")
+  @@index([isPublic], map: "idx_lowcode_code_templates_is_public")
   @@map("lowcode_code_templates")
+  @@schema("lowcode")
+}
+
+model TemplateVersion {
+  id         String        @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
+  templateId String        @map("template_id") @db.VarChar(36)
+  version    String        @db.VarChar(20)
+  content    String
+  variables  Json?         @default("[]")
+  changelog  String?
+  createdBy  String        @map("created_by") @db.VarChar(36)
+  createdAt  DateTime?     @default(now()) @map("created_at") @db.Timestamp(6)
+  template   CodeTemplate  @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, version], map: "lowcode_template_versions_template_id_version_key")
+  @@index([templateId], map: "idx_lowcode_template_versions_template_id")
+  @@index([version], map: "idx_lowcode_template_versions_version")
+  @@map("lowcode_template_versions")
   @@schema("lowcode")
 }
 

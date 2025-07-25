@@ -31,6 +31,7 @@ import { JwtStrategy } from '@strategies/jwt.strategy';
 import { CodeGenerationModule } from '@lib/code-generation/code-generation.module';
 import { HealthModule } from '@api/health/health.module';
 import { MetadataModule } from '@lib/bounded-contexts/metadata/metadata.module';
+import { TemplateModule } from '@lib/bounded-contexts/template/template.module';
 import { DatabaseInitService } from '@infra/database/database-init.service';
 
 @Module({
@@ -74,6 +75,7 @@ import { DatabaseInitService } from '@infra/database/database-init.service';
     CodeGenerationModule,
     HealthModule,
     MetadataModule,
+    TemplateModule,
   ],
   controllers: [
     AppController,
@@ -93,10 +95,10 @@ import { DatabaseInitService } from '@infra/database/database-init.service';
     AppService,
     JwtStrategy,
     DatabaseInitService,
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: JwtAuthGuard,
+    // },
   ],
 })
 export class AppModule {}

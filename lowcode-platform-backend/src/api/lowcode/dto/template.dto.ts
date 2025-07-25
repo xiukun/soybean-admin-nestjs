@@ -72,10 +72,6 @@ export class TemplateVariableDto {
 }
 
 export class CreateTemplateDto {
-  @ApiProperty({ description: 'Project ID' })
-  @IsString()
-  projectId: string;
-
   @ApiProperty({ description: 'Template name' })
   @IsString()
   name: string;
