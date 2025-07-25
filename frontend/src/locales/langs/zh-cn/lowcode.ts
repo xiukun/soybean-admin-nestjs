@@ -311,7 +311,34 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       project: {
         placeholder: '请选择项目'
       }
-    }
+    },
+    // 编辑器相关
+    preview: '预览',
+    test: '测试',
+    validate: '验证',
+    format: '格式化',
+    generatePreview: '生成预览',
+    selectEntity: '选择实体',
+    noPreview: '暂无预览内容',
+    runTest: '运行测试',
+    testSuccess: '测试成功',
+    testFailed: '测试失败',
+    selectEntityFirst: '请先选择实体',
+    previewFailed: '预览失败',
+    validationSuccess: '验证成功',
+    validationError: '验证失败',
+    validationFailed: '验证失败',
+    validationWarnings: '验证警告',
+    formatSuccess: '格式化成功',
+    formatFailed: '格式化失败',
+    // 变量相关
+    addVariable: '添加变量',
+    newVariable: '新变量',
+    variableName: '变量名',
+    variableType: '变量类型',
+    variableDescription: '变量描述',
+    defaultValue: '默认值',
+    required: '必填'
   },
   relation: {
     title: '关系管理',

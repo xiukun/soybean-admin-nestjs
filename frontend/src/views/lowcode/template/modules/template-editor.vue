@@ -14,6 +14,36 @@
     <div class="h-full flex flex-col">
       <NTabs v-model:value="activeTab" type="line" animated class="flex-1 flex flex-col">
         <NTabPane name="content" :tab="$t('page.lowcode.template.content')" class="flex-1 flex flex-col">
+          <!-- 编辑器工具栏 -->
+          <div class="mb-3 p-2 bg-gray-50 rounded flex justify-between items-center">
+            <NSpace>
+              <NButton size="small" @click="handleValidate" :loading="validating">
+                <template #icon>
+                  <icon-ic-round-check-circle />
+                </template>
+                {{ $t('page.lowcode.template.validate') }}
+              </NButton>
+              <NButton size="small" @click="handlePreview" :loading="previewing">
+                <template #icon>
+                  <icon-ic-round-preview />
+                </template>
+                {{ $t('page.lowcode.template.preview') }}
+              </NButton>
+              <NButton size="small" @click="handleFormat">
+                <template #icon>
+                  <icon-ic-round-format-align-left />
+                </template>
+                {{ $t('page.lowcode.template.format') }}
+              </NButton>
+            </NSpace>
+
+            <NSpace>
+              <NTag v-if="validationResult" :type="validationResult.isValid ? 'success' : 'error'" size="small">
+                {{ validationResult.isValid ? $t('page.lowcode.template.validationSuccess') : $t('page.lowcode.template.validationError') }}
+              </NTag>
+            </NSpace>
+          </div>
+
           <div class="flex-1 border border-gray-200 rounded">
             <MonacoEditor
               v-model:value="templateContent"
@@ -21,6 +51,24 @@
               :options="editorOptions"
               class="h-full"
             />
+          </div>
+
+          <!-- 验证结果 -->
+          <div v-if="validationResult && !validationResult.isValid" class="mt-3">
+            <NAlert type="error" :title="$t('page.lowcode.template.validationError')" closable>
+              <div v-for="error in validationResult.errors" :key="error" class="text-sm">
+                {{ error }}
+              </div>
+            </NAlert>
+          </div>
+
+          <!-- 警告信息 -->
+          <div v-if="validationResult && validationResult.warnings && validationResult.warnings.length > 0" class="mt-2">
+            <NAlert type="warning" :title="$t('page.lowcode.template.validationWarnings')" closable>
+              <div v-for="warning in validationResult.warnings" :key="warning" class="text-sm">
+                {{ warning }}
+              </div>
+            </NAlert>
           </div>
         </NTabPane>
         
@@ -186,6 +234,14 @@ const activeTab = ref('content');
 const saving = ref(false);
 const previewing = ref(false);
 const testing = ref(false);
+const validating = ref(false);
+const validationResult = ref<{
+  isValid: boolean;
+  errors: string[];
+  warnings?: string[];
+  usedVariables?: string[];
+  definedVariables?: string[];
+} | null>(null);
 
 const templateData = ref<Api.Lowcode.CodeTemplate | null>(null);
 const templateContent = ref('');
@@ -352,6 +408,86 @@ async function handleTest() {
   }
 }
 
+async function handleValidate() {
+  try {
+    validating.value = true;
+
+    // 调用后端验证API
+    const response = await fetch(`/api/v1/templates/${props.templateId}/validate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({
+        content: templateContent.value,
+        variables: templateVariables.value
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.status === 0) {
+      validationResult.value = result.data;
+      if (result.data.isValid) {
+        window.$message?.success($t('page.lowcode.template.validationSuccess'));
+      } else {
+        window.$message?.error($t('page.lowcode.template.validationError'));
+      }
+    } else {
+      validationResult.value = {
+        isValid: false,
+        errors: [result.msg || $t('page.lowcode.template.validationFailed')]
+      };
+      window.$message?.error($t('page.lowcode.template.validationFailed'));
+    }
+  } catch (error: any) {
+    validationResult.value = {
+      isValid: false,
+      errors: [error.message || $t('page.lowcode.template.validationFailed')]
+    };
+    window.$message?.error($t('page.lowcode.template.validationFailed'));
+  } finally {
+    validating.value = false;
+  }
+}
+
+function handleFormat() {
+  try {
+    // 简单的代码格式化
+    let formatted = templateContent.value;
+
+    // 移除多余的空行
+    formatted = formatted.replace(/\n\s*\n\s*\n/g, '\n\n');
+
+    // 统一缩进（假设使用2个空格）
+    const lines = formatted.split('\n');
+    let indentLevel = 0;
+    const formattedLines = lines.map(line => {
+      const trimmed = line.trim();
+      if (!trimmed) return '';
+
+      // 简单的缩进逻辑
+      if (trimmed.includes('}') && !trimmed.includes('{')) {
+        indentLevel = Math.max(0, indentLevel - 1);
+      }
+
+      const indentedLine = '  '.repeat(indentLevel) + trimmed;
+
+      if (trimmed.includes('{') && !trimmed.includes('}')) {
+        indentLevel++;
+      }
+
+      return indentedLine;
+    });
+
+    templateContent.value = formattedLines.join('\n');
+    window.$message?.success($t('page.lowcode.template.formatSuccess'));
+  } catch (error) {
+    window.$message?.error($t('page.lowcode.template.formatFailed'));
+  }
+}
+
 function handleClose() {
   emit('update:visible', false);
 }
@@ -367,6 +503,7 @@ watch(() => props.visible, (visible) => {
     templateVariables.value = [];
     previewContent.value = '';
     testResult.value = null;
+    validationResult.value = null;
   }
 });
 </script>

@@ -1,0 +1,477 @@
+{{!-- 
+Amis Service模板
+用于生成符合Amis规范的NestJS服务
+--}}
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import { PrismaService } from '@/shared/prisma/prisma.service';
+{{#if config.enableDataPermission}}
+import { DataPermissionService } from '@/shared/services/data-permission.service';
+{{/if}}
+import {
+  Create{{pascalCase entity.code}}Dto,
+  Update{{pascalCase entity.code}}Dto,
+  Query{{pascalCase entity.code}}Dto,
+  {{pascalCase entity.code}}ResponseDto,
+} from '../dto';
+import { {{pascalCase entity.code}} } from '../entities/{{entity.code}}.entity';
+
+/**
+ * {{entity.description}}服务
+ * 提供{{entity.description}}的业务逻辑处理
+ */
+@Injectable()
+export class {{className}} {
+  constructor(
+    private readonly prisma: PrismaService,
+    {{#if config.enableDataPermission}}
+    private readonly dataPermissionService: DataPermissionService,
+    {{/if}}
+  ) {}
+
+  /**
+   * 获取{{entity.description}}列表
+   */
+  async findAll(query: Query{{pascalCase entity.code}}Dto): Promise<{
+    items: {{pascalCase entity.code}}ResponseDto[];
+    total: number;
+  }> {
+    const {
+      page = 1,
+      perPage = 10,
+      orderBy = 'createdAt',
+      orderDir = 'desc',
+      {{#each entity.fields}}
+      {{#if this.searchable}}
+      {{this.name}},
+      {{/if}}
+      {{/each}}
+      ...filters
+    } = query;
+
+    // 构建查询条件
+    const where: any = {};
+
+    {{#if config.enableSoftDelete}}
+    // 软删除过滤
+    where.deletedAt = null;
+    {{/if}}
+
+    {{#each entity.fields}}
+    {{#if this.searchable}}
+    // {{this.description}}搜索
+    if ({{this.name}}) {
+      {{#if (eq this.type 'string')}}
+      where.{{this.name}} = {
+        contains: {{this.name}},
+        mode: 'insensitive',
+      };
+      {{else}}
+      where.{{this.name}} = {{this.name}};
+      {{/if}}
+    }
+    {{/if}}
+    {{/each}}
+
+    // 其他筛选条件
+    Object.keys(filters).forEach(key => {
+      if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
+        where[key] = filters[key];
+      }
+    });
+
+    {{#if config.enableDataPermission}}
+    // 应用数据权限
+    const dataPermissionWhere = await this.dataPermissionService.applyDataPermission(
+      '{{entity.code}}',
+      where
+    );
+    Object.assign(where, dataPermissionWhere);
+    {{/if}}
+
+    // 执行查询
+    const [items, total] = await Promise.all([
+      this.prisma.{{camelCase entity.code}}.findMany({
+        where,
+        orderBy: { [orderBy]: orderDir },
+        skip: (page - 1) * perPage,
+        take: perPage,
+        {{#if entity.relationships}}
+        include: {
+          {{#each entity.relationships}}
+          {{this.field}}: true,
+          {{/each}}
+        },
+        {{/if}}
+      }),
+      this.prisma.{{camelCase entity.code}}.count({ where }),
+    ]);
+
+    return {
+      items: items.map(item => this.toResponseDto(item)),
+      total,
+    };
+  }
+
+  /**
+   * 获取{{entity.description}}详情
+   */
+  async findOne(id: string): Promise<{{pascalCase entity.code}}ResponseDto> {
+    const where: any = { id };
+
+    {{#if config.enableSoftDelete}}
+    where.deletedAt = null;
+    {{/if}}
+
+    {{#if config.enableDataPermission}}
+    // 应用数据权限
+    const dataPermissionWhere = await this.dataPermissionService.applyDataPermission(
+      '{{entity.code}}',
+      where
+    );
+    Object.assign(where, dataPermissionWhere);
+    {{/if}}
+
+    const item = await this.prisma.{{camelCase entity.code}}.findFirst({
+      where,
+      {{#if entity.relationships}}
+      include: {
+        {{#each entity.relationships}}
+        {{this.field}}: true,
+        {{/each}}
+      },
+      {{/if}}
+    });
+
+    if (!item) {
+      throw new NotFoundException('{{entity.description}}不存在');
+    }
+
+    return this.toResponseDto(item);
+  }
+
+  /**
+   * 创建{{entity.description}}
+   */
+  async create(createDto: Create{{pascalCase entity.code}}Dto): Promise<{{pascalCase entity.code}}ResponseDto> {
+    // 数据验证
+    await this.validateCreateData(createDto);
+
+    try {
+      const item = await this.prisma.{{camelCase entity.code}}.create({
+        data: {
+          ...createDto,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {{#if entity.relationships}}
+        include: {
+          {{#each entity.relationships}}
+          {{this.field}}: true,
+          {{/each}}
+        },
+        {{/if}}
+      });
+
+      return this.toResponseDto(item);
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new ConflictException('{{entity.description}}已存在');
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * 更新{{entity.description}}
+   */
+  async update(id: string, updateDto: Update{{pascalCase entity.code}}Dto): Promise<{{pascalCase entity.code}}ResponseDto> {
+    // 检查记录是否存在
+    await this.findOne(id);
+
+    // 数据验证
+    await this.validateUpdateData(id, updateDto);
+
+    try {
+      const item = await this.prisma.{{camelCase entity.code}}.update({
+        where: { id },
+        data: {
+          ...updateDto,
+          updatedAt: new Date(),
+        },
+        {{#if entity.relationships}}
+        include: {
+          {{#each entity.relationships}}
+          {{this.field}}: true,
+          {{/each}}
+        },
+        {{/if}}
+      });
+
+      return this.toResponseDto(item);
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new ConflictException('{{entity.description}}已存在');
+      }
+      throw error;
+    }
+  }
+
+  {{#if config.enableSoftDelete}}
+  /**
+   * 软删除{{entity.description}}
+   */
+  async remove(id: string): Promise<void> {
+    // 检查记录是否存在
+    await this.findOne(id);
+
+    await this.prisma.{{camelCase entity.code}}.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  /**
+   * 恢复已删除的{{entity.description}}
+   */
+  async restore(id: string): Promise<{{pascalCase entity.code}}ResponseDto> {
+    const item = await this.prisma.{{camelCase entity.code}}.findUnique({
+      where: { id },
+    });
+
+    if (!item) {
+      throw new NotFoundException('{{entity.description}}不存在');
+    }
+
+    const restoredItem = await this.prisma.{{camelCase entity.code}}.update({
+      where: { id },
+      data: {
+        deletedAt: null,
+        updatedAt: new Date(),
+      },
+      {{#if entity.relationships}}
+      include: {
+        {{#each entity.relationships}}
+        {{this.field}}: true,
+        {{/each}}
+      },
+      {{/if}}
+    });
+
+    return this.toResponseDto(restoredItem);
+  }
+  {{else}}
+  /**
+   * 删除{{entity.description}}
+   */
+  async remove(id: string): Promise<void> {
+    // 检查记录是否存在
+    await this.findOne(id);
+
+    await this.prisma.{{camelCase entity.code}}.delete({
+      where: { id },
+    });
+  }
+  {{/if}}
+
+  /**
+   * 批量删除{{entity.description}}
+   */
+  async batchRemove(ids: string[]): Promise<{ count: number }> {
+    if (!ids || ids.length === 0) {
+      throw new BadRequestException('请选择要删除的{{entity.description}}');
+    }
+
+    {{#if config.enableSoftDelete}}
+    const result = await this.prisma.{{camelCase entity.code}}.updateMany({
+      where: {
+        id: { in: ids },
+        deletedAt: null,
+      },
+      data: {
+        deletedAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+    {{else}}
+    const result = await this.prisma.{{camelCase entity.code}}.deleteMany({
+      where: {
+        id: { in: ids },
+      },
+    });
+    {{/if}}
+
+    return { count: result.count };
+  }
+
+  {{#if config.generateStats}}
+  /**
+   * 获取{{entity.description}}统计信息
+   */
+  async getStats(): Promise<{
+    total: number;
+    todayCount: number;
+    weekCount: number;
+    monthCount: number;
+  }> {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const baseWhere: any = {};
+    {{#if config.enableSoftDelete}}
+    baseWhere.deletedAt = null;
+    {{/if}}
+
+    const [total, todayCount, weekCount, monthCount] = await Promise.all([
+      this.prisma.{{camelCase entity.code}}.count({ where: baseWhere }),
+      this.prisma.{{camelCase entity.code}}.count({
+        where: {
+          ...baseWhere,
+          createdAt: { gte: today },
+        },
+      }),
+      this.prisma.{{camelCase entity.code}}.count({
+        where: {
+          ...baseWhere,
+          createdAt: { gte: weekAgo },
+        },
+      }),
+      this.prisma.{{camelCase entity.code}}.count({
+        where: {
+          ...baseWhere,
+          createdAt: { gte: monthAgo },
+        },
+      }),
+    ]);
+
+    return {
+      total,
+      todayCount,
+      weekCount,
+      monthCount,
+    };
+  }
+  {{/if}}
+
+  {{#if config.generateImportExport}}
+  /**
+   * 导出{{entity.description}}
+   */
+  async export(query: Query{{pascalCase entity.code}}Dto & { format?: 'xlsx' | 'csv' }): Promise<{
+    downloadUrl: string;
+    filename: string;
+  }> {
+    // 获取所有数据（不分页）
+    const { items } = await this.findAll({ ...query, page: 1, perPage: 999999 });
+
+    // 生成导出文件
+    const format = query.format || 'xlsx';
+    const filename = `{{entity.code}}_export_${new Date().toISOString().split('T')[0]}.${format}`;
+    
+    // TODO: 实现具体的导出逻辑
+    // 这里应该调用文件服务生成Excel或CSV文件
+    
+    return {
+      downloadUrl: `/api/files/download/${filename}`,
+      filename,
+    };
+  }
+
+  /**
+   * 导入{{entity.description}}
+   */
+  async import(fileUrl: string, options?: any): Promise<{
+    successCount: number;
+    failureCount: number;
+    errors: string[];
+  }> {
+    // TODO: 实现具体的导入逻辑
+    // 1. 下载并解析文件
+    // 2. 验证数据格式
+    // 3. 批量插入数据
+    // 4. 返回导入结果
+
+    return {
+      successCount: 0,
+      failureCount: 0,
+      errors: [],
+    };
+  }
+  {{/if}}
+
+  /**
+   * 验证创建数据
+   */
+  private async validateCreateData(createDto: Create{{pascalCase entity.code}}Dto): Promise<void> {
+    {{#each entity.fields}}
+    {{#if this.unique}}
+    // 检查{{this.description}}是否已存在
+    if (createDto.{{this.name}}) {
+      const existing = await this.prisma.{{camelCase ../entity.code}}.findFirst({
+        where: {
+          {{this.name}}: createDto.{{this.name}},
+          {{#if ../config.enableSoftDelete}}
+          deletedAt: null,
+          {{/if}}
+        },
+      });
+
+      if (existing) {
+        throw new ConflictException('{{this.description}}已存在');
+      }
+    }
+    {{/if}}
+    {{/each}}
+  }
+
+  /**
+   * 验证更新数据
+   */
+  private async validateUpdateData(id: string, updateDto: Update{{pascalCase entity.code}}Dto): Promise<void> {
+    {{#each entity.fields}}
+    {{#if this.unique}}
+    // 检查{{this.description}}是否已存在
+    if (updateDto.{{this.name}}) {
+      const existing = await this.prisma.{{camelCase ../entity.code}}.findFirst({
+        where: {
+          {{this.name}}: updateDto.{{this.name}},
+          id: { not: id },
+          {{#if ../config.enableSoftDelete}}
+          deletedAt: null,
+          {{/if}}
+        },
+      });
+
+      if (existing) {
+        throw new ConflictException('{{this.description}}已存在');
+      }
+    }
+    {{/if}}
+    {{/each}}
+  }
+
+  /**
+   * 转换为响应DTO
+   */
+  private toResponseDto(item: any): {{pascalCase entity.code}}ResponseDto {
+    return {
+      {{#each entity.fields}}
+      {{this.name}}: item.{{this.name}},
+      {{/each}}
+      {{#if entity.relationships}}
+      {{#each entity.relationships}}
+      {{this.field}}: item.{{this.field}},
+      {{/each}}
+      {{/if}}
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+      {{#if config.enableSoftDelete}}
+      deletedAt: item.deletedAt,
+      {{/if}}
+    };
+  }
+}

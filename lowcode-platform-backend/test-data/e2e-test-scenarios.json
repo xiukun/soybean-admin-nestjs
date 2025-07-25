@@ -1,0 +1,1002 @@
+{
+  "testScenarios": [
+    {
+      "id": "single-table-crud",
+      "name": "单表CRUD生成测试",
+      "description": "测试单表CRUD代码生成的完整流程，包括实体定义、代码生成、文件验证等步骤",
+      "type": "single-table-crud",
+      "priority": "high",
+      "estimatedDuration": 60000,
+      "testData": {
+        "entity": {
+          "code": "user",
+          "name": "User",
+          "description": "用户实体",
+          "fields": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": "用户ID",
+              "primaryKey": true
+            },
+            {
+              "name": "username",
+              "type": "string",
+              "required": true,
+              "description": "用户名",
+              "unique": true,
+              "minLength": 3,
+              "maxLength": 50
+            },
+            {
+              "name": "email",
+              "type": "string",
+              "required": true,
+              "description": "邮箱地址",
+              "unique": true,
+              "format": "email"
+            },
+            {
+              "name": "password",
+              "type": "string",
+              "required": true,
+              "description": "密码",
+              "minLength": 6,
+              "hidden": true
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "required": false,
+              "description": "用户状态",
+              "enum": ["active", "inactive", "suspended"],
+              "default": "active"
+            },
+            {
+              "name": "avatar",
+              "type": "string",
+              "required": false,
+              "description": "头像URL",
+              "format": "url"
+            },
+            {
+              "name": "createdAt",
+              "type": "datetime",
+              "required": true,
+              "description": "创建时间",
+              "autoGenerate": true
+            },
+            {
+              "name": "updatedAt",
+              "type": "datetime",
+              "required": true,
+              "description": "更新时间",
+              "autoUpdate": true
+            }
+          ]
+        },
+        "config": {
+          "projectName": "e2e-test-user-crud",
+          "outputDir": "./test-output/single-crud",
+          "enableSoftDelete": true,
+          "enableDataPermission": false,
+          "enableAuditLog": true,
+          "enableCache": false,
+          "generateTests": true,
+          "generateSwagger": true,
+          "generateDocs": true
+        },
+        "crudOptions": {
+          "enableCreate": true,
+          "enableRead": true,
+          "enableUpdate": true,
+          "enableDelete": true,
+          "enableBatchOperations": true,
+          "enableSearch": true,
+          "enableSort": true,
+          "enableFilter": true,
+          "enableImportExport": false,
+          "enableValidation": true
+        }
+      },
+      "expectedOutputs": {
+        "files": [
+          "user.controller.ts",
+          "user.service.ts",
+          "user.dto.ts",
+          "user.entity.ts",
+          "user.repository.ts",
+          "user.module.ts",
+          "user.spec.ts"
+        ],
+        "apiEndpoints": [
+          "GET /api/users",
+          "GET /api/users/:id",
+          "POST /api/users",
+          "PUT /api/users/:id",
+          "DELETE /api/users/:id",
+          "POST /api/users/batch"
+        ]
+      }
+    },
+    {
+      "id": "multi-table-relation",
+      "name": "多表关联生成测试",
+      "description": "测试多表关联代码生成，包括一对多、多对多关系的处理",
+      "type": "multi-table-relation",
+      "priority": "high",
+      "estimatedDuration": 120000,
+      "testData": {
+        "entities": [
+          {
+            "code": "user",
+            "name": "User",
+            "description": "用户实体",
+            "fields": [
+              {
+                "name": "id",
+                "type": "string",
+                "required": true,
+                "description": "用户ID",
+                "primaryKey": true
+              },
+              {
+                "name": "username",
+                "type": "string",
+                "required": true,
+                "description": "用户名"
+              },
+              {
+                "name": "email",
+                "type": "string",
+                "required": true,
+                "description": "邮箱"
+              }
+            ]
+          },
+          {
+            "code": "order",
+            "name": "Order",
+            "description": "订单实体",
+            "fields": [
+              {
+                "name": "id",
+                "type": "string",
+                "required": true,
+                "description": "订单ID",
+                "primaryKey": true
+              },
+              {
+                "name": "userId",
+                "type": "string",
+                "required": true,
+                "description": "用户ID",
+                "foreignKey": true
+              },
+              {
+                "name": "orderNumber",
+                "type": "string",
+                "required": true,
+                "description": "订单号",
+                "unique": true
+              },
+              {
+                "name": "amount",
+                "type": "number",
+                "required": true,
+                "description": "订单金额",
+                "precision": 2
+              },
+              {
+                "name": "status",
+                "type": "string",
+                "required": true,
+                "description": "订单状态",
+                "enum": ["pending", "paid", "shipped", "delivered", "cancelled"]
+              }
+            ]
+          },
+          {
+            "code": "product",
+            "name": "Product",
+            "description": "产品实体",
+            "fields": [
+              {
+                "name": "id",
+                "type": "string",
+                "required": true,
+                "description": "产品ID",
+                "primaryKey": true
+              },
+              {
+                "name": "name",
+                "type": "string",
+                "required": true,
+                "description": "产品名称"
+              },
+              {
+                "name": "price",
+                "type": "number",
+                "required": true,
+                "description": "产品价格",
+                "precision": 2
+              }
+            ]
+          },
+          {
+            "code": "orderItem",
+            "name": "OrderItem",
+            "description": "订单项实体",
+            "fields": [
+              {
+                "name": "id",
+                "type": "string",
+                "required": true,
+                "description": "订单项ID",
+                "primaryKey": true
+              },
+              {
+                "name": "orderId",
+                "type": "string",
+                "required": true,
+                "description": "订单ID",
+                "foreignKey": true
+              },
+              {
+                "name": "productId",
+                "type": "string",
+                "required": true,
+                "description": "产品ID",
+                "foreignKey": true
+              },
+              {
+                "name": "quantity",
+                "type": "number",
+                "required": true,
+                "description": "数量",
+                "min": 1
+              },
+              {
+                "name": "unitPrice",
+                "type": "number",
+                "required": true,
+                "description": "单价",
+                "precision": 2
+              }
+            ]
+          }
+        ],
+        "relations": [
+          {
+            "type": "one-to-many",
+            "sourceEntity": "user",
+            "targetEntity": "order",
+            "sourceField": "id",
+            "targetField": "userId",
+            "relationName": "orders",
+            "cascadeDelete": false
+          },
+          {
+            "type": "one-to-many",
+            "sourceEntity": "order",
+            "targetEntity": "orderItem",
+            "sourceField": "id",
+            "targetField": "orderId",
+            "relationName": "orderItems",
+            "cascadeDelete": true
+          },
+          {
+            "type": "many-to-one",
+            "sourceEntity": "orderItem",
+            "targetEntity": "product",
+            "sourceField": "productId",
+            "targetField": "id",
+            "relationName": "product",
+            "cascadeDelete": false
+          }
+        ],
+        "config": {
+          "projectName": "e2e-test-multi-relation",
+          "outputDir": "./test-output/multi-relation",
+          "enableSoftDelete": true,
+          "enableDataPermission": false,
+          "enableAuditLog": true,
+          "enableCache": false,
+          "generateTests": true,
+          "generateSwagger": true
+        }
+      },
+      "expectedOutputs": {
+        "files": [
+          "user.controller.ts",
+          "user.service.ts",
+          "order.controller.ts",
+          "order.service.ts",
+          "product.controller.ts",
+          "product.service.ts",
+          "order-item.controller.ts",
+          "order-item.service.ts",
+          "relation.service.ts"
+        ],
+        "relationEndpoints": [
+          "GET /api/users/:id/orders",
+          "GET /api/orders/:id/items",
+          "POST /api/orders/:id/items",
+          "GET /api/orders/:id/total"
+        ]
+      }
+    },
+    {
+      "id": "designer-integration",
+      "name": "设计器集成测试",
+      "description": "测试低代码设计器与后端代码生成的集成",
+      "type": "designer-integration",
+      "priority": "high",
+      "estimatedDuration": 180000,
+      "testData": {
+        "pageConfig": {
+          "id": "page_user_management",
+          "name": "用户管理页面",
+          "title": "用户管理",
+          "path": "/users",
+          "type": "list",
+          "layout": "default",
+          "components": [
+            {
+              "id": "user_search_form",
+              "type": "search-form",
+              "name": "userSearchForm",
+              "title": "搜索条件",
+              "fields": [
+                {
+                  "name": "username",
+                  "label": "用户名",
+                  "type": "input-text",
+                  "placeholder": "请输入用户名"
+                },
+                {
+                  "name": "email",
+                  "label": "邮箱",
+                  "type": "input-email",
+                  "placeholder": "请输入邮箱"
+                },
+                {
+                  "name": "status",
+                  "label": "状态",
+                  "type": "select",
+                  "options": [
+                    { "label": "全部", "value": "" },
+                    { "label": "激活", "value": "active" },
+                    { "label": "禁用", "value": "inactive" }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "user_table",
+              "type": "crud-table",
+              "name": "userTable",
+              "title": "用户列表",
+              "dataSource": {
+                "type": "api",
+                "api": {
+                  "url": "/api/users",
+                  "method": "GET"
+                }
+              },
+              "columns": [
+                {
+                  "name": "id",
+                  "label": "ID",
+                  "type": "text",
+                  "width": 80,
+                  "sortable": true
+                },
+                {
+                  "name": "username",
+                  "label": "用户名",
+                  "type": "text",
+                  "sortable": true,
+                  "searchable": true
+                },
+                {
+                  "name": "email",
+                  "label": "邮箱",
+                  "type": "link",
+                  "href": "mailto:${email}",
+                  "sortable": true,
+                  "searchable": true
+                },
+                {
+                  "name": "status",
+                  "label": "状态",
+                  "type": "status",
+                  "map": {
+                    "active": "<span class=\"label label-success\">激活</span>",
+                    "inactive": "<span class=\"label label-default\">禁用</span>"
+                  }
+                },
+                {
+                  "name": "createdAt",
+                  "label": "创建时间",
+                  "type": "datetime",
+                  "format": "YYYY-MM-DD HH:mm:ss",
+                  "sortable": true
+                }
+              ],
+              "operations": {
+                "create": true,
+                "update": true,
+                "delete": true,
+                "view": true,
+                "batch": true
+              },
+              "pagination": {
+                "pageSize": 10,
+                "pageSizeOptions": [10, 20, 50, 100]
+              }
+            },
+            {
+              "id": "user_form",
+              "type": "form",
+              "name": "userForm",
+              "title": "用户表单",
+              "mode": "horizontal",
+              "fields": [
+                {
+                  "name": "username",
+                  "label": "用户名",
+                  "type": "input-text",
+                  "required": true,
+                  "validations": {
+                    "minLength": 3,
+                    "maxLength": 50
+                  }
+                },
+                {
+                  "name": "email",
+                  "label": "邮箱",
+                  "type": "input-email",
+                  "required": true
+                },
+                {
+                  "name": "password",
+                  "label": "密码",
+                  "type": "input-password",
+                  "required": true,
+                  "validations": {
+                    "minLength": 6
+                  }
+                },
+                {
+                  "name": "status",
+                  "label": "状态",
+                  "type": "select",
+                  "required": true,
+                  "options": [
+                    { "label": "激活", "value": "active" },
+                    { "label": "禁用", "value": "inactive" }
+                  ],
+                  "value": "active"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "expectedOutputs": {
+        "generatedApis": [
+          {
+            "path": "/api/users",
+            "method": "GET",
+            "name": "getUserList",
+            "description": "获取用户列表"
+          },
+          {
+            "path": "/api/users/:id",
+            "method": "GET",
+            "name": "getUserById",
+            "description": "根据ID获取用户"
+          },
+          {
+            "path": "/api/users",
+            "method": "POST",
+            "name": "createUser",
+            "description": "创建用户"
+          },
+          {
+            "path": "/api/users/:id",
+            "method": "PUT",
+            "name": "updateUser",
+            "description": "更新用户"
+          },
+          {
+            "path": "/api/users/:id",
+            "method": "DELETE",
+            "name": "deleteUser",
+            "description": "删除用户"
+          }
+        ],
+        "generatedFiles": [
+          "user.controller.ts",
+          "user.service.ts",
+          "user.dto.ts",
+          "user.module.ts"
+        ]
+      }
+    },
+    {
+      "id": "amis-component",
+      "name": "Amis组件适配测试",
+      "description": "测试Amis组件配置生成和数据格式适配",
+      "type": "amis-component",
+      "priority": "medium",
+      "estimatedDuration": 90000,
+      "testData": {
+        "crudConfig": {
+          "entityName": "Product",
+          "apiBasePath": "/api/products",
+          "fields": [
+            {
+              "name": "id",
+              "label": "产品ID",
+              "type": "string",
+              "sortable": true,
+              "width": 80
+            },
+            {
+              "name": "name",
+              "label": "产品名称",
+              "type": "string",
+              "searchable": true,
+              "sortable": true,
+              "required": true
+            },
+            {
+              "name": "price",
+              "label": "价格",
+              "type": "number",
+              "sortable": true,
+              "filterable": true,
+              "precision": 2,
+              "prefix": "¥"
+            },
+            {
+              "name": "category",
+              "label": "分类",
+              "type": "select",
+              "filterable": true,
+              "options": [
+                { "label": "电子产品", "value": "electronics" },
+                { "label": "服装", "value": "clothing" },
+                { "label": "食品", "value": "food" }
+              ]
+            },
+            {
+              "name": "status",
+              "label": "状态",
+              "type": "boolean",
+              "filterable": true
+            },
+            {
+              "name": "createdAt",
+              "label": "创建时间",
+              "type": "datetime",
+              "sortable": true,
+              "format": "YYYY-MM-DD HH:mm:ss"
+            }
+          ],
+          "operations": {
+            "create": true,
+            "update": true,
+            "delete": true,
+            "view": true,
+            "batch": true
+          },
+          "pagination": {
+            "pageSize": 20,
+            "pageSizeOptions": [10, 20, 50, 100]
+          }
+        },
+        "formConfig": {
+          "entityName": "Product",
+          "apiPath": "/api/products",
+          "mode": "create",
+          "fields": [
+            {
+              "name": "name",
+              "label": "产品名称",
+              "type": "string",
+              "required": true,
+              "placeholder": "请输入产品名称"
+            },
+            {
+              "name": "description",
+              "label": "产品描述",
+              "type": "text",
+              "required": false,
+              "placeholder": "请输入产品描述"
+            },
+            {
+              "name": "price",
+              "label": "价格",
+              "type": "number",
+              "required": true,
+              "min": 0,
+              "precision": 2,
+              "prefix": "¥"
+            },
+            {
+              "name": "category",
+              "label": "分类",
+              "type": "select",
+              "required": true,
+              "options": [
+                { "label": "电子产品", "value": "electronics" },
+                { "label": "服装", "value": "clothing" },
+                { "label": "食品", "value": "food" }
+              ]
+            },
+            {
+              "name": "images",
+              "label": "产品图片",
+              "type": "file",
+              "required": false,
+              "multiple": true,
+              "accept": "image/*"
+            },
+            {
+              "name": "status",
+              "label": "状态",
+              "type": "select",
+              "required": true,
+              "options": [
+                { "label": "上架", "value": "active" },
+                { "label": "下架", "value": "inactive" }
+              ],
+              "value": "active"
+            }
+          ]
+        }
+      },
+      "expectedOutputs": {
+        "crudComponent": {
+          "type": "crud",
+          "hasColumns": true,
+          "hasOperations": true,
+          "hasPagination": true,
+          "hasFilter": true
+        },
+        "formComponent": {
+          "type": "form",
+          "hasFields": true,
+          "hasValidation": true,
+          "hasActions": true
+        }
+      }
+    },
+    {
+      "id": "api-parameter-config",
+      "name": "API参数配置测试",
+      "description": "测试API参数配置系统的功能",
+      "type": "api-parameter-config",
+      "priority": "medium",
+      "estimatedDuration": 60000,
+      "testData": {
+        "apiConfig": {
+          "path": "/api/test-products",
+          "method": "GET",
+          "name": "测试产品列表",
+          "description": "获取测试产品列表接口",
+          "inputParameters": [
+            {
+              "name": "page",
+              "type": "number",
+              "required": false,
+              "defaultValue": 1,
+              "description": "页码",
+              "validationRules": [
+                {
+                  "type": "min",
+                  "value": 1,
+                  "message": "页码必须大于0",
+                  "enabled": true
+                }
+              ],
+              "transformationRules": [
+                {
+                  "type": "toNumber",
+                  "enabled": true,
+                  "order": 1
+                }
+              ],
+              "showInDocs": true,
+              "deprecated": false
+            },
+            {
+              "name": "limit",
+              "type": "number",
+              "required": false,
+              "defaultValue": 10,
+              "description": "每页数量",
+              "validationRules": [
+                {
+                  "type": "min",
+                  "value": 1,
+                  "message": "每页数量必须大于0",
+                  "enabled": true
+                },
+                {
+                  "type": "max",
+                  "value": 100,
+                  "message": "每页数量不能超过100",
+                  "enabled": true
+                }
+              ],
+              "transformationRules": [
+                {
+                  "type": "toNumber",
+                  "enabled": true,
+                  "order": 1
+                }
+              ],
+              "showInDocs": true,
+              "deprecated": false
+            },
+            {
+              "name": "keyword",
+              "type": "string",
+              "required": false,
+              "description": "搜索关键词",
+              "validationRules": [
+                {
+                  "type": "maxLength",
+                  "value": 100,
+                  "message": "关键词长度不能超过100个字符",
+                  "enabled": true
+                }
+              ],
+              "transformationRules": [
+                {
+                  "type": "trim",
+                  "enabled": true,
+                  "order": 1
+                }
+              ],
+              "showInDocs": true,
+              "deprecated": false
+            },
+            {
+              "name": "category",
+              "type": "string",
+              "required": false,
+              "description": "产品分类",
+              "validationRules": [
+                {
+                  "type": "enum",
+                  "value": ["electronics", "clothing", "food"],
+                  "message": "无效的产品分类",
+                  "enabled": true
+                }
+              ],
+              "showInDocs": true,
+              "deprecated": false
+            }
+          ],
+          "outputParameters": [
+            {
+              "name": "items",
+              "type": "array",
+              "required": true,
+              "description": "产品列表",
+              "arrayItemType": "object",
+              "showInDocs": true,
+              "deprecated": false
+            },
+            {
+              "name": "total",
+              "type": "number",
+              "required": true,
+              "description": "总记录数",
+              "showInDocs": true,
+              "deprecated": false
+            },
+            {
+              "name": "page",
+              "type": "number",
+              "required": true,
+              "description": "当前页码",
+              "showInDocs": true,
+              "deprecated": false
+            },
+            {
+              "name": "limit",
+              "type": "number",
+              "required": true,
+              "description": "每页数量",
+              "showInDocs": true,
+              "deprecated": false
+            }
+          ],
+          "responseFormat": {
+            "wrapResponse": true,
+            "successCode": 0,
+            "errorCode": 1,
+            "dataField": "data",
+            "messageField": "msg",
+            "statusField": "status"
+          },
+          "enabled": true,
+          "createdBy": "e2e-test"
+        }
+      },
+      "expectedOutputs": {
+        "configCreated": true,
+        "hasInputValidation": true,
+        "hasOutputMapping": true,
+        "hasResponseFormat": true
+      }
+    },
+    {
+      "id": "full-workflow",
+      "name": "完整业务流程测试",
+      "description": "端到端测试完整的业务流程，从设计器到前端展示",
+      "type": "full-workflow",
+      "priority": "critical",
+      "estimatedDuration": 300000,
+      "testData": {
+        "workflow": {
+          "name": "商品管理完整流程",
+          "description": "从设计器创建页面到生成后端接口，再到前端展示的完整流程",
+          "steps": [
+            {
+              "name": "设计器创建页面",
+              "description": "在设计器中创建商品管理页面"
+            },
+            {
+              "name": "生成后端接口",
+              "description": "根据页面配置生成对应的后端CRUD接口"
+            },
+            {
+              "name": "生成Amis配置",
+              "description": "生成前端Amis组件配置"
+            },
+            {
+              "name": "接口测试",
+              "description": "测试生成的接口是否正常工作"
+            },
+            {
+              "name": "前端集成测试",
+              "description": "测试前端页面是否能正常展示和交互"
+            }
+          ]
+        },
+        "entity": {
+          "code": "product",
+          "name": "Product",
+          "description": "商品实体",
+          "fields": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": "商品ID",
+              "primaryKey": true
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "required": true,
+              "description": "商品名称",
+              "maxLength": 200
+            },
+            {
+              "name": "description",
+              "type": "text",
+              "required": false,
+              "description": "商品描述"
+            },
+            {
+              "name": "price",
+              "type": "number",
+              "required": true,
+              "description": "商品价格",
+              "precision": 2,
+              "min": 0
+            },
+            {
+              "name": "category",
+              "type": "string",
+              "required": true,
+              "description": "商品分类",
+              "enum": ["electronics", "clothing", "food", "books", "sports"]
+            },
+            {
+              "name": "stock",
+              "type": "number",
+              "required": true,
+              "description": "库存数量",
+              "min": 0,
+              "default": 0
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "required": true,
+              "description": "商品状态",
+              "enum": ["active", "inactive", "discontinued"],
+              "default": "active"
+            },
+            {
+              "name": "tags",
+              "type": "array",
+              "required": false,
+              "description": "商品标签",
+              "arrayItemType": "string"
+            },
+            {
+              "name": "images",
+              "type": "array",
+              "required": false,
+              "description": "商品图片",
+              "arrayItemType": "string"
+            },
+            {
+              "name": "createdAt",
+              "type": "datetime",
+              "required": true,
+              "description": "创建时间",
+              "autoGenerate": true
+            },
+            {
+              "name": "updatedAt",
+              "type": "datetime",
+              "required": true,
+              "description": "更新时间",
+              "autoUpdate": true
+            }
+          ]
+        }
+      },
+      "expectedOutputs": {
+        "taskCompleted": true,
+        "filesGenerated": true,
+        "apisWorking": true,
+        "frontendIntegrated": true,
+        "endToEndWorking": true
+      }
+    }
+  ],
+  "testConfiguration": {
+    "defaultTimeout": 30000,
+    "maxRetries": 3,
+    "parallelExecution": false,
+    "cleanupAfterTest": true,
+    "generateDetailedReport": true,
+    "logLevel": "info",
+    "testEnvironment": "development",
+    "outputDirectory": "./test-output",
+    "reportDirectory": "./test-reports"
+  },
+  "testEnvironments": {
+    "development": {
+      "baseUrl": "http://localhost:3000",
+      "database": "test_lowcode_dev",
+      "enableMocking": true,
+      "logLevel": "debug"
+    },
+    "staging": {
+      "baseUrl": "https://staging.lowcode.example.com",
+      "database": "test_lowcode_staging",
+      "enableMocking": false,
+      "logLevel": "info"
+    },
+    "production": {
+      "baseUrl": "https://lowcode.example.com",
+      "database": "test_lowcode_prod",
+      "enableMocking": false,
+      "logLevel": "warn"
+    }
+  }
+}

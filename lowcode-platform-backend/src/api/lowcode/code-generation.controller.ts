@@ -16,6 +16,8 @@ import { AmisResponse } from '@decorators/amis-response.decorator';
 import { AmisResponseInterceptor } from '@interceptors/amis-response.interceptor';
 import { CodeGenerationService, CodeGenerationOptions } from '@lib/code-generation/services/code-generation.service';
 import { HotUpdateService } from '@lib/code-generation/services/hot-update.service';
+import { CodeGenerationManagerService } from '../../services/code-generation-manager.service';
+import { LayeredCodeGeneratorService, EntityDefinition, CodeGenerationConfig } from '../../services/layered-code-generator.service';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -47,6 +49,8 @@ export class CodeGenerationController {
     private readonly prisma: PrismaService,
     private readonly codeGenerationService: CodeGenerationService,
     private readonly hotUpdateService: HotUpdateService,
+    private readonly codeGenerationManager: CodeGenerationManagerService,
+    private readonly layeredGenerator: LayeredCodeGeneratorService,
   ) {}
 
   @Get('templates')
@@ -306,6 +310,91 @@ export class CodeGenerationController {
     } catch (error) {
       this.logger.error('Failed to clear template cache:', error);
       throw error;
+    }
+  }
+
+  /**
+   * 创建分层代码生成任务
+   */
+  @Post('layered/tasks')
+  @ApiOperation({ summary: '创建分层代码生成任务' })
+  @AmisResponse()
+  async createLayeredGenerationTask(@Body() body: {
+    name: string;
+    entities: EntityDefinition[];
+    config: CodeGenerationConfig;
+    async?: boolean;
+    sendNotification?: boolean;
+    callbackUrl?: string;
+  }) {
+    try {
+      const taskId = await this.codeGenerationManager.createGenerationTask(
+        body.name,
+        body.entities,
+        body.config,
+        'system', // TODO: 从JWT中获取用户ID
+        {
+          async: body.async,
+          sendNotification: body.sendNotification,
+          callbackUrl: body.callbackUrl,
+        },
+      );
+
+      return {
+        taskId,
+        message: '分层代码生成任务创建成功',
+      };
+    } catch (error) {
+      this.logger.error('创建分层代码生成任务失败:', error);
+      throw new BadRequestException('创建分层代码生成任务失败');
+    }
+  }
+
+  /**
+   * 获取分层代码生成任务状态
+   */
+  @Get('layered/tasks/:taskId')
+  @ApiOperation({ summary: '获取分层代码生成任务状态' })
+  @AmisResponse()
+  async getLayeredTaskStatus(@Query('taskId') taskId: string) {
+    try {
+      const task = this.codeGenerationManager.getTaskStatus(taskId);
+
+      if (!task) {
+        throw new NotFoundException('任务不存在');
+      }
+
+      return {
+        id: task.id,
+        name: task.name,
+        status: task.status,
+        progress: task.progress,
+        startTime: task.startTime,
+        endTime: task.endTime,
+        error: task.error,
+        createdBy: task.createdBy,
+        createdAt: task.createdAt,
+        filesCount: task.generatedFiles.length,
+      };
+    } catch (error) {
+      this.logger.error('获取任务状态失败:', error);
+      throw new BadRequestException('获取任务状态失败');
+    }
+  }
+
+  /**
+   * 获取分层代码生成统计
+   */
+  @Get('layered/statistics')
+  @ApiOperation({ summary: '获取分层代码生成统计' })
+  @AmisResponse()
+  async getLayeredGenerationStatistics() {
+    try {
+      const statistics = this.codeGenerationManager.getGenerationStatistics();
+      return statistics;
+    } catch (error) {
+      this.logger.error('获取生成统计失败:', error);
+      throw new BadRequestException('获取生成统计失败');
     }
   }
 

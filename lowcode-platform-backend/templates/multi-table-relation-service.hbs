@@ -1,0 +1,703 @@
+{{!-- 
+多表关联查询Service模板
+用于生成多表关联查询服务
+--}}
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { PrismaService } from '@/shared/prisma/prisma.service';
+{{#if enableCache}}
+import { CacheService } from '@/shared/cache/cache.service';
+{{/if}}
+{{#if enableOptimization}}
+import { QueryOptimizerService } from '@/shared/services/query-optimizer.service';
+{{/if}}
+import {
+  {{#each relationQueries}}
+  {{pascalCase this.name}}QueryDto,
+  {{/each}}
+  CommonRelationQueryDto,
+} from '../dto';
+
+/**
+ * 多表关联查询服务
+ * 提供复杂的多表关联查询业务逻辑
+ */
+@Injectable()
+export class {{className}} {
+  private readonly logger = new Logger({{className}}.name);
+  {{#if enableCache}}
+  private readonly cachePrefix = 'relation_query';
+  private readonly cacheTtl = {{config.cacheTtl}};
+  {{/if}}
+
+  constructor(
+    private readonly prisma: PrismaService,
+    {{#if enableCache}}
+    private readonly cacheService: CacheService,
+    {{/if}}
+    {{#if enableOptimization}}
+    private readonly queryOptimizer: QueryOptimizerService,
+    {{/if}}
+  ) {}
+
+  {{#each relationQueries}}
+  /**
+   * {{this.description}}
+   */
+  async {{camelCase this.name}}(
+    {{#if (eq this.queryType 'complex')}}
+    queryDto: {{pascalCase this.name}}QueryDto
+    {{else}}
+    params: {
+      {{#if this.pagination.enabled}}
+      page?: number;
+      limit?: number;
+      {{/if}}
+      {{#each this.conditions}}
+      {{#if this.fromParam}}
+      {{this.paramName}}?: {{#if (eq this.operator 'in')}}string[]{{else if (eq this.operator 'between')}}string[]{{else}}any{{/if}};
+      {{/if}}
+      {{/each}}
+      sortBy?: string;
+      sortOrder?: 'ASC' | 'DESC';
+    }
+    {{/if}}
+  ): Promise<{
+    data: any[];
+    {{#if this.pagination.enabled}}
+    total: number;
+    page?: number;
+    limit?: number;
+    {{/if}}
+  }> {
+    try {
+      {{#if enableCache}}
+      // 尝试从缓存获取
+      const cacheKey = `${this.cachePrefix}:{{this.name}}:${JSON.stringify({{#if (eq this.queryType 'complex')}}queryDto{{else}}params{{/if}})}`;
+      const cached = await this.cacheService.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+      {{/if}}
+
+      // 构建查询条件
+      const where: any = {};
+      {{#each this.conditions}}
+      {{#if this.fromParam}}
+      if ({{#if (eq ../queryType 'complex')}}queryDto.{{this.paramName}}{{else}}params.{{this.paramName}}{{/if}} !== undefined) {
+        {{#if (eq this.operator 'eq')}}
+        where.{{this.field}} = {{#if (eq ../queryType 'complex')}}queryDto.{{this.paramName}}{{else}}params.{{this.paramName}}{{/if}};
+        {{else if (eq this.operator 'ne')}}
+        where.{{this.field}} = { not: {{#if (eq ../queryType 'complex')}}queryDto.{{this.paramName}}{{else}}params.{{this.paramName}}{{/if}} };
+        {{else if (eq this.operator 'gt')}}
+        where.{{this.field}} = { gt: {{#if (eq ../queryType 'complex')}}queryDto.{{this.paramName}}{{else}}params.{{this.paramName}}{{/if}} };
+        {{else if (eq this.operator 'gte')}}
+        where.{{this.field}} = { gte: {{#if (eq ../queryType 'complex')}}queryDto.{{this.paramName}}{{else}}params.{{this.paramName}}{{/if}} };
+        {{else if (eq this.operator 'lt')}}
+        where.{{this.field}} = { lt: {{#if (eq ../queryType 'complex')}}queryDto.{{this.paramName}}{{else}}params.{{this.paramName}}{{/if}} };
+        {{else if (eq this.operator 'lte')}}
+        where.{{this.field}} = { lte: {{#if (eq ../queryType 'complex')}}queryDto.{{this.paramName}}{{else}}params.{{this.paramName}}{{/if}} };
+        {{else if (eq this.operator 'in')}}
+        where.{{this.field}} = { in: {{#if (eq ../queryType 'complex')}}queryDto.{{this.paramName}}{{else}}params.{{this.paramName}}{{/if}} };
+        {{else if (eq this.operator 'notIn')}}
+        where.{{this.field}} = { notIn: {{#if (eq ../queryType 'complex')}}queryDto.{{this.paramName}}{{else}}params.{{this.paramName}}{{/if}} };
+        {{else if (eq this.operator 'like')}}
+        where.{{this.field}} = { contains: {{#if (eq ../queryType 'complex')}}queryDto.{{this.paramName}}{{else}}params.{{this.paramName}}{{/if}}, mode: 'insensitive' };
+        {{else if (eq this.operator 'between')}}
+        const [start, end] = {{#if (eq ../queryType 'complex')}}queryDto.{{this.paramName}}{{else}}params.{{this.paramName}}{{/if}};
+        where.{{this.field}} = { gte: start, lte: end };
+        {{else if (eq this.operator 'isNull')}}
+        where.{{this.field}} = null;
+        {{else if (eq this.operator 'isNotNull')}}
+        where.{{this.field}} = { not: null };
+        {{/if}}
+      }
+      {{else}}
+      // 固定条件: {{this.field}} {{this.operator}} {{this.value}}
+      {{#if (eq this.operator 'eq')}}
+      where.{{this.field}} = {{#if (eq this.value 'string')}}'{{this.value}}'{{else}}{{this.value}}{{/if}};
+      {{else if (eq this.operator 'ne')}}
+      where.{{this.field}} = { not: {{#if (eq this.value 'string')}}'{{this.value}}'{{else}}{{this.value}}{{/if}} };
+      {{else if (eq this.operator 'in')}}
+      where.{{this.field}} = { in: {{json this.value}} };
+      {{else if (eq this.operator 'isNull')}}
+      where.{{this.field}} = null;
+      {{else if (eq this.operator 'isNotNull')}}
+      where.{{this.field}} = { not: null };
+      {{/if}}
+      {{/if}}
+      {{/each}}
+
+      // 构建排序条件
+      const orderBy: any = {};
+      {{#if this.orderBy}}
+      {{#each this.orderBy}}
+      orderBy.{{this.field}} = '{{lowercase this.direction}}';
+      {{/each}}
+      {{else}}
+      {{#if (eq this.queryType 'complex')}}
+      if (queryDto.sortBy) {
+        orderBy[queryDto.sortBy] = queryDto.sortOrder?.toLowerCase() || 'asc';
+      }
+      {{else}}
+      if (params.sortBy) {
+        orderBy[params.sortBy] = params.sortOrder?.toLowerCase() || 'asc';
+      }
+      {{/if}}
+      {{/if}}
+
+      // 构建关联查询
+      const include: any = {};
+      {{#each this.relatedEntities}}
+      include.{{camelCase this}} = true;
+      {{/each}}
+
+      {{#if this.pagination.enabled}}
+      // 分页参数
+      {{#if (eq this.queryType 'complex')}}
+      const page = queryDto.page || 1;
+      const limit = Math.min(queryDto.limit || {{this.pagination.defaultPageSize}}, {{this.pagination.maxPageSize}});
+      {{else}}
+      const page = params.page || 1;
+      const limit = Math.min(params.limit || {{this.pagination.defaultPageSize}}, {{this.pagination.maxPageSize}});
+      {{/if}}
+      const skip = (page - 1) * limit;
+
+      // 执行查询
+      const [data, total] = await Promise.all([
+        this.prisma.{{camelCase this.primaryEntity}}.findMany({
+          where,
+          include,
+          orderBy,
+          skip,
+          take: limit,
+        }),
+        this.prisma.{{camelCase this.primaryEntity}}.count({ where }),
+      ]);
+
+      const result = {
+        data,
+        total,
+        page,
+        limit,
+      };
+      {{else}}
+      // 执行查询（无分页）
+      const data = await this.prisma.{{camelCase this.primaryEntity}}.findMany({
+        where,
+        include,
+        orderBy,
+      });
+
+      const result = {
+        data,
+      };
+      {{/if}}
+
+      {{#if enableCache}}
+      // 缓存结果
+      await this.cacheService.set(cacheKey, result, this.cacheTtl);
+      {{/if}}
+
+      return result;
+
+    } catch (error) {
+      this.logger.error(`{{this.name}} 查询失败:`, error);
+      throw new BadRequestException(`{{this.description}}查询失败: ${error.message}`);
+    }
+  }
+
+  {{/each}}
+
+  /**
+   * 通用关联查询
+   */
+  async dynamicQuery(queryDto: CommonRelationQueryDto): Promise<{
+    data: any[];
+    total: number;
+    page?: number;
+    limit?: number;
+  }> {
+    try {
+      // 验证查询参数
+      this.validateDynamicQuery(queryDto);
+
+      {{#if enableCache}}
+      // 尝试从缓存获取
+      const cacheKey = `${this.cachePrefix}:dynamic:${JSON.stringify(queryDto)}`;
+      const cached = await this.cacheService.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+      {{/if}}
+
+      // 获取主实体
+      const primaryEntity = queryDto.entities[0];
+      
+      // 构建查询条件
+      const where = this.buildWhereConditions(queryDto.conditions || []);
+      
+      // 构建关联查询
+      const include = this.buildIncludeRelations(queryDto.relations || []);
+      
+      // 构建排序条件
+      const orderBy = this.buildOrderBy(queryDto.orderBy || []);
+
+      // 分页参数
+      const page = queryDto.page || 1;
+      const limit = Math.min(queryDto.limit || 10, 100);
+      const skip = (page - 1) * limit;
+
+      {{#if enableOptimization}}
+      // 查询优化
+      const optimizedQuery = await this.queryOptimizer.optimize({
+        entity: primaryEntity,
+        where,
+        include,
+        orderBy,
+        skip,
+        take: limit,
+      });
+      {{/if}}
+
+      // 执行查询
+      const [data, total] = await Promise.all([
+        this.prisma[primaryEntity].findMany({{#if enableOptimization}}optimizedQuery{{else}}{
+          where,
+          include,
+          orderBy,
+          skip,
+          take: limit,
+        }{{/if}}),
+        this.prisma[primaryEntity].count({ where }),
+      ]);
+
+      const result = {
+        data,
+        total,
+        page,
+        limit,
+      };
+
+      {{#if enableCache}}
+      // 缓存结果
+      await this.cacheService.set(cacheKey, result, this.cacheTtl);
+      {{/if}}
+
+      return result;
+
+    } catch (error) {
+      this.logger.error('动态查询失败:', error);
+      throw new BadRequestException(`动态查询失败: ${error.message}`);
+    }
+  }
+
+  /**
+   * 获取实体关系图
+   */
+  async getEntityRelations(entity?: string, depth: number = 2): Promise<{
+    nodes: any[];
+    edges: any[];
+  }> {
+    try {
+      {{#if enableCache}}
+      const cacheKey = `${this.cachePrefix}:relations:${entity || 'all'}:${depth}`;
+      const cached = await this.cacheService.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+      {{/if}}
+
+      const nodes: any[] = [];
+      const edges: any[] = [];
+
+      // 获取实体信息
+      const entities = entity ? [entity] : {{json (map entities 'code')}};
+      
+      for (const entityCode of entities) {
+        // 添加实体节点
+        const entityInfo = await this.getEntityInfo(entityCode);
+        nodes.push({
+          id: entityCode,
+          name: entityInfo.name,
+          description: entityInfo.description,
+          fieldsCount: entityInfo.fieldsCount,
+          relationsCount: entityInfo.relationsCount,
+        });
+
+        // 获取关系
+        const relations = await this.getEntityRelationships(entityCode, depth);
+        edges.push(...relations);
+      }
+
+      const result = { nodes, edges };
+
+      {{#if enableCache}}
+      await this.cacheService.set(cacheKey, result, this.cacheTtl);
+      {{/if}}
+
+      return result;
+
+    } catch (error) {
+      this.logger.error('获取实体关系图失败:', error);
+      throw new BadRequestException(`获取实体关系图失败: ${error.message}`);
+    }
+  }
+
+  /**
+   * 验证查询
+   */
+  async validateQuery(queryDto: CommonRelationQueryDto): Promise<{
+    isValid: boolean;
+    errors: string[];
+    warnings: string[];
+    estimatedTime: number;
+    optimizations: string[];
+  }> {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    const optimizations: string[] = [];
+
+    try {
+      // 验证实体存在性
+      for (const entity of queryDto.entities) {
+        if (!this.isValidEntity(entity)) {
+          errors.push(`实体 ${entity} 不存在`);
+        }
+      }
+
+      // 验证关系有效性
+      if (queryDto.relations) {
+        for (const relation of queryDto.relations) {
+          if (!this.isValidRelation(relation)) {
+            errors.push(`关系 ${relation} 无效`);
+          }
+        }
+      }
+
+      // 验证查询条件
+      if (queryDto.conditions) {
+        for (const condition of queryDto.conditions) {
+          const conditionValidation = this.validateCondition(condition);
+          if (!conditionValidation.isValid) {
+            errors.push(...conditionValidation.errors);
+          }
+          warnings.push(...conditionValidation.warnings);
+        }
+      }
+
+      // 性能分析
+      const complexity = this.calculateComplexity(queryDto);
+      const estimatedTime = this.estimateExecutionTime(complexity);
+
+      // 优化建议
+      if (complexity > 10) {
+        optimizations.push('查询复杂度较高，建议添加索引');
+      }
+      if (queryDto.entities.length > 3) {
+        optimizations.push('涉及表较多，建议分步查询');
+      }
+      if (!queryDto.limit || queryDto.limit > 100) {
+        optimizations.push('建议限制查询结果数量');
+      }
+
+      return {
+        isValid: errors.length === 0,
+        errors,
+        warnings,
+        estimatedTime,
+        optimizations,
+      };
+
+    } catch (error) {
+      this.logger.error('查询验证失败:', error);
+      return {
+        isValid: false,
+        errors: [`查询验证失败: ${error.message}`],
+        warnings,
+        estimatedTime: 0,
+        optimizations,
+      };
+    }
+  }
+
+  /**
+   * 获取查询建议
+   */
+  async getQuerySuggestions(
+    entities: string[],
+    purpose: 'list' | 'detail' | 'statistics' | 'report',
+    performance: 'fast' | 'balanced' | 'comprehensive'
+  ): Promise<any[]> {
+    const suggestions: any[] = [];
+
+    try {
+      // 根据目的生成建议
+      switch (purpose) {
+        case 'list':
+          suggestions.push(...this.generateListSuggestions(entities, performance));
+          break;
+        case 'detail':
+          suggestions.push(...this.generateDetailSuggestions(entities, performance));
+          break;
+        case 'statistics':
+          suggestions.push(...this.generateStatisticsSuggestions(entities, performance));
+          break;
+        case 'report':
+          suggestions.push(...this.generateReportSuggestions(entities, performance));
+          break;
+      }
+
+      return suggestions;
+
+    } catch (error) {
+      this.logger.error('获取查询建议失败:', error);
+      throw new BadRequestException(`获取查询建议失败: ${error.message}`);
+    }
+  }
+
+  /**
+   * 获取查询性能统计
+   */
+  async getPerformanceStats(period: 'hour' | 'day' | 'week' | 'month'): Promise<{
+    totalQueries: number;
+    averageExecutionTime: number;
+    slowQueries: any[];
+    popularQueries: any[];
+    errorRate: number;
+    cacheHitRate: number;
+  }> {
+    try {
+      // TODO: 实现性能统计逻辑
+      // 这里应该从监控系统或日志中获取统计数据
+      
+      return {
+        totalQueries: 0,
+        averageExecutionTime: 0,
+        slowQueries: [],
+        popularQueries: [],
+        errorRate: 0,
+        cacheHitRate: 0,
+      };
+
+    } catch (error) {
+      this.logger.error('获取性能统计失败:', error);
+      throw new BadRequestException(`获取性能统计失败: ${error.message}`);
+    }
+  }
+
+  /**
+   * 验证动态查询参数
+   */
+  private validateDynamicQuery(queryDto: CommonRelationQueryDto): void {
+    if (!queryDto.entities || queryDto.entities.length === 0) {
+      throw new BadRequestException('至少需要指定一个实体');
+    }
+
+    if (queryDto.entities.length > 5) {
+      throw new BadRequestException('一次查询最多支持5个实体');
+    }
+
+    // 验证查询深度
+    const depth = this.calculateQueryDepth(queryDto);
+    if (depth > {{maxDepth}}) {
+      throw new BadRequestException(`查询深度不能超过 {{maxDepth}} 层`);
+    }
+  }
+
+  /**
+   * 构建WHERE条件
+   */
+  private buildWhereConditions(conditions: any[]): any {
+    const where: any = {};
+    
+    conditions.forEach(condition => {
+      // 根据条件类型构建WHERE子句
+      switch (condition.operator) {
+        case 'eq':
+          where[condition.field] = condition.value;
+          break;
+        case 'ne':
+          where[condition.field] = { not: condition.value };
+          break;
+        case 'gt':
+          where[condition.field] = { gt: condition.value };
+          break;
+        case 'gte':
+          where[condition.field] = { gte: condition.value };
+          break;
+        case 'lt':
+          where[condition.field] = { lt: condition.value };
+          break;
+        case 'lte':
+          where[condition.field] = { lte: condition.value };
+          break;
+        case 'in':
+          where[condition.field] = { in: condition.value };
+          break;
+        case 'notIn':
+          where[condition.field] = { notIn: condition.value };
+          break;
+        case 'like':
+          where[condition.field] = { contains: condition.value, mode: 'insensitive' };
+          break;
+        case 'between':
+          const [start, end] = condition.value;
+          where[condition.field] = { gte: start, lte: end };
+          break;
+        case 'isNull':
+          where[condition.field] = null;
+          break;
+        case 'isNotNull':
+          where[condition.field] = { not: null };
+          break;
+      }
+    });
+
+    return where;
+  }
+
+  /**
+   * 构建关联查询
+   */
+  private buildIncludeRelations(relations: string[]): any {
+    const include: any = {};
+    
+    relations.forEach(relation => {
+      include[relation] = true;
+    });
+
+    return include;
+  }
+
+  /**
+   * 构建排序条件
+   */
+  private buildOrderBy(orderBy: any[]): any {
+    const orderByClause: any = {};
+    
+    orderBy.forEach(order => {
+      orderByClause[order.field] = order.direction.toLowerCase();
+    });
+
+    return orderByClause;
+  }
+
+  /**
+   * 获取实体信息
+   */
+  private async getEntityInfo(entityCode: string): Promise<any> {
+    // TODO: 实现获取实体信息的逻辑
+    return {
+      name: entityCode,
+      description: `${entityCode} 实体`,
+      fieldsCount: 0,
+      relationsCount: 0,
+    };
+  }
+
+  /**
+   * 获取实体关系
+   */
+  private async getEntityRelationships(entityCode: string, depth: number): Promise<any[]> {
+    // TODO: 实现获取实体关系的逻辑
+    return [];
+  }
+
+  /**
+   * 验证实体有效性
+   */
+  private isValidEntity(entity: string): boolean {
+    const validEntities = {{json (map entities 'code')}};
+    return validEntities.includes(entity);
+  }
+
+  /**
+   * 验证关系有效性
+   */
+  private isValidRelation(relation: string): boolean {
+    // TODO: 实现关系验证逻辑
+    return true;
+  }
+
+  /**
+   * 验证查询条件
+   */
+  private validateCondition(condition: any): {
+    isValid: boolean;
+    errors: string[];
+    warnings: string[];
+  } {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    // TODO: 实现条件验证逻辑
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+    };
+  }
+
+  /**
+   * 计算查询复杂度
+   */
+  private calculateComplexity(queryDto: CommonRelationQueryDto): number {
+    let complexity = 0;
+    
+    complexity += queryDto.entities.length;
+    complexity += (queryDto.relations?.length || 0) * 2;
+    complexity += (queryDto.conditions?.length || 0);
+    complexity += (queryDto.orderBy?.length || 0) * 0.5;
+    
+    return complexity;
+  }
+
+  /**
+   * 计算查询深度
+   */
+  private calculateQueryDepth(queryDto: CommonRelationQueryDto): number {
+    // TODO: 实现查询深度计算逻辑
+    return queryDto.relations?.length || 1;
+  }
+
+  /**
+   * 估算执行时间
+   */
+  private estimateExecutionTime(complexity: number): number {
+    // 简单的时间估算公式
+    return Math.round(complexity * 10 + Math.random() * 50);
+  }
+
+  /**
+   * 生成列表查询建议
+   */
+  private generateListSuggestions(entities: string[], performance: string): any[] {
+    // TODO: 实现列表查询建议生成逻辑
+    return [];
+  }
+
+  /**
+   * 生成详情查询建议
+   */
+  private generateDetailSuggestions(entities: string[], performance: string): any[] {
+    // TODO: 实现详情查询建议生成逻辑
+    return [];
+  }
+
+  /**
+   * 生成统计查询建议
+   */
+  private generateStatisticsSuggestions(entities: string[], performance: string): any[] {
+    // TODO: 实现统计查询建议生成逻辑
+    return [];
+  }
+
+  /**
+   * 生成报表查询建议
+   */
+  private generateReportSuggestions(entities: string[], performance: string): any[] {
+    // TODO: 实现报表查询建议生成逻辑
+    return [];
+  }
+}

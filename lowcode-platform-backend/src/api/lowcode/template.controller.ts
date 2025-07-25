@@ -18,6 +18,11 @@ import {
   ApiParam,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
+import { TemplateIntegrationService } from '@lib/bounded-contexts/template/application/services/template-integration.service';
+import { CodeGenerationRequest } from '@lib/bounded-contexts/template/application/services/code-generation.service';
+import { TemplateValidationService, TemplateTestCase } from '../../modules/template/services/template-validation.service';
+import { Public, GlobalApiJwtAuth } from '../../shared/decorators/api-jwt-auth.decorator';
 import {
   CreateTemplateDto,
   UpdateTemplateDto,
@@ -31,13 +36,56 @@ import {
 } from '@api/lowcode/dto/template.dto';
 
 @ApiTags('templates')
-@ApiBearerAuth()
+@GlobalApiJwtAuth()
 @Controller({ path: 'templates', version: '1' })
 export class TemplateController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
+    private readonly prisma: PrismaService,
+    private readonly templateIntegration: TemplateIntegrationService,
+    private readonly templateValidation: TemplateValidationService,
   ) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Get all templates' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Templates retrieved successfully',
+    type: [TemplateResponseDto],
+  })
+  async findAll(@Query() query?: { language?: string; framework?: string; type?: string }): Promise<any> {
+    try {
+      const where: any = {};
+
+      if (query?.language) {
+        where.language = query.language;
+      }
+      if (query?.framework) {
+        where.framework = query.framework;
+      }
+      if (query?.type) {
+        where.type = query.type;
+      }
+
+      const templates = await this.prisma.codeTemplate.findMany({
+        where,
+        orderBy: { createdAt: 'desc' }
+      });
+
+      return {
+        status: 0,
+        msg: 'success',
+        data: templates
+      };
+    } catch (error) {
+      return {
+        status: 1,
+        msg: error.message,
+        data: null
+      };
+    }
+  }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -71,6 +119,254 @@ export class TemplateController {
       msg: 'success',
       data: { id: templateId },
     };
+  }
+
+  @Public()
+  @Post(':id/validate')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Validate template syntax and variables' })
+  @ApiParam({ name: 'id', description: 'Template ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Template validation result',
+  })
+  async validateTemplate(@Param('id') id: string, @Body() validationData?: any): Promise<any> {
+    try {
+      // 获取模板内容
+      const template = await this.prisma.codeTemplate.findUnique({
+        where: { id }
+      });
+
+      if (!template) {
+        return {
+          status: 1,
+          msg: 'Template not found',
+          data: null
+        };
+      }
+
+      // 使用验证服务验证模板
+      const validationResult = await this.templateValidation.validateTemplate(
+        template.template,
+        template.type
+      );
+
+      return {
+        status: 0,
+        msg: 'success',
+        data: validationResult
+      };
+    } catch (error) {
+      return {
+        status: 1,
+        msg: 'Validation failed',
+        data: {
+          isValid: false,
+          errors: [error.message]
+        }
+      };
+    }
+  }
+
+  @Public()
+  @Post(':id/test')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Test template with test cases' })
+  @ApiParam({ name: 'id', description: 'Template ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Template test results',
+  })
+  async testTemplate(@Param('id') id: string, @Body() testData: {
+    testCases?: TemplateTestCase[];
+    generateDefaultTests?: boolean;
+  }): Promise<any> {
+    try {
+      // 获取模板内容
+      const template = await this.prisma.codeTemplate.findUnique({
+        where: { id }
+      });
+
+      if (!template) {
+        return {
+          status: 1,
+          msg: 'Template not found',
+          data: null
+        };
+      }
+
+      let testCases = testData.testCases || [];
+
+      // 如果没有提供测试用例，生成默认测试用例
+      if (testCases.length === 0 || testData.generateDefaultTests) {
+        // 先验证模板以获取变量信息
+        const validationResult = await this.templateValidation.validateTemplate(
+          template.template,
+          template.type
+        );
+
+        const defaultTestCases = this.templateValidation.generateDefaultTestCases(
+          validationResult.variables
+        );
+
+        testCases = testData.generateDefaultTests ?
+          [...defaultTestCases, ...testCases] :
+          defaultTestCases;
+      }
+
+      // 执行测试
+      const testResults = await this.templateValidation.testTemplate(
+        template.template,
+        testCases
+      );
+
+      return {
+        status: 0,
+        msg: 'success',
+        data: {
+          templateId: id,
+          templateName: template.name,
+          totalTests: testResults.length,
+          passedTests: testResults.filter(r => r.passed).length,
+          failedTests: testResults.filter(r => !r.passed).length,
+          results: testResults
+        }
+      };
+    } catch (error) {
+      return {
+        status: 1,
+        msg: 'Test execution failed',
+        data: {
+          error: error.message
+        }
+      };
+    }
+  }
+
+  @Public()
+  @Post(':id/preview')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Preview generated code from template' })
+  @ApiParam({ name: 'id', description: 'Template ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Generated code preview',
+  })
+  async previewTemplate(
+    @Param('id') id: string,
+    @Body() previewData: { entityId?: string; variables?: Record<string, any> }
+  ): Promise<any> {
+    try {
+      const previewResult = await this.templateIntegration.previewTemplate(
+        id,
+        previewData.entityId,
+        previewData.variables
+      );
+
+      return {
+        status: 0,
+        msg: 'success',
+        data: previewResult
+      };
+    } catch (error) {
+      return {
+        status: 1,
+        msg: error.message,
+        data: null
+      };
+    }
+  }
+
+  @Post(':id/publish')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Publish template' })
+  @ApiParam({ name: 'id', description: 'Template ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Template published successfully',
+  })
+  async publishTemplate(@Param('id') id: string): Promise<any> {
+    try {
+      // Validate template before publishing
+      const validationResult = await this.templateIntegration.validateTemplate(id);
+      if (!validationResult.isValid) {
+        return {
+          status: 1,
+          msg: 'Template validation failed',
+          data: validationResult
+        };
+      }
+
+      // Update template status
+      const updatedTemplate = await this.prisma.codeTemplate.update({
+        where: { id },
+        data: {
+          status: 'ACTIVE',
+          updatedAt: new Date()
+        }
+      });
+
+      return {
+        status: 0,
+        msg: 'Template published successfully',
+        data: { id: updatedTemplate.id, status: updatedTemplate.status }
+      };
+    } catch (error) {
+      return {
+        status: 1,
+        msg: error.message,
+        data: null
+      };
+    }
+  }
+
+  @Public()
+  @Post(':id/generate')
+  @ApiOperation({ summary: 'Generate code from template' })
+  @ApiParam({ name: 'id', description: 'Template ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Code generation result',
+  })
+  async generateCode(@Param('id') id: string, @Body() generateRequest: {
+    variables: Record<string, any>;
+    outputPath?: string;
+    projectType?: 'amis-lowcode' | 'nestjs' | 'vue' | 'react';
+    generateOptions?: {
+      includeBase?: boolean;
+      includeBiz?: boolean;
+      overwriteExisting?: boolean;
+      createDirectories?: boolean;
+    };
+  }): Promise<any> {
+    try {
+      const request: CodeGenerationRequest = {
+        templateId: id,
+        variables: generateRequest.variables,
+        outputPath: generateRequest.outputPath || '/tmp/generated',
+        projectType: generateRequest.projectType || 'amis-lowcode',
+        generateOptions: generateRequest.generateOptions || {
+          includeBase: true,
+          includeBiz: true,
+          overwriteExisting: false,
+          createDirectories: false,
+        },
+      };
+
+      const result = await this.templateIntegration.generateBusinessCode(request);
+
+      return {
+        status: 0,
+        msg: 'success',
+        data: result,
+      };
+    } catch (error) {
+      return {
+        status: 1,
+        msg: error.message,
+        data: null,
+      };
+    }
   }
 
   @Get(':id')
@@ -244,30 +540,7 @@ export class {{pascalCase entityName}}Service {
     };
   }
 
-  @Post(':id/publish')
-  @ApiOperation({ summary: 'Publish template' })
-  @ApiParam({ name: 'id', description: 'Template ID' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Template published successfully',
-    type: TemplateResponseDto,
-  })
-  async publishTemplate(@Param('id') id: string): Promise<any> {
-    const { PublishTemplateCommand } = await import('@lib/bounded-contexts/template/application/commands/update-template.command');
 
-    const command = new PublishTemplateCommand(
-      id,
-      'system', // TODO: Get from authenticated user
-    );
-
-    await this.commandBus.execute(command);
-
-    return {
-      status: 0,
-      msg: 'success',
-      data: { id },
-    };
-  }
 
   @Post(':id/versions')
   @ApiOperation({ summary: 'Create template version' })
@@ -301,68 +574,7 @@ export class {{pascalCase entityName}}Service {
     };
   }
 
-  @Post(':id/validate')
-  @ApiOperation({ summary: 'Validate template content' })
-  @ApiParam({ name: 'id', description: 'Template ID' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Template validation result',
-  })
-  async validateTemplate(
-    @Param('id') id: string,
-    @Body() validationData: { content: string; variables: any[] },
-  ): Promise<any> {
-    try {
-      const { TemplateEngineService } = await import('@lib/bounded-contexts/code-generation/infrastructure/template-engine.service');
-      const templateEngine = new TemplateEngineService();
 
-      // Generate sample data for validation
-      const sampleData: Record<string, any> = {};
-      validationData.variables.forEach(variable => {
-        switch (variable.type) {
-          case 'string':
-            sampleData[variable.name] = variable.defaultValue || 'SampleString';
-            break;
-          case 'number':
-          case 'integer':
-            sampleData[variable.name] = variable.defaultValue || 42;
-            break;
-          case 'boolean':
-            sampleData[variable.name] = variable.defaultValue !== undefined ? variable.defaultValue : true;
-            break;
-          case 'array':
-            sampleData[variable.name] = variable.defaultValue || ['item1', 'item2'];
-            break;
-          case 'object':
-            sampleData[variable.name] = variable.defaultValue || { key: 'value' };
-            break;
-          default:
-            sampleData[variable.name] = variable.defaultValue || 'defaultValue';
-        }
-      });
 
-      // Test compile
-      const compiledContent = templateEngine.compileTemplateFromString(validationData.content, sampleData);
 
-      return {
-        status: 0,
-        msg: 'success',
-        data: {
-          isValid: true,
-          compiledContent,
-          sampleData,
-          errors: [],
-        },
-      };
-    } catch (error) {
-      return {
-        status: 1,
-        msg: 'Validation failed',
-        data: {
-          isValid: false,
-          errors: [error.message],
-        },
-      };
-    }
-  }
 }

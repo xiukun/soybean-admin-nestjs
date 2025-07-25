@@ -16,6 +16,7 @@ declare module 'vue' {
     CodePreviewModal: typeof import('./../components/lowcode/CodePreviewModal.vue')['default']
     CountTo: typeof import('./../components/custom/count-to.vue')['default']
     DarkModeContainer: typeof import('./../components/common/dark-mode-container.vue')['default']
+    EntityDesigner: typeof import('./../components/entity-designer/entity-designer.vue')['default']
     EntityFieldManager: typeof import('./../components/lowcode/EntityFieldManager.vue')['default']
     ExceptionBase: typeof import('./../components/common/exception-base.vue')['default']
     FullScreen: typeof import('./../components/common/full-screen.vue')['default']
@@ -129,6 +130,7 @@ declare module 'vue' {
     TableHeaderOperation: typeof import('./../components/advanced/table-header-operation.vue')['default']
     TemplateEditor: typeof import('./../components/lowcode/TemplateEditor.vue')['default']
     ThemeSchemaSwitch: typeof import('./../components/common/theme-schema-switch.vue')['default']
+    UnifiedPageManager: typeof import('./../components/lowcode/unified-page-manager.vue')['default']
     WaveBg: typeof import('./../components/custom/wave-bg.vue')['default']
   }
 }

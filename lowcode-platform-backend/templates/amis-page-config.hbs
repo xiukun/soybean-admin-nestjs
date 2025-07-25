@@ -1,0 +1,270 @@
+{{!-- 
+Amis页面配置模板
+用于生成符合Amis规范的页面配置JSON
+--}}
+{
+  "type": "page",
+  "title": "{{entity.description}}管理",
+  "subTitle": "{{entity.description}}的增删改查管理",
+  "body": [
+    {
+      "type": "crud",
+      "name": "{{entity.code}}Table",
+      "api": {
+        "method": "get",
+        "url": "/api/{{apiPath}}",
+        "adaptor": "return {\n  ...payload,\n  data: {\n    items: payload.data.items,\n    total: payload.data.total\n  }\n};"
+      },
+      "interval": 4000,
+      "silentPolling": false,
+      "stopAutoRefreshWhen": "",
+      "syncLocation": false,
+      "draggable": false,
+      "itemDraggableOn": "",
+      "checkOnItemClick": true,
+      "hideCheckToggler": false,
+      "itemCheckableOn": "",
+      "itemActions": [
+        {
+          "type": "button",
+          "icon": "fa fa-eye",
+          "tooltip": "查看详情",
+          "actionType": "dialog",
+          "dialog": {
+            "title": "{{entity.description}}详情",
+            "body": {
+              "type": "form",
+              "api": "/api/{{apiPath}}/${id}",
+              "initApi": "/api/{{apiPath}}/${id}",
+              "controls": [
+                {{#each formFields}}
+                {
+                  "type": "static",
+                  "name": "{{this.name}}",
+                  "label": "{{this.label}}"{{#if this.format}},
+                  "format": "{{this.format}}"{{/if}}
+                }{{#unless @last}},{{/unless}}
+                {{/each}}
+              ]
+            }
+          }
+        },
+        {
+          "type": "button",
+          "icon": "fa fa-pencil",
+          "tooltip": "编辑",
+          "actionType": "dialog",
+          "dialog": {
+            "title": "编辑{{entity.description}}",
+            "body": {
+              "type": "form",
+              "api": "put:/api/{{apiPath}}/${id}",
+              "initApi": "/api/{{apiPath}}/${id}",
+              "controls": [
+                {{#each formFields}}
+                {
+                  "type": "{{this.type}}",
+                  "name": "{{this.name}}",
+                  "label": "{{this.label}}"{{#if this.required}},
+                  "required": true{{/if}}{{#if this.description}},
+                  "description": "{{this.description}}"{{/if}}{{#if this.options}},
+                  "options": {{json this.options}}{{/if}}{{#if this.source}},
+                  "source": "{{this.source}}"{{/if}}{{#if this.validations}},
+                  "validations": {{json this.validations}}{{/if}}
+                }{{#unless @last}},{{/unless}}
+                {{/each}}
+              ]
+            }
+          }
+        },
+        {
+          "type": "button",
+          "icon": "fa fa-times text-danger",
+          "tooltip": "删除",
+          "actionType": "ajax",
+          "level": "link",
+          "className": "text-danger",
+          "confirmText": "确定要删除这个{{entity.description}}吗？",
+          "api": "delete:/api/{{apiPath}}/${id}"
+        }
+      ],
+      "bulkActions": [
+        {
+          "label": "批量删除",
+          "actionType": "ajax",
+          "api": "delete:/api/{{apiPath}}/batch",
+          "confirmText": "确定要删除选中的{{entity.description}}吗？",
+          "type": "button",
+          "level": "danger"
+        }
+      ],
+      "quickSaveApi": "/api/{{apiPath}}/${id}",
+      "quickSaveItemApi": "/api/{{apiPath}}/${id}",
+      "filterTogglable": {{#if pageConfig.enableSearch}}true{{else}}false{{/if}},
+      "headerToolbar": [
+        "filter-toggler",
+        "bulkActions",
+        {
+          "type": "tpl",
+          "tpl": "一共有 ${total} 个{{entity.description}}",
+          "className": "v-middle"
+        },
+        {
+          "type": "columns-toggler",
+          "align": "right"
+        },
+        {
+          "type": "drag-toggler",
+          "align": "right"
+        },
+        {
+          "type": "reload",
+          "align": "right"
+        },
+        {
+          "type": "button",
+          "label": "新增{{entity.description}}",
+          "actionType": "dialog",
+          "level": "primary",
+          "className": "m-b-sm",
+          "dialog": {
+            "title": "新增{{entity.description}}",
+            "body": {
+              "type": "form",
+              "api": "post:/api/{{apiPath}}",
+              "controls": [
+                {{#each formFields}}
+                {
+                  "type": "{{this.type}}",
+                  "name": "{{this.name}}",
+                  "label": "{{this.label}}"{{#if this.required}},
+                  "required": true{{/if}}{{#if this.description}},
+                  "description": "{{this.description}}"{{/if}}{{#if this.options}},
+                  "options": {{json this.options}}{{/if}}{{#if this.source}},
+                  "source": "{{this.source}}"{{/if}}{{#if this.validations}},
+                  "validations": {{json this.validations}}{{/if}}{{#if this.value}},
+                  "value": {{json this.value}}{{/if}}
+                }{{#unless @last}},{{/unless}}
+                {{/each}}
+              ]
+            }
+          }
+        }
+      ],
+      "footerToolbar": [
+        "statistics",
+        "pagination"
+      ],
+      {{#if pageConfig.enableSearch}}
+      "filter": {
+        "title": "条件搜索",
+        "controls": [
+          {{#each columns}}
+          {{#if this.searchable}}
+          {
+            "type": "{{#if (eq this.type 'date')}}input-date{{else if (eq this.type 'datetime')}}input-datetime{{else if (eq this.type 'status')}}select{{else}}input-text{{/if}}",
+            "name": "{{this.name}}",
+            "label": "{{this.label}}"{{#if this.map}},
+            "options": [
+              {{#each this.map}}
+              {
+                "label": "{{@key}}",
+                "value": "{{this}}"
+              }{{#unless @last}},{{/unless}}
+              {{/each}}
+            ]{{/if}}
+          }{{#unless @last}},{{/unless}}
+          {{/if}}
+          {{/each}}
+        ]
+      },
+      {{/if}}
+      "columns": [
+        {{#each columns}}
+        {
+          "name": "{{this.name}}",
+          "label": "{{this.label}}",
+          "sortable": {{#if this.sortable}}true{{else}}false{{/if}}{{#if this.width}},
+          "width": {{this.width}}{{/if}}{{#if (eq this.type 'date')}},
+          "type": "date",
+          "format": "YYYY-MM-DD"{{else if (eq this.type 'datetime')}},
+          "type": "datetime",
+          "format": "YYYY-MM-DD HH:mm:ss"{{else if (eq this.type 'status')}},
+          "type": "mapping",
+          "map": {{json this.map}}{{else if (eq this.type 'image')}},
+          "type": "image",
+          "enlargeAble": true,
+          "thumbMode": "cover",
+          "thumbRatio": "1:1"{{else if (eq this.type 'link')}},
+          "type": "link",
+          "href": "${{{this.name}}}"{{/if}}
+        }{{#unless @last}},{{/unless}}
+        {{/each}},
+        {
+          "type": "operation",
+          "label": "操作",
+          "width": 130,
+          "buttons": [
+            {
+              "type": "button",
+              "icon": "fa fa-eye",
+              "tooltip": "查看",
+              "actionType": "dialog",
+              "dialog": {
+                "title": "{{entity.description}}详情",
+                "body": {
+                  "type": "form",
+                  "api": "/api/{{apiPath}}/${id}",
+                  "initApi": "/api/{{apiPath}}/${id}",
+                  "controls": [
+                    {{#each formFields}}
+                    {
+                      "type": "static",
+                      "name": "{{this.name}}",
+                      "label": "{{this.label}}"
+                    }{{#unless @last}},{{/unless}}
+                    {{/each}}
+                  ]
+                }
+              }
+            },
+            {
+              "type": "button",
+              "icon": "fa fa-pencil",
+              "tooltip": "编辑",
+              "actionType": "dialog",
+              "dialog": {
+                "title": "编辑{{entity.description}}",
+                "body": {
+                  "type": "form",
+                  "api": "put:/api/{{apiPath}}/${id}",
+                  "initApi": "/api/{{apiPath}}/${id}",
+                  "controls": [
+                    {{#each formFields}}
+                    {
+                      "type": "{{this.type}}",
+                      "name": "{{this.name}}",
+                      "label": "{{this.label}}"{{#if this.required}},
+                      "required": true{{/if}}
+                    }{{#unless @last}},{{/unless}}
+                    {{/each}}
+                  ]
+                }
+              }
+            },
+            {
+              "type": "button",
+              "icon": "fa fa-times text-danger",
+              "tooltip": "删除",
+              "actionType": "ajax",
+              "level": "link",
+              "className": "text-danger",
+              "confirmText": "确定要删除这个{{entity.description}}吗？",
+              "api": "delete:/api/{{apiPath}}/${id}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

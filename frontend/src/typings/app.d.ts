@@ -1022,6 +1022,33 @@ declare namespace App {
                 placeholder: string;
               };
             };
+            // 编辑器相关
+            preview: string;
+            test: string;
+            validate: string;
+            format: string;
+            generatePreview: string;
+            selectEntity: string;
+            noPreview: string;
+            runTest: string;
+            testSuccess: string;
+            testFailed: string;
+            selectEntityFirst: string;
+            previewFailed: string;
+            validationSuccess: string;
+            validationError: string;
+            validationFailed: string;
+            validationWarnings: string;
+            formatSuccess: string;
+            formatFailed: string;
+            // 变量相关
+            addVariable: string;
+            newVariable: string;
+            variableName: string;
+            variableType: string;
+            variableDescription: string;
+            defaultValue: string;
+            required: string;
           };
           codeGeneration: {
             title: string;

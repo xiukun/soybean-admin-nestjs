@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Post, Request } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Post, Request, Delete, HttpCode, HttpStatus } from '@nestjs/common';
+import { ApiOperation, ApiTags, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { FastifyRequest } from 'fastify';
 
 import { PasswordIdentifierDTO } from '@app/base-system/lib/bounded-contexts/iam/authentication/application/dto/password-identifier.dto';
@@ -14,6 +14,7 @@ import { Ip2regionService } from '@lib/shared/ip2region/ip2region.service';
 import { RedisUtility } from '@lib/shared/redis/redis.util';
 import { IAuthentication } from '@lib/typings/global';
 import { getClientIpAndPort } from '@lib/utils/ip.util';
+import { UnifiedJwtService } from '@lib/shared/jwt';
 
 import { PasswordLoginDto } from '../dto/password-login.dto';
 import { ApiJwtAuth } from '@lib/infra/decorators';
@@ -21,7 +22,10 @@ import { ApiJwtAuth } from '@lib/infra/decorators';
 @ApiTags('Authentication - Module')
 @Controller('auth')
 export class AuthenticationController {
-  constructor(private readonly authenticationService: AuthenticationService) {}
+  constructor(
+    private readonly authenticationService: AuthenticationService,
+    private readonly jwtService: UnifiedJwtService,
+  ) {}
 
   @Public()
   @Post('login')
@@ -95,5 +99,52 @@ export class AuthenticationController {
       userName: user.username,
       roles: userRoles,
     });
+  }
+
+  @ApiJwtAuth()
+  @Post('logout')
+  @ApiOperation({
+    summary: 'User Logout',
+    description: 'Logs out the user and revokes the current access token',
+  })
+  @ApiResponse({ status: 200, description: '登出成功' })
+  @HttpCode(HttpStatus.OK)
+  async logout(@Request() req: any): Promise<ApiRes<any>> {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (token) {
+      await this.jwtService.revokeToken(token);
+    }
+
+    // 撤销用户所有token
+    if (req.user?.uid) {
+      await this.jwtService.revokeAllUserTokens(req.user.uid);
+    }
+
+    return ApiRes.success({ message: '登出成功' });
+  }
+
+  @ApiJwtAuth()
+  @Get('token/statistics')
+  @ApiOperation({
+    summary: 'Get Token Statistics',
+    description: 'Retrieves token usage statistics for the current user',
+  })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  async getTokenStatistics(@Request() req: any): Promise<ApiRes<any>> {
+    const stats = await this.jwtService.getTokenStatistics(req.user.uid);
+    return ApiRes.success(stats);
+  }
+
+  @ApiJwtAuth()
+  @Delete('token/revoke-all')
+  @ApiOperation({
+    summary: 'Revoke All Tokens',
+    description: 'Revokes all tokens for the current user',
+  })
+  @ApiResponse({ status: 200, description: '撤销成功' })
+  @HttpCode(HttpStatus.OK)
+  async revokeAllTokens(@Request() req: any): Promise<ApiRes<any>> {
+    await this.jwtService.revokeAllUserTokens(req.user.uid);
+    return ApiRes.success({ message: '所有令牌已撤销' });
   }
 }

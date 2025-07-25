@@ -1,0 +1,150 @@
+{{!-- 
+Amis Create DTO模板
+用于生成创建数据传输对象
+--}}
+import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsString,
+  IsNumber,
+  IsBoolean,
+  IsDate,
+  IsOptional,
+  IsNotEmpty,
+  IsEmail,
+  IsUrl,
+  Length,
+  Min,
+  Max,
+  Matches,
+  IsEnum,
+  ValidateNested,
+  IsArray,
+} from 'class-validator';
+import { Type, Transform } from 'class-transformer';
+
+/**
+ * 创建{{entity.description}}DTO
+ */
+export class {{className}} {
+  {{#each fields}}
+  {{#if this.description}}
+  /**
+   * {{this.description}}
+   */
+  {{/if}}
+  @ApiProperty({
+    description: '{{this.description}}',
+    {{#if this.required}}
+    required: true,
+    {{else}}
+    required: false,
+    {{/if}}
+    {{#if (eq this.type 'string')}}
+    type: 'string',
+    {{#if this.length}}
+    maxLength: {{this.length}},
+    {{/if}}
+    {{#if this.defaultValue}}
+    default: '{{this.defaultValue}}',
+    {{/if}}
+    {{#if this.validation.pattern}}
+    pattern: '{{this.validation.pattern}}',
+    {{/if}}
+    example: '{{#if this.example}}{{this.example}}{{else}}示例{{this.description}}{{/if}}',
+    {{else if (eq this.type 'number')}}
+    type: 'number',
+    {{#if this.defaultValue}}
+    default: {{this.defaultValue}},
+    {{/if}}
+    {{#if this.validation.min}}
+    minimum: {{this.validation.min}},
+    {{/if}}
+    {{#if this.validation.max}}
+    maximum: {{this.validation.max}},
+    {{/if}}
+    example: {{#if this.example}}{{this.example}}{{else}}1{{/if}},
+    {{else if (eq this.type 'boolean')}}
+    type: 'boolean',
+    {{#if this.defaultValue}}
+    default: {{this.defaultValue}},
+    {{/if}}
+    example: {{#if this.example}}{{this.example}}{{else}}true{{/if}},
+    {{else if (eq this.type 'date')}}
+    type: 'string',
+    format: 'date',
+    example: '2024-01-15',
+    {{else if (eq this.type 'datetime')}}
+    type: 'string',
+    format: 'date-time',
+    example: '2024-01-15T10:30:00Z',
+    {{else}}
+    type: 'string',
+    example: '示例值',
+    {{/if}}
+  })
+  {{#unless this.required}}
+  @IsOptional()
+  {{/unless}}
+  {{#if (eq this.type 'string')}}
+  @IsString({ message: '{{this.description}}必须是字符串' })
+  {{#if this.required}}
+  @IsNotEmpty({ message: '{{this.description}}不能为空' })
+  {{/if}}
+  {{#if this.length}}
+  @Length(1, {{this.length}}, { message: '{{this.description}}长度不能超过{{this.length}}个字符' })
+  {{/if}}
+  {{#if this.validation.pattern}}
+  @Matches(/{{this.validation.pattern}}/, { message: '{{this.validation.message}}' })
+  {{/if}}
+  {{#if (includes this.name 'email')}}
+  @IsEmail({}, { message: '请输入有效的邮箱地址' })
+  {{/if}}
+  {{#if (includes this.name 'url')}}
+  @IsUrl({}, { message: '请输入有效的URL地址' })
+  {{/if}}
+  {{else if (eq this.type 'number')}}
+  @IsNumber({}, { message: '{{this.description}}必须是数字' })
+  {{#if this.validation.min}}
+  @Min({{this.validation.min}}, { message: '{{this.description}}不能小于{{this.validation.min}}' })
+  {{/if}}
+  {{#if this.validation.max}}
+  @Max({{this.validation.max}}, { message: '{{this.description}}不能大于{{this.validation.max}}' })
+  {{/if}}
+  {{else if (eq this.type 'boolean')}}
+  @IsBoolean({ message: '{{this.description}}必须是布尔值' })
+  {{else if (eq this.type 'date')}}
+  @IsDate({ message: '{{this.description}}必须是有效的日期' })
+  @Type(() => Date)
+  @Transform(({ value }) => value ? new Date(value) : value)
+  {{else if (eq this.type 'datetime')}}
+  @IsDate({ message: '{{this.description}}必须是有效的日期时间' })
+  @Type(() => Date)
+  @Transform(({ value }) => value ? new Date(value) : value)
+  {{else if (eq this.type 'json')}}
+  @IsOptional()
+  {{else if this.validation.enum}}
+  @IsEnum({{this.validation.enum}}, { message: '{{this.description}}值无效' })
+  {{else}}
+  @IsString({ message: '{{this.description}}必须是字符串' })
+  {{#if this.required}}
+  @IsNotEmpty({ message: '{{this.description}}不能为空' })
+  {{/if}}
+  {{/if}}
+  {{#if (eq this.type 'date')}}
+  {{this.name}}: Date;
+  {{else if (eq this.type 'datetime')}}
+  {{this.name}}: Date;
+  {{else if (eq this.type 'number')}}
+  {{this.name}}{{#unless this.required}}?{{/unless}}: number;
+  {{else if (eq this.type 'boolean')}}
+  {{this.name}}{{#unless this.required}}?{{/unless}}: boolean;
+  {{else if (eq this.type 'json')}}
+  {{this.name}}{{#unless this.required}}?{{/unless}}: any;
+  {{else if this.validation.enum}}
+  {{this.name}}{{#unless this.required}}?{{/unless}}: {{this.validation.enum}};
+  {{else}}
+  {{this.name}}{{#unless this.required}}?{{/unless}}: string;
+  {{/if}}
+
+  {{/each}}
+}

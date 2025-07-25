@@ -1,0 +1,467 @@
+{{!-- 
+单表CRUD Controller模板
+用于生成标准的CRUD控制器
+--}}
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+  UseInterceptors,
+  ParseUUIDPipe,
+  ValidationPipe,
+  ParseIntPipe,
+  DefaultValuePipe,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+  ApiBearerAuth,
+  ApiBody,
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from '@/shared/guards/jwt-auth.guard';
+{{#if config.enableDataPermission}}
+import { DataPermissionGuard } from '@/shared/guards/data-permission.guard';
+{{/if}}
+{{#if config.enableAuditLog}}
+import { AuditLogInterceptor } from '@/shared/interceptors/audit-log.interceptor';
+{{/if}}
+{{#if config.enableCache}}
+import { CacheInterceptor } from '@/shared/interceptors/cache.interceptor';
+{{/if}}
+import { TransformInterceptor } from '@/shared/interceptors/transform.interceptor';
+import { LoggingInterceptor } from '@/shared/interceptors/logging.interceptor';
+import { {{pascalCase entity.code}}Service } from '../services/{{entity.code}}.service';
+import {
+  {{#if (includes enabledOperations 'create')}}
+  Create{{pascalCase entity.code}}Dto,
+  {{/if}}
+  {{#if (includes enabledOperations 'update')}}
+  Update{{pascalCase entity.code}}Dto,
+  {{/if}}
+  {{#if (includes enabledOperations 'search')}}
+  Query{{pascalCase entity.code}}Dto,
+  {{/if}}
+  {{#if (includes enabledOperations 'read')}}
+  {{pascalCase entity.code}}ResponseDto,
+  {{/if}}
+} from '../dto';
+
+/**
+ * {{entity.description}}控制器
+ * 提供标准的CRUD操作接口
+ */
+@ApiTags('{{entity.description}}管理')
+@Controller('{{apiPath}}')
+@UseGuards(JwtAuthGuard{{#if config.enableDataPermission}}, DataPermissionGuard{{/if}})
+@UseInterceptors(
+  TransformInterceptor,
+  LoggingInterceptor{{#if config.enableAuditLog}},
+  AuditLogInterceptor{{/if}}{{#if config.enableCache}},
+  CacheInterceptor{{/if}}
+)
+@ApiBearerAuth()
+export class {{className}} {
+  constructor(
+    private readonly {{serviceName}}: {{pascalCase entity.code}}Service,
+  ) {}
+
+  {{#if (includes enabledOperations 'read')}}
+  /**
+   * 获取{{entity.description}}列表
+   */
+  @Get()
+  @ApiOperation({
+    summary: '获取{{entity.description}}列表',
+    description: '分页获取{{entity.description}}列表，支持搜索、排序和筛选',
+  })
+  @ApiQuery({ name: 'page', required: false, description: '页码', example: 1 })
+  @ApiQuery({ name: 'limit', required: false, description: '每页数量', example: 10 })
+  {{#if (includes enabledOperations 'sort')}}
+  @ApiQuery({ name: 'sortBy', required: false, description: '排序字段', example: 'createdAt' })
+  @ApiQuery({ name: 'sortOrder', required: false, description: '排序方向', enum: ['ASC', 'DESC'], example: 'DESC' })
+  {{/if}}
+  {{#if (includes enabledOperations 'search')}}
+  @ApiQuery({ name: 'search', required: false, description: '搜索关键词' })
+  {{/if}}
+  {{#each searchableFields}}
+  @ApiQuery({ name: '{{this.name}}', required: false, description: '{{this.description}}筛选' })
+  {{/each}}
+  @ApiResponse({
+    status: 200,
+    description: '获取成功',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/{{pascalCase entity.code}}ResponseDto' },
+        },
+        total: { type: 'number' },
+        page: { type: 'number' },
+        limit: { type: 'number' },
+        totalPages: { type: 'number' },
+      },
+    },
+  })
+  {{#if config.enableCache}}
+  @UseInterceptors(CacheInterceptor)
+  {{/if}}
+  async findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    {{#if (includes enabledOperations 'sort')}}
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: 'ASC' | 'DESC',
+    {{/if}}
+    {{#if (includes enabledOperations 'search')}}
+    @Query('search') search?: string,
+    {{/if}}
+    {{#each filterableFields}}
+    @Query('{{this.name}}') {{this.name}}?: {{#if (eq this.type 'string')}}string{{else if (eq this.type 'number')}}number{{else if (eq this.type 'boolean')}}boolean{{else}}any{{/if}},
+    {{/each}}
+  ) {
+    // 限制每页数量
+    if (limit > {{config.pageSizeLimit}}) {
+      limit = {{config.pageSizeLimit}};
+    }
+
+    const queryDto = {
+      page,
+      limit,
+      {{#if (includes enabledOperations 'sort')}}
+      sortBy,
+      sortOrder,
+      {{/if}}
+      {{#if (includes enabledOperations 'search')}}
+      search,
+      {{/if}}
+      {{#each filterableFields}}
+      {{this.name}},
+      {{/each}}
+    };
+
+    const result = await this.{{serviceName}}.findAll(queryDto);
+    
+    return {
+      data: result.data,
+      total: result.total,
+      page,
+      limit,
+      totalPages: Math.ceil(result.total / limit),
+    };
+  }
+
+  /**
+   * 获取{{entity.description}}详情
+   */
+  @Get(':id')
+  @ApiOperation({
+    summary: '获取{{entity.description}}详情',
+    description: '根据ID获取{{entity.description}}的详细信息',
+  })
+  @ApiParam({ name: 'id', description: '{{entity.description}}ID' })
+  @ApiResponse({
+    status: 200,
+    description: '获取成功',
+    type: {{pascalCase entity.code}}ResponseDto,
+  })
+  @ApiResponse({ status: 404, description: '{{entity.description}}不存在' })
+  {{#if config.enableCache}}
+  @UseInterceptors(CacheInterceptor)
+  {{/if}}
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    const item = await this.{{serviceName}}.findOne(id);
+    return { data: item };
+  }
+  {{/if}}
+
+  {{#if (includes enabledOperations 'create')}}
+  /**
+   * 创建{{entity.description}}
+   */
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: '创建{{entity.description}}',
+    description: '创建新的{{entity.description}}记录',
+  })
+  @ApiBody({ type: Create{{pascalCase entity.code}}Dto })
+  @ApiResponse({
+    status: 201,
+    description: '创建成功',
+    type: {{pascalCase entity.code}}ResponseDto,
+  })
+  @ApiResponse({ status: 400, description: '请求参数错误' })
+  @ApiResponse({ status: 409, description: '{{entity.description}}已存在' })
+  async create(@Body(ValidationPipe) createDto: Create{{pascalCase entity.code}}Dto) {
+    const item = await this.{{serviceName}}.create(createDto);
+    return { 
+      data: item,
+      message: '{{entity.description}}创建成功',
+    };
+  }
+  {{/if}}
+
+  {{#if (includes enabledOperations 'update')}}
+  /**
+   * 更新{{entity.description}}
+   */
+  @Put(':id')
+  @ApiOperation({
+    summary: '更新{{entity.description}}',
+    description: '根据ID更新{{entity.description}}信息',
+  })
+  @ApiParam({ name: 'id', description: '{{entity.description}}ID' })
+  @ApiBody({ type: Update{{pascalCase entity.code}}Dto })
+  @ApiResponse({
+    status: 200,
+    description: '更新成功',
+    type: {{pascalCase entity.code}}ResponseDto,
+  })
+  @ApiResponse({ status: 400, description: '请求参数错误' })
+  @ApiResponse({ status: 404, description: '{{entity.description}}不存在' })
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body(ValidationPipe) updateDto: Update{{pascalCase entity.code}}Dto,
+  ) {
+    const item = await this.{{serviceName}}.update(id, updateDto);
+    return { 
+      data: item,
+      message: '{{entity.description}}更新成功',
+    };
+  }
+  {{/if}}
+
+  {{#if (includes enabledOperations 'delete')}}
+  /**
+   * 删除{{entity.description}}
+   */
+  @Delete(':id')
+  @ApiOperation({
+    summary: '删除{{entity.description}}',
+    description: '{{#if config.enableSoftDelete}}软删除{{entity.description}}（标记为已删除）{{else}}永久删除{{entity.description}}记录{{/if}}',
+  })
+  @ApiParam({ name: 'id', description: '{{entity.description}}ID' })
+  @ApiResponse({ status: 200, description: '删除成功' })
+  @ApiResponse({ status: 404, description: '{{entity.description}}不存在' })
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
+    await this.{{serviceName}}.remove(id);
+    return { 
+      message: '{{entity.description}}删除成功',
+    };
+  }
+  {{/if}}
+
+  {{#if (includes enabledOperations 'batch')}}
+  /**
+   * 批量删除{{entity.description}}
+   */
+  @Delete('batch')
+  @ApiOperation({
+    summary: '批量删除{{entity.description}}',
+    description: '批量删除多个{{entity.description}}记录',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        ids: {
+          type: 'array',
+          items: { type: 'string' },
+          description: '要删除的{{entity.description}}ID列表',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: '批量删除成功' })
+  async batchRemove(@Body() body: { ids: string[] }) {
+    const { ids } = body;
+    
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return {
+        success: false,
+        message: '请选择要删除的{{entity.description}}',
+      };
+    }
+
+    const result = await this.{{serviceName}}.batchRemove(ids);
+    
+    return {
+      success: true,
+      message: `成功删除 ${result.count} 个{{entity.description}}`,
+      data: { deletedCount: result.count },
+    };
+  }
+
+  {{#if config.enableSoftDelete}}
+  /**
+   * 批量恢复{{entity.description}}
+   */
+  @Put('batch/restore')
+  @ApiOperation({
+    summary: '批量恢复{{entity.description}}',
+    description: '批量恢复已软删除的{{entity.description}}记录',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        ids: {
+          type: 'array',
+          items: { type: 'string' },
+          description: '要恢复的{{entity.description}}ID列表',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: '批量恢复成功' })
+  async batchRestore(@Body() body: { ids: string[] }) {
+    const { ids } = body;
+    
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return {
+        success: false,
+        message: '请选择要恢复的{{entity.description}}',
+      };
+    }
+
+    const result = await this.{{serviceName}}.batchRestore(ids);
+    
+    return {
+      success: true,
+      message: `成功恢复 ${result.count} 个{{entity.description}}`,
+      data: { restoredCount: result.count },
+    };
+  }
+  {{/if}}
+  {{/if}}
+
+  {{#if (includes enabledOperations 'export')}}
+  /**
+   * 导出{{entity.description}}
+   */
+  @Get('export')
+  @ApiOperation({
+    summary: '导出{{entity.description}}',
+    description: '导出{{entity.description}}数据为Excel文件',
+  })
+  @ApiQuery({ name: 'format', required: false, enum: ['xlsx', 'csv'], description: '导出格式' })
+  @ApiQuery({ name: 'fields', required: false, description: '导出字段，逗号分隔' })
+  async export(
+    @Query('format') format: 'xlsx' | 'csv' = 'xlsx',
+    @Query('fields') fields?: string,
+    {{#each filterableFields}}
+    @Query('{{this.name}}') {{this.name}}?: {{#if (eq this.type 'string')}}string{{else if (eq this.type 'number')}}number{{else if (eq this.type 'boolean')}}boolean{{else}}any{{/if}},
+    {{/each}}
+  ) {
+    const queryDto = {
+      {{#each filterableFields}}
+      {{this.name}},
+      {{/each}}
+    };
+
+    const result = await this.{{serviceName}}.export(queryDto, {
+      format,
+      fields: fields ? fields.split(',') : undefined,
+    });
+    
+    return {
+      success: true,
+      data: {
+        downloadUrl: result.downloadUrl,
+        filename: result.filename,
+        fileSize: result.fileSize,
+      },
+    };
+  }
+  {{/if}}
+
+  {{#if (includes enabledOperations 'import')}}
+  /**
+   * 导入{{entity.description}}
+   */
+  @Post('import')
+  @ApiOperation({
+    summary: '导入{{entity.description}}',
+    description: '从Excel文件导入{{entity.description}}数据',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        fileUrl: { type: 'string', description: '文件URL' },
+        options: {
+          type: 'object',
+          properties: {
+            skipHeader: { type: 'boolean', description: '是否跳过表头' },
+            updateExisting: { type: 'boolean', description: '是否更新已存在的记录' },
+          },
+        },
+      },
+    },
+  })
+  async import(@Body() body: { 
+    fileUrl: string; 
+    options?: { 
+      skipHeader?: boolean; 
+      updateExisting?: boolean; 
+    } 
+  }) {
+    const result = await this.{{serviceName}}.import(body.fileUrl, body.options);
+    
+    return {
+      success: true,
+      message: '导入完成',
+      data: {
+        successCount: result.successCount,
+        failureCount: result.failureCount,
+        errors: result.errors,
+        warnings: result.warnings,
+      },
+    };
+  }
+  {{/if}}
+
+  {{#each customOperations}}
+  /**
+   * {{this.description}}
+   */
+  @{{upperCase this.method}}('{{this.path}}')
+  @ApiOperation({
+    summary: '{{this.description}}',
+    description: '{{this.description}}',
+  })
+  {{#if this.requiresAuth}}
+  @UseGuards(JwtAuthGuard)
+  {{/if}}
+  {{#if this.requestType}}
+  @ApiBody({ type: {{this.requestType}} })
+  {{/if}}
+  {{#if this.responseType}}
+  @ApiResponse({ status: 200, type: {{this.responseType}} })
+  {{/if}}
+  async {{camelCase this.name}}(
+    {{#if (eq this.method 'POST')}}
+    @Body() body: {{#if this.requestType}}{{this.requestType}}{{else}}any{{/if}},
+    {{/if}}
+    {{#if (includes this.path ':id')}}
+    @Param('id', ParseUUIDPipe) id: string,
+    {{/if}}
+  ) {
+    // TODO: 实现自定义操作逻辑
+    throw new Error('自定义操作 {{this.name}} 尚未实现');
+  }
+
+  {{/each}}
+}

@@ -14,6 +14,7 @@ import { ISecurityConfig, SecurityConfig } from '@lib/config';
 import { CacheConstant } from '@lib/constants/cache.constant';
 import { RedisUtility } from '@lib/shared/redis/redis.util';
 import { IAuthentication } from '@lib/typings/global';
+import { UnifiedJwtService } from '@lib/shared/jwt';
 
 import { TokenGeneratedEvent } from '../../../tokens/domain/events/token-generated.event';
 import { TokensEntity } from '../../../tokens/domain/tokens.entity';
@@ -28,6 +29,7 @@ import { RefreshTokenDTO } from '../dto/refresh-token.dto';
 export class AuthenticationService {
   constructor(
     private jwtService: JwtService,
+    private readonly unifiedJwtService: UnifiedJwtService,
     private readonly publisher: EventPublisher,
     @Inject(UserReadRepoPortToken)
     private readonly repository: UserReadRepoPort,
@@ -36,48 +38,46 @@ export class AuthenticationService {
   ) {}
 
   async refreshToken(dto: RefreshTokenDTO) {
-    const tokenDetails = await this.queryBus.execute<
-      TokensByRefreshTokenQuery,
-      TokensReadModel | null
-    >(new TokensByRefreshTokenQuery(dto.refreshToken));
-    if (!tokenDetails) {
-      throw new NotFoundException('Refresh token not found.');
+    try {
+      // 使用统一JWT服务刷新token
+      const tokenPair = await this.unifiedJwtService.refreshToken(dto.refreshToken);
+
+      // 获取token详情用于事件发布
+      const tokenDetails = await this.queryBus.execute<
+        TokensByRefreshTokenQuery,
+        TokensReadModel | null
+      >(new TokensByRefreshTokenQuery(dto.refreshToken));
+
+      if (tokenDetails) {
+        const tokensAggregate = new TokensEntity(tokenDetails);
+
+        tokensAggregate.apply(
+          new TokenGeneratedEvent(
+            tokenPair.accessToken,
+            tokenPair.refreshToken,
+            tokensAggregate.userId,
+            tokensAggregate.username,
+            tokensAggregate.domain,
+            dto.ip,
+            dto.region,
+            dto.userAgent,
+            dto.requestId,
+            dto.type,
+            dto.port,
+          ),
+        );
+
+        this.publisher.mergeObjectContext(tokensAggregate);
+        tokensAggregate.commit();
+      }
+
+      return {
+        token: tokenPair.accessToken,
+        refreshToken: tokenPair.refreshToken,
+      };
+    } catch (error) {
+      throw new NotFoundException('Refresh token not found or invalid.');
     }
-
-    await this.jwtService.verifyAsync(tokenDetails.refreshToken, {
-      secret: this.securityConfig.refreshJwtSecret,
-    });
-
-    const tokensAggregate = new TokensEntity(tokenDetails);
-
-    await tokensAggregate.refreshTokenCheck();
-
-    const tokens = await this.generateAccessToken(
-      tokensAggregate.userId,
-      tokenDetails.username,
-      tokenDetails.domain,
-    );
-
-    tokensAggregate.apply(
-      new TokenGeneratedEvent(
-        tokens.token,
-        tokens.refreshToken,
-        tokensAggregate.userId,
-        tokensAggregate.username,
-        tokensAggregate.domain,
-        dto.ip,
-        dto.region,
-        dto.userAgent,
-        dto.requestId,
-        dto.type,
-        dto.port,
-      ),
-    );
-
-    this.publisher.mergeObjectContext(tokensAggregate);
-    tokensAggregate.commit();
-
-    return tokens;
   }
 
   async execPasswordLogin(
@@ -95,11 +95,17 @@ export class AuthenticationService {
       throw new BadRequestException(loginResult.message);
     }
 
-    const tokens = await this.generateAccessToken(
-      user.id,
-      user.username,
-      user.domain,
-    );
+    // 使用统一JWT服务生成token
+    const tokenPair = await this.unifiedJwtService.generateTokenPair({
+      uid: user.id,
+      username: user.username,
+      domain: user.domain,
+    });
+
+    const tokens = {
+      token: tokenPair.accessToken,
+      refreshToken: tokenPair.refreshToken,
+    };
 
     userAggregate.apply(
       new UserLoggedInEvent(

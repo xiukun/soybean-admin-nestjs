@@ -1,0 +1,546 @@
+{{!-- 
+Amis组件生成器模板
+用于生成Amis组件配置
+--}}
+{
+  "type": "{{componentType}}",
+  {{#if title}}
+  "title": "{{title}}",
+  {{/if}}
+  {{#if description}}
+  "description": "{{description}}",
+  {{/if}}
+  
+  {{#if (eq componentType "crud")}}
+  {{!-- CRUD组件配置 --}}
+  "api": {
+    "method": "{{api.method}}",
+    "url": "{{api.url}}",
+    "dataMapping": {
+      "&": "$$"
+    }
+  },
+  "columns": [
+    {{#each columns}}
+    {
+      "name": "{{this.name}}",
+      "label": "{{this.label}}",
+      "type": "{{this.type}}"
+      {{#if this.sortable}},
+      "sortable": true
+      {{/if}}
+      {{#if this.searchable}},
+      "searchable": true
+      {{/if}}
+      {{#if this.filterable}},
+      "filterable": true
+      {{/if}}
+      {{#if this.width}},
+      "width": {{this.width}}
+      {{/if}}
+      {{#if this.align}},
+      "align": "{{this.align}}"
+      {{/if}}
+      {{#if this.fixed}},
+      "fixed": "{{this.fixed}}"
+      {{/if}}
+      {{#if this.tpl}},
+      "tpl": "{{this.tpl}}"
+      {{/if}}
+      {{#if this.copyable}},
+      "copyable": true
+      {{/if}}
+      {{#if this.quickEdit}},
+      "quickEdit": {{json this.quickEdit}}
+      {{/if}}
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
+    {{#if operations.update operations.delete operations.view}}
+    ,{
+      "name": "operation",
+      "label": "操作",
+      "type": "operation",
+      "width": 150,
+      "buttons": [
+        {{#if operations.view}}
+        {
+          "type": "button",
+          "label": "查看",
+          "actionType": "dialog",
+          "level": "info",
+          "size": "sm",
+          "dialog": {
+            "title": "查看详情",
+            "size": "lg",
+            "body": {
+              "type": "form",
+              "initApi": "{{api.url}}/${id}",
+              "mode": "horizontal",
+              "disabled": true,
+              "body": [
+                {{#each formFields}}
+                {
+                  "name": "{{this.name}}",
+                  "label": "{{this.label}}",
+                  "type": "{{this.type}}"
+                  {{#if this.disabled}},
+                  "disabled": true
+                  {{/if}}
+                }{{#unless @last}},{{/unless}}
+                {{/each}}
+              ]
+            }
+          }
+        }{{#if operations.update operations.delete}},{{/if}}
+        {{/if}}
+        {{#if operations.update}}
+        {
+          "type": "button",
+          "label": "编辑",
+          "actionType": "dialog",
+          "level": "primary",
+          "size": "sm",
+          "dialog": {
+            "title": "编辑{{entityName}}",
+            "size": "lg",
+            "body": {
+              "type": "form",
+              "api": "{{api.url}}/${id}",
+              "initApi": "{{api.url}}/${id}",
+              "mode": "horizontal",
+              "body": [
+                {{#each formFields}}
+                {{#unless (eq this.name "id")}}
+                {
+                  "name": "{{this.name}}",
+                  "label": "{{this.label}}",
+                  "type": "{{this.type}}"
+                  {{#if this.required}},
+                  "required": true
+                  {{/if}}
+                  {{#if this.placeholder}},
+                  "placeholder": "{{this.placeholder}}"
+                  {{/if}}
+                  {{#if this.options}},
+                  "options": {{json this.options}}
+                  {{/if}}
+                  {{#if this.validations}},
+                  "validations": {{json this.validations}}
+                  {{/if}}
+                }{{#unless @last}},{{/unless}}
+                {{/unless}}
+                {{/each}}
+              ]
+            }
+          }
+        }{{#if operations.delete}},{{/if}}
+        {{/if}}
+        {{#if operations.delete}}
+        {
+          "type": "button",
+          "label": "删除",
+          "actionType": "ajax",
+          "level": "danger",
+          "size": "sm",
+          "confirmText": "确定要删除这条记录吗？",
+          "api": {
+            "method": "delete",
+            "url": "{{api.url}}/${id}"
+          }
+        }
+        {{/if}}
+      ]
+    }
+    {{/if}}
+  ],
+  "headerToolbar": [
+    {{#if operations.create}}
+    {
+      "type": "button",
+      "label": "新增",
+      "actionType": "dialog",
+      "level": "primary",
+      "className": "mr-2",
+      "dialog": {
+        "title": "新增{{entityName}}",
+        "size": "lg",
+        "body": {
+          "type": "form",
+          "api": "{{api.url}}",
+          "mode": "horizontal",
+          "body": [
+            {{#each formFields}}
+            {{#unless (eq this.name "id")}}
+            {{#unless (includes this.name "At")}}
+            {
+              "name": "{{this.name}}",
+              "label": "{{this.label}}",
+              "type": "{{this.type}}"
+              {{#if this.required}},
+              "required": true
+              {{/if}}
+              {{#if this.placeholder}},
+              "placeholder": "{{this.placeholder}}"
+              {{/if}}
+              {{#if this.options}},
+              "options": {{json this.options}}
+              {{/if}}
+              {{#if this.validations}},
+              "validations": {{json this.validations}}
+              {{/if}}
+            }{{#unless @last}},{{/unless}}
+            {{/unless}}
+            {{/unless}}
+            {{/each}}
+          ]
+        }
+      }
+    },
+    {{/if}}
+    {{#if operations.batch}}
+    "bulkActions",
+    {{/if}}
+    {
+      "type": "columns-toggler",
+      "align": "right"
+    },
+    {
+      "type": "drag-toggler",
+      "align": "right"
+    },
+    {
+      "type": "reload",
+      "align": "right"
+    }
+  ],
+  "footerToolbar": [
+    "statistics",
+    "pagination"
+  ],
+  {{#if operations.batch}}
+  "bulkActions": [
+    {{#if operations.delete}}
+    {
+      "label": "批量删除",
+      "actionType": "ajax",
+      "level": "danger",
+      "confirmText": "确定要删除选中的记录吗？",
+      "api": {
+        "method": "delete",
+        "url": "{{api.url}}/batch",
+        "data": {
+          "ids": "${ids}"
+        }
+      }
+    }
+    {{/if}}
+  ],
+  {{/if}}
+  {{#if filter.enabled}}
+  "filter": {
+    "title": "筛选",
+    "body": [
+      {{#each filter.fields}}
+      {
+        "type": "{{this.type}}",
+        "name": "{{this.name}}",
+        "label": "{{this.label}}",
+        "placeholder": "请输入{{this.label}}",
+        "clearable": true
+        {{#if this.options}},
+        "options": {{json this.options}}
+        {{/if}}
+      }{{#unless @last}},{{/unless}}
+      {{/each}}
+    ]
+  },
+  {{/if}}
+  "pagination": {
+    "enable": true,
+    "layout": ["total", "perPage", "pager"],
+    "perPage": {{pagination.pageSize}},
+    "perPageAvailable": {{json pagination.pageSizeOptions}},
+    "maxButtons": 7,
+    "showPerPage": true,
+    "showPageInput": true
+  },
+  "perPageField": "limit",
+  "pageField": "page",
+  "orderField": "sortBy",
+  "orderDirField": "sortOrder",
+  "defaultParams": {
+    "limit": {{pagination.pageSize}},
+    "page": 1
+  }
+  {{/if}}
+
+  {{#if (eq componentType "form")}}
+  {{!-- 表单组件配置 --}}
+  {{#if api}}
+  "api": {
+    "method": "{{api.method}}",
+    "url": "{{api.url}}"
+    {{#if api.dataMapping}},
+    "dataMapping": {{json api.dataMapping}}
+    {{/if}}
+  },
+  {{/if}}
+  {{#if initApi}}
+  "initApi": {
+    "method": "{{initApi.method}}",
+    "url": "{{initApi.url}}"
+    {{#if initApi.dataMapping}},
+    "dataMapping": {{json initApi.dataMapping}}
+    {{/if}}
+  },
+  {{/if}}
+  "mode": "{{mode}}",
+  "labelWidth": {{labelWidth}},
+  "body": [
+    {{#each formFields}}
+    {
+      "name": "{{this.name}}",
+      "label": "{{this.label}}",
+      "type": "{{this.type}}"
+      {{#if this.required}},
+      "required": true
+      {{/if}}
+      {{#if this.placeholder}},
+      "placeholder": "{{this.placeholder}}"
+      {{/if}}
+      {{#if this.description}},
+      "description": "{{this.description}}"
+      {{/if}}
+      {{#if this.disabled}},
+      "disabled": true
+      {{/if}}
+      {{#if this.readonly}},
+      "readonly": true
+      {{/if}}
+      {{#if this.hidden}},
+      "hidden": true
+      {{/if}}
+      {{#if this.defaultValue}},
+      "value": {{json this.defaultValue}}
+      {{/if}}
+      {{#if this.options}},
+      "options": {{json this.options}}
+      {{/if}}
+      {{#if this.validations}},
+      "validations": {{json this.validations}}
+      {{/if}}
+      {{#if this.visibleOn}},
+      "visibleOn": "{{this.visibleOn}}"
+      {{/if}}
+      {{#if this.disabledOn}},
+      "disabledOn": "{{this.disabledOn}}"
+      {{/if}}
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
+  ],
+  "actions": [
+    {{#each actions}}
+    {
+      "type": "{{this.type}}",
+      "label": "{{this.label}}"
+      {{#if this.level}},
+      "level": "{{this.level}}"
+      {{/if}}
+      {{#if this.actionType}},
+      "actionType": "{{this.actionType}}"
+      {{/if}}
+      {{#if this.className}},
+      "className": "{{this.className}}"
+      {{/if}}
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
+  ]
+  {{/if}}
+
+  {{#if (eq componentType "chart")}}
+  {{!-- 图表组件配置 --}}
+  "api": "{{api.url}}",
+  {{#if api.dataMapping}}
+  "dataMapping": {{json api.dataMapping}},
+  {{/if}}
+  "config": {
+    "type": "{{chartType}}",
+    {{#if chartOptions.title}}
+    "title": {{json chartOptions.title}},
+    {{/if}}
+    {{#if chartOptions.legend}}
+    "legend": {{json chartOptions.legend}},
+    {{/if}}
+    {{#if chartOptions.tooltip}}
+    "tooltip": {{json chartOptions.tooltip}},
+    {{/if}}
+    {{#if chartOptions.xAxis}}
+    "xAxis": {{json chartOptions.xAxis}},
+    {{/if}}
+    {{#if chartOptions.yAxis}}
+    "yAxis": {{json chartOptions.yAxis}},
+    {{/if}}
+    {{#if chartOptions.series}}
+    "series": {{json chartOptions.series}},
+    {{/if}}
+    {{#if chartOptions.grid}}
+    "grid": {{json chartOptions.grid}},
+    {{/if}}
+    {{#if chartOptions.dataZoom}}
+    "dataZoom": {{json chartOptions.dataZoom}},
+    {{/if}}
+    {{#if chartOptions.toolbox}}
+    "toolbox": {{json chartOptions.toolbox}},
+    {{/if}}
+    {{#if chartOptions.color}}
+    "color": {{json chartOptions.color}},
+    {{/if}}
+    {{#if chartOptions.backgroundColor}}
+    "backgroundColor": "{{chartOptions.backgroundColor}}"
+    {{/if}}
+  }
+  {{/if}}
+
+  {{#if (eq componentType "service")}}
+  {{!-- 服务组件配置 --}}
+  "api": "{{api.url}}",
+  {{#if api.dataMapping}}
+  "dataMapping": {{json api.dataMapping}},
+  {{/if}}
+  "body": {{json serviceBody}}
+  {{/if}}
+
+  {{#if (eq componentType "page")}}
+  {{!-- 页面组件配置 --}}
+  {{#if breadcrumb}}
+  "breadcrumb": {{json breadcrumb}},
+  {{/if}}
+  {{#if toolbar}}
+  "toolbar": {{json toolbar}},
+  {{/if}}
+  {{#if aside}}
+  "aside": {{json aside}},
+  {{/if}}
+  "body": {{json pageBody}}
+  {{#if style}},
+  "style": {{json style}}
+  {{/if}}
+  {{#if className}},
+  "className": "{{className}}"
+  {{/if}}
+  {{/if}}
+
+  {{#if (eq componentType "dialog")}}
+  {{!-- 对话框组件配置 --}}
+  "size": "{{size}}",
+  {{#if closeOnEsc}}
+  "closeOnEsc": true,
+  {{/if}}
+  {{#if closeOnOutside}}
+  "closeOnOutside": true,
+  {{/if}}
+  {{#if showCloseButton}}
+  "showCloseButton": true,
+  {{/if}}
+  {{#if showErrorMsg}}
+  "showErrorMsg": true,
+  {{/if}}
+  "body": {{json dialogBody}}
+  {{#if actions}},
+  "actions": {{json actions}}
+  {{/if}}
+  {{/if}}
+
+  {{#if (eq componentType "drawer")}}
+  {{!-- 抽屉组件配置 --}}
+  "position": "{{position}}",
+  "size": "{{size}}",
+  {{#if overlay}}
+  "overlay": true,
+  {{/if}}
+  {{#if closeOnEsc}}
+  "closeOnEsc": true,
+  {{/if}}
+  {{#if closeOnOutside}}
+  "closeOnOutside": true,
+  {{/if}}
+  {{#if showCloseButton}}
+  "showCloseButton": true,
+  {{/if}}
+  "body": {{json drawerBody}}
+  {{#if actions}},
+  "actions": {{json actions}}
+  {{/if}}
+  {{/if}}
+
+  {{#if (eq componentType "tabs")}}
+  {{!-- 标签页组件配置 --}}
+  "mode": "{{tabsMode}}",
+  {{#if tabsPosition}}
+  "tabsPosition": "{{tabsPosition}}",
+  {{/if}}
+  {{#if closable}}
+  "closable": true,
+  {{/if}}
+  {{#if addable}}
+  "addable": true,
+  {{/if}}
+  {{#if draggable}}
+  "draggable": true,
+  {{/if}}
+  "tabs": [
+    {{#each tabs}}
+    {
+      "title": "{{this.title}}",
+      {{#if this.icon}}
+      "icon": "{{this.icon}}",
+      {{/if}}
+      {{#if this.closable}}
+      "closable": true,
+      {{/if}}
+      {{#if this.disabled}}
+      "disabled": true,
+      {{/if}}
+      "body": {{json this.body}}
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
+  ]
+  {{/if}}
+
+  {{#if (eq componentType "wizard")}}
+  {{!-- 向导组件配置 --}}
+  "mode": "{{wizardMode}}",
+  {{#if actionPrevLabel}}
+  "actionPrevLabel": "{{actionPrevLabel}}",
+  {{/if}}
+  {{#if actionNextLabel}}
+  "actionNextLabel": "{{actionNextLabel}}",
+  {{/if}}
+  {{#if actionFinishLabel}}
+  "actionFinishLabel": "{{actionFinishLabel}}",
+  {{/if}}
+  {{#if api}}
+  "api": {
+    "method": "{{api.method}}",
+    "url": "{{api.url}}"
+  },
+  {{/if}}
+  "steps": [
+    {{#each steps}}
+    {
+      "title": "{{this.title}}",
+      {{#if this.subTitle}}
+      "subTitle": "{{this.subTitle}}",
+      {{/if}}
+      {{#if this.description}}
+      "description": "{{this.description}}",
+      {{/if}}
+      {{#if this.icon}}
+      "icon": "{{this.icon}}",
+      {{/if}}
+      "body": {{json this.body}}
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
+  ]
+  {{/if}}
+}

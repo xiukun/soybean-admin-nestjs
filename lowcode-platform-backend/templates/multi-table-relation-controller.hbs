@@ -1,0 +1,463 @@
+{{!-- 
+多表关联查询Controller模板
+用于生成多表关联查询控制器
+--}}
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Query,
+  HttpStatus,
+  UseGuards,
+  UseInterceptors,
+  ParseUUIDPipe,
+  ValidationPipe,
+  ParseIntPipe,
+  DefaultValuePipe,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+  ApiBearerAuth,
+  ApiBody,
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from '@/shared/guards/jwt-auth.guard';
+{{#if config.enableQueryCache}}
+import { CacheInterceptor } from '@/shared/interceptors/cache.interceptor';
+{{/if}}
+import { TransformInterceptor } from '@/shared/interceptors/transform.interceptor';
+import { LoggingInterceptor } from '@/shared/interceptors/logging.interceptor';
+import { RelationQueryService } from '../services/relation-query.service';
+import {
+  {{#each relationQueries}}
+  {{pascalCase this.name}}QueryDto,
+  {{/each}}
+  CommonRelationQueryDto,
+} from '../dto';
+
+/**
+ * 多表关联查询控制器
+ * 提供复杂的多表关联查询接口
+ */
+@ApiTags('多表关联查询')
+@Controller('{{apiPath}}')
+@UseGuards(JwtAuthGuard)
+@UseInterceptors(
+  TransformInterceptor,
+  LoggingInterceptor{{#if config.enableQueryCache}},
+  CacheInterceptor{{/if}}
+)
+@ApiBearerAuth()
+export class {{className}} {
+  constructor(
+    private readonly {{serviceName}}: RelationQueryService,
+  ) {}
+
+  {{#each relationQueries}}
+  /**
+   * {{this.description}}
+   */
+  @{{#if (eq this.queryType 'complex')}}Post{{else}}Get{{/if}}('{{kebabCase this.name}}')
+  @ApiOperation({
+    summary: '{{this.description}}',
+    description: '{{this.description}} - 查询类型: {{this.queryType}}',
+  })
+  {{#if this.pagination.enabled}}
+  @ApiQuery({ name: 'page', required: false, description: '页码', example: 1 })
+  @ApiQuery({ name: 'limit', required: false, description: '每页数量', example: {{this.pagination.defaultPageSize}} })
+  {{/if}}
+  {{#each this.conditions}}
+  {{#if this.fromParam}}
+  @ApiQuery({ name: '{{this.paramName}}', required: false, description: '{{this.field}}筛选条件' })
+  {{/if}}
+  {{/each}}
+  {{#each this.orderBy}}
+  @ApiQuery({ name: 'sortBy', required: false, description: '排序字段', example: '{{this.field}}' })
+  @ApiQuery({ name: 'sortOrder', required: false, description: '排序方向', enum: ['ASC', 'DESC'], example: '{{this.direction}}' })
+  {{/each}}
+  @ApiResponse({
+    status: 200,
+    description: '查询成功',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          description: '查询结果',
+        },
+        {{#if this.pagination.enabled}}
+        total: { type: 'number', description: '总记录数' },
+        page: { type: 'number', description: '当前页码' },
+        limit: { type: 'number', description: '每页数量' },
+        totalPages: { type: 'number', description: '总页数' },
+        {{/if}}
+      },
+    },
+  })
+  {{#if this.enableCache}}
+  @UseInterceptors(CacheInterceptor)
+  {{/if}}
+  async {{camelCase this.name}}(
+    {{#if (eq this.queryType 'complex')}}
+    @Body(ValidationPipe) queryDto: {{pascalCase this.name}}QueryDto,
+    {{else}}
+    {{#if this.pagination.enabled}}
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe({{this.pagination.defaultPageSize}}), ParseIntPipe) limit: number,
+    {{/if}}
+    {{#each this.conditions}}
+    {{#if this.fromParam}}
+    @Query('{{this.paramName}}') {{this.paramName}}?: {{#if (eq this.operator 'in')}}string[]{{else if (eq this.operator 'between')}}string[]{{else}}any{{/if}},
+    {{/if}}
+    {{/each}}
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: 'ASC' | 'DESC',
+    {{/if}}
+  ) {
+    {{#if (eq this.queryType 'complex')}}
+    const result = await this.{{../serviceName}}.{{camelCase this.name}}(queryDto);
+    {{else}}
+    {{#if this.pagination.enabled}}
+    // 限制每页数量
+    if (limit > {{this.pagination.maxPageSize}}) {
+      limit = {{this.pagination.maxPageSize}};
+    }
+    {{/if}}
+
+    const queryParams = {
+      {{#if this.pagination.enabled}}
+      page,
+      limit,
+      {{/if}}
+      {{#each this.conditions}}
+      {{#if this.fromParam}}
+      {{this.paramName}},
+      {{/if}}
+      {{/each}}
+      sortBy,
+      sortOrder,
+    };
+
+    const result = await this.{{../serviceName}}.{{camelCase this.name}}(queryParams);
+    {{/if}}
+    
+    return {
+      data: result.data,
+      {{#if this.pagination.enabled}}
+      total: result.total,
+      page: result.page || 1,
+      limit: result.limit || {{this.pagination.defaultPageSize}},
+      totalPages: Math.ceil(result.total / (result.limit || {{this.pagination.defaultPageSize}})),
+      {{/if}}
+    };
+  }
+
+  {{/each}}
+
+  /**
+   * 通用关联查询
+   */
+  @Post('query')
+  @ApiOperation({
+    summary: '通用关联查询',
+    description: '支持动态构建的多表关联查询',
+  })
+  @ApiBody({ type: CommonRelationQueryDto })
+  @ApiResponse({
+    status: 200,
+    description: '查询成功',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          description: '查询结果',
+        },
+        total: { type: 'number', description: '总记录数' },
+        page: { type: 'number', description: '当前页码' },
+        limit: { type: 'number', description: '每页数量' },
+        totalPages: { type: 'number', description: '总页数' },
+        queryInfo: {
+          type: 'object',
+          description: '查询信息',
+          properties: {
+            entities: { type: 'array', items: { type: 'string' } },
+            relations: { type: 'array', items: { type: 'string' } },
+            complexity: { type: 'number' },
+            executionTime: { type: 'number' },
+          },
+        },
+      },
+    },
+  })
+  async dynamicQuery(@Body(ValidationPipe) queryDto: CommonRelationQueryDto) {
+    const startTime = Date.now();
+    
+    const result = await this.{{serviceName}}.dynamicQuery(queryDto);
+    
+    const executionTime = Date.now() - startTime;
+    
+    return {
+      data: result.data,
+      total: result.total,
+      page: result.page || 1,
+      limit: result.limit || 10,
+      totalPages: Math.ceil(result.total / (result.limit || 10)),
+      queryInfo: {
+        entities: queryDto.entities,
+        relations: queryDto.relations || [],
+        complexity: this.calculateQueryComplexity(queryDto),
+        executionTime,
+      },
+    };
+  }
+
+  /**
+   * 获取实体关系图
+   */
+  @Get('entity-relations')
+  @ApiOperation({
+    summary: '获取实体关系图',
+    description: '获取所有实体的关系图谱，用于可视化展示',
+  })
+  @ApiQuery({ name: 'entity', required: false, description: '指定实体代码，获取该实体的关系' })
+  @ApiQuery({ name: 'depth', required: false, description: '关系深度', example: 2 })
+  @ApiResponse({
+    status: 200,
+    description: '获取成功',
+    schema: {
+      type: 'object',
+      properties: {
+        nodes: {
+          type: 'array',
+          description: '实体节点',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              name: { type: 'string' },
+              description: { type: 'string' },
+              fieldsCount: { type: 'number' },
+              relationsCount: { type: 'number' },
+            },
+          },
+        },
+        edges: {
+          type: 'array',
+          description: '关系边',
+          items: {
+            type: 'object',
+            properties: {
+              source: { type: 'string' },
+              target: { type: 'string' },
+              type: { type: 'string' },
+              label: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+  })
+  {{#if config.enableQueryCache}}
+  @UseInterceptors(CacheInterceptor)
+  {{/if}}
+  async getEntityRelations(
+    @Query('entity') entity?: string,
+    @Query('depth', new DefaultValuePipe(2), ParseIntPipe) depth: number = 2,
+  ) {
+    const relations = await this.{{serviceName}}.getEntityRelations(entity, depth);
+    
+    return {
+      nodes: relations.nodes,
+      edges: relations.edges,
+      metadata: {
+        totalEntities: relations.nodes.length,
+        totalRelations: relations.edges.length,
+        maxDepth: depth,
+        focusEntity: entity,
+      },
+    };
+  }
+
+  /**
+   * 验证查询
+   */
+  @Post('validate-query')
+  @ApiOperation({
+    summary: '验证查询',
+    description: '验证查询语句的正确性和性能影响',
+  })
+  @ApiBody({ type: CommonRelationQueryDto })
+  @ApiResponse({
+    status: 200,
+    description: '验证结果',
+    schema: {
+      type: 'object',
+      properties: {
+        isValid: { type: 'boolean' },
+        errors: { type: 'array', items: { type: 'string' } },
+        warnings: { type: 'array', items: { type: 'string' } },
+        performance: {
+          type: 'object',
+          properties: {
+            complexity: { type: 'number' },
+            estimatedTime: { type: 'number' },
+            recommendedOptimizations: { type: 'array', items: { type: 'string' } },
+          },
+        },
+      },
+    },
+  })
+  async validateQuery(@Body(ValidationPipe) queryDto: CommonRelationQueryDto) {
+    const validation = await this.{{serviceName}}.validateQuery(queryDto);
+    
+    return {
+      isValid: validation.isValid,
+      errors: validation.errors,
+      warnings: validation.warnings,
+      performance: {
+        complexity: this.calculateQueryComplexity(queryDto),
+        estimatedTime: validation.estimatedTime,
+        recommendedOptimizations: validation.optimizations,
+      },
+    };
+  }
+
+  /**
+   * 获取查询建议
+   */
+  @Post('query-suggestions')
+  @ApiOperation({
+    summary: '获取查询建议',
+    description: '根据实体和条件获取推荐的查询方案',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        entities: { type: 'array', items: { type: 'string' } },
+        purpose: { type: 'string', enum: ['list', 'detail', 'statistics', 'report'] },
+        performance: { type: 'string', enum: ['fast', 'balanced', 'comprehensive'] },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: '查询建议',
+    schema: {
+      type: 'object',
+      properties: {
+        suggestions: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              description: { type: 'string' },
+              query: { type: 'object' },
+              performance: { type: 'string' },
+              complexity: { type: 'number' },
+            },
+          },
+        },
+      },
+    },
+  })
+  async getQuerySuggestions(@Body() body: {
+    entities: string[];
+    purpose: 'list' | 'detail' | 'statistics' | 'report';
+    performance: 'fast' | 'balanced' | 'comprehensive';
+  }) {
+    const suggestions = await this.{{serviceName}}.getQuerySuggestions(
+      body.entities,
+      body.purpose,
+      body.performance
+    );
+    
+    return {
+      suggestions,
+      metadata: {
+        entitiesCount: body.entities.length,
+        purpose: body.purpose,
+        performance: body.performance,
+        generatedAt: new Date().toISOString(),
+      },
+    };
+  }
+
+  /**
+   * 获取查询性能统计
+   */
+  @Get('performance-stats')
+  @ApiOperation({
+    summary: '获取查询性能统计',
+    description: '获取多表查询的性能统计信息',
+  })
+  @ApiQuery({ name: 'period', required: false, enum: ['hour', 'day', 'week', 'month'], description: '统计周期' })
+  @ApiResponse({
+    status: 200,
+    description: '性能统计',
+    schema: {
+      type: 'object',
+      properties: {
+        totalQueries: { type: 'number' },
+        averageExecutionTime: { type: 'number' },
+        slowQueries: { type: 'array' },
+        popularQueries: { type: 'array' },
+        errorRate: { type: 'number' },
+        cacheHitRate: { type: 'number' },
+      },
+    },
+  })
+  {{#if config.enableQueryCache}}
+  @UseInterceptors(CacheInterceptor)
+  {{/if}}
+  async getPerformanceStats(
+    @Query('period') period: 'hour' | 'day' | 'week' | 'month' = 'day',
+  ) {
+    const stats = await this.{{serviceName}}.getPerformanceStats(period);
+    
+    return {
+      ...stats,
+      period,
+      generatedAt: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * 计算查询复杂度
+   */
+  private calculateQueryComplexity(queryDto: CommonRelationQueryDto): number {
+    let complexity = 0;
+    
+    // 基础复杂度
+    complexity += queryDto.entities.length;
+    
+    // 关联复杂度
+    if (queryDto.relations) {
+      complexity += queryDto.relations.length * 2;
+    }
+    
+    // 条件复杂度
+    if (queryDto.conditions) {
+      complexity += queryDto.conditions.length;
+    }
+    
+    // 排序复杂度
+    if (queryDto.orderBy) {
+      complexity += queryDto.orderBy.length * 0.5;
+    }
+    
+    // 聚合复杂度
+    if (queryDto.aggregates) {
+      complexity += queryDto.aggregates.length * 1.5;
+    }
+    
+    return Math.round(complexity);
+  }
+}

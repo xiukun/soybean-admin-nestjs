@@ -26,11 +26,11 @@ import { AmisDemoController } from '@api/lowcode/amis-demo.controller';
 import { CodeGenerationController } from '@api/lowcode/code-generation.controller';
 import { CodeGenerationPageController } from '@api/lowcode/code-generation-page.controller';
 import { TargetProjectController } from '@api/lowcode/target-project.controller';
-import { JwtAuthGuard } from '@guards/jwt-auth.guard';
-import { JwtStrategy } from '@strategies/jwt.strategy';
+import { UnifiedAuthModule } from '../../shared/auth/src';
 import { CodeGenerationModule } from '@lib/code-generation/code-generation.module';
 import { HealthModule } from '@api/health/health.module';
 import { MetadataModule } from '@lib/bounded-contexts/metadata/metadata.module';
+import { TemplateModule } from '@lib/bounded-contexts/template/template.module';
 import { DatabaseInitService } from '@infra/database/database-init.service';
 
 @Module({
@@ -41,18 +41,8 @@ import { DatabaseInitService } from '@infra/database/database-init.service';
       envFilePath: ['.env.local', '.env'],
     }),
 
-    // 认证模块
-    PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRES_IN', '7d'),
-        },
-      }),
-      inject: [ConfigService],
-    }),
+    // 统一认证模块
+    UnifiedAuthModule.forRoot(),
 
     // CQRS模块
     CqrsModule,
@@ -72,6 +62,7 @@ import { DatabaseInitService } from '@infra/database/database-init.service';
     QueryModule,
     FieldModule,
     CodeGenerationModule,
+    TemplateModule,
     HealthModule,
     MetadataModule,
   ],
@@ -91,12 +82,7 @@ import { DatabaseInitService } from '@infra/database/database-init.service';
   ],
   providers: [
     AppService,
-    JwtStrategy,
     DatabaseInitService,
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
   ],
 })
 export class AppModule {}
