@@ -25,7 +25,7 @@ import { TemplateController } from '@api/lowcode/template.controller';
 import { AmisDemoController } from '@api/lowcode/amis-demo.controller';
 import { CodeGenerationController } from '@api/lowcode/code-generation.controller';
 import { CodeGenerationPageController } from '@api/lowcode/code-generation-page.controller';
-import { TargetProjectController } from '@api/lowcode/target-project.controller';
+// import { TargetProjectController } from '@api/lowcode/target-project.controller';
 import { JwtAuthGuard } from '@guards/jwt-auth.guard';
 import { JwtStrategy } from '@strategies/jwt.strategy';
 import { CodeGenerationModule } from '@lib/bounded-contexts/code-generation/code-generation.module';
@@ -89,7 +89,7 @@ import { DatabaseInitService } from '@infra/database/database-init.service';
     AmisDemoController,
     CodeGenerationController,
     CodeGenerationPageController,
-    TargetProjectController
+    // TargetProjectController
   ],
   providers: [
     AppService,

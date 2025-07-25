@@ -82,3 +82,42 @@ export class DeleteConfigCommand {
     public readonly userId?: string,
   ) {}
 }
+
+// 代码保护和差异分析命令
+export class AnalyzeCodeDiffCommand {
+  constructor(
+    public readonly baseContent: string,
+    public readonly bizContent: string,
+  ) {}
+}
+
+export class CheckFileProtectionCommand {
+  constructor(
+    public readonly filePath: string,
+    public readonly config?: {
+      preserveCustomCode?: boolean;
+      enableSmartMerge?: boolean;
+      backupBeforeOverwrite?: boolean;
+    },
+  ) {}
+}
+
+export class MergeCodeCommand {
+  constructor(
+    public readonly baseContent: string,
+    public readonly bizFilePath: string,
+    public readonly config?: {
+      preserveCustomCode?: boolean;
+      enableSmartMerge?: boolean;
+      backupBeforeOverwrite?: boolean;
+    },
+  ) {}
+}
+
+export class SuggestConflictResolutionCommand {
+  constructor(
+    public readonly baseContent: string,
+    public readonly bizContent: string,
+    public readonly conflictType: 'method' | 'property' | 'import' | 'custom',
+  ) {}
+}

@@ -18,6 +18,10 @@ import {
   CreateConfigTemplateHandler,
   CloneConfigHandler,
   DeleteConfigHandler,
+  AnalyzeCodeDiffHandler,
+  CheckFileProtectionHandler,
+  MergeCodeHandler,
+  SuggestConflictResolutionHandler,
 } from './application/handlers/code-generation.handlers';
 
 import {
@@ -59,6 +63,10 @@ const CommandHandlers = [
   CreateConfigTemplateHandler,
   CloneConfigHandler,
   DeleteConfigHandler,
+  AnalyzeCodeDiffHandler,
+  CheckFileProtectionHandler,
+  MergeCodeHandler,
+  SuggestConflictResolutionHandler,
 ];
 
 const QueryHandlers = [

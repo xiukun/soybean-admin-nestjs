@@ -10,6 +10,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import { DualLayerGeneratorService } from '../services/dual-layer-generator.service';
 import { GenerationConfigManagerService } from '../services/generation-config-manager.service';
+import { BizCodeProtectionService } from '../services/biz-code-protection.service';
+import { CodeDiffAnalyzerService } from '../services/code-diff-analyzer.service';
 import {
   GenerateCodeCommand,
   ValidateGenerationConfigCommand,
@@ -19,6 +21,10 @@ import {
   CreateConfigTemplateCommand,
   CloneConfigCommand,
   DeleteConfigCommand,
+  AnalyzeCodeDiffCommand,
+  CheckFileProtectionCommand,
+  MergeCodeCommand,
+  SuggestConflictResolutionCommand,
 } from '../commands/code-generation.commands';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -423,5 +429,101 @@ export class DeleteConfigHandler implements ICommandHandler<DeleteConfigCommand>
         message: `配置删除失败: ${error.message}`,
       };
     }
+  }
+}
+
+// ==================== 代码保护和差异分析命令处理器 ====================
+
+@Injectable()
+@CommandHandler(AnalyzeCodeDiffCommand)
+export class AnalyzeCodeDiffHandler implements ICommandHandler<AnalyzeCodeDiffCommand> {
+  constructor(private readonly codeDiffAnalyzerService: CodeDiffAnalyzerService) {}
+
+  async execute(command: AnalyzeCodeDiffCommand) {
+    const { baseContent, bizContent } = command;
+
+    const result = this.codeDiffAnalyzerService.analyzeDiff(baseContent, bizContent);
+    const significantChanges = this.codeDiffAnalyzerService.detectSignificantChanges(result.diffs);
+    const recommendations = this.codeDiffAnalyzerService.generateMergeRecommendations(result);
+
+    return {
+      analysis: result,
+      significantChanges,
+      recommendations,
+    };
+  }
+}
+
+@Injectable()
+@CommandHandler(CheckFileProtectionCommand)
+export class CheckFileProtectionHandler implements ICommandHandler<CheckFileProtectionCommand> {
+  constructor(private readonly bizCodeProtectionService: BizCodeProtectionService) {}
+
+  async execute(command: CheckFileProtectionCommand) {
+    const { filePath, config } = command;
+
+    const shouldProtect = await this.bizCodeProtectionService.shouldProtectBizFile(
+      filePath,
+      {
+        preserveCustomCode: config?.preserveCustomCode ?? true,
+        enableSmartMerge: config?.enableSmartMerge ?? true,
+        backupBeforeOverwrite: config?.backupBeforeOverwrite ?? true,
+        customCodeMarkers: {
+          start: '// CUSTOM_CODE_START',
+          end: '// CUSTOM_CODE_END',
+        },
+        protectedSections: ['constructor', 'custom methods'],
+      },
+    );
+
+    return {
+      shouldProtect,
+      filePath,
+    };
+  }
+}
+
+@Injectable()
+@CommandHandler(MergeCodeCommand)
+export class MergeCodeHandler implements ICommandHandler<MergeCodeCommand> {
+  constructor(private readonly bizCodeProtectionService: BizCodeProtectionService) {}
+
+  async execute(command: MergeCodeCommand) {
+    const { baseContent, bizFilePath, config } = command;
+
+    const result = await this.bizCodeProtectionService.mergeCode(
+      baseContent,
+      bizFilePath,
+      {
+        preserveCustomCode: config?.preserveCustomCode ?? true,
+        enableSmartMerge: config?.enableSmartMerge ?? true,
+        backupBeforeOverwrite: config?.backupBeforeOverwrite ?? true,
+        customCodeMarkers: {
+          start: '// CUSTOM_CODE_START',
+          end: '// CUSTOM_CODE_END',
+        },
+        protectedSections: ['constructor', 'custom methods'],
+      },
+    );
+
+    return result;
+  }
+}
+
+@Injectable()
+@CommandHandler(SuggestConflictResolutionCommand)
+export class SuggestConflictResolutionHandler implements ICommandHandler<SuggestConflictResolutionCommand> {
+  constructor(private readonly codeDiffAnalyzerService: CodeDiffAnalyzerService) {}
+
+  async execute(command: SuggestConflictResolutionCommand) {
+    const { baseContent, bizContent, conflictType } = command;
+
+    const resolution = this.codeDiffAnalyzerService.suggestConflictResolution(
+      baseContent,
+      bizContent,
+      conflictType,
+    );
+
+    return resolution;
   }
 }

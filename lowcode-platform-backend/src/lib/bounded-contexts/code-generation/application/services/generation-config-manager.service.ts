@@ -70,14 +70,15 @@ export class GenerationConfigManagerService {
         };
       }
 
-      // 保存到数据库
-      const savedConfig = await (this.prisma as any).codeGenerationConfig.create({
+      // 暂时使用CodegenTask表保存配置
+      const savedConfig = await this.prisma.codegenTask.create({
         data: {
           projectId,
           name: name || `配置_${new Date().toISOString().slice(0, 10)}`,
-          description: description || '自动保存的代码生成配置',
-          config: JSON.stringify(config),
-          createdBy: userId,
+          type: 'config',
+          config: config as any,
+          status: 'completed',
+          createdBy: userId || 'system',
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -105,15 +106,16 @@ export class GenerationConfigManagerService {
    */
   async loadConfig(configId: string): Promise<GenerationConfig | null> {
     try {
-      const savedConfig = await (this.prisma as any).codeGenerationConfig.findUnique({
+      // 暂时使用CodegenTask表查询配置
+      const savedConfig = await this.prisma.codegenTask.findUnique({
         where: { id: configId },
       });
 
-      if (!savedConfig) {
+      if (!savedConfig || savedConfig.type !== 'config') {
         return null;
       }
 
-      return JSON.parse(savedConfig.config);
+      return savedConfig.config as unknown as GenerationConfig;
 
     } catch (error) {
       this.logger.error(`配置加载失败: ${error.message}`);
@@ -137,23 +139,30 @@ export class GenerationConfigManagerService {
     try {
       const skip = (page - 1) * size;
 
+      // 暂时使用CodegenTask表查询配置
       const [configs, total] = await Promise.all([
-        (this.prisma as any).codeGenerationConfig.findMany({
-          where: { projectId },
+        this.prisma.codegenTask.findMany({
+          where: {
+            projectId,
+            type: 'config',
+          },
           skip,
           take: size,
           orderBy: { updatedAt: 'desc' },
           select: {
             id: true,
             name: true,
-            description: true,
-            createdBy: true,
+            type: true,
+            status: true,
             createdAt: true,
             updatedAt: true,
           },
         }),
-        (this.prisma as any).codeGenerationConfig.count({
-          where: { projectId },
+        this.prisma.codegenTask.count({
+          where: {
+            projectId,
+            type: 'config',
+          },
         }),
       ]);
 
@@ -188,16 +197,17 @@ export class GenerationConfigManagerService {
     isPublic: boolean = false,
     userId?: string,
   ): Promise<ConfigTemplate> {
-    const template = await (this.prisma as any).codeGenerationConfigTemplate.create({
+    // 暂时使用CodeTemplate表创建配置模板
+    const template = await this.prisma.codeTemplate.create({
       data: {
         name,
-        description,
-        category,
-        framework,
+        code: name.toLowerCase().replace(/\s+/g, '_'),
+        type: 'config',
         language,
-        config: JSON.stringify(config),
+        framework,
+        description,
+        content: JSON.stringify(config),
         isPublic,
-        usageCount: 0,
         createdBy: userId,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -205,8 +215,18 @@ export class GenerationConfigManagerService {
     });
 
     return {
-      ...template,
-      config: JSON.parse(template.config),
+      id: template.id,
+      name: template.name,
+      description: template.description || '',
+      category,
+      framework: template.framework || 'nestjs',
+      language: template.language,
+      config,
+      isPublic: template.isPublic,
+      usageCount: 0,
+      createdBy: template.createdBy || 'system',
+      createdAt: template.createdAt,
+      updatedAt: template.updatedAt,
     };
   }
 
@@ -237,17 +257,47 @@ export class GenerationConfigManagerService {
       where.language = language;
     }
 
-    const templates = await (this.prisma as any).codeGenerationConfigTemplate.findMany({
-      where,
+    // 暂时使用CodeTemplate表，后续需要创建专门的配置模板表
+    const templates = await this.prisma.codeTemplate.findMany({
+      where: {
+        type: 'config',
+        isPublic: true,
+      },
       orderBy: [
-        { usageCount: 'desc' },
         { createdAt: 'desc' },
       ],
     });
 
     return templates.map((template: any) => ({
-      ...template,
-      config: JSON.parse(template.config),
+      id: template.id,
+      name: template.name,
+      description: template.description || '',
+      category: 'custom' as const,
+      framework: template.framework || 'nestjs',
+      language: template.language,
+      config: {
+        projectId: '',
+        entityIds: [],
+        templateIds: [],
+        outputPath: './generated',
+        baseConfig: {
+          generateAuth: true,
+          generateValidation: true,
+          generateSwagger: true,
+          generateTests: false,
+          outputFormat: 'typescript' as const,
+        },
+        bizConfig: {
+          allowCustomization: true,
+          preserveCustomCode: true,
+          generateInterfaces: true,
+        },
+      }, // 返回默认配置结构
+      isPublic: template.isPublic,
+      usageCount: 0, // CodeTemplate表没有这个字段
+      createdBy: template.createdBy || 'system',
+      createdAt: template.createdAt,
+      updatedAt: template.updatedAt,
     }));
   }
 

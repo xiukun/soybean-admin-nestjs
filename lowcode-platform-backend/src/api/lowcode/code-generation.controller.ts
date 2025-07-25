@@ -17,8 +17,8 @@ import { Public } from '@decorators/public.decorator';
 import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import { AmisResponse } from '@decorators/amis-response.decorator';
 import { AmisResponseInterceptor } from '@interceptors/amis-response.interceptor';
-import { CodeGenerationService, CodeGenerationOptions } from '@lib/code-generation/services/code-generation.service';
-import { HotUpdateService } from '@lib/code-generation/services/hot-update.service';
+// import { CodeGenerationService, CodeGenerationOptions } from '@lib/code-generation/services/code-generation.service';
+// import { HotUpdateService } from '@lib/code-generation/services/hot-update.service';
 
 // Dual-layer generation imports
 import {
@@ -30,6 +30,10 @@ import {
   CreateConfigTemplateCommand,
   CloneConfigCommand,
   DeleteConfigCommand,
+  AnalyzeCodeDiffCommand,
+  CheckFileProtectionCommand,
+  MergeCodeCommand,
+  SuggestConflictResolutionCommand,
 } from '@lib/bounded-contexts/code-generation/application/commands/code-generation.commands';
 
 import {
@@ -47,8 +51,6 @@ import {
 } from '@lib/bounded-contexts/code-generation/application/queries/code-generation.queries';
 
 import { GenerationConfig } from '@lib/bounded-contexts/code-generation/application/services/dual-layer-generator.service';
-import { BizCodeProtectionService } from '@lib/bounded-contexts/code-generation/application/services/biz-code-protection.service';
-import { CodeDiffAnalyzerService } from '@lib/bounded-contexts/code-generation/application/services/code-diff-analyzer.service';
 
 import * as path from 'path';
 import * as fs from 'fs';
@@ -79,12 +81,8 @@ export class CodeGenerationController {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly codeGenerationService: CodeGenerationService,
-    private readonly hotUpdateService: HotUpdateService,
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
-    private readonly bizCodeProtectionService: BizCodeProtectionService,
-    private readonly codeDiffAnalyzerService: CodeDiffAnalyzerService,
   ) {}
 
   @Get('templates')
@@ -144,6 +142,8 @@ export class CodeGenerationController {
     }));
   }
 
+  // 注释掉旧的代码生成方法，使用新的双层代码生成接口
+  /*
   @Post('generate')
   @AmisResponse({
     description: 'Generate code for entities',
@@ -225,7 +225,10 @@ export class CodeGenerationController {
       throw error;
     }
   }
+  */
 
+  // 注释掉旧的预览方法，使用新的双层代码生成接口
+  /*
   @Post('preview')
   @AmisResponse({
     description: 'Preview generated code',
@@ -303,7 +306,10 @@ export class CodeGenerationController {
       throw error;
     }
   }
+  */
 
+  // 注释掉旧的状态方法
+  /*
   @Get('status')
   @AmisResponse({
     description: 'Get code generation service status',
@@ -325,7 +331,10 @@ export class CodeGenerationController {
       throw error;
     }
   }
+  */
 
+  // 注释掉旧的清除缓存方法
+  /*
   @Post('clear-cache')
   @AmisResponse({
     description: 'Clear template cache',
@@ -346,6 +355,7 @@ export class CodeGenerationController {
       throw error;
     }
   }
+  */
 
   /**
    * Get target project path based on project name
@@ -505,22 +515,16 @@ export class CodeGenerationController {
       bizContent: string;
     },
   ): Promise<any> {
-    const result = this.codeDiffAnalyzerService.analyzeDiff(
+    const command = new AnalyzeCodeDiffCommand(
       diffData.baseContent,
       diffData.bizContent,
     );
-
-    const significantChanges = this.codeDiffAnalyzerService.detectSignificantChanges(result.diffs);
-    const recommendations = this.codeDiffAnalyzerService.generateMergeRecommendations(result);
+    const result = await this.commandBus.execute(command);
 
     return {
       status: 0,
       msg: 'success',
-      data: {
-        analysis: result,
-        significantChanges,
-        recommendations,
-      },
+      data: result,
     };
   }
 
@@ -537,27 +541,13 @@ export class CodeGenerationController {
       };
     },
   ): Promise<any> {
-    const shouldProtect = await this.bizCodeProtectionService.shouldProtectBizFile(
-      checkData.filePath,
-      {
-        preserveCustomCode: checkData.config?.preserveCustomCode ?? true,
-        enableSmartMerge: checkData.config?.enableSmartMerge ?? true,
-        backupBeforeOverwrite: checkData.config?.backupBeforeOverwrite ?? true,
-        customCodeMarkers: {
-          start: '// CUSTOM_CODE_START',
-          end: '// CUSTOM_CODE_END',
-        },
-        protectedSections: ['constructor', 'custom methods'],
-      },
-    );
+    const command = new CheckFileProtectionCommand(checkData.filePath, checkData.config);
+    const result = await this.commandBus.execute(command);
 
     return {
       status: 0,
       msg: 'success',
-      data: {
-        shouldProtect,
-        filePath: checkData.filePath,
-      },
+      data: result,
     };
   }
 
@@ -575,20 +565,12 @@ export class CodeGenerationController {
       };
     },
   ): Promise<any> {
-    const result = await this.bizCodeProtectionService.mergeCode(
+    const command = new MergeCodeCommand(
       mergeData.baseContent,
       mergeData.bizFilePath,
-      {
-        preserveCustomCode: mergeData.config?.preserveCustomCode ?? true,
-        enableSmartMerge: mergeData.config?.enableSmartMerge ?? true,
-        backupBeforeOverwrite: mergeData.config?.backupBeforeOverwrite ?? true,
-        customCodeMarkers: {
-          start: '// CUSTOM_CODE_START',
-          end: '// CUSTOM_CODE_END',
-        },
-        protectedSections: ['constructor', 'custom methods'],
-      },
+      mergeData.config,
     );
+    const result = await this.commandBus.execute(command);
 
     return {
       status: result.success ? 0 : 1,
@@ -607,16 +589,17 @@ export class CodeGenerationController {
       conflictType: 'method' | 'property' | 'import' | 'custom';
     },
   ): Promise<any> {
-    const resolution = this.codeDiffAnalyzerService.suggestConflictResolution(
+    const command = new SuggestConflictResolutionCommand(
       conflictData.baseContent,
       conflictData.bizContent,
       conflictData.conflictType,
     );
+    const result = await this.commandBus.execute(command);
 
     return {
       status: 0,
       msg: 'success',
-      data: resolution,
+      data: result,
     };
   }
 

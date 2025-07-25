@@ -19,7 +19,7 @@ import {
   ApiBearerAuth,
   ApiBody,
 } from '@nestjs/swagger';
-import { CodeGenerationService } from '@lib/code-generation/services/code-generation.service';
+import { IntelligentCodeGeneratorService } from '@lib/bounded-contexts/code-generation/application/services/intelligent-code-generator.service';
 import {
   CreateEntityDto,
   UpdateEntityDto,
@@ -46,7 +46,7 @@ export class EntityController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
-    private readonly codeGenerationService: CodeGenerationService,
+    private readonly codeGenerationService: IntelligentCodeGeneratorService,
   ) {}
 
   @Post()
@@ -310,11 +310,28 @@ export class EntityController {
       dryRun: body.options?.dryRun ?? false,
     };
 
-    // Generate code
-    const result = await this.codeGenerationService.generateCode(
-      [entityDefinition],
-      options
-    );
+    // Generate code using the new service
+    const generationRequest = {
+      projectId: entity.projectId,
+      templateIds: [], // 使用默认模板
+      entityIds: [id],
+      outputPath: options.outputPath,
+      variables: {},
+      options: {
+        overwriteExisting: options.overwrite,
+        generateTests: body.options?.generateTests || false,
+        generateDocs: body.options?.generateDocs || false,
+        architecture: 'base-biz' as const,
+        framework: 'nestjs' as const,
+      },
+    };
+
+    const files = await this.codeGenerationService.generateFiles(generationRequest);
+    const result = {
+      success: true,
+      files,
+      message: 'Code generation completed successfully',
+    };
 
     return result;
   }
@@ -390,11 +407,28 @@ export class EntityController {
       dryRun: body.options?.dryRun ?? false,
     };
 
-    // Generate code
-    const result = await this.codeGenerationService.generateCode(
-      entityDefinitions,
-      options
-    );
+    // Generate code using the new service
+    const generationRequest = {
+      projectId: validEntities[0].projectId,
+      templateIds: [], // 使用默认模板
+      entityIds: body.entityIds,
+      outputPath: options.outputPath,
+      variables: {},
+      options: {
+        overwriteExisting: options.overwrite,
+        generateTests: body.options?.generateTests || false,
+        generateDocs: body.options?.generateDocs || false,
+        architecture: 'base-biz' as const,
+        framework: 'nestjs' as const,
+      },
+    };
+
+    const files = await this.codeGenerationService.generateFiles(generationRequest);
+    const result = {
+      success: true,
+      files,
+      message: 'Code generation completed successfully',
+    };
 
     return result;
   }
