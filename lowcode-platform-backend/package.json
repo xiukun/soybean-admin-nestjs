@@ -72,6 +72,7 @@
     "@types/cache-manager": "^4.0.6",
     "@types/cls-hooked": "^4.3.9",
     "@types/express": "^5.0.3",
+    "@types/handlebars": "^4.0.40",
     "@types/uuid": "^10.0.0",
     "cache-manager": "^7.0.1",
     "chokidar": "^3.5.3",

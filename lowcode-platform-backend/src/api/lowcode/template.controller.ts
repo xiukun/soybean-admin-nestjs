@@ -38,6 +38,11 @@ import {
   GetTemplateVersionsQuery,
 } from '@lib/bounded-contexts/template/application/queries/get-templates.query';
 import {
+  PreviewTemplateQuery,
+  ValidateTemplateQuery,
+  TestTemplateQuery,
+} from '@lib/bounded-contexts/template/application/queries/template-preview.query';
+import {
   CreateTemplateCommand,
   UpdateTemplateCommand,
   DeleteTemplateCommand,
@@ -432,5 +437,66 @@ export class {{pascalCase entityName}}Service {
         },
       };
     }
+  }
+
+  @Post(':id/preview')
+  @ApiOperation({ summary: 'Preview template with variables' })
+  @ApiParam({ name: 'id', description: 'Template ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Template preview result',
+  })
+  async previewTemplate(
+    @Param('id') id: string,
+    @Body() previewData: { variables?: Record<string, any> },
+  ): Promise<any> {
+    const query = new PreviewTemplateQuery(id, previewData.variables || {});
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Post('validate')
+  @ApiOperation({ summary: 'Validate template syntax and variables' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Template validation result',
+  })
+  async validateTemplateContent(
+    @Body() validationData: { content: string; variables?: any[] },
+  ): Promise<any> {
+    const query = new ValidateTemplateQuery(validationData.content, validationData.variables);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Post(':id/test')
+  @ApiOperation({ summary: 'Test template with test data' })
+  @ApiParam({ name: 'id', description: 'Template ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Template test result',
+  })
+  async testTemplate(
+    @Param('id') id: string,
+    @Body() testData: { variables: Record<string, any>; expectedOutput?: string },
+  ): Promise<any> {
+    const query = new TestTemplateQuery(id, testData);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
   }
 }
