@@ -91,6 +91,39 @@ export class AmisDemoController {
     };
   }
 
+  @Get('pagination')
+  @AmisPaginationResponse({
+    description: '返回分页数据演示（amis格式）',
+    itemSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'number' },
+        name: { type: 'string' },
+        email: { type: 'string' },
+        createdAt: { type: 'string' },
+      }
+    }
+  })
+  @ApiOperation({ summary: '演示分页数据的amis格式响应' })
+  getPagination(
+    @Query('page') page: number = 1,
+    @Query('perPage') perPage: number = 10
+  ): any {
+    const items = Array.from({ length: perPage }, (_, index) => ({
+      id: (page - 1) * perPage + index + 1,
+      name: `Item ${(page - 1) * perPage + index + 1}`,
+      email: `item${(page - 1) * perPage + index + 1}@example.com`,
+      createdAt: new Date().toISOString(),
+    }));
+
+    return {
+      options: items,
+      page: page,
+      perPage: perPage,
+      total: 100, // 示例总数
+    };
+  }
+
   @Post('create-user')
   @AmisResponse({
     description: '创建用户成功响应（amis格式）'

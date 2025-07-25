@@ -81,10 +81,18 @@ export class ProjectController {
     description: 'Projects found',
     type: [ProjectResponseDto],
   })
-  async getProjects(): Promise<ProjectResponseDto[]> {
+  async getProjects(): Promise<any> {
     const query = new GetProjectsQuery();
     const projects = await this.queryBus.execute(query);
-    return projects.map(project => this.mapToResponseDto(project));
+    const projectDtos = projects.map(project => this.mapToResponseDto(project));
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: {
+        options: projectDtos,
+      },
+    };
   }
 
   @Get('paginated')
@@ -95,7 +103,7 @@ export class ProjectController {
     description: 'Paginated projects found',
     type: ProjectListResponseDto,
   })
-  async getProjectsPaginated(@Query() query: ProjectListQueryDto): Promise<ProjectListResponseDto> {
+  async getProjectsPaginated(@Query() query: ProjectListQueryDto): Promise<any> {
     const paginatedQuery = new GetProjectsPaginatedQuery(
       query.current,
       query.size,
@@ -108,10 +116,14 @@ export class ProjectController {
     const result = await this.queryBus.execute(paginatedQuery);
 
     return {
-      options: result.projects.map(project => this.mapToResponseDto(project)),
-      page: result.page,
-      perPage: result.limit,
-      total: result.total,
+      status: 0,
+      msg: 'success',
+      data: {
+        options: result.projects.map(project => this.mapToResponseDto(project)),
+        page: result.page,
+        perPage: result.limit,
+        total: result.total,
+      },
     };
   }
 

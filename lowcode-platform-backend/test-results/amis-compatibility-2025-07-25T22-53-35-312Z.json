@@ -1,0 +1,166 @@
+{
+  "timestamp": "2025-07-25T22:53:35.312Z",
+  "summary": {
+    "total": 9,
+    "passed": 7,
+    "failed": 2,
+    "withWarnings": 0
+  },
+  "performance": {
+    "averageResponseTime": 10,
+    "maxResponseTime": 30,
+    "minResponseTime": 4,
+    "totalResponseSize": 1482
+  },
+  "results": [
+    {
+      "name": "AMIS演示 - 数组数据",
+      "url": "/api/v1/amis-demo/array",
+      "method": "GET",
+      "expectedFormat": "array",
+      "success": true,
+      "status": 200,
+      "validation": {
+        "isValid": true,
+        "errors": [],
+        "warnings": []
+      },
+      "errors": [],
+      "warnings": [],
+      "responseTime": 5,
+      "responseSize": 66
+    },
+    {
+      "name": "AMIS演示 - 分页数据",
+      "url": "/api/v1/amis-demo/pagination",
+      "method": "GET",
+      "expectedFormat": "pagination",
+      "success": true,
+      "status": 200,
+      "validation": {
+        "isValid": true,
+        "errors": [],
+        "warnings": []
+      },
+      "errors": [],
+      "warnings": [],
+      "responseTime": 4,
+      "responseSize": 77
+    },
+    {
+      "name": "AMIS演示 - 对象数据",
+      "url": "/api/v1/amis-demo/object",
+      "method": "GET",
+      "expectedFormat": "object",
+      "success": true,
+      "status": 200,
+      "validation": {
+        "isValid": true,
+        "errors": [],
+        "warnings": []
+      },
+      "errors": [],
+      "warnings": [],
+      "responseTime": 4,
+      "responseSize": 122
+    },
+    {
+      "name": "项目列表（数组）",
+      "url": "/api/v1/projects",
+      "method": "GET",
+      "expectedFormat": "array",
+      "success": true,
+      "status": 200,
+      "validation": {
+        "isValid": true,
+        "errors": [],
+        "warnings": []
+      },
+      "errors": [],
+      "warnings": [],
+      "responseTime": 17,
+      "responseSize": 415
+    },
+    {
+      "name": "项目分页列表",
+      "url": "/api/v1/projects/paginated?current=1&size=5",
+      "method": "GET",
+      "expectedFormat": "pagination",
+      "success": true,
+      "status": 200,
+      "validation": {
+        "isValid": true,
+        "errors": [],
+        "warnings": []
+      },
+      "errors": [],
+      "warnings": [],
+      "responseTime": 30,
+      "responseSize": 446
+    },
+    {
+      "name": "实体分页列表",
+      "url": "/api/v1/entities/project/test-project-id/paginated?current=1&size=5",
+      "method": "GET",
+      "expectedFormat": "pagination",
+      "success": true,
+      "status": 200,
+      "validation": {
+        "isValid": true,
+        "errors": [],
+        "warnings": []
+      },
+      "errors": [],
+      "warnings": [],
+      "responseTime": 12,
+      "responseSize": 81
+    },
+    {
+      "name": "关系类型列表",
+      "url": "/api/v1/relationships/meta/types",
+      "method": "GET",
+      "expectedFormat": "array",
+      "success": false,
+      "status": 404,
+      "validation": null,
+      "errors": [
+        "HTTP状态码错误: 404"
+      ],
+      "warnings": [],
+      "responseTime": 4,
+      "responseSize": 94
+    },
+    {
+      "name": "关系列表",
+      "url": "/api/v1/relationships?page=1&perPage=5",
+      "method": "GET",
+      "expectedFormat": "pagination",
+      "success": false,
+      "status": 404,
+      "validation": null,
+      "errors": [
+        "HTTP状态码错误: 404"
+      ],
+      "warnings": [],
+      "responseTime": 4,
+      "responseSize": 100
+    },
+    {
+      "name": "关联查询配置列表",
+      "url": "/api/v1/code-generation/join-query/configs?page=1&perPage=5",
+      "method": "GET",
+      "expectedFormat": "pagination",
+      "success": true,
+      "status": 200,
+      "validation": {
+        "isValid": true,
+        "errors": [],
+        "warnings": []
+      },
+      "errors": [],
+      "warnings": [],
+      "responseTime": 13,
+      "responseSize": 81
+    }
+  ]
+}

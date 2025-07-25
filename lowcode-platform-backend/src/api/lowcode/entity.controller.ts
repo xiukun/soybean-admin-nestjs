@@ -122,7 +122,7 @@ export class EntityController {
   async getEntitiesPaginated(
     @Param('projectId') projectId: string,
     @Query() query: EntityListQueryDto,
-  ): Promise<EntityListResponseDto> {
+  ): Promise<any> {
     const paginatedQuery = new GetEntitiesPaginatedQuery(
       projectId,
       query.current,
@@ -137,10 +137,14 @@ export class EntityController {
     const result = await this.queryBus.execute(paginatedQuery);
 
     return {
-      options: result.entities.map(entity => this.mapToResponseDto(entity)),
-      page: result.page,
-      perPage: result.limit,
-      total: result.total,
+      status: 0,
+      msg: 'success',
+      data: {
+        options: result.entities.map(entity => this.mapToResponseDto(entity)),
+        page: result.page,
+        perPage: result.limit,
+        total: result.total,
+      },
     };
   }
 

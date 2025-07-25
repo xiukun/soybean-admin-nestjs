@@ -1,0 +1,73 @@
+AMIS兼容性测试报告
+生成时间: 2025-07-25T22:36:38.096Z
+==========================================
+
+测试总结:
+- 总测试数: 8
+- 通过数: 3
+- 失败数: 5
+- 有警告: 1
+- 通过率: 38%
+
+性能统计:
+- 平均响应时间: 9ms
+- 最大响应时间: 31ms
+- 最小响应时间: 2ms
+- 总响应大小: 1KB
+
+详细结果:
+==========================================
+1. ✅ PASS AMIS演示 - 数组数据
+   URL: GET /api/v1/amis-demo/array
+   状态码: 200
+   响应时间: 3ms
+
+2. ❌ FAIL AMIS演示 - 分页数据
+   URL: GET /api/v1/amis-demo/pagination
+   状态码: 404
+   响应时间: 4ms
+   错误:
+     - HTTP状态码错误: 404
+
+3. ✅ PASS AMIS演示 - 对象数据
+   URL: GET /api/v1/amis-demo/object
+   状态码: 200
+   响应时间: 3ms
+
+4. ❌ FAIL 项目列表
+   URL: GET /api/v1/projects?page=1&perPage=5
+   状态码: 200
+   响应时间: 31ms
+   错误:
+     - 缺少status字段或类型错误
+     - 缺少msg字段或类型错误
+     - 缺少data字段
+
+5. ❌ FAIL 实体列表
+   URL: GET /api/v1/entities?page=1&perPage=5
+   状态码: 404
+   响应时间: 3ms
+   错误:
+     - HTTP状态码错误: 404
+
+6. ❌ FAIL 关系类型列表
+   URL: GET /api/v1/relationships/meta/types
+   状态码: 404
+   响应时间: 5ms
+   错误:
+     - HTTP状态码错误: 404
+
+7. ❌ FAIL 关系列表
+   URL: GET /api/v1/relationships?page=1&perPage=5
+   状态码: 404
+   响应时间: 2ms
+   错误:
+     - HTTP状态码错误: 404
+
+8. ✅ PASS 关联查询配置列表
+   URL: GET /api/v1/code-generation/join-query/configs?page=1&perPage=5
+   状态码: 200
+   响应时间: 20ms
+   警告:
+     - 使用了旧格式的size字段，建议改为perPage
+

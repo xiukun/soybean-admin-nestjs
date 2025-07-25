@@ -882,24 +882,32 @@ export class CodeGenerationController {
   @ApiOperation({ summary: '获取关联查询配置列表' })
   @ApiQuery({ name: 'projectId', description: '项目ID', required: false })
   @ApiQuery({ name: 'page', description: '页码', required: false })
-  @ApiQuery({ name: 'size', description: '每页数量', required: false })
+  @ApiQuery({ name: 'perPage', description: '每页数量', required: false })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getJoinQueryConfigs(
     @Query('projectId') projectId?: string,
     @Query('page') page?: number,
-    @Query('size') size?: number,
+    @Query('perPage') perPage?: number,
   ): Promise<any> {
     const query = new GetJoinQueryConfigsQuery(
       { projectId },
-      { page: page || 1, size: size || 10 },
+      { page: page || 1, size: perPage || 10 },
     );
 
     const result = await this.queryBus.execute(query);
 
+    // 转换为AMIS标准格式
+    const amisData = {
+      options: result.configs || [],
+      page: result.page || page || 1,
+      perPage: result.size || perPage || 10,
+      total: result.total || 0,
+    };
+
     return {
       status: 0,
       msg: 'success',
-      data: result,
+      data: amisData,
     };
   }
 
