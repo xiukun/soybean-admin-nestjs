@@ -36,6 +36,15 @@ import {
   SuggestConflictResolutionCommand,
 } from '@lib/bounded-contexts/code-generation/application/commands/code-generation.commands';
 
+// Join query generation imports
+import {
+  GenerateJoinQueryCommand,
+  ValidateJoinQueryConfigCommand,
+  SaveJoinQueryConfigCommand,
+  DeleteJoinQueryConfigCommand,
+  BatchGenerateJoinQueriesCommand,
+} from '@lib/bounded-contexts/code-generation/application/commands/join-query.commands';
+
 import {
   GetGenerationConfigQuery,
   GetAvailableTemplatesQuery,
@@ -49,6 +58,19 @@ import {
   ValidateConfigQuery,
   CompareConfigsQuery,
 } from '@lib/bounded-contexts/code-generation/application/queries/code-generation.queries';
+
+// Join query queries
+import {
+  GetJoinQueryConfigsQuery,
+  GetJoinQueryConfigByIdQuery,
+  GetProjectJoinQueryConfigsQuery,
+  PreviewJoinQueryQuery,
+  GetJoinQuerySQLQuery,
+  GetJoinQueryTypesQuery,
+  GetJoinQueryAPIQuery,
+  GetJoinQueryDocumentationQuery,
+  GetJoinQueryStatsQuery,
+} from '@lib/bounded-contexts/code-generation/application/queries/join-query.queries';
 
 import { GenerationConfig } from '@lib/bounded-contexts/code-generation/application/services/dual-layer-generator.service';
 
@@ -763,6 +785,158 @@ export class CodeGenerationController {
     return {
       status: result.success ? 0 : 1,
       msg: result.message,
+      data: result,
+    };
+  }
+
+  // ==================== 关联查询生成接口 ====================
+
+  @Post('join-query/generate')
+  @ApiOperation({ summary: '生成关联查询' })
+  @ApiResponse({ status: 200, description: '生成成功' })
+  async generateJoinQuery(
+    @Body() generateData: {
+      projectId: string;
+      config: any;
+      outputPath: string;
+      options?: {
+        generateController?: boolean;
+        generateService?: boolean;
+        generateTypes?: boolean;
+        generateDocumentation?: boolean;
+        overwriteExisting?: boolean;
+      };
+      userId?: string;
+    },
+  ): Promise<any> {
+    const command = new GenerateJoinQueryCommand(
+      generateData.projectId,
+      generateData.config,
+      generateData.outputPath,
+      generateData.options || {},
+      generateData.userId,
+    );
+
+    const result = await this.commandBus.execute(command);
+
+    return {
+      status: result.success ? 0 : 1,
+      msg: result.message,
+      data: result.data,
+    };
+  }
+
+  @Post('join-query/validate')
+  @ApiOperation({ summary: '验证关联查询配置' })
+  @ApiResponse({ status: 200, description: '验证完成' })
+  async validateJoinQueryConfig(
+    @Body() validateData: {
+      projectId: string;
+      config: any;
+    },
+  ): Promise<any> {
+    const command = new ValidateJoinQueryConfigCommand(
+      validateData.projectId,
+      validateData.config,
+    );
+
+    const result = await this.commandBus.execute(command);
+
+    return {
+      status: result.success ? 0 : 1,
+      msg: result.message,
+      data: result.data,
+    };
+  }
+
+  @Post('join-query/save')
+  @ApiOperation({ summary: '保存关联查询配置' })
+  @ApiResponse({ status: 200, description: '保存成功' })
+  async saveJoinQueryConfig(
+    @Body() saveData: {
+      projectId: string;
+      name: string;
+      description: string;
+      config: any;
+      userId: string;
+    },
+  ): Promise<any> {
+    const command = new SaveJoinQueryConfigCommand(
+      saveData.projectId,
+      saveData.name,
+      saveData.description,
+      saveData.config,
+      saveData.userId,
+    );
+
+    const result = await this.commandBus.execute(command);
+
+    return {
+      status: result.success ? 0 : 1,
+      msg: result.message,
+      data: result.data,
+    };
+  }
+
+  @Get('join-query/configs')
+  @ApiOperation({ summary: '获取关联查询配置列表' })
+  @ApiQuery({ name: 'projectId', description: '项目ID', required: false })
+  @ApiQuery({ name: 'page', description: '页码', required: false })
+  @ApiQuery({ name: 'size', description: '每页数量', required: false })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  async getJoinQueryConfigs(
+    @Query('projectId') projectId?: string,
+    @Query('page') page?: number,
+    @Query('size') size?: number,
+  ): Promise<any> {
+    const query = new GetJoinQueryConfigsQuery(
+      { projectId },
+      { page: page || 1, size: size || 10 },
+    );
+
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Get('join-query/configs/:id')
+  @ApiOperation({ summary: '获取关联查询配置详情' })
+  @ApiParam({ name: 'id', description: '配置ID' })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  async getJoinQueryConfigById(@Param('id') configId: string): Promise<any> {
+    const query = new GetJoinQueryConfigByIdQuery(configId);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: result ? 0 : 1,
+      msg: result ? 'success' : 'config not found',
+      data: result,
+    };
+  }
+
+  @Post('join-query/preview')
+  @ApiOperation({ summary: '预览关联查询' })
+  @ApiResponse({ status: 200, description: '预览成功' })
+  async previewJoinQuery(
+    @Body() previewData: {
+      projectId: string;
+      config: any;
+    },
+  ): Promise<any> {
+    const query = new PreviewJoinQueryQuery(
+      previewData.projectId,
+      previewData.config,
+    );
+
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
       data: result,
     };
   }

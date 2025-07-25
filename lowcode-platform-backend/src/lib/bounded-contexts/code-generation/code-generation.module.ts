@@ -24,6 +24,17 @@ import {
   SuggestConflictResolutionHandler,
 } from './application/handlers/code-generation.handlers';
 
+// Join query handlers
+import {
+  GenerateJoinQueryHandler,
+  ValidateJoinQueryConfigHandler,
+  SaveJoinQueryConfigHandler,
+  DeleteJoinQueryConfigHandler,
+  BatchGenerateJoinQueriesHandler,
+  OptimizeJoinQueryHandler,
+  GenerateJoinQueryTestsHandler,
+} from './application/handlers/join-query.handlers';
+
 import {
   GetGenerationConfigHandler,
   GetAvailableTemplatesHandler,
@@ -37,6 +48,21 @@ import {
   ValidateConfigHandler,
   CompareConfigsHandler,
 } from './application/handlers/code-generation-query.handlers';
+
+// Join query query handlers
+import {
+  GetJoinQueryConfigsHandler,
+  GetJoinQueryConfigByIdHandler,
+  GetProjectJoinQueryConfigsHandler,
+  GetEntityJoinQueryConfigsHandler,
+  ValidateJoinQueryConfigQueryHandler,
+  PreviewJoinQueryHandler,
+  GetJoinQuerySQLHandler,
+  GetJoinQueryTypesHandler,
+  GetJoinQueryAPIHandler,
+  GetJoinQueryDocumentationHandler,
+  GetJoinQueryStatsHandler,
+} from './application/handlers/join-query-query.handlers';
 
 // Existing services
 import { IntelligentCodeGeneratorService } from './application/services/intelligent-code-generator.service';
@@ -52,6 +78,7 @@ import { DualLayerGeneratorService } from './application/services/dual-layer-gen
 import { BizCodeProtectionService } from './application/services/biz-code-protection.service';
 import { CodeDiffAnalyzerService } from './application/services/code-diff-analyzer.service';
 import { GenerationConfigManagerService } from './application/services/generation-config-manager.service';
+import { JoinQueryGeneratorService } from './application/services/join-query-generator.service';
 
 const CommandHandlers = [
   GenerateCodeHandler,
@@ -67,6 +94,13 @@ const CommandHandlers = [
   CheckFileProtectionHandler,
   MergeCodeHandler,
   SuggestConflictResolutionHandler,
+  GenerateJoinQueryHandler,
+  ValidateJoinQueryConfigHandler,
+  SaveJoinQueryConfigHandler,
+  DeleteJoinQueryConfigHandler,
+  BatchGenerateJoinQueriesHandler,
+  OptimizeJoinQueryHandler,
+  GenerateJoinQueryTestsHandler,
 ];
 
 const QueryHandlers = [
@@ -83,6 +117,17 @@ const QueryHandlers = [
   LoadConfigHandler,
   ValidateConfigHandler,
   CompareConfigsHandler,
+  GetJoinQueryConfigsHandler,
+  GetJoinQueryConfigByIdHandler,
+  GetProjectJoinQueryConfigsHandler,
+  GetEntityJoinQueryConfigsHandler,
+  ValidateJoinQueryConfigQueryHandler,
+  PreviewJoinQueryHandler,
+  GetJoinQuerySQLHandler,
+  GetJoinQueryTypesHandler,
+  GetJoinQueryAPIHandler,
+  GetJoinQueryDocumentationHandler,
+  GetJoinQueryStatsHandler,
 ];
 
 const Services = [
@@ -97,6 +142,7 @@ const Services = [
   BizCodeProtectionService,
   CodeDiffAnalyzerService,
   GenerationConfigManagerService,
+  JoinQueryGeneratorService,
 ];
 
 @Module({
