@@ -1,5 +1,6 @@
 import { SetMetadata } from '@nestjs/common';
-import { IS_PUBLIC_KEY } from '../guards/jwt-auth.guard';
+
+export const IS_PUBLIC_KEY = 'isPublic';
 
 /**
  * 公开接口装饰器

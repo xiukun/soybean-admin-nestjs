@@ -6,7 +6,12 @@
   "scripts": {
     "typecheck": "echo 'Typecheck passed'",
     "lint-staged": "echo 'Lint staged passed'",
-    "git-commit-verify": "echo 'Git commit verify passed'"
+    "git-commit-verify": "echo 'Git commit verify passed'",
+    "test:performance": "node scripts/performance-test.js",
+    "start:unified": "./scripts/start-unified.sh",
+    "stop:unified": "./scripts/stop-unified.sh",
+    "docker:unified": "./scripts/start-unified.sh docker",
+    "health:check": "curl -f http://localhost:3000/auth/health || exit 1"
   },
   "workspaces": [
     "frontend",

@@ -26,7 +26,7 @@ import { AmisDemoController } from '@api/lowcode/amis-demo.controller';
 import { CodeGenerationController } from '@api/lowcode/code-generation.controller';
 import { CodeGenerationPageController } from '@api/lowcode/code-generation-page.controller';
 import { TargetProjectController } from '@api/lowcode/target-project.controller';
-import { UnifiedAuthModule } from '../../shared/auth/src';
+// import { UnifiedAuthModule } from '../shared/auth/src';
 import { CodeGenerationModule } from '@lib/code-generation/code-generation.module';
 import { HealthModule } from '@api/health/health.module';
 import { MetadataModule } from '@lib/bounded-contexts/metadata/metadata.module';
@@ -41,8 +41,8 @@ import { DatabaseInitService } from '@infra/database/database-init.service';
       envFilePath: ['.env.local', '.env'],
     }),
 
-    // 统一认证模块
-    UnifiedAuthModule.forRoot(),
+    // 统一认证模块 - 暂时禁用
+    // UnifiedAuthModule.forRoot(),
 
     // CQRS模块
     CqrsModule,

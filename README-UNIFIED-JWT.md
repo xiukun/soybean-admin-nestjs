@@ -419,21 +419,236 @@ CREATE INDEX IF NOT EXISTS idx_tokens_user_id ON tokens(user_id);
    - 定期审查权限
    - 使用角色基础访问控制
 
+## 🧪 测试和验证
+
+### 单元测试
+
+```bash
+# 运行JWT服务单元测试
+cd shared/auth
+npm test
+
+# 运行覆盖率测试
+npm run test:cov
+```
+
+### 性能测试
+
+```bash
+# 运行性能测试
+npm run test:performance
+
+# 自定义性能测试参数
+TEST_CONCURRENCY=20 TEST_ITERATIONS=200 npm run test:performance
+```
+
+### 健康检查
+
+```bash
+# 检查服务健康状态
+npm run health:check
+
+# 或直接访问
+curl http://localhost:3000/auth/health
+```
+
+### 监控指标
+
+```bash
+# 获取Prometheus格式指标
+curl http://localhost:3000/auth/health/metrics
+
+# 获取JWT统计信息（需要管理员权限）
+curl -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+     http://localhost:3000/auth/health/stats
+```
+
+## 🔧 高级配置
+
+### 自定义装饰器组合
+
+```typescript
+// 创建自定义验证装饰器
+export const ApiSecureEndpoint = (options?: {
+  roles?: string[];
+  permissions?: string[];
+  rateLimit?: number;
+}) => {
+  return applyDecorators(
+    ValidatedAuth({
+      roles: options?.roles,
+      permissions: options?.permissions,
+      rateLimit: options?.rateLimit ? {
+        maxRequests: options.rateLimit,
+        windowMs: 60000,
+      } : undefined,
+      audit: {
+        action: 'secure_operation',
+        resource: 'sensitive_data',
+      },
+    }),
+    UseInterceptors(AuditLogInterceptor),
+  );
+};
+
+// 使用自定义装饰器
+@Post('sensitive-data')
+@ApiSecureEndpoint({
+  roles: ['admin'],
+  permissions: ['data:write'],
+  rateLimit: 5,
+})
+async handleSensitiveData() {
+  // 处理敏感数据
+}
+```
+
+### 跨服务调用工具
+
+```typescript
+import { ServiceAuthUtil } from '../../shared/auth/src';
+
+// 生成服务认证头
+const authHeaders = ServiceAuthUtil.generateAuthHeaders(
+  'user-service',
+  'user-service',
+  userContext
+);
+
+// 使用axios进行跨服务调用
+const response = await axios.post(
+  'http://other-service/api/internal/sync',
+  data,
+  { headers: authHeaders }
+);
+```
+
+### 自定义限流策略
+
+```typescript
+// 基于用户角色的限流
+@Post('upload')
+@RateLimit({
+  maxRequests: 100,
+  windowMs: 60000,
+  keyGenerator: (context) => {
+    const request = context.switchToHttp().getRequest();
+    const user = request.user;
+
+    // VIP用户更高的限流阈值
+    if (user?.roles?.includes('vip')) {
+      return `rate_limit:vip:${user.uid}`;
+    }
+
+    return `rate_limit:normal:${user?.uid || request.ip}`;
+  },
+})
+async uploadFile() {
+  // 文件上传逻辑
+}
+```
+
+## 📊 性能优化建议
+
+### Redis优化
+
+```bash
+# Redis配置优化
+redis-cli CONFIG SET maxmemory 512mb
+redis-cli CONFIG SET maxmemory-policy allkeys-lru
+redis-cli CONFIG SET save "900 1 300 10 60 10000"
+```
+
+### JWT配置优化
+
+```bash
+# 生产环境推荐配置
+JWT_EXPIRES_IN=15m          # 短期访问令牌
+REFRESH_TOKEN_EXPIRES_IN=7d # 长期刷新令牌
+ENABLE_TOKEN_BLACKLIST=true # 启用黑名单
+ENABLE_SESSION_MANAGEMENT=true # 启用会话管理
+```
+
+### 监控告警
+
+```yaml
+# Prometheus告警规则示例
+groups:
+  - name: jwt_auth
+    rules:
+      - alert: HighJWTErrorRate
+        expr: rate(jwt_errors_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "JWT认证错误率过高"
+
+      - alert: JWTServiceDown
+        expr: up{job="jwt-auth"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "JWT认证服务不可用"
+```
+
 ## 📞 支持和贡献
 
 ### 获取帮助
 
-- 查看文档：`docs/UNIFIED_JWT_AUTH.md`
-- 提交Issue：GitHub Issues
-- 联系维护者：[email]
+- 📖 查看文档：`shared/auth/README.md`
+- 🐛 提交Issue：GitHub Issues
+- 💬 讨论问题：GitHub Discussions
+- 📧 联系维护者：[email]
 
 ### 贡献代码
 
 1. Fork项目
-2. 创建特性分支
-3. 提交更改
-4. 创建Pull Request
+2. 创建特性分支：`git checkout -b feature/amazing-feature`
+3. 提交更改：`git commit -m 'Add amazing feature'`
+4. 推送分支：`git push origin feature/amazing-feature`
+5. 创建Pull Request
+
+### 开发指南
+
+```bash
+# 设置开发环境
+git clone <repository-url>
+cd soybean-admin-nestjs
+cp .env.unified .env
+
+# 安装依赖
+npm install
+
+# 启动开发服务
+npm run start:unified local
+
+# 运行测试
+npm test
+npm run test:performance
+
+# 代码检查
+npm run lint
+npm run format
+```
 
 ## 📄 许可证
 
 本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+---
+
+## 🎉 总结
+
+统一JWT认证系统为整个微服务架构提供了：
+
+- ✅ **统一的认证体验** - 所有服务使用相同的JWT实现
+- ✅ **高性能缓存** - 基于Redis的Token管理
+- ✅ **安全防护** - 黑名单、会话管理、防重放攻击
+- ✅ **跨服务认证** - 安全的微服务间通信
+- ✅ **完整的监控** - 健康检查、指标收集、审计日志
+- ✅ **易于维护** - 统一的代码库和配置管理
+- ✅ **高度可扩展** - 支持自定义装饰器和守卫
+
+现在您可以在所有微服务中享受一致、安全、高性能的JWT认证体验！🚀

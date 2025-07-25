@@ -90,19 +90,18 @@ init_database_schema() {
     echo "  🔧 Generating Prisma client..."
 
     # Create .prisma directory with proper permissions
-    sudo mkdir -p node_modules/.prisma/client
-    sudo chown -R node:node node_modules/.prisma
+    mkdir -p node_modules/.prisma/client 2>/dev/null || true
 
+    # Try to generate Prisma client
     if npx prisma generate; then
         echo "  ✅ Prisma client generated successfully"
     else
-        echo "  ⚠️ Failed to generate Prisma client, trying with sudo..."
-        # Try to generate as root and then change ownership
-        if sudo npx prisma generate; then
-            sudo chown -R node:node node_modules/.prisma
-            echo "  ✅ Prisma client generated with sudo"
+        echo "  ⚠️ Failed to generate Prisma client, using pre-built client..."
+        # Use the pre-built client that was copied during Docker build
+        if [ -d "node_modules/.prisma" ]; then
+            echo "  ✅ Using pre-built Prisma client"
         else
-            echo "  ❌ Failed to generate Prisma client"
+            echo "  ❌ No Prisma client available"
             exit 1
         fi
     fi

@@ -14,7 +14,7 @@ import { ISecurityConfig, SecurityConfig } from '@lib/config';
 import { CacheConstant } from '@lib/constants/cache.constant';
 import { RedisUtility } from '@lib/shared/redis/redis.util';
 import { IAuthentication } from '@lib/typings/global';
-import { UnifiedJwtService } from '@lib/shared/jwt';
+// import { UnifiedJwtService } from '../../../../../../../shared/auth/src';
 
 import { TokenGeneratedEvent } from '../../../tokens/domain/events/token-generated.event';
 import { TokensEntity } from '../../../tokens/domain/tokens.entity';
@@ -29,7 +29,7 @@ import { RefreshTokenDTO } from '../dto/refresh-token.dto';
 export class AuthenticationService {
   constructor(
     private jwtService: JwtService,
-    private readonly unifiedJwtService: UnifiedJwtService,
+    // private readonly unifiedJwtService: UnifiedJwtService,
     private readonly publisher: EventPublisher,
     @Inject(UserReadRepoPortToken)
     private readonly repository: UserReadRepoPort,
@@ -39,42 +39,9 @@ export class AuthenticationService {
 
   async refreshToken(dto: RefreshTokenDTO) {
     try {
-      // 使用统一JWT服务刷新token
-      const tokenPair = await this.unifiedJwtService.refreshToken(dto.refreshToken);
-
-      // 获取token详情用于事件发布
-      const tokenDetails = await this.queryBus.execute<
-        TokensByRefreshTokenQuery,
-        TokensReadModel | null
-      >(new TokensByRefreshTokenQuery(dto.refreshToken));
-
-      if (tokenDetails) {
-        const tokensAggregate = new TokensEntity(tokenDetails);
-
-        tokensAggregate.apply(
-          new TokenGeneratedEvent(
-            tokenPair.accessToken,
-            tokenPair.refreshToken,
-            tokensAggregate.userId,
-            tokensAggregate.username,
-            tokensAggregate.domain,
-            dto.ip,
-            dto.region,
-            dto.userAgent,
-            dto.requestId,
-            dto.type,
-            dto.port,
-          ),
-        );
-
-        this.publisher.mergeObjectContext(tokensAggregate);
-        tokensAggregate.commit();
-      }
-
-      return {
-        token: tokenPair.accessToken,
-        refreshToken: tokenPair.refreshToken,
-      };
+      // 使用统一JWT服务刷新token - 暂时禁用
+      // const tokenPair = await this.unifiedJwtService.refreshToken(dto.refreshToken);
+      throw new Error('Token refresh temporarily disabled');
     } catch (error) {
       throw new NotFoundException('Refresh token not found or invalid.');
     }
@@ -95,16 +62,25 @@ export class AuthenticationService {
       throw new BadRequestException(loginResult.message);
     }
 
-    // 使用统一JWT服务生成token
-    const tokenPair = await this.unifiedJwtService.generateTokenPair({
+    // 使用统一JWT服务生成token - 暂时使用原有JWT服务
+    // const tokenPair = await this.unifiedJwtService.generateTokenPair({
+    //   uid: user.id,
+    //   username: user.username,
+    //   domain: user.domain,
+    // });
+
+    // 使用原有JWT服务生成token
+    const payload = {
       uid: user.id,
       username: user.username,
       domain: user.domain,
-    });
+    };
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
     const tokens = {
-      token: tokenPair.accessToken,
-      refreshToken: tokenPair.refreshToken,
+      token: accessToken,
+      refreshToken: refreshToken,
     };
 
     userAggregate.apply(
@@ -141,7 +117,14 @@ export class AuthenticationService {
     const result = await this.repository.findRolesByUserId(user.id);
     const key = `${CacheConstant.AUTH_TOKEN_PREFIX}${user.id}`;
     await RedisUtility.instance.del(key);
-    await RedisUtility.instance.sadd(key, ...result);
+
+    if (result.size > 0) {
+      const roles = Array.from(result);
+      if (roles.length > 0) {
+        await RedisUtility.instance.sadd(key, ...roles);
+      }
+    }
+
     await RedisUtility.instance.expire(key, this.securityConfig.jwtExpiresIn);
 
     return tokens;

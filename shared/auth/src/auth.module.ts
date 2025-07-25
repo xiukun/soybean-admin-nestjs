@@ -5,15 +5,13 @@ import { PassportModule } from '@nestjs/passport';
 import { APP_GUARD } from '@nestjs/core';
 
 // Services
-import { UnifiedJwtService } from './services/jwt.service';
+import { UnifiedJwtService } from './services/unified-jwt.service';
 
 // Strategies
-import { UnifiedJwtStrategy } from './strategies/jwt.strategy';
+import { UnifiedJwtStrategy } from './strategies/unified-jwt.strategy';
 
 // Guards
-import { UnifiedJwtAuthGuard } from './guards/jwt-auth.guard';
-import { RolesGuard } from './guards/roles.guard';
-import { PermissionsGuard } from './guards/permissions.guard';
+import { UnifiedJwtGuard } from './guards/unified-jwt.guard';
 
 /**
  * 统一认证模块
@@ -47,22 +45,18 @@ import { PermissionsGuard } from './guards/permissions.guard';
     // Guards
     {
       provide: APP_GUARD,
-      useClass: UnifiedJwtAuthGuard,
+      useClass: UnifiedJwtGuard,
     },
-    RolesGuard,
-    PermissionsGuard,
   ],
   exports: [
     // Services
     UnifiedJwtService,
-    
+
     // Strategies
     UnifiedJwtStrategy,
-    
+
     // Guards
-    UnifiedJwtAuthGuard,
-    RolesGuard,
-    PermissionsGuard,
+    UnifiedJwtGuard,
     
     // Modules
     JwtModule,
@@ -88,7 +82,7 @@ export class UnifiedAuthModule {
         ...(options?.enableGlobalGuard !== false ? [
           {
             provide: APP_GUARD,
-            useClass: UnifiedJwtAuthGuard,
+            useClass: UnifiedJwtGuard,
           },
         ] : []),
       ],

@@ -14,7 +14,7 @@ import { Ip2regionService } from '@lib/shared/ip2region/ip2region.service';
 import { RedisUtility } from '@lib/shared/redis/redis.util';
 import { IAuthentication } from '@lib/typings/global';
 import { getClientIpAndPort } from '@lib/utils/ip.util';
-import { UnifiedJwtService } from '@lib/shared/jwt';
+// import { UnifiedJwtService } from '../../../../../../../shared/auth/src';
 
 import { PasswordLoginDto } from '../dto/password-login.dto';
 import { ApiJwtAuth } from '@lib/infra/decorators';
@@ -24,7 +24,7 @@ import { ApiJwtAuth } from '@lib/infra/decorators';
 export class AuthenticationController {
   constructor(
     private readonly authenticationService: AuthenticationService,
-    private readonly jwtService: UnifiedJwtService,
+    // private readonly jwtService: UnifiedJwtService,
   ) {}
 
   @Public()
@@ -110,15 +110,15 @@ export class AuthenticationController {
   @ApiResponse({ status: 200, description: '登出成功' })
   @HttpCode(HttpStatus.OK)
   async logout(@Request() req: any): Promise<ApiRes<any>> {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (token) {
-      await this.jwtService.revokeToken(token);
-    }
+    // const token = req.headers.authorization?.replace('Bearer ', '');
+    // if (token) {
+    //   await this.jwtService.revokeToken(token);
+    // }
 
-    // 撤销用户所有token
-    if (req.user?.uid) {
-      await this.jwtService.revokeAllUserTokens(req.user.uid);
-    }
+    // // 撤销用户所有token
+    // if (req.user?.uid) {
+    //   await this.jwtService.revokeAllUserTokens(req.user.uid);
+    // }
 
     return ApiRes.success({ message: '登出成功' });
   }
@@ -131,7 +131,8 @@ export class AuthenticationController {
   })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getTokenStatistics(@Request() req: any): Promise<ApiRes<any>> {
-    const stats = await this.jwtService.getTokenStatistics(req.user.uid);
+    // const stats = await this.jwtService.getTokenStatistics(req.user.uid);
+    const stats = { message: 'Token statistics temporarily disabled' };
     return ApiRes.success(stats);
   }
 
@@ -144,7 +145,7 @@ export class AuthenticationController {
   @ApiResponse({ status: 200, description: '撤销成功' })
   @HttpCode(HttpStatus.OK)
   async revokeAllTokens(@Request() req: any): Promise<ApiRes<any>> {
-    await this.jwtService.revokeAllUserTokens(req.user.uid);
-    return ApiRes.success({ message: '所有令牌已撤销' });
+    // await this.jwtService.revokeAllUserTokens(req.user.uid);
+    return ApiRes.success({ message: '所有令牌已撤销（功能暂时禁用）' });
   }
 }

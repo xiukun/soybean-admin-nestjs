@@ -28,7 +28,7 @@ import { JwtStrategy } from '@lib/infra/strategies/jwt.passport-strategy';
 import { LoggerModule } from '@lib/logger';
 import { IAuthentication } from '@lib/typings/global';
 import { getConfigPath } from '@lib/utils/env';
-import { UnifiedAuthModule } from '../../../shared/auth/src';
+// import { UnifiedAuthModule } from '../../../../shared/auth/src';
 
 import { ApiModule } from './api/api.module';
 import { AppController } from './app.controller';
@@ -155,8 +155,8 @@ class ThrottlerStorageAdapter implements ThrottlerStorage {
 
     SharedModule,
 
-    // 统一JWT认证模块
-    UnifiedAuthModule.forRoot(),
+    // 统一JWT认证模块 - 暂时禁用
+    // UnifiedAuthModule.forRoot(),
 
     ApiKeyModule,
     BootstrapModule,

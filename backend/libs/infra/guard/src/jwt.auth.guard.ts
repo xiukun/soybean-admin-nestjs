@@ -62,13 +62,13 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   /**
    * 处理认证请求
    */
-  handleRequest(
+  handleRequest<TUser = any>(
     err: any,
     user: any,
     info: any,
     context: ExecutionContext,
     status?: any
-  ): IAuthentication {
+  ): TUser {
     const request = context.switchToHttp().getRequest();
 
     // 记录认证失败日志

@@ -43,6 +43,8 @@ export interface JwtPayload extends IAuthentication {
   exp: number;
   /** JWT ID */
   jti: string;
+  /** 兼容标准JWT的sub字段 */
+  sub?: string;
 }
 
 /**
@@ -84,7 +86,6 @@ export class UnifiedJwtService {
       port: this.jwtConfig.redis.port,
       password: this.jwtConfig.redis.password,
       db: this.jwtConfig.redis.db,
-      retryDelayOnFailover: 100,
       maxRetriesPerRequest: 3,
       lazyConnect: true,
     });
@@ -460,5 +461,29 @@ export class UnifiedJwtService {
         userTokens: 0,
       };
     }
+  }
+
+  /**
+   * 解码JWT令牌（不验证签名）
+   */
+  decodeToken(token: string): any {
+    try {
+      return this.jwtService.decode(token);
+    } catch (error) {
+      this.logger.warn('Token decode failed:', error.message);
+      return null;
+    }
+  }
+
+  /**
+   * 检查令牌是否过期
+   */
+  isTokenExpired(payload: any): boolean {
+    if (!payload || !payload.exp) {
+      return true;
+    }
+
+    const currentTime = Math.floor(Date.now() / 1000);
+    return payload.exp < currentTime;
   }
 }

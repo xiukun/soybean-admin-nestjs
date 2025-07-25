@@ -21,12 +21,17 @@ export class UserLoggedInHandler implements IEventHandler<UserLoggedInEvent> {
   async handle(event: UserLoggedInEvent) {
     const userId = event.userId;
     const result = await this.repository.findRolesByUserId(userId);
-    //TODO means?
+
+    const key = `${CacheConstant.AUTH_TOKEN_PREFIX}${userId}`;
+    await RedisUtility.instance.del(key);
+
     if (result.size > 0) {
-      const key = `${CacheConstant.AUTH_TOKEN_PREFIX}${userId}`;
-      await RedisUtility.instance.del(key);
-      await RedisUtility.instance.sadd(key, ...result);
-      await RedisUtility.instance.expire(key, this.securityConfig.jwtExpiresIn);
+      const roles = Array.from(result);
+      if (roles.length > 0) {
+        await RedisUtility.instance.sadd(key, ...roles);
+      }
     }
+
+    await RedisUtility.instance.expire(key, this.securityConfig.jwtExpiresIn);
   }
 }

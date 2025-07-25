@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: soybean-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: soybean_admin
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "25432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./deploy/postgres/init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - soybean-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d soybean_admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: soybean-redis
+    restart: unless-stopped
+    ports:
+      - "26379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - soybean-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 主后端服务
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: soybean-backend
+    restart: unless-stopped
+    ports:
+      - "9528:9528"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/soybean_admin?schema=public
+      - DIRECT_DATABASE_URL=postgresql://postgres:password@postgres:5432/soybean_admin?schema=public
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=soybean-admin-jwt-secret-key-change-in-production-environment-32chars
+      - JWT_ACCESS_TOKEN_SECRET=soybean-admin-jwt-secret-key-change-in-production-environment-32chars
+      - JWT_REFRESH_TOKEN_SECRET=soybean-admin-refresh-secret-key-change-in-production-environment-32chars
+      - JWT_ACCESS_TOKEN_EXPIRES_IN=15m
+      - JWT_REFRESH_TOKEN_EXPIRES_IN=7d
+      - CORS_ORIGIN=http://localhost:3200,http://localhost:5173
+      - ENABLE_SWAGGER=true
+      - SWAGGER_PATH=/api-docs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - soybean-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9528/v1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  soybean-network:
+    driver: bridge

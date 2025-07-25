@@ -1,7 +1,7 @@
 import { applyDecorators } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ApiJwtAuth } from './api-jwt-auth.decorator';
-import { IS_PUBLIC_KEY } from '../guards/jwt-auth.guard';
+import { IS_PUBLIC_KEY } from '../guards/unified-jwt.guard';
 
 /**
  * 自动应用JWT认证的装饰器工厂

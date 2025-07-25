@@ -6,11 +6,6 @@ import { PassportModule } from '@nestjs/passport';
 import { UnifiedJwtService } from './services/unified-jwt.service';
 import { UnifiedJwtStrategy } from './strategies/unified-jwt.strategy';
 import { UnifiedJwtGuard } from './guards/unified-jwt.guard';
-import { RolesGuard } from './guards/roles.guard';
-import { PermissionsGuard } from './guards/permissions.guard';
-import { CrossServiceGuard } from './guards/cross-service.guard';
-import { RateLimitGuard } from './guards/rate-limit.guard';
-import { AuditLogInterceptor } from './interceptors/audit-log.interceptor';
 import { jwtConfig, JWT_CONFIG_TOKEN, UnifiedJwtConfig } from './config/jwt.config';
 
 /**
@@ -92,12 +87,6 @@ export class UnifiedAuthModule {
       UnifiedJwtStrategy,
       // 守卫
       UnifiedJwtGuard,
-      RolesGuard,
-      PermissionsGuard,
-      CrossServiceGuard,
-      RateLimitGuard,
-      // 拦截器
-      AuditLogInterceptor,
       ...(options.providers || []),
     ];
 
@@ -107,12 +96,6 @@ export class UnifiedAuthModule {
       UnifiedJwtStrategy,
       // 守卫
       UnifiedJwtGuard,
-      RolesGuard,
-      PermissionsGuard,
-      CrossServiceGuard,
-      RateLimitGuard,
-      // 拦截器
-      AuditLogInterceptor,
       // 模块
       JwtModule,
       PassportModule,
@@ -162,7 +145,7 @@ export class UnifiedAuthModule {
       // JWT配置提供者
       {
         provide: JWT_CONFIG_TOKEN,
-        useFactory: options.useFactory,
+        useFactory: options.useFactory || (() => jwtConfig()),
         inject: options.inject || [],
       },
       // 核心服务和策略
@@ -238,22 +221,11 @@ export class UnifiedAuthModule {
           },
         },
       },
-      {
-        provide: UnifiedJwtService,
-        useValue: options.mockJwtService || {
-          generateTokenPair: jest.fn(),
-          verifyAccessToken: jest.fn(),
-          verifyRefreshToken: jest.fn(),
-          refreshToken: jest.fn(),
-          revokeToken: jest.fn(),
-          revokeAllUserTokens: jest.fn(),
-          getTokenStatistics: jest.fn(),
-        },
-      },
+      UnifiedJwtService,
       {
         provide: ConfigService,
-        useValue: options.mockConfigService || {
-          get: jest.fn().mockReturnValue('test-value'),
+        useValue: {
+          get: (key: string, defaultValue?: any) => process.env[key] || defaultValue,
         },
       },
       UnifiedJwtStrategy,

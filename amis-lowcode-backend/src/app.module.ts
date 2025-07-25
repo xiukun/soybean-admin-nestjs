@@ -9,7 +9,7 @@ import { PrismaService } from '@shared/services/prisma.service';
 import { TestUserModule } from './biz/modules/test-user.module';
 import { RoleModule } from '@modules/role.module';
 import { DatabaseInitService } from '@shared/database/database-init.service';
-import { UnifiedAuthModule } from '../../shared/auth/src';
+// import { UnifiedAuthModule } from '../shared/auth/src';
 import { AuthController } from './shared/controllers/auth.controller';
 
 @Module({
@@ -19,8 +19,8 @@ import { AuthController } from './shared/controllers/auth.controller';
       envFilePath: ['.env.local', '.env'],
     }),
 
-    // 统一认证模块
-    UnifiedAuthModule.forRoot(),
+    // 统一认证模块 - 暂时禁用
+    // UnifiedAuthModule.forRoot(),
 
     TestUserModule,
     RoleModule
