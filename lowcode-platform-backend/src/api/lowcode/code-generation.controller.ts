@@ -2,20 +2,43 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Query,
+  Param,
   UseInterceptors,
   Logger,
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiResponse } from '@nestjs/swagger';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { Public } from '@decorators/public.decorator';
 import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import { AmisResponse } from '@decorators/amis-response.decorator';
 import { AmisResponseInterceptor } from '@interceptors/amis-response.interceptor';
 import { CodeGenerationService, CodeGenerationOptions } from '@lib/code-generation/services/code-generation.service';
 import { HotUpdateService } from '@lib/code-generation/services/hot-update.service';
+
+// Dual-layer generation imports
+import {
+  GenerateCodeCommand,
+  ValidateGenerationConfigCommand,
+  PreviewGenerationCommand,
+  CleanupGeneratedFilesCommand,
+} from '@lib/bounded-contexts/code-generation/application/commands/code-generation.commands';
+
+import {
+  GetGenerationConfigQuery,
+  GetAvailableTemplatesQuery,
+  GetProjectEntitiesQuery,
+  GetGenerationPreviewQuery,
+  GetGenerationStatusQuery,
+  GetGeneratedFilesQuery,
+} from '@lib/bounded-contexts/code-generation/application/queries/code-generation.queries';
+
+import { GenerationConfig } from '@lib/bounded-contexts/code-generation/application/services/dual-layer-generator.service';
+
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -47,6 +70,8 @@ export class CodeGenerationController {
     private readonly prisma: PrismaService,
     private readonly codeGenerationService: CodeGenerationService,
     private readonly hotUpdateService: HotUpdateService,
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
   ) {}
 
   @Get('templates')
@@ -319,5 +344,140 @@ export class CodeGenerationController {
     };
 
     return projectPaths[projectName] || projectPaths['default'];
+  }
+
+  // ==================== 双层代码生成接口 ====================
+
+  @Get('dual-layer/config/:projectId')
+  @ApiOperation({ summary: '获取双层代码生成配置' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  async getDualLayerGenerationConfig(@Param('projectId') projectId: string): Promise<any> {
+    const query = new GetGenerationConfigQuery(projectId);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Get('dual-layer/templates')
+  @ApiOperation({ summary: '获取可用模板列表' })
+  @ApiQuery({ name: 'projectId', description: '项目ID', required: true })
+  @ApiQuery({ name: 'category', description: '模板分类', required: false })
+  @ApiQuery({ name: 'language', description: '编程语言', required: false })
+  @ApiQuery({ name: 'framework', description: '框架', required: false })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  async getDualLayerAvailableTemplates(
+    @Query('projectId') projectId: string,
+    @Query('category') category?: string,
+    @Query('language') language?: string,
+    @Query('framework') framework?: string,
+  ): Promise<any> {
+    const query = new GetAvailableTemplatesQuery(projectId, category, language, framework);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Get('dual-layer/entities/:projectId')
+  @ApiOperation({ summary: '获取项目实体列表' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiQuery({ name: 'includeFields', description: '包含字段信息', required: false })
+  @ApiQuery({ name: 'includeRelations', description: '包含关系信息', required: false })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  async getDualLayerProjectEntities(
+    @Param('projectId') projectId: string,
+    @Query('includeFields') includeFields?: boolean,
+    @Query('includeRelations') includeRelations?: boolean,
+  ): Promise<any> {
+    const query = new GetProjectEntitiesQuery(
+      projectId,
+      includeFields !== false,
+      includeRelations !== false,
+    );
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Post('dual-layer/validate')
+  @ApiOperation({ summary: '验证双层代码生成配置' })
+  @ApiResponse({ status: 200, description: '验证成功' })
+  async validateDualLayerGenerationConfig(@Body() config: GenerationConfig): Promise<any> {
+    const command = new ValidateGenerationConfigCommand(config);
+    const result = await this.commandBus.execute(command);
+
+    return {
+      status: result.isValid ? 0 : 1,
+      msg: result.isValid ? 'success' : 'validation failed',
+      data: result,
+    };
+  }
+
+  @Post('dual-layer/generate')
+  @ApiOperation({ summary: '执行双层代码生成' })
+  @ApiResponse({ status: 200, description: '生成任务已启动' })
+  async generateDualLayerCode(
+    @Body() generateData: {
+      config: GenerationConfig;
+      userId?: string;
+    },
+  ): Promise<any> {
+    const command = new GenerateCodeCommand(generateData.config, generateData.userId);
+    const result = await this.commandBus.execute(command);
+
+    return {
+      status: result.success ? 0 : 1,
+      msg: result.success ? 'success' : 'generation failed',
+      data: result,
+    };
+  }
+
+  @Get('dual-layer/status/:taskId')
+  @ApiOperation({ summary: '获取双层代码生成任务状态' })
+  @ApiParam({ name: 'taskId', description: '任务ID' })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  async getDualLayerGenerationStatus(@Param('taskId') taskId: string): Promise<any> {
+    const query = new GetGenerationStatusQuery(taskId);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Delete('dual-layer/cleanup')
+  @ApiOperation({ summary: '清理双层生成的文件' })
+  @ApiResponse({ status: 200, description: '清理成功' })
+  async cleanupDualLayerGeneratedFiles(
+    @Body() cleanupData: {
+      outputPath: string;
+      preserveBizFiles?: boolean;
+    },
+  ): Promise<any> {
+    const command = new CleanupGeneratedFilesCommand(
+      cleanupData.outputPath,
+      cleanupData.preserveBizFiles,
+    );
+    const result = await this.commandBus.execute(command);
+
+    return {
+      status: result.success ? 0 : 1,
+      msg: result.success ? 'success' : 'cleanup failed',
+      data: result,
+    };
   }
 }
