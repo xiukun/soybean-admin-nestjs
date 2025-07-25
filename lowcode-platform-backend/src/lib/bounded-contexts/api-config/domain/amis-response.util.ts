@@ -45,7 +45,7 @@ export class AmisResponseUtil {
 
     // 处理数组类型
     if (Array.isArray(data)) {
-      const key = dataKey || 'items';
+      const key = dataKey || 'options';
       return {
         status: 0,
         msg: '',
@@ -329,7 +329,7 @@ export class AmisResponseUtil {
         status: 0,
         msg: '',
         data: {
-          items: ['item1', 'item2', 'item3']
+          options: ['item1', 'item2', 'item3']
         }
       },
       pagination: {

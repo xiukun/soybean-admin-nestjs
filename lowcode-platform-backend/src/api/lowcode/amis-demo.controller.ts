@@ -35,7 +35,7 @@ export class AmisDemoController {
   @Get('array')
   @AmisResponse({
     description: '返回数组数据（amis格式）',
-    dataKey: 'items'
+    dataKey: 'options'
   })
   @ApiOperation({ summary: '演示数组数据的amis格式响应' })
   getArray(): string[] {
@@ -84,7 +84,7 @@ export class AmisDemoController {
     }));
 
     return {
-      items: users,
+      options: users,
       page,
       perPage: actualPerPage,
       total: 1000 // 模拟总数

@@ -54,6 +54,22 @@ export class ListResponseDto<T> extends BaseResponseDto {
 }
 
 /**
+ * AMIS标准列表响应DTO
+ */
+export class AmisListResponseDto<T> extends BaseResponseDto {
+  @ApiProperty({
+    description: 'AMIS标准列表数据',
+  })
+  declare data: {
+    options: T[];
+    page: number;
+    perPage: number;
+    total: number;
+    totalPages?: number;
+  };
+}
+
+/**
  * 单个实体响应DTO
  */
 export class EntityResponseDto<T> extends BaseResponseDto {

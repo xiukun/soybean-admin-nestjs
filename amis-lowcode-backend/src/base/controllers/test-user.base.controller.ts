@@ -26,10 +26,10 @@ export abstract class TestUserBaseController {
     });
 
     return {
-      items: result.data,
+      options: result.data,
       total: result.total,
-      current,
-      size,
+      page: current,
+      perPage: size,
     };
   }
 

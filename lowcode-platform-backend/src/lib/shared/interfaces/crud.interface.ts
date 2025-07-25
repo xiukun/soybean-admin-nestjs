@@ -12,6 +12,15 @@ export interface QueryOptions {
 }
 
 export interface PaginationResult<T> {
+  options: T[];      // 数据列表 (AMIS标准格式)
+  total: number;     // 总数量
+  page: number;      // 当前页码 (AMIS标准格式)
+  perPage: number;   // 每页大小 (AMIS标准格式)
+  totalPages?: number; // 总页数
+}
+
+// 兼容旧版本的接口
+export interface PaginationResultLegacy<T> {
   items: T[];        // 数据列表
   total: number;     // 总数量
   current: number;   // 当前页码

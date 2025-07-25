@@ -1,148 +1,149 @@
 import { Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { {{pascalCase entity.code}}BaseService } from '../services/{{kebabCase entity.code}}.base.service';
-import { Create{{pascalCase entity.code}}Dto, Update{{pascalCase entity.code}}Dto, {{pascalCase entity.code}}QueryDto } from '../dto/{{kebabCase entity.code}}.dto';
+import { Create{{pascalCase entity.code}}Dto, Update{{pascalCase entity.code}}Dto, {{pascalCase entity.code}}QueryDto }
+from '../dto/{{kebabCase entity.code}}.dto';
 
 /**
- * {{entity.name}}基础控制器
- * 此文件由代码生成器自动生成，请勿手动修改
- * 如需自定义业务逻辑，请在 biz/controllers/{{kebabCase entity.code}}.controller.ts 中继承并扩展
- */
+* {{entity.name}}基础控制器
+* 此文件由代码生成器自动生成，请勿手动修改
+* 如需自定义业务逻辑，请在 biz/controllers/{{kebabCase entity.code}}.controller.ts 中继承并扩展
+*/
 export abstract class {{pascalCase entity.code}}BaseController {
-  constructor(protected readonly {{camelCase entity.code}}Service: {{pascalCase entity.code}}BaseService) {}
+constructor(protected readonly {{camelCase entity.code}}Service: {{pascalCase entity.code}}BaseService) {}
 
-  /**
-   * 获取{{entity.name}}列表
-   */
-  async findAll(query: {{pascalCase entity.code}}QueryDto) {
-    const { current = 1, size = 10, sort, search, ...filters } = query;
-    
-    const result = await this.{{camelCase entity.code}}Service.findMany({
-      page: current,
-      limit: size,
-      sort: sort ? this.parseSortString(sort) : undefined,
-      search,
-      filters,
-    });
+/**
+* 获取{{entity.name}}列表
+*/
+async findAll(query: {{pascalCase entity.code}}QueryDto) {
+const { page = 1, perPage = 10, sort, search, ...filters } = query;
 
-    return {
-      items: result.data,
-      total: result.total,
-      current,
-      size,
-    };
-  }
+const result = await this.{{camelCase entity.code}}Service.findMany({
+page,
+limit: perPage,
+sort: sort ? this.parseSortString(sort) : undefined,
+search,
+filters,
+});
 
-  /**
-   * 获取{{entity.name}}详情
-   */
-  async findOne(id: string) {
-    return await this.{{camelCase entity.code}}Service.findById(id);
-  }
+return {
+options: result.data,
+total: result.total,
+page,
+perPage,
+};
+}
 
-  /**
-   * 创建{{entity.name}}
-   */
-  async create(createDto: Create{{pascalCase entity.code}}Dto) {
-    return await this.{{camelCase entity.code}}Service.create(createDto);
-  }
+/**
+* 获取{{entity.name}}详情
+*/
+async findOne(id: string) {
+return await this.{{camelCase entity.code}}Service.findById(id);
+}
 
-  /**
-   * 更新{{entity.name}}
-   */
-  async update(id: string, updateDto: Update{{pascalCase entity.code}}Dto) {
-    return await this.{{camelCase entity.code}}Service.update(id, updateDto);
-  }
+/**
+* 创建{{entity.name}}
+*/
+async create(createDto: Create{{pascalCase entity.code}}Dto) {
+return await this.{{camelCase entity.code}}Service.create(createDto);
+}
 
-  /**
-   * 删除{{entity.name}}
-   */
-  async remove(id: string) {
-    await this.{{camelCase entity.code}}Service.delete(id);
-    return {
-      id,
-      deletedAt: new Date().toISOString(),
-    };
-  }
+/**
+* 更新{{entity.name}}
+*/
+async update(id: string, updateDto: Update{{pascalCase entity.code}}Dto) {
+return await this.{{camelCase entity.code}}Service.update(id, updateDto);
+}
 
-  /**
-   * 批量创建{{entity.name}}
-   */
-  async batchCreate(createDtos: Create{{pascalCase entity.code}}Dto[]) {
-    const results = await this.{{camelCase entity.code}}Service.batchCreate(createDtos);
-    return {
-      success: results.filter(r => r.success).map(r => r.data),
-      failed: results.filter(r => !r.success).map(r => ({
-        item: r.input,
-        error: r.error,
-      })),
-      total: createDtos.length,
-      successCount: results.filter(r => r.success).length,
-      failedCount: results.filter(r => !r.success).length,
-    };
-  }
+/**
+* 删除{{entity.name}}
+*/
+async remove(id: string) {
+await this.{{camelCase entity.code}}Service.delete(id);
+return {
+id,
+deletedAt: new Date().toISOString(),
+};
+}
 
-  /**
-   * 批量删除{{entity.name}}
-   */
-  async batchRemove(ids: string[]) {
-    const results = await this.{{camelCase entity.code}}Service.batchDelete(ids);
-    return {
-      deletedIds: results.filter(r => r.success).map(r => r.id),
-      failedIds: results.filter(r => !r.success).map(r => ({
-        id: r.id,
-        error: r.error,
-      })),
-      deletedCount: results.filter(r => r.success).length,
-      failedCount: results.filter(r => !r.success).length,
-    };
-  }
+/**
+* 批量创建{{entity.name}}
+*/
+async batchCreate(createDtos: Create{{pascalCase entity.code}}Dto[]) {
+const results = await this.{{camelCase entity.code}}Service.batchCreate(createDtos);
+return {
+success: results.filter(r => r.success).map(r => r.data),
+failed: results.filter(r => !r.success).map(r => ({
+item: r.input,
+error: r.error,
+})),
+total: createDtos.length,
+successCount: results.filter(r => r.success).length,
+failedCount: results.filter(r => !r.success).length,
+};
+}
+
+/**
+* 批量删除{{entity.name}}
+*/
+async batchRemove(ids: string[]) {
+const results = await this.{{camelCase entity.code}}Service.batchDelete(ids);
+return {
+deletedIds: results.filter(r => r.success).map(r => r.id),
+failedIds: results.filter(r => !r.success).map(r => ({
+id: r.id,
+error: r.error,
+})),
+deletedCount: results.filter(r => r.success).length,
+failedCount: results.filter(r => !r.success).length,
+};
+}
 
 {{#if relationships}}
 {{#each relationships}}
 {{#if (eq type 'ONE_TO_MANY')}}
-  /**
-   * 获取{{entity.name}}的关联{{targetEntity.name}}列表
-   */
-  async getRelated(id: string, relation: string, query: any) {
-    const { current = 1, size = 10, sort, search, ...filters } = query;
-    
-    const result = await this.{{camelCase entity.code}}Service.findRelated(id, relation, {
-      page: current,
-      limit: size,
-      sort: sort ? this.parseSortString(sort) : undefined,
-      search,
-      filters,
-    });
+/**
+* 获取{{entity.name}}的关联{{targetEntity.name}}列表
+*/
+async getRelated(id: string, relation: string, query: any) {
+const { current = 1, size = 10, sort, search, ...filters } = query;
 
-    return {
-      items: result.data,
-      total: result.total,
-      current,
-      size,
-      relation: {
-        type: '{{type}}',
-        sourceEntity: '{{entity.code}}',
-        targetEntity: '{{targetEntity.code}}',
-        sourceField: '{{sourceField.code}}',
-        targetField: '{{targetField.code}}',
-      },
-    };
-  }
+const result = await this.{{camelCase entity.code}}Service.findRelated(id, relation, {
+page: current,
+limit: size,
+sort: sort ? this.parseSortString(sort) : undefined,
+search,
+filters,
+});
+
+return {
+items: result.data,
+total: result.total,
+current,
+size,
+relation: {
+type: '{{type}}',
+sourceEntity: '{{entity.code}}',
+targetEntity: '{{targetEntity.code}}',
+sourceField: '{{sourceField.code}}',
+targetField: '{{targetField.code}}',
+},
+};
+}
 {{/if}}
 {{/each}}
 {{/if}}
 
-  /**
-   * 解析排序字符串
-   */
-  private parseSortString(sort: string): { field: string; order: 'asc' | 'desc' } | undefined {
-    if (!sort) return undefined;
-    
-    const [field, order] = sort.split(':');
-    return {
-      field,
-      order: order === 'desc' ? 'desc' : 'asc',
-    };
-  }
+/**
+* 解析排序字符串
+*/
+private parseSortString(sort: string): { field: string; order: 'asc' | 'desc' } | undefined {
+if (!sort) return undefined;
+
+const [field, order] = sort.split(':');
+return {
+field,
+order: order === 'desc' ? 'desc' : 'asc',
+};
+}
 }

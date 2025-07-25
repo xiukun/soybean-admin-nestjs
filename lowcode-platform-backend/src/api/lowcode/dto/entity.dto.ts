@@ -166,14 +166,14 @@ export class EntityListQueryDto {
 }
 
 export class EntityListResponseDto {
-  @ApiProperty({ description: 'Entities list', type: [EntityResponseDto] })
-  records: EntityResponseDto[];
+  @ApiProperty({ description: 'Entities list (AMIS format)', type: [EntityResponseDto] })
+  options: EntityResponseDto[];
 
-  @ApiProperty({ description: 'Current page number' })
-  current: number;
+  @ApiProperty({ description: 'Current page number (AMIS format)' })
+  page: number;
 
-  @ApiProperty({ description: 'Page size' })
-  size: number;
+  @ApiProperty({ description: 'Page size (AMIS format)' })
+  perPage: number;
 
   @ApiProperty({ description: 'Total count' })
   total: number;

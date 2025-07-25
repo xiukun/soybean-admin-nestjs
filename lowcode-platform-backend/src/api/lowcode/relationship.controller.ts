@@ -179,7 +179,7 @@ export class RelationshipController {
   @ApiQuery({ name: 'size', description: '每页数量', required: false })
   @ApiQuery({ name: 'sortBy', description: '排序字段', required: false })
   @ApiQuery({ name: 'sortOrder', description: '排序方向', required: false })
-  @AmisResponse({ description: '获取成功', dataKey: 'relationships' })
+  @AmisResponse({ description: '获取成功', dataKey: 'options' })
   async getRelationships(
     @Query('projectId') projectId?: string,
     @Query('sourceEntityId') sourceEntityId?: string,
@@ -235,7 +235,7 @@ export class RelationshipController {
   @ApiParam({ name: 'projectId', description: '项目ID' })
   @ApiQuery({ name: 'page', description: '页码', required: false })
   @ApiQuery({ name: 'size', description: '每页数量', required: false })
-  @AmisResponse({ description: '获取成功', dataKey: 'relationships' })
+  @AmisResponse({ description: '获取成功', dataKey: 'options' })
   async getProjectRelationships(
     @Param('projectId') projectId: string,
     @Query('page') page?: number,
@@ -260,7 +260,7 @@ export class RelationshipController {
   @ApiOperation({ summary: '获取实体关系' })
   @ApiParam({ name: 'entityId', description: '实体ID' })
   @ApiQuery({ name: 'direction', description: '关系方向', required: false })
-  @AmisResponse({ description: '获取成功', dataKey: 'relationships' })
+  @AmisResponse({ description: '获取成功', dataKey: 'options' })
   async getEntityRelationships(
     @Param('entityId') entityId: string,
     @Query('direction') direction?: 'source' | 'target' | 'both',

@@ -83,7 +83,7 @@ export function AmisPaginationResponse(options: AmisResponseOptions = {}) {
           data: {
             type: 'object',
             properties: {
-              items: {
+              options: {
                 type: 'array',
                 description: '数据列表',
                 items: { type: 'object' }
@@ -93,12 +93,12 @@ export function AmisPaginationResponse(options: AmisResponseOptions = {}) {
                 description: '总数量',
                 example: 100
               },
-              current: {
+              page: {
                 type: 'number',
                 description: '当前页码',
                 example: 1
               },
-              size: {
+              perPage: {
                 type: 'number',
                 description: '每页大小',
                 example: 10

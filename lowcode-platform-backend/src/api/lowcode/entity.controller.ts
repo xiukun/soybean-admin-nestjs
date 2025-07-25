@@ -137,9 +137,9 @@ export class EntityController {
     const result = await this.queryBus.execute(paginatedQuery);
 
     return {
-      records: result.entities.map(entity => this.mapToResponseDto(entity)),
-      current: result.page,
-      size: result.limit,
+      options: result.entities.map(entity => this.mapToResponseDto(entity)),
+      page: result.page,
+      perPage: result.limit,
       total: result.total,
     };
   }

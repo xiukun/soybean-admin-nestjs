@@ -121,14 +121,14 @@ export class ProjectListQueryDto {
 }
 
 export class ProjectListResponseDto {
-  @ApiProperty({ description: 'Projects list', type: [ProjectResponseDto] })
-  records: ProjectResponseDto[];
+  @ApiProperty({ description: 'Projects list (AMIS format)', type: [ProjectResponseDto] })
+  options: ProjectResponseDto[];
 
-  @ApiProperty({ description: 'Current page number' })
-  current: number;
+  @ApiProperty({ description: 'Current page number (AMIS format)' })
+  page: number;
 
-  @ApiProperty({ description: 'Page size' })
-  size: number;
+  @ApiProperty({ description: 'Page size (AMIS format)' })
+  perPage: number;
 
   @ApiProperty({ description: 'Total count' })
   total: number;

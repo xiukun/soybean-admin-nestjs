@@ -1,243 +1,244 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import { Create{{entityName}}Dto, Update{{entityName}}Dto, {{entityName}}QueryDto } from '../dto/{{kebabCase entityName}}.dto';
+import { Create{{entityName}}Dto, Update{{entityName}}Dto, {{entityName}}QueryDto } from '../dto/{{kebabCase
+entityName}}.dto';
 import * as XLSX from 'xlsx';
 
 @Injectable()
 export class {{entityName}}Service {
-  constructor(private readonly prisma: PrismaService) {}
+constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(query: {{entityName}}QueryDto & { page: number; pageSize: number }) {
-    const { page, pageSize, search, ...filters } = query;
-    const skip = (page - 1) * pageSize;
+async findAll(query: {{entityName}}QueryDto & { page: number; pageSize: number }) {
+const { page, pageSize, search, ...filters } = query;
+const skip = (page - 1) * pageSize;
 
-    const where: any = {};
+const where: any = {};
 
-    // 搜索条件
-    if (search) {
-      where.OR = [
-        {{#each searchableFields}}
-        { {{name}}: { contains: search, mode: 'insensitive' } },
-        {{/each}}
-      ];
-    }
+// 搜索条件
+if (search) {
+where.OR = [
+{{#each searchableFields}}
+{ {{name}}: { contains: search, mode: 'insensitive' } },
+{{/each}}
+];
+}
 
-    // 其他过滤条件
-    {{#each filterableFields}}
-    if (filters.{{name}}) {
-      {{#if (eq type 'string')}}
-      where.{{name}} = { contains: filters.{{name}}, mode: 'insensitive' };
-      {{else if (eq type 'enum')}}
-      where.{{name}} = filters.{{name}};
-      {{else if (eq type 'boolean')}}
-      where.{{name}} = filters.{{name}} === 'true';
-      {{else if (eq type 'date')}}
-      if (filters.{{name}}Start) {
-        where.{{name}} = { ...where.{{name}}, gte: new Date(filters.{{name}}Start) };
-      }
-      if (filters.{{name}}End) {
-        where.{{name}} = { ...where.{{name}}, lte: new Date(filters.{{name}}End) };
-      }
-      {{else}}
-      where.{{name}} = filters.{{name}};
-      {{/if}}
-    }
-    {{/each}}
+// 其他过滤条件
+{{#each filterableFields}}
+if (filters.{{name}}) {
+{{#if (eq type 'string')}}
+where.{{name}} = { contains: filters.{{name}}, mode: 'insensitive' };
+{{else if (eq type 'enum')}}
+where.{{name}} = filters.{{name}};
+{{else if (eq type 'boolean')}}
+where.{{name}} = filters.{{name}} === 'true';
+{{else if (eq type 'date')}}
+if (filters.{{name}}Start) {
+where.{{name}} = { ...where.{{name}}, gte: new Date(filters.{{name}}Start) };
+}
+if (filters.{{name}}End) {
+where.{{name}} = { ...where.{{name}}, lte: new Date(filters.{{name}}End) };
+}
+{{else}}
+where.{{name}} = filters.{{name}};
+{{/if}}
+}
+{{/each}}
 
-    const [items, total] = await Promise.all([
-      this.prisma.{{camelCase tableName}}.findMany({
-        where,
-        skip,
-        take: pageSize,
-        orderBy: { {{primaryKey}}: 'desc' },
-        {{#if includeRelations}}
-        include: {
-          {{#each relations}}
-          {{name}}: true,
-          {{/each}}
-        },
-        {{/if}}
-      }),
-      this.prisma.{{camelCase tableName}}.count({ where }),
-    ]);
+const [items, total] = await Promise.all([
+this.prisma.{{camelCase tableName}}.findMany({
+where,
+skip,
+take: pageSize,
+orderBy: { {{primaryKey}}: 'desc' },
+{{#if includeRelations}}
+include: {
+{{#each relations}}
+{{name}}: true,
+{{/each}}
+},
+{{/if}}
+}),
+this.prisma.{{camelCase tableName}}.count({ where }),
+]);
 
-    return { items, total };
-  }
+return { options: items, total };
+}
 
-  async findOne(id: string) {
-    const {{camelCase entityName}} = await this.prisma.{{camelCase tableName}}.findUnique({
-      where: { {{primaryKey}}: {{#if (eq primaryKeyType 'int')}}parseInt(id){{else}}id{{/if}} },
-      {{#if includeRelations}}
-      include: {
-        {{#each relations}}
-        {{name}}: true,
-        {{/each}}
-      },
-      {{/if}}
-    });
+async findOne(id: string) {
+const {{camelCase entityName}} = await this.prisma.{{camelCase tableName}}.findUnique({
+where: { {{primaryKey}}: {{#if (eq primaryKeyType 'int')}}parseInt(id){{else}}id{{/if}} },
+{{#if includeRelations}}
+include: {
+{{#each relations}}
+{{name}}: true,
+{{/each}}
+},
+{{/if}}
+});
 
-    if (!{{camelCase entityName}}) {
-      throw new NotFoundException(`{{entityName}} with ID ${id} not found`);
-    }
+if (!{{camelCase entityName}}) {
+throw new NotFoundException(`{{entityName}} with ID ${id} not found`);
+}
 
-    return {{camelCase entityName}};
-  }
+return {{camelCase entityName}};
+}
 
-  async create(create{{entityName}}Dto: Create{{entityName}}Dto) {
-    try {
-      // 数据验证
-      await this.validateCreateData(create{{entityName}}Dto);
+async create(create{{entityName}}Dto: Create{{entityName}}Dto) {
+try {
+// 数据验证
+await this.validateCreateData(create{{entityName}}Dto);
 
-      const {{camelCase entityName}} = await this.prisma.{{camelCase tableName}}.create({
-        data: {
-          ...create{{entityName}}Dto,
-          {{#each dateFields}}
-          {{name}}: create{{../entityName}}Dto.{{name}} ? new Date(create{{../entityName}}Dto.{{name}}) : undefined,
-          {{/each}}
-        },
-        {{#if includeRelations}}
-        include: {
-          {{#each relations}}
-          {{name}}: true,
-          {{/each}}
-        },
-        {{/if}}
-      });
+const {{camelCase entityName}} = await this.prisma.{{camelCase tableName}}.create({
+data: {
+...create{{entityName}}Dto,
+{{#each dateFields}}
+{{name}}: create{{../entityName}}Dto.{{name}} ? new Date(create{{../entityName}}Dto.{{name}}) : undefined,
+{{/each}}
+},
+{{#if includeRelations}}
+include: {
+{{#each relations}}
+{{name}}: true,
+{{/each}}
+},
+{{/if}}
+});
 
-      return {{camelCase entityName}};
-    } catch (error) {
-      if (error.code === 'P2002') {
-        throw new BadRequestException('{{entityName}} with this data already exists');
-      }
-      throw error;
-    }
-  }
+return {{camelCase entityName}};
+} catch (error) {
+if (error.code === 'P2002') {
+throw new BadRequestException('{{entityName}} with this data already exists');
+}
+throw error;
+}
+}
 
-  async update(id: string, update{{entityName}}Dto: Update{{entityName}}Dto) {
-    try {
-      // 检查记录是否存在
-      await this.findOne(id);
+async update(id: string, update{{entityName}}Dto: Update{{entityName}}Dto) {
+try {
+// 检查记录是否存在
+await this.findOne(id);
 
-      // 数据验证
-      await this.validateUpdateData(id, update{{entityName}}Dto);
+// 数据验证
+await this.validateUpdateData(id, update{{entityName}}Dto);
 
-      const {{camelCase entityName}} = await this.prisma.{{camelCase tableName}}.update({
-        where: { {{primaryKey}}: {{#if (eq primaryKeyType 'int')}}parseInt(id){{else}}id{{/if}} },
-        data: {
-          ...update{{entityName}}Dto,
-          {{#each dateFields}}
-          {{name}}: update{{../entityName}}Dto.{{name}} ? new Date(update{{../entityName}}Dto.{{name}}) : undefined,
-          {{/each}}
-        },
-        {{#if includeRelations}}
-        include: {
-          {{#each relations}}
-          {{name}}: true,
-          {{/each}}
-        },
-        {{/if}}
-      });
+const {{camelCase entityName}} = await this.prisma.{{camelCase tableName}}.update({
+where: { {{primaryKey}}: {{#if (eq primaryKeyType 'int')}}parseInt(id){{else}}id{{/if}} },
+data: {
+...update{{entityName}}Dto,
+{{#each dateFields}}
+{{name}}: update{{../entityName}}Dto.{{name}} ? new Date(update{{../entityName}}Dto.{{name}}) : undefined,
+{{/each}}
+},
+{{#if includeRelations}}
+include: {
+{{#each relations}}
+{{name}}: true,
+{{/each}}
+},
+{{/if}}
+});
 
-      return {{camelCase entityName}};
-    } catch (error) {
-      if (error.code === 'P2002') {
-        throw new BadRequestException('{{entityName}} with this data already exists');
-      }
-      throw error;
-    }
-  }
+return {{camelCase entityName}};
+} catch (error) {
+if (error.code === 'P2002') {
+throw new BadRequestException('{{entityName}} with this data already exists');
+}
+throw error;
+}
+}
 
-  async remove(id: string) {
-    // 检查记录是否存在
-    await this.findOne(id);
+async remove(id: string) {
+// 检查记录是否存在
+await this.findOne(id);
 
-    // 检查是否有关联数据
-    await this.checkDependencies(id);
+// 检查是否有关联数据
+await this.checkDependencies(id);
 
-    await this.prisma.{{camelCase tableName}}.delete({
-      where: { {{primaryKey}}: {{#if (eq primaryKeyType 'int')}}parseInt(id){{else}}id{{/if}} },
-    });
-  }
+await this.prisma.{{camelCase tableName}}.delete({
+where: { {{primaryKey}}: {{#if (eq primaryKeyType 'int')}}parseInt(id){{else}}id{{/if}} },
+});
+}
 
-  async batchCreate(create{{entityName}}Dtos: Create{{entityName}}Dto[]) {
-    const {{camelCase entityName}}s = [];
-    
-    for (const dto of create{{entityName}}Dtos) {
-      const {{camelCase entityName}} = await this.create(dto);
-      {{camelCase entityName}}s.push({{camelCase entityName}});
-    }
+async batchCreate(create{{entityName}}Dtos: Create{{entityName}}Dto[]) {
+const {{camelCase entityName}}s = [];
 
-    return {{camelCase entityName}}s;
-  }
+for (const dto of create{{entityName}}Dtos) {
+const {{camelCase entityName}} = await this.create(dto);
+{{camelCase entityName}}s.push({{camelCase entityName}});
+}
 
-  async batchDelete(ids: string[]) {
-    for (const id of ids) {
-      await this.remove(id);
-    }
-  }
+return {{camelCase entityName}}s;
+}
 
-  async getStatistics(id: string) {
-    const {{camelCase entityName}} = await this.findOne(id);
-    
-    // 这里可以添加具体的统计逻辑
-    return {
-      {{camelCase entityName}}Id: {{camelCase entityName}}.{{primaryKey}},
-      createdAt: {{camelCase entityName}}.createdAt,
-      updatedAt: {{camelCase entityName}}.updatedAt,
-      // 添加更多统计信息
-    };
-  }
+async batchDelete(ids: string[]) {
+for (const id of ids) {
+await this.remove(id);
+}
+}
 
-  async exportToExcel(query: {{entityName}}QueryDto) {
-    const { items } = await this.findAll({ ...query, page: 1, pageSize: 10000 });
-    
-    const worksheet = XLSX.utils.json_to_sheet(items);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, '{{entityName}}s');
-    
-    return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
-  }
+async getStatistics(id: string) {
+const {{camelCase entityName}} = await this.findOne(id);
 
-  private async validateCreateData(data: Create{{entityName}}Dto) {
-    // 添加自定义验证逻辑
-    {{#each uniqueFields}}
-    if (data.{{name}}) {
-      const existing = await this.prisma.{{../camelCase ../tableName}}.findFirst({
-        where: { {{name}}: data.{{name}} },
-      });
-      if (existing) {
-        throw new BadRequestException('{{../entityName}} with this {{name}} already exists');
-      }
-    }
-    {{/each}}
-  }
+// 这里可以添加具体的统计逻辑
+return {
+{{camelCase entityName}}Id: {{camelCase entityName}}.{{primaryKey}},
+createdAt: {{camelCase entityName}}.createdAt,
+updatedAt: {{camelCase entityName}}.updatedAt,
+// 添加更多统计信息
+};
+}
 
-  private async validateUpdateData(id: string, data: Update{{entityName}}Dto) {
-    // 添加自定义验证逻辑
-    {{#each uniqueFields}}
-    if (data.{{name}}) {
-      const existing = await this.prisma.{{../camelCase ../tableName}}.findFirst({
-        where: { 
-          {{name}}: data.{{name}},
-          NOT: { {{../primaryKey}}: {{#if (eq ../primaryKeyType 'int')}}parseInt(id){{else}}id{{/if}} },
-        },
-      });
-      if (existing) {
-        throw new BadRequestException('{{../entityName}} with this {{name}} already exists');
-      }
-    }
-    {{/each}}
-  }
+async exportToExcel(query: {{entityName}}QueryDto) {
+const { items } = await this.findAll({ ...query, page: 1, pageSize: 10000 });
 
-  private async checkDependencies(id: string) {
-    // 检查是否有关联数据，防止删除时出现外键约束错误
-    {{#each dependentRelations}}
-    const {{name}}Count = await this.prisma.{{camelCase tableName}}.count({
-      where: { {{foreignKey}}: {{#if (eq ../primaryKeyType 'int')}}parseInt(id){{else}}id{{/if}} },
-    });
-    if ({{name}}Count > 0) {
-      throw new BadRequestException('Cannot delete {{../entityName}} because it has related {{name}} records');
-    }
-    {{/each}}
-  }
+const worksheet = XLSX.utils.json_to_sheet(items);
+const workbook = XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(workbook, worksheet, '{{entityName}}s');
+
+return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+}
+
+private async validateCreateData(data: Create{{entityName}}Dto) {
+// 添加自定义验证逻辑
+{{#each uniqueFields}}
+if (data.{{name}}) {
+const existing = await this.prisma.{{../camelCase ../tableName}}.findFirst({
+where: { {{name}}: data.{{name}} },
+});
+if (existing) {
+throw new BadRequestException('{{../entityName}} with this {{name}} already exists');
+}
+}
+{{/each}}
+}
+
+private async validateUpdateData(id: string, data: Update{{entityName}}Dto) {
+// 添加自定义验证逻辑
+{{#each uniqueFields}}
+if (data.{{name}}) {
+const existing = await this.prisma.{{../camelCase ../tableName}}.findFirst({
+where: {
+{{name}}: data.{{name}},
+NOT: { {{../primaryKey}}: {{#if (eq ../primaryKeyType 'int')}}parseInt(id){{else}}id{{/if}} },
+},
+});
+if (existing) {
+throw new BadRequestException('{{../entityName}} with this {{name}} already exists');
+}
+}
+{{/each}}
+}
+
+private async checkDependencies(id: string) {
+// 检查是否有关联数据，防止删除时出现外键约束错误
+{{#each dependentRelations}}
+const {{name}}Count = await this.prisma.{{camelCase tableName}}.count({
+where: { {{foreignKey}}: {{#if (eq ../primaryKeyType 'int')}}parseInt(id){{else}}id{{/if}} },
+});
+if ({{name}}Count > 0) {
+throw new BadRequestException('Cannot delete {{../entityName}} because it has related {{name}} records');
+}
+{{/each}}
+}
 }

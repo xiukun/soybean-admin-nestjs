@@ -108,9 +108,9 @@ export class ProjectController {
     const result = await this.queryBus.execute(paginatedQuery);
 
     return {
-      records: result.projects.map(project => this.mapToResponseDto(project)),
-      current: result.page,
-      size: result.limit,
+      options: result.projects.map(project => this.mapToResponseDto(project)),
+      page: result.page,
+      perPage: result.limit,
       total: result.total,
     };
   }
