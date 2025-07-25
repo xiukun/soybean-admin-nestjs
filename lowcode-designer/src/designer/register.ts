@@ -15,7 +15,7 @@ import LeftDatabaseApi from './plugins/plugin-left-database-api/plugin'
 // import CrudRendererRefactor from '@/components/CustomCrud/renderer'
 
 import setTplApi from './refactor/tpl-api'
-import { AgCrudPluginRefactor } from '@/components/CustomAgCrud/plugin'
+// import { AgCrudPluginRefactor } from '@/components/CustomAgCrud/plugin'
 import { CrudPluginRefactor } from '@/components/CustomCrud/plugin'
 import { FormPluginRefactor } from '@/components/CustomForm/plugin'
 import { id as textID, TextPluginRefactor } from '@/components/CustomInputText/plugin'
@@ -87,8 +87,8 @@ const registerCompoments = () => {
   
 
   // base component
-  unRegisterEditorPlugin(AgCrudPluginRefactor.id)
-  registerEditorPlugin(AgCrudPluginRefactor)
+//   unRegisterEditorPlugin(AgCrudPluginRefactor.id)
+//   registerEditorPlugin(AgCrudPluginRefactor)
   unRegisterEditorPlugin(CrudPluginRefactor.id)
   registerEditorPlugin(CrudPluginRefactor)
   //crud2 table

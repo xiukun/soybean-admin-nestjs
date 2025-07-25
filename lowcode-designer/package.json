@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && node ./vite/inject-env-to-window.js",
+    "build": "vite build && node ./vite/inject-env-to-window.js",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint-fix": "eslint . --ext .ts,.tsx --fix",
     "preview": "vite preview",
@@ -29,7 +29,7 @@
     "dayjs": "^1.11.13",
     "font-awesome": "4.7.0",
     "hotkeys-js": "^3.13.9",
-    "i18n-runtime": "^1.0.13",
+    "i18n-runtime": "1.0.10",
     "idb": "^8.0.3",
     "immer": "^10.0.3",
     "lodash": "^4.17.21",
