@@ -48,3 +48,39 @@ export class GetGeneratedFilesQuery {
     public readonly type?: 'base' | 'biz' | 'all',
   ) {}
 }
+
+// 配置管理查询
+export class GetProjectConfigsQuery {
+  constructor(
+    public readonly projectId: string,
+    public readonly page: number = 1,
+    public readonly size: number = 10,
+  ) {}
+}
+
+export class GetConfigTemplatesQuery {
+  constructor(
+    public readonly category?: string,
+    public readonly framework?: string,
+    public readonly language?: string,
+  ) {}
+}
+
+export class LoadConfigQuery {
+  constructor(
+    public readonly configId: string,
+  ) {}
+}
+
+export class ValidateConfigQuery {
+  constructor(
+    public readonly config: any,
+  ) {}
+}
+
+export class CompareConfigsQuery {
+  constructor(
+    public readonly config1: any,
+    public readonly config2: any,
+  ) {}
+}

@@ -8,6 +8,7 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@lib/shared/prisma/prisma.service';
+import { GenerationConfigManagerService } from '../services/generation-config-manager.service';
 import {
   GetGenerationConfigQuery,
   GetAvailableTemplatesQuery,
@@ -15,6 +16,11 @@ import {
   GetGenerationPreviewQuery,
   GetGenerationStatusQuery,
   GetGeneratedFilesQuery,
+  GetProjectConfigsQuery,
+  GetConfigTemplatesQuery,
+  LoadConfigQuery,
+  ValidateConfigQuery,
+  CompareConfigsQuery,
 } from '../queries/code-generation.queries';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -426,5 +432,62 @@ export class GetGeneratedFilesHandler implements IQueryHandler<GetGeneratedFiles
     }
 
     return files;
+  }
+}
+
+// ==================== 配置管理查询处理器 ====================
+
+@Injectable()
+@QueryHandler(GetProjectConfigsQuery)
+export class GetProjectConfigsHandler implements IQueryHandler<GetProjectConfigsQuery> {
+  constructor(private readonly configManager: GenerationConfigManagerService) {}
+
+  async execute(query: GetProjectConfigsQuery) {
+    const { projectId, page, size } = query;
+    return await this.configManager.getProjectConfigs(projectId, page, size);
+  }
+}
+
+@Injectable()
+@QueryHandler(GetConfigTemplatesQuery)
+export class GetConfigTemplatesHandler implements IQueryHandler<GetConfigTemplatesQuery> {
+  constructor(private readonly configManager: GenerationConfigManagerService) {}
+
+  async execute(query: GetConfigTemplatesQuery) {
+    const { category, framework, language } = query;
+    return await this.configManager.getConfigTemplates(category, framework, language);
+  }
+}
+
+@Injectable()
+@QueryHandler(LoadConfigQuery)
+export class LoadConfigHandler implements IQueryHandler<LoadConfigQuery> {
+  constructor(private readonly configManager: GenerationConfigManagerService) {}
+
+  async execute(query: LoadConfigQuery) {
+    const { configId } = query;
+    return await this.configManager.loadConfig(configId);
+  }
+}
+
+@Injectable()
+@QueryHandler(ValidateConfigQuery)
+export class ValidateConfigHandler implements IQueryHandler<ValidateConfigQuery> {
+  constructor(private readonly configManager: GenerationConfigManagerService) {}
+
+  async execute(query: ValidateConfigQuery) {
+    const { config } = query;
+    return await this.configManager.validateConfig(config);
+  }
+}
+
+@Injectable()
+@QueryHandler(CompareConfigsQuery)
+export class CompareConfigsHandler implements IQueryHandler<CompareConfigsQuery> {
+  constructor(private readonly configManager: GenerationConfigManagerService) {}
+
+  async execute(query: CompareConfigsQuery) {
+    const { config1, config2 } = query;
+    return await this.configManager.compareConfigs(config1, config2);
   }
 }

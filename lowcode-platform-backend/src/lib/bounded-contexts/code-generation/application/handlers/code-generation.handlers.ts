@@ -9,11 +9,16 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import { DualLayerGeneratorService } from '../services/dual-layer-generator.service';
+import { GenerationConfigManagerService } from '../services/generation-config-manager.service';
 import {
   GenerateCodeCommand,
   ValidateGenerationConfigCommand,
   PreviewGenerationCommand,
   CleanupGeneratedFilesCommand,
+  SaveGenerationConfigCommand,
+  CreateConfigTemplateCommand,
+  CloneConfigCommand,
+  DeleteConfigCommand,
 } from '../commands/code-generation.commands';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -322,6 +327,100 @@ export class CleanupGeneratedFilesHandler implements ICommandHandler<CleanupGene
       return {
         success: false,
         error: error.message,
+      };
+    }
+  }
+}
+
+// ==================== 配置管理命令处理器 ====================
+
+@Injectable()
+@CommandHandler(SaveGenerationConfigCommand)
+export class SaveGenerationConfigHandler implements ICommandHandler<SaveGenerationConfigCommand> {
+  constructor(private readonly configManager: GenerationConfigManagerService) {}
+
+  async execute(command: SaveGenerationConfigCommand) {
+    const { projectId, config, name, description, userId } = command;
+
+    return await this.configManager.saveConfig(
+      projectId,
+      config,
+      name,
+      description,
+      userId,
+    );
+  }
+}
+
+@Injectable()
+@CommandHandler(CreateConfigTemplateCommand)
+export class CreateConfigTemplateHandler implements ICommandHandler<CreateConfigTemplateCommand> {
+  constructor(private readonly configManager: GenerationConfigManagerService) {}
+
+  async execute(command: CreateConfigTemplateCommand) {
+    const {
+      name,
+      description,
+      category,
+      framework,
+      language,
+      config,
+      isPublic,
+      userId,
+    } = command;
+
+    return await this.configManager.createConfigTemplate(
+      name,
+      description,
+      category,
+      framework,
+      language,
+      config,
+      isPublic,
+      userId,
+    );
+  }
+}
+
+@Injectable()
+@CommandHandler(CloneConfigCommand)
+export class CloneConfigHandler implements ICommandHandler<CloneConfigCommand> {
+  constructor(private readonly configManager: GenerationConfigManagerService) {}
+
+  async execute(command: CloneConfigCommand) {
+    const { configId, newName, newDescription, userId } = command;
+
+    return await this.configManager.cloneConfig(
+      configId,
+      newName,
+      newDescription,
+      userId,
+    );
+  }
+}
+
+@Injectable()
+@CommandHandler(DeleteConfigCommand)
+export class DeleteConfigHandler implements ICommandHandler<DeleteConfigCommand> {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async execute(command: DeleteConfigCommand) {
+    const { configId, userId } = command;
+
+    try {
+      await (this.prisma as any).codeGenerationConfig.delete({
+        where: { id: configId },
+      });
+
+      return {
+        success: true,
+        message: '配置删除成功',
+      };
+
+    } catch (error) {
+      return {
+        success: false,
+        message: `配置删除失败: ${error.message}`,
       };
     }
   }

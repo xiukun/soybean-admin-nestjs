@@ -26,6 +26,10 @@ import {
   ValidateGenerationConfigCommand,
   PreviewGenerationCommand,
   CleanupGeneratedFilesCommand,
+  SaveGenerationConfigCommand,
+  CreateConfigTemplateCommand,
+  CloneConfigCommand,
+  DeleteConfigCommand,
 } from '@lib/bounded-contexts/code-generation/application/commands/code-generation.commands';
 
 import {
@@ -35,6 +39,11 @@ import {
   GetGenerationPreviewQuery,
   GetGenerationStatusQuery,
   GetGeneratedFilesQuery,
+  GetProjectConfigsQuery,
+  GetConfigTemplatesQuery,
+  LoadConfigQuery,
+  ValidateConfigQuery,
+  CompareConfigsQuery,
 } from '@lib/bounded-contexts/code-generation/application/queries/code-generation.queries';
 
 import { GenerationConfig } from '@lib/bounded-contexts/code-generation/application/services/dual-layer-generator.service';
@@ -608,6 +617,170 @@ export class CodeGenerationController {
       status: 0,
       msg: 'success',
       data: resolution,
+    };
+  }
+
+  // ==================== 配置管理接口 ====================
+
+  @Get('config/projects/:projectId')
+  @ApiOperation({ summary: '获取项目配置列表' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiQuery({ name: 'page', description: '页码', required: false })
+  @ApiQuery({ name: 'size', description: '每页数量', required: false })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  async getProjectConfigs(
+    @Param('projectId') projectId: string,
+    @Query('page') page?: number,
+    @Query('size') size?: number,
+  ): Promise<any> {
+    const query = new GetProjectConfigsQuery(projectId, page || 1, size || 10);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Get('config/templates')
+  @ApiOperation({ summary: '获取配置模板列表' })
+  @ApiQuery({ name: 'category', description: '分类', required: false })
+  @ApiQuery({ name: 'framework', description: '框架', required: false })
+  @ApiQuery({ name: 'language', description: '语言', required: false })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  async getConfigTemplates(
+    @Query('category') category?: string,
+    @Query('framework') framework?: string,
+    @Query('language') language?: string,
+  ): Promise<any> {
+    const query = new GetConfigTemplatesQuery(category, framework, language);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Get('config/:configId')
+  @ApiOperation({ summary: '加载配置' })
+  @ApiParam({ name: 'configId', description: '配置ID' })
+  @ApiResponse({ status: 200, description: '加载成功' })
+  async loadConfig(@Param('configId') configId: string): Promise<any> {
+    const query = new LoadConfigQuery(configId);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: result ? 0 : 1,
+      msg: result ? 'success' : 'config not found',
+      data: result,
+    };
+  }
+
+  @Post('config/save')
+  @ApiOperation({ summary: '保存配置' })
+  @ApiResponse({ status: 200, description: '保存成功' })
+  async saveConfig(
+    @Body() saveData: {
+      projectId: string;
+      config: GenerationConfig;
+      name?: string;
+      description?: string;
+      userId?: string;
+    },
+  ): Promise<any> {
+    const command = new SaveGenerationConfigCommand(
+      saveData.projectId,
+      saveData.config,
+      saveData.name,
+      saveData.description,
+      saveData.userId,
+    );
+    const result = await this.commandBus.execute(command);
+
+    return {
+      status: result.success ? 0 : 1,
+      msg: result.message,
+      data: result,
+    };
+  }
+
+  @Post('config/validate')
+  @ApiOperation({ summary: '验证配置' })
+  @ApiResponse({ status: 200, description: '验证完成' })
+  async validateConfig(@Body() config: GenerationConfig): Promise<any> {
+    const query = new ValidateConfigQuery(config);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: result.isValid ? 0 : 1,
+      msg: result.isValid ? 'success' : 'validation failed',
+      data: result,
+    };
+  }
+
+  @Post('config/compare')
+  @ApiOperation({ summary: '比较配置' })
+  @ApiResponse({ status: 200, description: '比较完成' })
+  async compareConfigs(
+    @Body() compareData: {
+      config1: GenerationConfig;
+      config2: GenerationConfig;
+    },
+  ): Promise<any> {
+    const query = new CompareConfigsQuery(compareData.config1, compareData.config2);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Post('config/clone')
+  @ApiOperation({ summary: '克隆配置' })
+  @ApiResponse({ status: 200, description: '克隆成功' })
+  async cloneConfig(
+    @Body() cloneData: {
+      configId: string;
+      newName: string;
+      newDescription?: string;
+      userId?: string;
+    },
+  ): Promise<any> {
+    const command = new CloneConfigCommand(
+      cloneData.configId,
+      cloneData.newName,
+      cloneData.newDescription,
+      cloneData.userId,
+    );
+    const result = await this.commandBus.execute(command);
+
+    return {
+      status: result.success ? 0 : 1,
+      msg: result.message,
+      data: result,
+    };
+  }
+
+  @Delete('config/:configId')
+  @ApiOperation({ summary: '删除配置' })
+  @ApiParam({ name: 'configId', description: '配置ID' })
+  @ApiResponse({ status: 200, description: '删除成功' })
+  async deleteConfig(
+    @Param('configId') configId: string,
+    @Body() deleteData?: { userId?: string },
+  ): Promise<any> {
+    const command = new DeleteConfigCommand(configId, deleteData?.userId);
+    const result = await this.commandBus.execute(command);
+
+    return {
+      status: result.success ? 0 : 1,
+      msg: result.message,
+      data: result,
     };
   }
 }

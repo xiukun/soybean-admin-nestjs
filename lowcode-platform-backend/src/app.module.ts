@@ -28,7 +28,7 @@ import { CodeGenerationPageController } from '@api/lowcode/code-generation-page.
 import { TargetProjectController } from '@api/lowcode/target-project.controller';
 import { JwtAuthGuard } from '@guards/jwt-auth.guard';
 import { JwtStrategy } from '@strategies/jwt.strategy';
-import { CodeGenerationModule } from '@lib/code-generation/code-generation.module';
+import { CodeGenerationModule } from '@lib/bounded-contexts/code-generation/code-generation.module';
 import { HealthModule } from '@api/health/health.module';
 import { MetadataModule } from '@lib/bounded-contexts/metadata/metadata.module';
 import { TemplateModule } from '@lib/bounded-contexts/template/template.module';

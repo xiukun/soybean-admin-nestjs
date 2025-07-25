@@ -14,6 +14,10 @@ import {
   ValidateGenerationConfigHandler,
   PreviewGenerationHandler,
   CleanupGeneratedFilesHandler,
+  SaveGenerationConfigHandler,
+  CreateConfigTemplateHandler,
+  CloneConfigHandler,
+  DeleteConfigHandler,
 } from './application/handlers/code-generation.handlers';
 
 import {
@@ -23,6 +27,11 @@ import {
   GetGenerationPreviewHandler,
   GetGenerationStatusHandler,
   GetGeneratedFilesHandler,
+  GetProjectConfigsHandler,
+  GetConfigTemplatesHandler,
+  LoadConfigHandler,
+  ValidateConfigHandler,
+  CompareConfigsHandler,
 } from './application/handlers/code-generation-query.handlers';
 
 // Existing services
@@ -38,6 +47,7 @@ import { MetadataAggregatorService } from '../metadata/application/services/meta
 import { DualLayerGeneratorService } from './application/services/dual-layer-generator.service';
 import { BizCodeProtectionService } from './application/services/biz-code-protection.service';
 import { CodeDiffAnalyzerService } from './application/services/code-diff-analyzer.service';
+import { GenerationConfigManagerService } from './application/services/generation-config-manager.service';
 
 const CommandHandlers = [
   GenerateCodeHandler,
@@ -45,6 +55,10 @@ const CommandHandlers = [
   ValidateGenerationConfigHandler,
   PreviewGenerationHandler,
   CleanupGeneratedFilesHandler,
+  SaveGenerationConfigHandler,
+  CreateConfigTemplateHandler,
+  CloneConfigHandler,
+  DeleteConfigHandler,
 ];
 
 const QueryHandlers = [
@@ -56,6 +70,11 @@ const QueryHandlers = [
   GetGenerationPreviewHandler,
   GetGenerationStatusHandler,
   GetGeneratedFilesHandler,
+  GetProjectConfigsHandler,
+  GetConfigTemplatesHandler,
+  LoadConfigHandler,
+  ValidateConfigHandler,
+  CompareConfigsHandler,
 ];
 
 const Services = [
@@ -69,6 +88,7 @@ const Services = [
   DualLayerGeneratorService,
   BizCodeProtectionService,
   CodeDiffAnalyzerService,
+  GenerationConfigManagerService,
 ];
 
 @Module({
