@@ -1,0 +1,1 @@
+import{b as e,d as n,L as o,dD as u}from"./amis-CpcGROCB.js";import"./react-vendor-DeqkGhWy.js";var p=function(r){e(t,r);function t(){return r!==null&&r.apply(this,arguments)||this}return t=n([o({type:"button-group"})],t),t}(u);export{p as ButtonGroupRenderer,u as default};

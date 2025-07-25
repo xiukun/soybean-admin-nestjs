@@ -1,0 +1,1 @@
+window.__PRODUCTION__APP__CONF__={"VITE_API_BASE_URL":"http://localhost:3000/api/v1","VITE_APP_TITLE":"低代码设计器","VITE_APP_VERSION":"3.7.0","VITE_APP_API_BASEURL":"/api/","VITE_OPEN_PROXY":"false","VITE_BUILD_SOURCEMAP":"false","VITE_BUILD_COMPRESS":""};localStorage.setItem("__PRODUCTION__APP__CONF__API_BASE_URL","/api/");
