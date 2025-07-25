@@ -1,3 +1,10 @@
+/*
+ * @Description: 实体关系管理控制器
+ * @Autor: henry.xiukun
+ * @Date: 2025-07-26 00:15:00
+ * @LastEditors: henry.xiukun
+ */
+
 import {
   Controller,
   Get,
@@ -7,285 +14,413 @@ import {
   Body,
   Param,
   Query,
-  HttpStatus,
-  HttpCode,
+  Logger,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';
+import { AmisResponse } from '@lib/shared/decorators/amis-response.decorator';
+
+// 命令
 import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
-import { Public } from '@decorators/public.decorator';
-import { CreateRelationshipCommand } from '@lib/bounded-contexts/relationship/application/commands/create-relationship.command';
-import { UpdateRelationshipCommand } from '@lib/bounded-contexts/relationship/application/commands/update-relationship.command';
-import { DeleteRelationshipCommand } from '@lib/bounded-contexts/relationship/application/commands/delete-relationship.command';
+  CreateRelationshipCommand,
+  UpdateRelationshipCommand,
+  DeleteRelationshipCommand,
+  ValidateRelationshipCommand,
+  GenerateRelationshipSQLCommand,
+  BatchCreateRelationshipsCommand,
+  SyncRelationshipsCommand,
+  RelationshipConfig,
+} from '@lib/bounded-contexts/relationship/application/commands/relationship.commands';
+
+// 查询
 import {
-  GetRelationshipQuery,
-  GetRelationshipByCodeQuery,
-  GetRelationshipsByProjectQuery,
-  GetRelationshipsPaginatedQuery,
-  GetRelationshipsByEntityQuery,
+  GetRelationshipsQuery,
+  GetRelationshipByIdQuery,
+  GetProjectRelationshipsQuery,
+  GetEntityRelationshipsQuery,
+  GetRelationshipTypesQuery,
+  ValidateRelationshipConfigQuery,
+  GetRelationshipSQLQuery,
   GetRelationshipGraphQuery,
   GetRelationshipStatsQuery,
-} from '@lib/bounded-contexts/relationship/application/queries/get-relationship.query';
+  RelationshipListFilter,
+  RelationshipListOptions,
+} from '@lib/bounded-contexts/relationship/application/queries/relationship.queries';
 
-@ApiTags('relationships')
-@ApiBearerAuth()
-@Controller({ path: 'relationships', version: '1' })
+@ApiTags('关系管理')
+@Controller('api/v1/relationships')
 export class RelationshipController {
+  private readonly logger = new Logger(RelationshipController.name);
+
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
   ) {}
 
   @Post()
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a new relationship' })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'Relationship created successfully',
-  })
-  @ApiResponse({
-    status: HttpStatus.CONFLICT,
-    description: 'Relationship with the same code already exists',
-  })
-  async createRelationship(@Body() createRelationshipDto: any): Promise<any> {
-    const command = new CreateRelationshipCommand(
-      createRelationshipDto.projectId,
-      createRelationshipDto.name,
-      createRelationshipDto.code,
-      createRelationshipDto.type,
-      createRelationshipDto.sourceEntityId,
-      createRelationshipDto.targetEntityId,
-      createRelationshipDto.description,
-      createRelationshipDto.sourceFieldId,
-      createRelationshipDto.targetFieldId,
-      createRelationshipDto.foreignKeyName,
-      createRelationshipDto.onDelete,
-      createRelationshipDto.onUpdate,
-      createRelationshipDto.config,
-      'system', // TODO: Get from authenticated user
-    );
-
-    const relationship = await this.commandBus.execute(command);
-    return this.mapToResponseDto(relationship);
-  }
-
-  @Get('project/:projectId')
-  @ApiOperation({ summary: 'Get all relationships by project' })
-  @ApiParam({ name: 'projectId', description: 'Project ID' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Relationships found',
-  })
-  async getRelationshipsByProject(@Param('projectId') projectId: string): Promise<any[]> {
-    const query = new GetRelationshipsByProjectQuery(projectId);
-    const relationships = await this.queryBus.execute(query);
-    return relationships.map(relationship => this.mapToResponseDto(relationship));
-  }
-
-  @Get('project/:projectId/paginated')
-  @ApiOperation({ summary: 'Get paginated relationships by project' })
-  @ApiParam({ name: 'projectId', description: 'Project ID' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Paginated relationships found',
-  })
-  async getRelationshipsPaginated(
-    @Param('projectId') projectId: string,
-    @Query() query: any,
-  ): Promise<any> {
-    const paginatedQuery = new GetRelationshipsPaginatedQuery(
-      projectId,
-      parseInt(query.current) || 1,
-      parseInt(query.size) || 10,
-      {
-        type: query.type,
-        status: query.status,
-        sourceEntityId: query.sourceEntityId,
-        targetEntityId: query.targetEntityId,
-        search: query.search,
+  @ApiOperation({ summary: '创建实体关系' })
+  @ApiBody({
+    description: '关系创建数据',
+    schema: {
+      type: 'object',
+      properties: {
+        projectId: { type: 'string', description: '项目ID' },
+        name: { type: 'string', description: '关系名称' },
+        code: { type: 'string', description: '关系代码' },
+        description: { type: 'string', description: '关系描述' },
+        config: {
+          type: 'object',
+          description: '关系配置',
+          properties: {
+            type: { type: 'string', enum: ['one-to-one', 'one-to-many', 'many-to-one', 'many-to-many'] },
+            sourceEntityId: { type: 'string' },
+            targetEntityId: { type: 'string' },
+            sourceFieldId: { type: 'string' },
+            targetFieldId: { type: 'string' },
+            foreignKeyName: { type: 'string' },
+            onDelete: { type: 'string', enum: ['CASCADE', 'RESTRICT', 'SET_NULL', 'NO_ACTION'] },
+            onUpdate: { type: 'string', enum: ['CASCADE', 'RESTRICT', 'SET_NULL', 'NO_ACTION'] },
+            indexed: { type: 'boolean' },
+          },
+        },
+        userId: { type: 'string', description: '用户ID' },
       },
+      required: ['projectId', 'name', 'code', 'config', 'userId'],
+    },
+  })
+  @AmisResponse({ description: '创建成功', dataKey: 'relationship' })
+  async createRelationship(
+    @Body() createData: {
+      projectId: string;
+      name: string;
+      code: string;
+      description: string;
+      config: RelationshipConfig;
+      userId: string;
+    },
+  ): Promise<any> {
+    const command = new CreateRelationshipCommand(
+      createData.projectId,
+      createData.name,
+      createData.code,
+      createData.description,
+      createData.config,
+      createData.userId,
     );
 
-    const result = await this.queryBus.execute(paginatedQuery);
+    const result = await this.commandBus.execute(command);
 
     return {
-      records: result.relationships.map(relationship => this.mapToResponseDto(relationship)),
-      current: result.page,
-      size: result.limit,
-      total: result.total,
+      status: result.success ? 0 : 1,
+      msg: result.message,
+      data: result.data,
     };
   }
-
-  @Get('project/:projectId/graph')
-  @ApiOperation({ summary: 'Get relationship graph by project' })
-  @ApiParam({ name: 'projectId', description: 'Project ID' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Relationship graph found',
-  })
-  async getRelationshipGraph(@Param('projectId') projectId: string): Promise<any> {
-    const query = new GetRelationshipGraphQuery(projectId);
-    const result = await this.queryBus.execute(query);
-    
-    return {
-      entities: result.entities,
-      relationships: result.relationships.map(relationship => this.mapToResponseDto(relationship)),
-    };
-  }
-
-  @Get('project/:projectId/stats')
-  @ApiOperation({ summary: 'Get relationship statistics by project' })
-  @ApiParam({ name: 'projectId', description: 'Project ID' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Relationship statistics',
-  })
-  async getRelationshipStats(@Param('projectId') projectId: string): Promise<any> {
-    const query = new GetRelationshipStatsQuery(projectId);
-    return await this.queryBus.execute(query);
-  }
-
-  @Get('entity/:entityId')
-  @ApiOperation({ summary: 'Get relationships by entity' })
-  @ApiParam({ name: 'entityId', description: 'Entity ID' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Relationships found',
-  })
-  async getRelationshipsByEntity(@Param('entityId') entityId: string): Promise<any[]> {
-    const query = new GetRelationshipsByEntityQuery(entityId);
-    const relationships = await this.queryBus.execute(query);
-    return relationships.map(relationship => this.mapToResponseDto(relationship));
-  }
-
-  @Get(':id')
-  @ApiOperation({ summary: 'Get relationship by ID' })
-  @ApiParam({ name: 'id', description: 'Relationship ID' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Relationship found',
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Relationship not found',
-  })
-  async getRelationship(@Param('id') id: string): Promise<any> {
-    const query = new GetRelationshipQuery(id);
-    const relationship = await this.queryBus.execute(query);
-    return this.mapToResponseDto(relationship);
-  }
-
-  @Get('project/:projectId/code/:code')
-  @ApiOperation({ summary: 'Get relationship by code' })
-  @ApiParam({ name: 'projectId', description: 'Project ID' })
-  @ApiParam({ name: 'code', description: 'Relationship code' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Relationship found',
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Relationship not found',
-  })
-  async getRelationshipByCode(
-    @Param('projectId') projectId: string,
-    @Param('code') code: string,
-  ): Promise<any> {
-    const query = new GetRelationshipByCodeQuery(projectId, code);
-    const relationship = await this.queryBus.execute(query);
-    return this.mapToResponseDto(relationship);
-  }
-
-
 
   @Put(':id')
-  @ApiOperation({ summary: 'Update relationship by ID' })
-  @ApiParam({ name: 'id', description: 'Relationship ID' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Relationship updated successfully',
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Relationship not found',
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid input data',
-  })
+  @ApiOperation({ summary: '更新实体关系' })
+  @ApiParam({ name: 'id', description: '关系ID' })
+  @AmisResponse({ description: '更新成功', dataKey: 'relationship' })
   async updateRelationship(
-    @Param('id') id: string,
-    @Body() updateDto: any,
+    @Param('id') relationshipId: string,
+    @Body() updateData: {
+      name?: string;
+      description?: string;
+      config?: Partial<RelationshipConfig>;
+      userId?: string;
+    },
   ): Promise<any> {
     const command = new UpdateRelationshipCommand(
-      id,
-      updateDto.name,
-      updateDto.description,
-      updateDto.sourceFieldId,
-      updateDto.targetFieldId,
-      updateDto.foreignKeyName,
-      updateDto.onDelete,
-      updateDto.onUpdate,
-      updateDto.config,
-      updateDto.status,
+      relationshipId,
+      updateData.name,
+      updateData.description,
+      updateData.config,
+      updateData.userId,
     );
 
-    const relationship = await this.commandBus.execute(command);
-    return this.mapToResponseDto(relationship);
+    const result = await this.commandBus.execute(command);
+
+    return {
+      status: result.success ? 0 : 1,
+      msg: result.message,
+      data: result.data,
+    };
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete relationship by ID' })
-  @ApiParam({ name: 'id', description: 'Relationship ID' })
-  @ApiResponse({
-    status: HttpStatus.NO_CONTENT,
-    description: 'Relationship deleted successfully',
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Relationship not found',
-  })
-  async deleteRelationship(@Param('id') id: string): Promise<void> {
-    const command = new DeleteRelationshipCommand(id);
-    await this.commandBus.execute(command);
+  @ApiOperation({ summary: '删除实体关系' })
+  @ApiParam({ name: 'id', description: '关系ID' })
+  @AmisResponse({ description: '删除成功' })
+  async deleteRelationship(
+    @Param('id') relationshipId: string,
+    @Body() deleteData: { userId: string },
+  ): Promise<any> {
+    const command = new DeleteRelationshipCommand(
+      relationshipId,
+      deleteData.userId,
+    );
+
+    const result = await this.commandBus.execute(command);
+
+    return {
+      status: result.success ? 0 : 1,
+      msg: result.message,
+    };
   }
 
-  private mapToResponseDto(relationship: any): any {
+  @Get()
+  @ApiOperation({ summary: '获取关系列表' })
+  @ApiQuery({ name: 'projectId', description: '项目ID', required: false })
+  @ApiQuery({ name: 'sourceEntityId', description: '源实体ID', required: false })
+  @ApiQuery({ name: 'targetEntityId', description: '目标实体ID', required: false })
+  @ApiQuery({ name: 'type', description: '关系类型', required: false })
+  @ApiQuery({ name: 'search', description: '搜索关键词', required: false })
+  @ApiQuery({ name: 'page', description: '页码', required: false })
+  @ApiQuery({ name: 'size', description: '每页数量', required: false })
+  @ApiQuery({ name: 'sortBy', description: '排序字段', required: false })
+  @ApiQuery({ name: 'sortOrder', description: '排序方向', required: false })
+  @AmisResponse({ description: '获取成功', dataKey: 'relationships' })
+  async getRelationships(
+    @Query('projectId') projectId?: string,
+    @Query('sourceEntityId') sourceEntityId?: string,
+    @Query('targetEntityId') targetEntityId?: string,
+    @Query('type') type?: string,
+    @Query('search') search?: string,
+    @Query('page') page?: number,
+    @Query('size') size?: number,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: 'asc' | 'desc',
+  ): Promise<any> {
+    const filter: RelationshipListFilter = {
+      projectId,
+      sourceEntityId,
+      targetEntityId,
+      type,
+      search,
+    };
+
+    const options: RelationshipListOptions = {
+      page: page || 1,
+      size: size || 10,
+      sortBy: sortBy || 'createdAt',
+      sortOrder: sortOrder || 'desc',
+    };
+
+    const query = new GetRelationshipsQuery(filter, options);
+    const result = await this.queryBus.execute(query);
+
     return {
-      id: relationship.id,
-      projectId: relationship.projectId,
-      name: relationship.name,
-      code: relationship.code,
-      description: relationship.description,
-      type: relationship.type,
-      sourceEntityId: relationship.sourceEntityId,
-      targetEntityId: relationship.targetEntityId,
-      sourceEntity: relationship.sourceEntity ? {
-        id: relationship.sourceEntity.id,
-        name: relationship.sourceEntity.name,
-        code: relationship.sourceEntity.code,
-      } : null,
-      targetEntity: relationship.targetEntity ? {
-        id: relationship.targetEntity.id,
-        name: relationship.targetEntity.name,
-        code: relationship.targetEntity.code,
-      } : null,
-      sourceFieldId: relationship.sourceFieldId,
-      targetFieldId: relationship.targetFieldId,
-      foreignKeyName: relationship.foreignKeyName,
-      onDelete: relationship.onDelete,
-      onUpdate: relationship.onUpdate,
-      config: relationship.config,
-      status: relationship.status,
-      createdBy: relationship.createdBy,
-      createdAt: relationship.createdAt,
-      updatedBy: relationship.updatedBy,
-      updatedAt: relationship.updatedAt,
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Get('meta/types')
+  @ApiOperation({ summary: '获取关系类型列表' })
+  @AmisResponse({ description: '获取成功', dataKey: 'types' })
+  async getRelationshipTypes(): Promise<any> {
+    const query = new GetRelationshipTypesQuery();
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Get('projects/:projectId')
+  @ApiOperation({ summary: '获取项目关系列表' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiQuery({ name: 'page', description: '页码', required: false })
+  @ApiQuery({ name: 'size', description: '每页数量', required: false })
+  @AmisResponse({ description: '获取成功', dataKey: 'relationships' })
+  async getProjectRelationships(
+    @Param('projectId') projectId: string,
+    @Query('page') page?: number,
+    @Query('size') size?: number,
+  ): Promise<any> {
+    const options: RelationshipListOptions = {
+      page: page || 1,
+      size: size || 10,
+    };
+
+    const query = new GetProjectRelationshipsQuery(projectId, options);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Get('entities/:entityId')
+  @ApiOperation({ summary: '获取实体关系' })
+  @ApiParam({ name: 'entityId', description: '实体ID' })
+  @ApiQuery({ name: 'direction', description: '关系方向', required: false })
+  @AmisResponse({ description: '获取成功', dataKey: 'relationships' })
+  async getEntityRelationships(
+    @Param('entityId') entityId: string,
+    @Query('direction') direction?: 'source' | 'target' | 'both',
+  ): Promise<any> {
+    const query = new GetEntityRelationshipsQuery(entityId, direction);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: '获取关系详情' })
+  @ApiParam({ name: 'id', description: '关系ID' })
+  @AmisResponse({ description: '获取成功', dataKey: 'relationship' })
+  async getRelationshipById(@Param('id') relationshipId: string): Promise<any> {
+    const query = new GetRelationshipByIdQuery(relationshipId);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: result ? 0 : 1,
+      msg: result ? 'success' : 'relationship not found',
+      data: result,
+    };
+  }
+
+  @Get('projects/:projectId/graph')
+  @ApiOperation({ summary: '获取项目关系图' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @AmisResponse({ description: '获取成功', dataKey: 'graph' })
+  async getRelationshipGraph(@Param('projectId') projectId: string): Promise<any> {
+    const query = new GetRelationshipGraphQuery(projectId);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Get('projects/:projectId/stats')
+  @ApiOperation({ summary: '获取关系统计' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @AmisResponse({ description: '获取成功', dataKey: 'stats' })
+  async getRelationshipStats(@Param('projectId') projectId: string): Promise<any> {
+    const query = new GetRelationshipStatsQuery(projectId);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Get(':id/sql')
+  @ApiOperation({ summary: '获取关系SQL' })
+  @ApiParam({ name: 'id', description: '关系ID' })
+  @AmisResponse({ description: '获取成功', dataKey: 'sql' })
+  async getRelationshipSQL(@Param('id') relationshipId: string): Promise<any> {
+    const query = new GetRelationshipSQLQuery(relationshipId);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Post('validate')
+  @ApiOperation({ summary: '验证关系配置' })
+  @AmisResponse({ description: '验证完成', dataKey: 'validation' })
+  async validateRelationshipConfig(
+    @Body() validateData: {
+      projectId: string;
+      config: RelationshipConfig;
+    },
+  ): Promise<any> {
+    const query = new ValidateRelationshipConfigQuery(
+      validateData.projectId,
+      validateData.config,
+    );
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: result.isValid ? 0 : 1,
+      msg: result.isValid ? 'success' : 'validation failed',
+      data: result,
+    };
+  }
+
+  @Post('batch')
+  @ApiOperation({ summary: '批量创建关系' })
+  @AmisResponse({ description: '批量创建完成', dataKey: 'result' })
+  async batchCreateRelationships(
+    @Body() batchData: {
+      projectId: string;
+      relationships: Array<{
+        name: string;
+        code: string;
+        description: string;
+        config: RelationshipConfig;
+      }>;
+      userId: string;
+    },
+  ): Promise<any> {
+    const command = new BatchCreateRelationshipsCommand(
+      batchData.projectId,
+      batchData.relationships,
+      batchData.userId,
+    );
+
+    const result = await this.commandBus.execute(command);
+
+    return {
+      status: result.success ? 0 : 1,
+      msg: result.message,
+      data: result.data,
+    };
+  }
+
+  @Post('projects/:projectId/sync')
+  @ApiOperation({ summary: '同步项目关系' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @AmisResponse({ description: '同步完成', dataKey: 'result' })
+  async syncRelationships(
+    @Param('projectId') projectId: string,
+    @Body() syncData: { userId: string },
+  ): Promise<any> {
+    const command = new SyncRelationshipsCommand(
+      projectId,
+      syncData.userId,
+    );
+
+    const result = await this.commandBus.execute(command);
+
+    return {
+      status: result.success ? 0 : 1,
+      msg: result.message,
+      data: result.data,
+    };
+  }
+
+  @Post(':id/generate-sql')
+  @ApiOperation({ summary: '生成关系SQL' })
+  @ApiParam({ name: 'id', description: '关系ID' })
+  @AmisResponse({ description: '生成成功', dataKey: 'result' })
+  async generateRelationshipSQL(@Param('id') relationshipId: string): Promise<any> {
+    const command = new GenerateRelationshipSQLCommand(relationshipId);
+    const result = await this.commandBus.execute(command);
+
+    return {
+      status: result.success ? 0 : 1,
+      msg: result.message,
+      data: result.data,
     };
   }
 }
