@@ -310,8 +310,38 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       },
       project: {
         placeholder: '请选择项目'
+      },
+      variableValue: {
+        stringPlaceholder: '请输入字符串值',
+        numberPlaceholder: '请输入数字值',
+        arrayPlaceholder: '请输入JSON数组，如: ["item1", "item2"]',
+        objectPlaceholder: '请输入JSON对象，如: {"key": "value"}'
       }
-    }
+    },
+    preview: '预览',
+    validate: '验证',
+    test: '测试',
+    previewResult: '预览结果',
+    output: '输出结果',
+    validation: '验证结果',
+    testResult: '测试结果',
+    validationSuccess: '模板验证通过',
+    validationFailed: '模板验证失败',
+    testPassed: '测试通过',
+    testFailed: '测试失败',
+    errors: '错误',
+    warnings: '警告',
+    suggestions: '建议',
+    extractedVariables: '提取的变量',
+    usedVariables: '已使用变量',
+    unusedVariables: '未使用变量',
+    variableAnalysis: '变量分析',
+    actualOutput: '实际输出',
+    addVariable: '添加变量',
+    newVariable: '新变量',
+    variableName: '变量名',
+    variableType: '变量类型',
+    variableValue: '变量值'
   },
   relation: {
     title: '关系管理',

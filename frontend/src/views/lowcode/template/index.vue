@@ -49,6 +49,10 @@
       :project-id="projectId"
       @submitted="getDataByPage"
     />
+    <TemplatePreview
+      v-model:visible="previewVisible"
+      :template-data="previewData"
+    />
   </div>
 </template>
 
@@ -60,6 +64,7 @@ import { $t } from '@/locales';
 import { useAppStore } from '@/store/modules/app';
 import { useTable, useTableOperate } from '@/hooks/common/table';
 import TemplateOperateDrawer from './modules/template-operate-drawer.vue';
+import TemplatePreview from './modules/template-preview.vue';
 import TemplateSearch from './modules/template-search.vue';
 import TableHeaderOperation from '@/components/advanced/table-header-operation.vue';
 
@@ -217,9 +222,12 @@ const {
       key: 'operate',
       title: $t('common.operate'),
       align: 'center',
-      width: 200,
+      width: 280,
       render: row => (
         <div class="flex-center gap-8px">
+          <NButton type="info" ghost size="small" onClick={() => handlePreview(row)}>
+            {$t('page.lowcode.template.preview')}
+          </NButton>
           {row.status === 'DRAFT' && (
             <NButton type="success" ghost size="small" onClick={() => handlePublish(row.id)}>
               {$t('page.lowcode.template.publish')}
@@ -253,6 +261,16 @@ const {
   checkedRowKeys,
   onBatchDeleted
 } = useTableOperate(data as any, getData);
+
+// 预览相关状态
+const previewVisible = ref(false);
+const previewData = ref<Api.Lowcode.Template | null>(null);
+
+// 预览处理函数
+function handlePreview(row: Api.Lowcode.Template) {
+  previewData.value = row;
+  previewVisible.value = true;
+}
 
 // 加载项目列表
 async function loadProjects() {
