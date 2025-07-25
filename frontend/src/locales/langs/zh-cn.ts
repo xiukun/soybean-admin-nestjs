@@ -190,6 +190,7 @@ const local: App.I18n.Schema = {
     'amis-template': 'Amis 模板',
     lowcode: '低代码平台',
     lowcode_project: '项目管理',
+    'lowcode_project-detail': '项目详情',
     lowcode_entity: '实体管理',
     lowcode_field: '字段管理',
     lowcode_relationship: '关系管理',

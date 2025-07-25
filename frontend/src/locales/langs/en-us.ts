@@ -190,6 +190,7 @@ const local: App.I18n.Schema = {
     'amis-template': 'Amis Template',
     lowcode: 'Low-Code Platform',
     lowcode_project: 'Project Management',
+    'lowcode_project-detail': 'Project Detail',
     lowcode_entity: 'Entity Management',
     lowcode_field: 'Field Management',
     lowcode_relationship: 'Relationship Management',

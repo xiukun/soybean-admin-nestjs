@@ -33,6 +33,7 @@ export const views: Record<LastLevelRouteKey, RouteComponent | (() => Promise<Ro
   lowcode_entity: () => import("@/views/lowcode/entity/index.vue"),
   lowcode_field: () => import("@/views/lowcode/field/index.vue"),
   lowcode_project: () => import("@/views/lowcode/project/index.vue"),
+  "lowcode_project_[id]": () => import("@/views/lowcode/project/[id].vue"),
   lowcode_query: () => import("@/views/lowcode/query/index.vue"),
   lowcode_relationship: () => import("@/views/lowcode/relationship/index.vue"),
   "lowcode_target-project": () => import("@/views/lowcode/target-project/index.vue"),
