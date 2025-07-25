@@ -8,6 +8,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import { TemplatePreviewService } from '@lib/bounded-contexts/template/application/services/template-preview.service';
+import { BizCodeProtectionService, CodeMergeResult } from './biz-code-protection.service';
+import { CodeDiffAnalyzerService, DiffAnalysisResult } from './code-diff-analyzer.service';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 
@@ -50,6 +52,10 @@ export interface GeneratedFile {
   templateId: string;
   entityId: string;
   overwritten: boolean;
+  isProtected: boolean;
+  mergeResult?: CodeMergeResult;
+  diffAnalysis?: DiffAnalysisResult;
+  backupPath?: string;
 }
 
 @Injectable()
@@ -59,6 +65,8 @@ export class DualLayerGeneratorService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly templatePreviewService: TemplatePreviewService,
+    private readonly bizCodeProtectionService: BizCodeProtectionService,
+    private readonly codeDiffAnalyzerService: CodeDiffAnalyzerService,
   ) {}
 
   /**
@@ -215,6 +223,7 @@ export class DualLayerGeneratorService {
         templateId: template.id,
         entityId: entity.id,
         overwritten: true, // Base层总是覆盖
+        isProtected: false, // Base层不需要保护
       };
 
     } catch (error) {
@@ -234,36 +243,90 @@ export class DualLayerGeneratorService {
   ): Promise<GeneratedFile | null> {
     try {
       const filePath = this.getBizFilePath(entity, template, config);
-      
-      // 检查Biz文件是否已存在
-      const exists = await fs.pathExists(filePath);
-      
-      if (exists && config.bizConfig.preserveCustomCode) {
-        // 如果文件存在且配置为保护自定义代码，则跳过
-        return {
-          path: filePath,
-          type: 'biz',
-          content: '',
-          templateId: template.id,
-          entityId: entity.id,
-          overwritten: false,
-        };
+
+      // 生成新的Biz层模板内容
+      const newBizContent = this.generateBizTemplate(entity, template, variables, config);
+
+      // 检查是否需要保护现有文件
+      const shouldProtect = await this.bizCodeProtectionService.shouldProtectBizFile(
+        filePath,
+        {
+          preserveCustomCode: config.bizConfig.preserveCustomCode,
+          enableSmartMerge: true,
+          backupBeforeOverwrite: true,
+          customCodeMarkers: {
+            start: '// CUSTOM_CODE_START',
+            end: '// CUSTOM_CODE_END',
+          },
+          protectedSections: ['constructor', 'custom methods'],
+        },
+      );
+
+      let finalContent = newBizContent;
+      let mergeResult: CodeMergeResult | undefined;
+      let diffAnalysis: DiffAnalysisResult | undefined;
+      let backupPath: string | undefined;
+
+      if (shouldProtect) {
+        // 执行智能合并
+        mergeResult = await this.bizCodeProtectionService.mergeCode(
+          newBizContent,
+          filePath,
+          {
+            preserveCustomCode: config.bizConfig.preserveCustomCode,
+            enableSmartMerge: true,
+            backupBeforeOverwrite: true,
+            customCodeMarkers: {
+              start: '// CUSTOM_CODE_START',
+              end: '// CUSTOM_CODE_END',
+            },
+            protectedSections: ['constructor', 'custom methods'],
+          },
+        );
+
+        if (mergeResult.success) {
+          finalContent = mergeResult.finalContent;
+          backupPath = mergeResult.backupPath;
+
+          // 分析代码差异
+          if (await fs.pathExists(filePath)) {
+            const existingContent = await fs.readFile(filePath, 'utf8');
+            diffAnalysis = this.codeDiffAnalyzerService.analyzeDiff(
+              newBizContent,
+              existingContent,
+            );
+          }
+        } else {
+          // 合并失败，保留原文件
+          this.logger.warn(`Biz文件合并失败，保留原文件: ${filePath}`);
+          return {
+            path: filePath,
+            type: 'biz',
+            content: '',
+            templateId: template.id,
+            entityId: entity.id,
+            overwritten: false,
+            isProtected: true,
+            mergeResult,
+          };
+        }
       }
 
-      // 生成Biz层模板内容（继承Base层）
-      const bizContent = this.generateBizTemplate(entity, template, variables, config);
-      
       // 写入文件
       await fs.ensureDir(path.dirname(filePath));
-      await fs.writeFile(filePath, bizContent, 'utf8');
+      await fs.writeFile(filePath, finalContent, 'utf8');
 
       return {
         path: filePath,
         type: 'biz',
-        content: bizContent,
+        content: finalContent,
         templateId: template.id,
         entityId: entity.id,
-        overwritten: !exists,
+        overwritten: !shouldProtect,
+        isProtected: shouldProtect,
+        mergeResult,
+        diffAnalysis,
+        backupPath,
       };
 
     } catch (error) {

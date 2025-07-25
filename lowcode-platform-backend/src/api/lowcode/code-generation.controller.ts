@@ -38,6 +38,8 @@ import {
 } from '@lib/bounded-contexts/code-generation/application/queries/code-generation.queries';
 
 import { GenerationConfig } from '@lib/bounded-contexts/code-generation/application/services/dual-layer-generator.service';
+import { BizCodeProtectionService } from '@lib/bounded-contexts/code-generation/application/services/biz-code-protection.service';
+import { CodeDiffAnalyzerService } from '@lib/bounded-contexts/code-generation/application/services/code-diff-analyzer.service';
 
 import * as path from 'path';
 import * as fs from 'fs';
@@ -72,6 +74,8 @@ export class CodeGenerationController {
     private readonly hotUpdateService: HotUpdateService,
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
+    private readonly bizCodeProtectionService: BizCodeProtectionService,
+    private readonly codeDiffAnalyzerService: CodeDiffAnalyzerService,
   ) {}
 
   @Get('templates')
@@ -478,6 +482,132 @@ export class CodeGenerationController {
       status: result.success ? 0 : 1,
       msg: result.success ? 'success' : 'cleanup failed',
       data: result,
+    };
+  }
+
+  // ==================== 代码保护接口 ====================
+
+  @Post('dual-layer/analyze-diff')
+  @ApiOperation({ summary: '分析代码差异' })
+  @ApiResponse({ status: 200, description: '分析成功' })
+  async analyzeDualLayerCodeDiff(
+    @Body() diffData: {
+      baseContent: string;
+      bizContent: string;
+    },
+  ): Promise<any> {
+    const result = this.codeDiffAnalyzerService.analyzeDiff(
+      diffData.baseContent,
+      diffData.bizContent,
+    );
+
+    const significantChanges = this.codeDiffAnalyzerService.detectSignificantChanges(result.diffs);
+    const recommendations = this.codeDiffAnalyzerService.generateMergeRecommendations(result);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: {
+        analysis: result,
+        significantChanges,
+        recommendations,
+      },
+    };
+  }
+
+  @Post('dual-layer/check-protection')
+  @ApiOperation({ summary: '检查文件是否需要保护' })
+  @ApiResponse({ status: 200, description: '检查成功' })
+  async checkDualLayerFileProtection(
+    @Body() checkData: {
+      filePath: string;
+      config?: {
+        preserveCustomCode?: boolean;
+        enableSmartMerge?: boolean;
+        backupBeforeOverwrite?: boolean;
+      };
+    },
+  ): Promise<any> {
+    const shouldProtect = await this.bizCodeProtectionService.shouldProtectBizFile(
+      checkData.filePath,
+      {
+        preserveCustomCode: checkData.config?.preserveCustomCode ?? true,
+        enableSmartMerge: checkData.config?.enableSmartMerge ?? true,
+        backupBeforeOverwrite: checkData.config?.backupBeforeOverwrite ?? true,
+        customCodeMarkers: {
+          start: '// CUSTOM_CODE_START',
+          end: '// CUSTOM_CODE_END',
+        },
+        protectedSections: ['constructor', 'custom methods'],
+      },
+    );
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: {
+        shouldProtect,
+        filePath: checkData.filePath,
+      },
+    };
+  }
+
+  @Post('dual-layer/merge-code')
+  @ApiOperation({ summary: '智能合并代码' })
+  @ApiResponse({ status: 200, description: '合并成功' })
+  async mergeDualLayerCode(
+    @Body() mergeData: {
+      baseContent: string;
+      bizFilePath: string;
+      config?: {
+        preserveCustomCode?: boolean;
+        enableSmartMerge?: boolean;
+        backupBeforeOverwrite?: boolean;
+      };
+    },
+  ): Promise<any> {
+    const result = await this.bizCodeProtectionService.mergeCode(
+      mergeData.baseContent,
+      mergeData.bizFilePath,
+      {
+        preserveCustomCode: mergeData.config?.preserveCustomCode ?? true,
+        enableSmartMerge: mergeData.config?.enableSmartMerge ?? true,
+        backupBeforeOverwrite: mergeData.config?.backupBeforeOverwrite ?? true,
+        customCodeMarkers: {
+          start: '// CUSTOM_CODE_START',
+          end: '// CUSTOM_CODE_END',
+        },
+        protectedSections: ['constructor', 'custom methods'],
+      },
+    );
+
+    return {
+      status: result.success ? 0 : 1,
+      msg: result.success ? 'success' : 'merge failed',
+      data: result,
+    };
+  }
+
+  @Post('dual-layer/suggest-resolution')
+  @ApiOperation({ summary: '建议冲突解决策略' })
+  @ApiResponse({ status: 200, description: '建议生成成功' })
+  async suggestDualLayerConflictResolution(
+    @Body() conflictData: {
+      baseContent: string;
+      bizContent: string;
+      conflictType: 'method' | 'property' | 'import' | 'custom';
+    },
+  ): Promise<any> {
+    const resolution = this.codeDiffAnalyzerService.suggestConflictResolution(
+      conflictData.baseContent,
+      conflictData.bizContent,
+      conflictData.conflictType,
+    );
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: resolution,
     };
   }
 }

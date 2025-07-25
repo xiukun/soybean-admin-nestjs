@@ -34,8 +34,10 @@ import { TemplateValidationService } from './application/services/template-valid
 import { TemplateEngineService } from './infrastructure/template-engine.service';
 import { MetadataAggregatorService } from '../metadata/application/services/metadata-aggregator.service';
 
-// New dual-layer service
+// New dual-layer services
 import { DualLayerGeneratorService } from './application/services/dual-layer-generator.service';
+import { BizCodeProtectionService } from './application/services/biz-code-protection.service';
+import { CodeDiffAnalyzerService } from './application/services/code-diff-analyzer.service';
 
 const CommandHandlers = [
   GenerateCodeHandler,
@@ -65,6 +67,8 @@ const Services = [
   TemplateEngineService,
   MetadataAggregatorService,
   DualLayerGeneratorService,
+  BizCodeProtectionService,
+  CodeDiffAnalyzerService,
 ];
 
 @Module({
