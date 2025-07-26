@@ -111,3 +111,68 @@ export function fetchGetProjectStats() {
     method: 'get'
   });
 }
+
+/**
+ * duplicate project
+ *
+ * @param id - project id
+ * @param data - duplicate data
+ */
+export function fetchDuplicateProject(id: string, data: { name: string }) {
+  return request<Api.Lowcode.Project>({
+    url: `/projects/${id}/duplicate`,
+    method: 'post',
+    data
+  });
+}
+
+/**
+ * archive project
+ *
+ * @param id - project id
+ */
+export function fetchArchiveProject(id: string) {
+  return request<Api.Lowcode.Project>({
+    url: `/projects/${id}/archive`,
+    method: 'put'
+  });
+}
+
+/**
+ * export project
+ *
+ * @param id - project id
+ */
+export function fetchExportProject(id: string) {
+  return request({
+    url: `/projects/${id}/export`,
+    method: 'get',
+    responseType: 'blob'
+  });
+}
+
+/**
+ * test database connection
+ *
+ * @param config - database config
+ */
+export function fetchTestDatabaseConnection(config: any) {
+  return request<{ success: boolean; message: string }>({
+    url: '/projects/test-connection',
+    method: 'post',
+    data: config
+  });
+}
+
+/**
+ * validate project config
+ *
+ * @param config - project config
+ */
+export function fetchValidateProjectConfig(config: any) {
+  return request<{ valid: boolean; errors: string[] }>({
+    url: '/projects/validate-config',
+    method: 'post',
+    data: config
+  });
+}

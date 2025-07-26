@@ -302,17 +302,37 @@ async function handleTestConnection() {
 
 async function handleSave() {
   await formRef.value?.validate();
-  
+
   try {
     saving.value = true;
-    
-    // Mock save
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    emit('update', { ...props.project, ...configForm });
-    window.$message?.success($t('common.saveSuccess'));
+
+    // 调用真实的API保存项目配置
+    const { fetchUpdateProject } = await import('@/service/api/lowcode-project');
+
+    const projectData = {
+      ...props.project,
+      ...configForm,
+      config: {
+        ...configForm.config,
+        // 确保数据库配置格式正确
+        database_config: {
+          ...configForm.config.database_config
+        },
+        generation_config: {
+          ...configForm.config.generation_config
+        }
+      }
+    };
+
+    if (props.project?.id) {
+      await fetchUpdateProject(props.project.id, projectData);
+    }
+
+    emit('update', projectData);
+    window.$message?.success('项目配置保存成功');
   } catch (error) {
-    window.$message?.error($t('common.saveFailed'));
+    console.error('Save project config error:', error);
+    window.$message?.error('项目配置保存失败');
   } finally {
     saving.value = false;
   }
@@ -353,6 +373,8 @@ onMounted(() => {
 
 <style scoped>
 .project-configuration {
-  @apply space-y-4;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 </style>
