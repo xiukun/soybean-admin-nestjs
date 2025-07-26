@@ -262,7 +262,7 @@ model CodeTemplate {
   language    String             @db.VarChar(20)
   framework   String             @db.VarChar(50)
   description String?
-  content     String
+  content     String             @default("")
   variables   Json?              @default("[]")
   version     String?            @default("1.0.0") @db.VarChar(20)
   status      String?            @default("ACTIVE") @db.VarChar(20)
@@ -288,7 +288,7 @@ model TemplateVersion {
   id         String        @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
   templateId String        @map("template_id") @db.VarChar(36)
   version    String        @db.VarChar(20)
-  content    String
+  content    String             @default("")
   variables  Json?         @default("[]")
   changelog  String?
   createdBy  String        @map("created_by") @db.VarChar(36)
