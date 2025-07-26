@@ -200,7 +200,8 @@ const local: App.I18n.Schema = {
     'lowcode_api-config-test': 'API Configuration Test',
     'lowcode_api-test': 'API Testing',
     lowcode_template: 'Template Management',
-    'lowcode_code-generation': 'Code Generation',
+    'lowcode_code-generation': 'Code Generator',
+    'lowcode_target-project': 'Target Project Management',
     reload: 'Reload Page'
   },
   page: {

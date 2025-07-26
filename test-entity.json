@@ -1,0 +1,13 @@
+{
+  "projectId": "05462961-e82e-42e8-9b56-92ba28e342c2",
+  "name": "Product",
+  "code": "product",
+  "tableName": "products",
+  "description": "Product entity for e2e testing",
+  "category": "business",
+  "config": {
+    "generateCrud": true,
+    "enableAudit": true,
+    "enableSoftDelete": true
+  }
+}

@@ -200,7 +200,8 @@ const local: App.I18n.Schema = {
     'lowcode_api-config-test': 'API配置测试',
     'lowcode_api-test': 'API测试',
     lowcode_template: '模板管理',
-    'lowcode_code-generation': '代码生成',
+    'lowcode_code-generation': '代码生成器',
+    'lowcode_target-project': '目标项目管理',
     reload: '刷新页面'
   },
   page: {

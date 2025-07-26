@@ -1,0 +1,16 @@
+{
+  "name": "test-e2e-project",
+  "code": "test-e2e",
+  "description": "End-to-end test project",
+  "version": "1.0.0",
+  "config": {
+    "framework": "nestjs",
+    "architecture": "dual-layer",
+    "language": "typescript",
+    "database": "postgresql",
+    "packageName": "com.test.e2e",
+    "basePackage": "com.test.e2e.base",
+    "author": "test-user",
+    "outputPath": "/tmp/test-e2e"
+  }
+}

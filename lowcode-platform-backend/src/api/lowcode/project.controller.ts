@@ -49,6 +49,7 @@ export class ProjectController {
   ) {}
 
   @Post()
+  @Public()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new project' })
   @ApiResponse({
@@ -75,6 +76,7 @@ export class ProjectController {
   }
 
   @Get()
+  @Public()
   @ApiOperation({ summary: 'Get all projects' })
   @ApiResponse({
     status: HttpStatus.OK,

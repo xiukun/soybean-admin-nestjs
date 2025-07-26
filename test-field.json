@@ -1,0 +1,24 @@
+{
+  "entityId": "db383559-a1cf-4d59-bdb1-58d8d642b8db",
+  "name": "name",
+  "code": "name",
+  "dataType": "STRING",
+  "length": 100,
+  "required": true,
+  "description": "Product name",
+  "defaultValue": null,
+  "unique": false,
+  "config": {
+    "validation": {
+      "required": true,
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "ui": {
+      "label": "Product Name",
+      "placeholder": "Enter product name",
+      "showInList": true,
+      "showInForm": true
+    }
+  }
+}
