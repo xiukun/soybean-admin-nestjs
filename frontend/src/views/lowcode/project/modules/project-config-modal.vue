@@ -205,7 +205,7 @@
       <NSpace justify="end">
         <NButton @click="handleCancel">{{ $t('common.cancel') }}</NButton>
         <NButton type="primary" :loading="saving" @click="handleSave">
-          {{ $t('lowcode.common.active.save') }}
+          {{ $t('page.lowcode.common.actions.save') }}
         </NButton>
       </NSpace>
     </template>

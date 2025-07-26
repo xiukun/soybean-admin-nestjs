@@ -33,7 +33,7 @@
             <template #icon>
               <NIcon><icon-mdi-content-save /></NIcon>
             </template>
-            {{ $t('lowcode.common.active.save') }}
+            {{ $t('page.lowcode.common.actions.save') }}
           </NButton>
         </NSpace>
       </NSpace>
