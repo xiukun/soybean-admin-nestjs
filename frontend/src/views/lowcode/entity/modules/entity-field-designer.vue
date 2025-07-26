@@ -27,7 +27,7 @@
             <template #icon>
               <NIcon><icon-mdi-content-save /></NIcon>
             </template>
-            {{ $t('common.save') }}
+            {{ $t('lowcode.common.active.save') }}
           </NButton>
         </NSpace>
       </NSpace>

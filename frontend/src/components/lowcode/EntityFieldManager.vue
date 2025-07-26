@@ -153,7 +153,7 @@
       <template #footer>
         <NSpace justify="end">
           <NButton @click="showFieldModal = false">{{ $t('common.cancel') }}</NButton>
-          <NButton type="primary" @click="handleSaveField">{{ $t('common.save') }}</NButton>
+          <NButton type="primary" @click="handleSaveField">{{ $t('lowcode.common.active.save') }}</NButton>
         </NSpace>
       </template>
     </NModal>

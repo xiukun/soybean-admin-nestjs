@@ -3,7 +3,7 @@
     <template #header-extra>
       <NSpace>
         <NButton type="primary" :loading="saving" @click="handleSave">
-          {{ $t('common.save') }}
+          {{ $t('lowcode.common.active.save') }}
         </NButton>
         <NButton @click="handleClose">
           {{ $t('common.close') }}

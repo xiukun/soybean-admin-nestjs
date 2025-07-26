@@ -85,7 +85,7 @@
                   <template #icon>
                     <NIcon><icon-mdi-content-save /></NIcon>
                   </template>
-                  {{ $t('common.save') }}
+                  {{ $t('lowcode.common.active.save') }}
                 </NButton>
               </NSpace>
             </NSpace>
@@ -227,7 +227,7 @@
       <template #footer>
         <NSpace justify="end">
           <NButton @click="showVariableModal = false">{{ $t('common.cancel') }}</NButton>
-          <NButton type="primary" @click="handleSaveVariable">{{ $t('common.save') }}</NButton>
+          <NButton type="primary" @click="handleSaveVariable">{{ $t('lowcode.common.active.save') }}</NButton>
         </NSpace>
       </template>
     </NModal>

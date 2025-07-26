@@ -129,7 +129,7 @@
       <template #footer>
         <NSpace justify="end">
           <NButton @click="showEntityModal = false">{{ $t('common.cancel') }}</NButton>
-          <NButton type="primary" @click="handleSaveEntity">{{ $t('common.save') }}</NButton>
+          <NButton type="primary" @click="handleSaveEntity">{{ $t('lowcode.common.active.save') }}</NButton>
         </NSpace>
       </template>
     </NModal>

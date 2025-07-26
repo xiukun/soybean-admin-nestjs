@@ -176,7 +176,7 @@
       <div class="flex justify-end space-x-4">
         <NButton @click="handleReset">{{ $t('common.reset') }}</NButton>
         <NButton type="primary" :loading="saving" @click="handleSave">
-          {{ $t('common.save') }}
+          {{ $t('lowcode.common.active.save') }}
         </NButton>
       </div>
     </NForm>
