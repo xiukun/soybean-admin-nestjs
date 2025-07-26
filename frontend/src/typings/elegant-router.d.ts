@@ -34,13 +34,16 @@ declare module "@elegant-router/types" {
     "lowcode_api-config": "/lowcode/api-config";
     "lowcode_api-test": "/lowcode/api-test";
     "lowcode_code-generation": "/lowcode/code-generation";
+    "lowcode_code-generator": "/lowcode/code-generator";
     "lowcode_entity": "/lowcode/entity";
+    "lowcode_entity-designer": "/lowcode/entity-designer";
     "lowcode_field": "/lowcode/field";
     "lowcode_project": "/lowcode/project/:id";
     "lowcode_query": "/lowcode/query";
     "lowcode_relationship": "/lowcode/relationship";
     "lowcode_target-project": "/lowcode/target-project";
     "lowcode_template": "/lowcode/template";
+    "lowcode_template-manager": "/lowcode/template-manager";
     "manage": "/manage";
     "manage_menu": "/manage/menu";
     "manage_role": "/manage/role";
@@ -122,6 +125,8 @@ declare module "@elegant-router/types" {
     | "lowcode_api-config"
     | "lowcode_api-test"
     | "lowcode_code-generation"
+    | "lowcode_code-generator"
+    | "lowcode_entity-designer"
     | "lowcode_entity"
     | "lowcode_field"
     | "lowcode_project"
@@ -129,6 +134,7 @@ declare module "@elegant-router/types" {
     | "lowcode_query"
     | "lowcode_relationship"
     | "lowcode_target-project"
+    | "lowcode_template-manager"
     | "lowcode_template"
     | "manage_menu"
     | "manage_role"

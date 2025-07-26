@@ -182,6 +182,15 @@ export const generatedRoutes: GeneratedRoute[] = [
         }
       },
       {
+        name: 'lowcode_code-generator',
+        path: '/lowcode/code-generator',
+        component: 'view.lowcode_code-generator',
+        meta: {
+          title: 'lowcode_code-generator',
+          i18nKey: 'route.lowcode_code-generator'
+        }
+      },
+      {
         name: 'lowcode_entity',
         path: '/lowcode/entity',
         component: 'view.lowcode_entity',
@@ -191,13 +200,12 @@ export const generatedRoutes: GeneratedRoute[] = [
         }
       },
       {
-        name: 'lowcode_entity-fields',
-        path: '/lowcode/entity/:id/fields',
-        component: 'view.lowcode_entity_modules_entity_field_designer',
+        name: 'lowcode_entity-designer',
+        path: '/lowcode/entity-designer',
+        component: 'view.lowcode_entity-designer',
         meta: {
-          title: 'lowcode_entity-fields',
-          i18nKey: 'route.lowcode_entity-fields',
-          hideInMenu: true
+          title: 'lowcode_entity-designer',
+          i18nKey: 'route.lowcode_entity-designer'
         }
       },
       {
@@ -211,21 +219,11 @@ export const generatedRoutes: GeneratedRoute[] = [
       },
       {
         name: 'lowcode_project',
-        path: '/lowcode/project',
+        path: '/lowcode/project/:id',
         component: 'view.lowcode_project',
         meta: {
           title: 'lowcode_project',
           i18nKey: 'route.lowcode_project'
-        }
-      },
-      {
-        name: 'lowcode_project-detail',
-        path: '/lowcode/project/:id',
-        component: 'view.lowcode_project_[id]',
-        meta: {
-          title: 'lowcode_project-detail',
-          i18nKey: 'route.lowcode_project-detail',
-          hideInMenu: true
         }
       },
       {
@@ -262,6 +260,15 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: 'lowcode_template',
           i18nKey: 'route.lowcode_template'
+        }
+      },
+      {
+        name: 'lowcode_template-manager',
+        path: '/lowcode/template-manager',
+        component: 'view.lowcode_template-manager',
+        meta: {
+          title: 'lowcode_template-manager',
+          i18nKey: 'route.lowcode_template-manager'
         }
       }
     ]
