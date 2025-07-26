@@ -192,6 +192,7 @@ const local: App.I18n.Schema = {
     lowcode_project: '项目管理',
     'lowcode_project-detail': '项目详情',
     lowcode_entity: '实体管理',
+    'lowcode_entity-fields': '字段设计',
     lowcode_field: '字段管理',
     lowcode_relationship: '关系管理',
     lowcode_query: '查询管理',

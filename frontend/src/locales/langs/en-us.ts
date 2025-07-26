@@ -192,6 +192,7 @@ const local: App.I18n.Schema = {
     lowcode_project: 'Project Management',
     'lowcode_project-detail': 'Project Detail',
     lowcode_entity: 'Entity Management',
+    'lowcode_entity-fields': 'Field Designer',
     lowcode_field: 'Field Management',
     lowcode_relationship: 'Relationship Management',
     lowcode_query: 'Query Management',

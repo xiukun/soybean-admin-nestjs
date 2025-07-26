@@ -1,313 +1,401 @@
 <template>
-  <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
-    <!-- 项目选择器 -->
-    <NCard v-if="!props.projectId" :bordered="false" size="small">
-      <NSpace align="center">
-        <span>选择项目：</span>
-        <NSelect
-          v-model:value="selectedProjectId"
-          :options="projectOptions"
-          placeholder="请选择项目"
-          style="width: 300px"
-          :loading="projectLoading"
-          clearable
-          @update:value="handleProjectChange"
-        />
+  <div class="enhanced-entity-management">
+    <!-- Header with Project Selector -->
+    <div class="mb-6">
+      <NSpace justify="space-between" align="center">
+        <div>
+          <NText tag="h1" class="text-2xl font-bold">{{ $t('page.lowcode.entity.management') }}</NText>
+          <NText depth="3">{{ $t('page.lowcode.entity.managementDesc') }}</NText>
+        </div>
+        <NSpace>
+          <NSelect
+            v-if="!props.projectId"
+            v-model:value="selectedProjectId"
+            :options="projectOptions"
+            placeholder="请选择项目"
+            style="width: 300px"
+            :loading="projectLoading"
+            clearable
+            @update:value="handleProjectChange"
+          />
+        </NSpace>
       </NSpace>
-    </NCard>
+    </div>
 
-    <EntitySearch v-model:model="searchParams" @reset="resetSearchParams" @search="getTableData" />
-    <NCard :title="$t('page.lowcode.entity.title')" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
-      <template #header-extra>
-        <TableHeaderOperation
-          v-model:columns="columnChecks"
-          :disabled-delete="checkedRowKeys.length === 0"
-          :loading="loading"
-          @add="openDrawer('add')"
-          @delete="handleBatchDelete"
-          @refresh="getTableData"
-        />
+    <!-- View Mode Tabs -->
+    <div class="mb-4">
+      <NTabs v-model:value="viewMode" type="line" animated>
+        <NTabPane name="list" :tab="$t('page.lowcode.entity.listView')">
+          <!-- Entity List View -->
+          <div class="entity-list-view">
+            <!-- Filters and Search -->
+            <NCard class="mb-4">
+              <NSpace justify="space-between" align="center">
+                <NSpace>
+                  <NInput
+                    v-model:value="searchQuery"
+                    :placeholder="$t('page.lowcode.entity.searchPlaceholder')"
+                    style="width: 300px"
+                    clearable
+                    @input="handleSearch"
+                  >
+                    <template #prefix>
+                      <NIcon><icon-mdi-magnify /></NIcon>
+                    </template>
+                  </NInput>
+                  <NSelect
+                    v-model:value="categoryFilter"
+                    :placeholder="$t('page.lowcode.entity.filterByCategory')"
+                    :options="categoryOptions"
+                    style="width: 150px"
+                    clearable
+                    @update:value="handleFilterChange"
+                  />
+                </NSpace>
+                <NSpace>
+                  <NButton type="primary" :disabled="!currentProjectId" @click="handleCreateEntity">
+                    <template #icon>
+                      <NIcon><icon-mdi-plus /></NIcon>
+                    </template>
+                    {{ $t('page.lowcode.entity.create') }}
+                  </NButton>
+                  <NButton :disabled="!currentProjectId" @click="handleImportEntities">
+                    <template #icon>
+                      <NIcon><icon-mdi-import /></NIcon>
+                    </template>
+                    {{ $t('page.lowcode.entity.import') }}
+                  </NButton>
+                </NSpace>
+              </NSpace>
+            </NCard>
+
+            <!-- Entity Table -->
+            <NDataTable
+              :columns="columns"
+              :data="filteredEntities"
+              :pagination="pagination"
+              :loading="loading"
+              size="small"
+              striped
+              @update:page="handlePageChange"
+              @update:page-size="handlePageSizeChange"
+            />
+          </div>
+        </NTabPane>
+
+        <NTabPane name="designer" :tab="$t('page.lowcode.entity.designerView')">
+          <!-- Entity Relationship Designer -->
+          <EntityRelationshipDesigner :project-id="currentProjectId" />
+        </NTabPane>
+      </NTabs>
+    </div>
+
+    <!-- Entity Form Modal -->
+    <NModal v-model:show="showEntityModal" preset="card" style="width: 800px">
+      <template #header>
+        {{ editingEntity ? $t('page.lowcode.entity.edit') : $t('page.lowcode.entity.create') }}
       </template>
-      <NDataTable
-        v-model:checked-row-keys="checkedRowKeys"
-        :columns="columns"
-        :data="data"
-        size="small"
-        :flex-height="!appStore.isMobile"
-        :scroll-x="962"
-        :loading="loading"
-        remote
-        :row-key="row => row.id"
-        :pagination="mobilePagination"
-        class="sm:h-full"
-      />
-      <EntityOperateDrawer
-        v-model:visible="drawerVisible"
-        :operate-type="operateType"
-        :row-data="editingData"
-        :project-id="currentProjectId"
-        @submitted="getTableData"
-      />
-    </NCard>
+
+      <NForm ref="entityFormRef" :model="entityForm" :rules="entityRules" label-placement="left" :label-width="120">
+        <NGrid :cols="2" :x-gap="16">
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.entity.name')" path="name">
+              <NInput v-model:value="entityForm.name" @input="handleNameChange" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.entity.code')" path="code">
+              <NInput v-model:value="entityForm.code" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.entity.tableName')" path="tableName">
+              <NInput v-model:value="entityForm.tableName" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.entity.category')" path="category">
+              <NSelect v-model:value="entityForm.category" :options="categoryOptions" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem :span="2">
+            <NFormItem :label="$t('page.lowcode.entity.description')" path="description">
+              <NInput v-model:value="entityForm.description" type="textarea" :rows="3" />
+            </NFormItem>
+          </NGridItem>
+        </NGrid>
+      </NForm>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="showEntityModal = false">{{ $t('common.cancel') }}</NButton>
+          <NButton type="primary" @click="handleSaveEntity">{{ $t('common.save') }}</NButton>
+        </NSpace>
+      </template>
+    </NModal>
   </div>
 </template>
 
-<script setup lang="tsx">
-import { computed, reactive, ref, watch } from 'vue';
-import type { Ref } from 'vue';
-import { NButton, NCard, NPopconfirm, NSelect, NSpace, NTag } from 'naive-ui';
-import type { DataTableColumns, PaginationProps } from 'naive-ui';
-import { fetchDeleteEntity, fetchGetEntityList, fetchGetAllProjects } from '@/service/api';
-import { $t } from '@/locales';
-import { useAppStore } from '@/store/modules/app';
-import { useTable, useTableOperate } from '@/hooks/common/table';
-import EntityOperateDrawer from './modules/entity-operate-drawer.vue';
-import EntitySearch from './modules/entity-search.vue';
-import TableHeaderOperation from '@/components/advanced/table-header-operation.vue';
+<script setup lang="ts">
+import { ref, reactive, computed, onMounted, h } from 'vue';
 import { useRouter } from 'vue-router';
-
-const appStore = useAppStore();
-const router = useRouter();
+import type { FormInst, FormRules, DataTableColumns } from 'naive-ui';
+import { $t } from '@/locales';
+import { createRequiredFormRule } from '@/utils/form/rule';
+import { formatDate } from '@/utils/common';
+import EntityRelationshipDesigner from './modules/entity-relationship-designer.vue';
 
 interface Props {
   projectId?: string;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  projectId: ''
-});
+const props = defineProps<Props>();
 
-// 项目选择相关状态
+interface Entity {
+  id: string;
+  projectId: string;
+  name: string;
+  code: string;
+  tableName: string;
+  description?: string;
+  category: string;
+  status: 'DRAFT' | 'ACTIVE' | 'INACTIVE';
+  fieldCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const router = useRouter();
+
+// State
+const viewMode = ref<'list' | 'designer'>('list');
+const loading = ref(false);
+const entities = ref<Entity[]>([]);
+const searchQuery = ref('');
+const categoryFilter = ref('');
+const showEntityModal = ref(false);
+const editingEntity = ref<Entity | null>(null);
+const entityFormRef = ref<FormInst | null>(null);
 const selectedProjectId = ref<string>(props.projectId || '');
 const projectOptions = ref<Array<{ label: string; value: string }>>([]);
 const projectLoading = ref(false);
 
-// 当前有效的项目ID
-const currentProjectId = computed(() => props.projectId || selectedProjectId.value);
-
-// Create a wrapper function for the API call
-const getEntityListApi = (params: any) => {
-  const projectId = currentProjectId.value;
-  if (!projectId) {
-    return Promise.resolve({
-      records: [] as Api.Lowcode.Entity[],
-      total: 0,
-      current: 1,
-      size: 10
-    } as Api.Lowcode.EntityList);
-  }
-  return fetchGetEntityList({
-    ...params,
-    projectId
-  });
-};
-
-const {
-  columns,
-  columnChecks,
-  data,
-  getData,
-  getDataByPage,
-  loading,
-  mobilePagination,
-  searchParams,
-  resetSearchParams
-} = useTable({
-  apiFn: getEntityListApi,
-  apiParams: {
-    current: 1,
-    size: 10
-  } as any,
-  columns: () => [
-    {
-      type: 'selection',
-      align: 'center',
-      width: 48
-    },
-    {
-      key: 'index',
-      title: $t('common.index'),
-      align: 'center',
-      width: 64
-    },
-    {
-      key: 'name',
-      title: $t('page.lowcode.entity.name'),
-      align: 'center',
-      minWidth: 100
-    },
-    {
-      key: 'code',
-      title: $t('page.lowcode.entity.code'),
-      align: 'center',
-      minWidth: 120
-    },
-    {
-      key: 'tableName',
-      title: $t('page.lowcode.entity.tableName'),
-      align: 'center',
-      minWidth: 120
-    },
-    {
-      key: 'category',
-      title: $t('page.lowcode.entity.category'),
-      align: 'center',
-      width: 100,
-      render: row => {
-        const categoryMap: Record<string, NaiveUI.ThemeColor> = {
-          core: 'primary',
-          business: 'info',
-          system: 'warning',
-          config: 'success'
-        };
-
-        const label = row.category || '未知';
-        return <NTag type={categoryMap[row.category] || 'default'}>{label}</NTag>;
-      }
-    },
-    {
-      key: 'description',
-      title: $t('page.lowcode.entity.description'),
-      align: 'center',
-      minWidth: 150
-    },
-    {
-      key: 'status',
-      title: $t('common.status'),
-      align: 'center',
-      width: 100,
-      render: row => {
-        if (row.status === null) {
-          return null;
-        }
-
-        const tagMap: Record<Api.Lowcode.EntityStatus, NaiveUI.ThemeColor> = {
-          DRAFT: 'warning',
-          PUBLISHED: 'success',
-          DEPRECATED: 'error'
-        };
-
-        const label = row.status ? $t(`page.lowcode.entity.status.${row.status}` as any) : '未知';
-
-        return <NTag type={row.status ? (tagMap[row.status] || 'default') : 'default'}>{label}</NTag>;
-      }
-    },
-    {
-      key: 'createdAt',
-      title: $t('common.createdAt'),
-      align: 'center',
-      width: 180,
-      render: row => {
-        return new Date(row.createdAt).toLocaleString();
-      }
-    },
-    {
-      key: 'operate',
-      title: $t('common.operate'),
-      align: 'center',
-      width: 200,
-      render: row => (
-        <NSpace justify={'center'}>
-          <NButton size={'small'} type={'primary'} onClick={() => handleViewFields(row.id)}>
-            字段
-          </NButton>
-          <NButton size={'small'} type={'primary'} onClick={() => handleEdit(row.id)}>
-            {$t('common.edit')}
-          </NButton>
-          <NPopconfirm
-            onPositiveClick={() => handleDelete(row.id)}
-            v-slots={{
-              default: () => $t('common.confirmDelete'),
-              trigger: () => (
-                <NButton size={'small'} type={'error'}>
-                  {$t('common.delete')}
-                </NButton>
-              )
-            }}
-          />
-        </NSpace>
-      )
-    }
-  ]
+const pagination = ref({
+  page: 1,
+  pageSize: 10,
+  itemCount: 0,
+  showSizePicker: true,
+  pageSizes: [10, 20, 50, 100]
 });
 
-const {
-  drawerVisible,
-  operateType,
-  editingData,
-  handleAdd,
-  handleEdit,
-  checkedRowKeys,
-  onBatchDeleted,
-  onDeleted
-  // closeDrawer
-} = useTableOperate(data, getData);
+// Form
+const entityForm = reactive({
+  name: '',
+  code: '',
+  tableName: '',
+  category: 'business',
+  description: ''
+});
 
-async function handleBatchDelete() {
-  // NaiveUI的 data-table 组件的 checked-row-keys 类型是 DataTableRowKey[]
-  // 但实际上这里的 keys 是 string[]，因为我们设置了 row-key="row => row.id"
-  const keys = checkedRowKeys.value as string[];
+// Computed
+const currentProjectId = computed(() => props.projectId || selectedProjectId.value);
 
-  await Promise.all(keys.map(key => fetchDeleteEntity(key)));
+const filteredEntities = computed(() => {
+  let filtered = entities.value;
 
-  onBatchDeleted();
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    filtered = filtered.filter(entity =>
+      entity.name.toLowerCase().includes(query) ||
+      entity.code.toLowerCase().includes(query) ||
+      entity.tableName.toLowerCase().includes(query)
+    );
+  }
+
+  if (categoryFilter.value) {
+    filtered = filtered.filter(entity => entity.category === categoryFilter.value);
+  }
+
+  return filtered;
+});
+
+// Options
+const categoryOptions = [
+  { label: $t('page.lowcode.entity.categories.core'), value: 'core' },
+  { label: $t('page.lowcode.entity.categories.business'), value: 'business' },
+  { label: $t('page.lowcode.entity.categories.system'), value: 'system' },
+  { label: $t('page.lowcode.entity.categories.config'), value: 'config' }
+];
+
+// Form rules
+const entityRules: FormRules = {
+  name: createRequiredFormRule($t('page.lowcode.entity.nameRequired')),
+  code: createRequiredFormRule($t('page.lowcode.entity.codeRequired')),
+  tableName: createRequiredFormRule($t('page.lowcode.entity.tableNameRequired')),
+  category: createRequiredFormRule($t('page.lowcode.entity.categoryRequired'))
+};
+
+// Table columns
+const columns: DataTableColumns<Entity> = [
+  { title: $t('page.lowcode.entity.name'), key: 'name', width: 150, fixed: 'left' },
+  { title: $t('page.lowcode.entity.code'), key: 'code', width: 120 },
+  { title: $t('page.lowcode.entity.tableName'), key: 'tableName', width: 120 },
+  { title: $t('page.lowcode.entity.category'), key: 'category', width: 100 },
+  {
+    title: $t('page.lowcode.entity.status'),
+    key: 'status',
+    width: 100,
+    render: (row) => h('NTag', { type: getStatusType(row.status) },
+      $t(`page.lowcode.entity.status.${row.status.toLowerCase()}`)
+    )
+  },
+  { title: $t('page.lowcode.entity.fieldCount'), key: 'fieldCount', width: 80, align: 'center' },
+  {
+    title: $t('page.lowcode.entity.createdAt'),
+    key: 'createdAt',
+    width: 150,
+    render: (row) => formatDate(row.createdAt)
+  },
+  {
+    title: $t('common.actions'),
+    key: 'actions',
+    width: 200,
+    fixed: 'right',
+    render: (row) => [
+      h('NButton',
+        {
+          size: 'small',
+          type: 'primary',
+          onClick: () => handleDesignFields(row),
+          style: { marginRight: '8px' }
+        },
+        $t('page.lowcode.entity.designFields')
+      ),
+      h('NButton',
+        {
+          size: 'small',
+          onClick: () => handleEditEntity(row),
+          style: { marginRight: '8px' }
+        },
+        $t('common.edit')
+      ),
+      h('NButton',
+        {
+          size: 'small',
+          type: 'error',
+          onClick: () => handleDeleteEntity(row)
+        },
+        $t('common.delete')
+      )
+    ]
+  }
+];
+
+// Methods
+function getStatusType(status: string): 'success' | 'warning' | 'error' | 'info' {
+  const statusMap: Record<string, 'success' | 'warning' | 'error' | 'info'> = {
+    ACTIVE: 'success',
+    DRAFT: 'warning',
+    INACTIVE: 'error'
+  };
+  return statusMap[status] || 'info';
 }
 
-async function handleDelete(id: string) {
-  await fetchDeleteEntity(id);
-  onDeleted();
+function handleNameChange() {
+  // Auto-generate code and table name from name
+  if (entityForm.name && !editingEntity.value) {
+    entityForm.code = entityForm.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_|_$/g, '');
+
+    entityForm.tableName = entityForm.code;
+  }
 }
 
-function handleViewFields(entityId: string) {
-  router.push({
-    path: '/lowcode/field',
-    query: { entityId }
-  });
+function handleSearch() {
+  // Debounced search implementation would go here
 }
 
-function openDrawer(operateType: any) {
-  // 验证是否选择了项目
+function handleFilterChange() {
+  // Filter change logic
+}
+
+function handlePageChange(page: number) {
+  pagination.value.page = page;
+}
+
+function handlePageSizeChange(pageSize: number) {
+  pagination.value.pageSize = pageSize;
+  pagination.value.page = 1;
+}
+
+function handleCreateEntity() {
   if (!currentProjectId.value) {
     window.$message?.warning('请先选择一个项目');
     return;
   }
 
-  // 验证项目ID是否为有效的UUID格式
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(currentProjectId.value)) {
-    window.$message?.error('项目ID格式无效，请重新选择项目');
-    return;
-  }
-
-  handleAdd();
+  Object.assign(entityForm, {
+    name: '',
+    code: '',
+    tableName: '',
+    category: 'business',
+    description: ''
+  });
+  editingEntity.value = null;
+  showEntityModal.value = true;
 }
 
-function getTableData() {
-  getData();
+function handleEditEntity(entity: Entity) {
+  Object.assign(entityForm, entity);
+  editingEntity.value = entity;
+  showEntityModal.value = true;
 }
 
-// 加载项目列表
+function handleDesignFields(entity: Entity) {
+  router.push(`/lowcode/entity/${entity.id}/fields`);
+}
+
+function handleDeleteEntity(entity: Entity) {
+  window.$dialog?.error({
+    title: $t('common.confirm'),
+    content: $t('page.lowcode.entity.deleteConfirm'),
+    positiveText: $t('common.delete'),
+    negativeText: $t('common.cancel'),
+    onPositiveClick: () => {
+      // Delete entity logic here
+      window.$message?.success($t('common.deleteSuccess'));
+    }
+  });
+}
+
+function handleImportEntities() {
+  window.$message?.info('导入实体功能开发中');
+}
+
+async function handleSaveEntity() {
+  await entityFormRef.value?.validate();
+
+  // Save entity logic here
+  showEntityModal.value = false;
+  window.$message?.success($t('common.saveSuccess'));
+}
+
 async function loadProjects() {
-  if (props.projectId) return; // 如果已经有项目ID，不需要加载
+  if (props.projectId) return;
 
   try {
     projectLoading.value = true;
-    const response = await fetchGetAllProjects();
 
-    // Handle different response structures
-    let projects: any[] = [];
-    if (Array.isArray(response)) {
-      projects = response;
-    } else if (response && Array.isArray((response as any).data)) {
-      projects = (response as any).data;
-    } else if (response && Array.isArray((response as any).records)) {
-      projects = (response as any).records;
-    } else {
-      console.warn('Unexpected response structure:', response);
-      projects = [];
-    }
+    // Mock data
+    const mockProjects = [
+      { id: 'project-1', name: 'E-commerce Platform' },
+      { id: 'project-2', name: 'CRM System' }
+    ];
 
-    projectOptions.value = projects.map((project: any) => ({
+    projectOptions.value = mockProjects.map(project => ({
       label: project.name,
       value: project.id
     }));
@@ -318,29 +406,74 @@ async function loadProjects() {
   }
 }
 
-// 处理项目选择变化
 function handleProjectChange(projectId: string | null) {
   selectedProjectId.value = projectId || '';
   if (projectId) {
-    (searchParams as any).projectId = projectId;
-    getTableData();
+    loadEntities();
   }
 }
 
-// 监听项目ID变化，重新获取数据
-watch(
-  () => props.projectId,
-  () => {
-    if (props.projectId) {
-      (searchParams as any).projectId = props.projectId;
-      getTableData();
-    }
-  },
-  { immediate: true }
-);
+async function loadEntities() {
+  if (!currentProjectId.value) return;
 
-// 组件挂载时加载项目列表
-loadProjects();
+  try {
+    loading.value = true;
+
+    // Mock data
+    const mockEntities: Entity[] = [
+      {
+        id: 'entity-1',
+        projectId: currentProjectId.value,
+        name: 'User',
+        code: 'user',
+        tableName: 'users',
+        description: 'User entity for authentication and profile management',
+        category: 'core',
+        status: 'ACTIVE',
+        fieldCount: 8,
+        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'entity-2',
+        projectId: currentProjectId.value,
+        name: 'Product',
+        code: 'product',
+        tableName: 'products',
+        description: 'Product catalog entity',
+        category: 'business',
+        status: 'ACTIVE',
+        fieldCount: 12,
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ];
+
+    entities.value = mockEntities;
+    pagination.value.itemCount = mockEntities.length;
+  } catch (error) {
+    console.error('Failed to load entities:', error);
+    window.$message?.error($t('page.lowcode.entity.loadFailed'));
+  } finally {
+    loading.value = false;
+  }
+}
+
+// Lifecycle
+onMounted(() => {
+  loadProjects();
+  if (currentProjectId.value) {
+    loadEntities();
+  }
+});
 </script>
 
-<style scoped></style>
+<style scoped>
+.enhanced-entity-management {
+  @apply p-6;
+}
+
+.entity-list-view {
+  @apply space-y-4;
+}
+</style>

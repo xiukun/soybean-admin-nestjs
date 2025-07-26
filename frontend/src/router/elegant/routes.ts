@@ -191,6 +191,16 @@ export const generatedRoutes: GeneratedRoute[] = [
         }
       },
       {
+        name: 'lowcode_entity-fields',
+        path: '/lowcode/entity/:id/fields',
+        component: 'view.lowcode_entity_modules_entity_field_designer',
+        meta: {
+          title: 'lowcode_entity-fields',
+          i18nKey: 'route.lowcode_entity-fields',
+          hideInMenu: true
+        }
+      },
+      {
         name: 'lowcode_field',
         path: '/lowcode/field',
         component: 'view.lowcode_field',
