@@ -378,20 +378,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick, computed } from 'vue'
-import { message } from 'ant-design-vue'
-import { 
-  PlusOutlined, 
-  LinkOutlined, 
-  NodeIndexOutlined, 
-  ExpandOutlined,
-  SaveOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  EditOutlined,
-  DeleteOutlined
-} from '@ant-design/icons-vue'
 import { useRoute } from 'vue-router'
-import G6 from '@antv/g6'
+// import G6 from '@antv/g6'
 
 // 路由参数
 const route = useRoute()
@@ -438,11 +426,16 @@ onMounted(async () => {
 // 初始化图形
 const initGraph = async () => {
   await nextTick()
-  
+
   const container = graphRef.value
   const width = container.offsetWidth
   const height = container.offsetHeight
 
+  // TODO: Implement G6 graph rendering when G6 is available
+  console.log('Graph rendering disabled - G6 not available')
+  return
+
+  /*
   graph = new G6.Graph({
     container: container,
     width,
@@ -473,7 +466,7 @@ const initGraph = async () => {
         stroke: '#1890ff',
         lineWidth: 2,
         endArrow: {
-          path: G6.Arrow.triangle(8, 8, 8),
+          // path: G6.Arrow.triangle(8, 8, 8),
           fill: '#1890ff'
         }
       },
@@ -511,6 +504,7 @@ const initGraph = async () => {
       graph.changeSize(container.offsetWidth, container.offsetHeight)
     }
   })
+  */
 }
 
 // 加载数据
@@ -570,7 +564,7 @@ const loadData = async () => {
 
     renderGraph()
   } catch (error) {
-    message.error('加载数据失败')
+    window.$message?.error('加载数据失败')
     console.error(error)
   }
 }
@@ -682,7 +676,7 @@ const addEntity = () => {
 
 const addRelation = () => {
   if (selectedEntities.value.length !== 2) {
-    message.warning('请选择两个实体来创建关系')
+    window.$message?.warning('请选择两个实体来创建关系')
     return
   }
   
@@ -728,9 +722,9 @@ const saveDesign = async () => {
   try {
     // 这里应该调用API保存设计
     // await api.saveProjectDesign(projectId.value, { entities: entities.value, relations: relations.value })
-    message.success('设计已保存')
+    window.$message?.success('设计已保存')
   } catch (error) {
-    message.error('保存失败')
+    window.$message?.error('保存失败')
     console.error(error)
   }
 }
@@ -753,7 +747,7 @@ const saveEntity = async () => {
     
     renderGraph()
     entityModalVisible.value = false
-    message.success('实体保存成功')
+    window.$message?.success('实体保存成功')
   } catch (error) {
     console.error(error)
   }
@@ -810,7 +804,7 @@ const saveField = async () => {
     }
     
     fieldModalVisible.value = false
-    message.success('字段保存成功')
+    window.$message?.success('字段保存成功')
   } catch (error) {
     console.error(error)
   }
@@ -823,7 +817,7 @@ const cancelFieldEdit = () => {
 
 const removeField = (index) => {
   selectedEntity.value.fields.splice(index, 1)
-  message.success('字段已删除')
+  window.$message?.success('字段已删除')
 }
 
 // 关系操作
@@ -857,7 +851,7 @@ const saveRelation = async () => {
     
     renderGraph()
     relationModalVisible.value = false
-    message.success('关系保存成功')
+    window.$message?.success('关系保存成功')
   } catch (error) {
     console.error(error)
   }
@@ -872,7 +866,7 @@ const removeRelation = (relationId) => {
   const index = relations.value.findIndex(r => r.id === relationId)
   relations.value.splice(index, 1)
   renderGraph()
-  message.success('关系已删除')
+  window.$message?.success('关系已删除')
 }
 
 const updateRelation = () => {

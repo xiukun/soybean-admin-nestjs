@@ -74,10 +74,11 @@
         </div>
         
         <div class="flex-1 border border-gray-200 rounded">
-          <MonacoEditor
+          <NInput
             v-model:value="previewContent"
-            :language="getEditorLanguage(previewTemplate?.language)"
-            :options="{ readOnly: true }"
+            type="textarea"
+            :rows="20"
+            readonly
             class="h-full"
           />
         </div>
@@ -98,7 +99,7 @@ import { ref, computed, onMounted, h } from 'vue';
 import type { DataTableColumns } from 'naive-ui';
 import { $t } from '@/locales';
 import { formatDate } from '@/utils/common';
-import MonacoEditor from '@/components/common/monaco-editor.vue';
+// import MonacoEditor from '@/components/common/monaco-editor.vue';
 
 interface Props {
   projectId: string;

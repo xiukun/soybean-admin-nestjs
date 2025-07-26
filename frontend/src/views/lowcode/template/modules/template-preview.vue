@@ -22,12 +22,12 @@
       <div class="flex-1 flex flex-col gap-4">
         <NCard :title="$t('page.lowcode.template.content')" size="small" class="flex-1">
           <div class="h-300px border border-gray-200 rounded">
-            <MonacoEditor
+            <NInput
               v-model:value="templateContent"
-              language="handlebars"
-              :options="editorOptions"
-              class="h-full"
+              type="textarea"
+              :rows="15"
               readonly
+              class="h-full"
             />
           </div>
         </NCard>
@@ -61,10 +61,11 @@
           <NTabs v-model:value="activeTab" type="line">
             <NTabPane name="output" :tab="$t('page.lowcode.template.output')">
               <div class="h-300px border border-gray-200 rounded">
-                <MonacoEditor
+                <NInput
                   v-model:value="previewOutput"
-                  :language="getOutputLanguage()"
-                  :options="{ ...editorOptions, readOnly: true }"
+                  type="textarea"
+                  :rows="15"
+                  readonly
                   class="h-full"
                 />
               </div>
@@ -161,7 +162,7 @@
 import { ref, computed, watch } from 'vue';
 import type { Component } from 'vue';
 import { NInput, NInputNumber, NSwitch, NSelect } from 'naive-ui';
-import { MonacoEditor } from '@/components/custom/monaco-editor';
+// import { MonacoEditor } from '@/components/custom/monaco-editor';
 import { $t } from '@/locales';
 
 interface Props {

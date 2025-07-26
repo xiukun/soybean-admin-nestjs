@@ -578,32 +578,6 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import { message } from 'ant-design-vue'
-import {
-  PlusOutlined,
-  SearchOutlined,
-  ImportOutlined,
-  ExportOutlined,
-  TableOutlined,
-  AppstoreOutlined,
-  EyeOutlined,
-  EditOutlined,
-  CopyOutlined,
-  ExperimentOutlined,
-  MoreOutlined,
-  DatabaseOutlined,
-  ApiOutlined,
-  ControlOutlined,
-  FileTextOutlined,
-  AppstoreAddOutlined,
-  BugOutlined,
-  FunctionOutlined,
-  FormatPainterOutlined,
-  CheckCircleOutlined,
-  PlayCircleOutlined,
-  ClearOutlined,
-  DownloadOutlined
-} from '@ant-design/icons-vue'
 
 // 响应式数据
 const templates = ref([])
@@ -1003,7 +977,7 @@ public class {{entityName}} {
     ]
     pagination.total = templates.value.length
   } catch (error) {
-    message.error('加载模板失败')
+    window.$message?.error('加载模板失败')
     console.error(error)
   } finally {
     loading.value = false
@@ -1155,9 +1129,9 @@ const toggleTemplateStatus = async (template: any) => {
     // await api.updateTemplate(template.id, { status: newStatus })
     
     template.status = newStatus
-    message.success(`模板已${newStatus === 'active' ? '启用' : '禁用'}`)
+    window.$message?.success(`模板已${newStatus === 'active' ? '启用' : '禁用'}`)
   } catch (error) {
-    message.error('操作失败')
+    window.$message?.error('操作失败')
     console.error(error)
   }
 }

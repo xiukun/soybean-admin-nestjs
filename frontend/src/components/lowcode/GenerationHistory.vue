@@ -61,10 +61,10 @@
               </NTag>
             </NDescriptionsItem>
             <NDescriptionsItem :label="$t('page.lowcode.codeGeneration.startTime')">
-              {{ formatDateTime(selectedRecord.startTime) }}
+              {{ formatDate(selectedRecord.startTime) }}
             </NDescriptionsItem>
             <NDescriptionsItem :label="$t('page.lowcode.codeGeneration.endTime')">
-              {{ selectedRecord.endTime ? formatDateTime(selectedRecord.endTime) : '-' }}
+              {{ selectedRecord.endTime ? formatDate(selectedRecord.endTime) : '-' }}
             </NDescriptionsItem>
             <NDescriptionsItem :label="$t('page.lowcode.codeGeneration.duration')">
               {{ getDuration(selectedRecord) }}
@@ -164,7 +164,7 @@
 import { ref, computed, onMounted, h } from 'vue';
 import type { DataTableColumns } from 'naive-ui';
 import { $t } from '@/locales';
-import { formatDateTime } from '@/utils/common';
+import { formatDate } from '@/utils/common';
 
 interface GenerationRecord {
   id: string;
@@ -276,7 +276,7 @@ const columns: DataTableColumns<GenerationRecord> = [
     title: $t('page.lowcode.codeGeneration.startTime'),
     key: 'startTime',
     width: 180,
-    render: (row) => formatDateTime(row.startTime)
+    render: (row) => formatDate(row.startTime)
   },
   {
     title: $t('page.lowcode.codeGeneration.duration'),

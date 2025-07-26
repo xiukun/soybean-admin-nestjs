@@ -47,6 +47,7 @@
     "update-pkg": "sa update-pkg"
   },
   "dependencies": {
+    "@antv/g6": "^4.8.24",
     "@better-scroll/core": "2.5.1",
     "@iconify/vue": "5.0.0",
     "@maita/amis-tools": "^0.1.7",

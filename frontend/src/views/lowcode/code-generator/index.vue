@@ -3,25 +3,29 @@
     <!-- 头部工具栏 -->
     <div class="generator-header">
       <div class="header-left">
-        <a-breadcrumb>
-          <a-breadcrumb-item>
+        <NBreadcrumb>
+          <NBreadcrumbItem>
             <router-link to="/lowcode/projects">项目管理</router-link>
-          </a-breadcrumb-item>
-          <a-breadcrumb-item>
+          </NBreadcrumbItem>
+          <NBreadcrumbItem>
             <router-link :to="`/lowcode/projects/${projectId}`">{{ projectInfo?.name }}</router-link>
-          </a-breadcrumb-item>
-          <a-breadcrumb-item>代码生成</a-breadcrumb-item>
-        </a-breadcrumb>
+          </NBreadcrumbItem>
+          <NBreadcrumbItem>代码生成</NBreadcrumbItem>
+        </NBreadcrumb>
       </div>
       <div class="header-right">
-        <a-button @click="refreshData">
-          <template #icon><ReloadOutlined /></template>
+        <NButton @click="refreshData">
+          <template #icon>
+            <NIcon><icon-mdi-refresh /></NIcon>
+          </template>
           刷新
-        </a-button>
-        <a-button type="primary" @click="batchGenerate" :disabled="selectedEntities.length === 0">
-          <template #icon><ThunderboltOutlined /></template>
+        </NButton>
+        <NButton type="primary" @click="batchGenerate" :disabled="selectedEntities.length === 0">
+          <template #icon>
+            <NIcon><icon-mdi-lightning-bolt /></NIcon>
+          </template>
           批量生成 ({{ selectedEntities.length }})
-        </a-button>
+        </NButton>
       </div>
     </div>
 
@@ -31,20 +35,22 @@
       <div class="entities-panel">
         <div class="panel-header">
           <h3>实体列表</h3>
-          <a-button type="link" size="small" @click="selectAllEntities">
+          <NButton text size="small" @click="selectAllEntities">
             {{ selectedEntities.length === entities.length ? '取消全选' : '全选' }}
-          </a-button>
+          </NButton>
         </div>
-        
+
         <div class="entities-list">
           <div class="search-box">
-            <a-input
+            <NInput
               v-model:value="entitySearchText"
               placeholder="搜索实体..."
-              allow-clear
+              clearable
             >
-              <template #prefix><SearchOutlined /></template>
-            </a-input>
+              <template #prefix>
+                <NIcon><icon-mdi-magnify /></NIcon>
+              </template>
+            </NInput>
           </div>
           
           <div class="entity-items">
@@ -59,9 +65,9 @@
               @click="selectEntity(entity)"
             >
               <div class="entity-checkbox">
-                <a-checkbox
+                <NCheckbox
                   :checked="selectedEntities.includes(entity.id)"
-                  @change="toggleEntitySelection(entity.id)"
+                  @update:checked="toggleEntitySelection(entity.id)"
                   @click.stop
                 />
               </div>
@@ -69,14 +75,16 @@
                 <div class="entity-name">{{ entity.name }}</div>
                 <div class="entity-desc">{{ entity.description || entity.tableName }}</div>
                 <div class="entity-stats">
-                  <a-tag size="small">{{ entity.fields?.length || 0 }} 字段</a-tag>
-                  <a-tag size="small" color="blue">{{ getEntityRelationsCount(entity.id) }} 关系</a-tag>
+                  <NTag size="small">{{ entity.fields?.length || 0 }} 字段</NTag>
+                  <NTag size="small" type="info">{{ getEntityRelationsCount(entity.id) }} 关系</NTag>
                 </div>
               </div>
               <div class="entity-actions">
-                <a-button type="text" size="small" @click.stop="generateSingleEntity(entity)">
-                  <template #icon><CodeOutlined /></template>
-                </a-button>
+                <NButton text size="small" @click.stop="generateSingleEntity(entity)">
+                  <template #icon>
+                    <NIcon><icon-mdi-code-tags /></NIcon>
+                  </template>
+                </NButton>
               </div>
             </div>
           </div>
@@ -85,117 +93,114 @@
 
       <!-- 中间配置面板 -->
       <div class="config-panel">
-        <a-tabs v-model:activeKey="activeConfigTab" type="card">
+        <NTabs v-model:value="activeConfigTab" type="card">
           <!-- 生成配置 -->
-          <a-tab-pane key="generation" tab="生成配置">
+          <NTabPane name="generation" tab="生成配置">
             <div class="config-section">
               <h4>框架选择</h4>
-              <a-radio-group v-model:value="generationConfig.framework" @change="onFrameworkChange">
-                <a-radio-button value="nestjs">NestJS</a-radio-button>
-                <a-radio-button value="spring-boot">Spring Boot</a-radio-button>
-                <a-radio-button value="express">Express</a-radio-button>
-                <a-radio-button value="django">Django</a-radio-button>
-              </a-radio-group>
+              <NRadioGroup v-model:value="generationConfig.framework" @update:value="onFrameworkChange">
+                <NRadioButton value="nestjs">NestJS</NRadioButton>
+                <NRadioButton value="spring-boot">Spring Boot</NRadioButton>
+                <NRadioButton value="express">Express</NRadioButton>
+                <NRadioButton value="django">Django</NRadioButton>
+              </NRadioGroup>
             </div>
 
             <div class="config-section">
               <h4>数据库类型</h4>
-              <a-select v-model:value="generationConfig.database" style="width: 200px">
-                <a-select-option value="postgresql">PostgreSQL</a-select-option>
-                <a-select-option value="mysql">MySQL</a-select-option>
-                <a-select-option value="mongodb">MongoDB</a-select-option>
-                <a-select-option value="sqlite">SQLite</a-select-option>
-              </a-select>
+              <NSelect
+                v-model:value="generationConfig.database"
+                style="width: 200px"
+                :options="databaseOptions"
+              />
             </div>
 
             <div class="config-section">
               <h4>ORM框架</h4>
-              <a-select v-model:value="generationConfig.orm" style="width: 200px">
-                <a-select-option value="typeorm">TypeORM</a-select-option>
-                <a-select-option value="prisma">Prisma</a-select-option>
-                <a-select-option value="sequelize">Sequelize</a-select-option>
-                <a-select-option value="mongoose">Mongoose</a-select-option>
-              </a-select>
+              <NSelect
+                v-model:value="generationConfig.orm"
+                style="width: 200px"
+                :options="ormOptions"
+              />
             </div>
 
             <div class="config-section">
               <h4>生成选项</h4>
-              <a-space direction="vertical">
-                <a-checkbox v-model:checked="generationConfig.features.swagger">
+              <NSpace vertical>
+                <NCheckbox v-model:checked="generationConfig.features.swagger">
                   Swagger API 文档
-                </a-checkbox>
-                <a-checkbox v-model:checked="generationConfig.features.validation">
+                </NCheckbox>
+                <NCheckbox v-model:checked="generationConfig.features.validation">
                   数据验证
-                </a-checkbox>
-                <a-checkbox v-model:checked="generationConfig.features.authentication">
+                </NCheckbox>
+                <NCheckbox v-model:checked="generationConfig.features.authentication">
                   身份认证
-                </a-checkbox>
-                <a-checkbox v-model:checked="generationConfig.features.caching">
+                </NCheckbox>
+                <NCheckbox v-model:checked="generationConfig.features.caching">
                   缓存支持
-                </a-checkbox>
-                <a-checkbox v-model:checked="generationConfig.features.testing">
+                </NCheckbox>
+                <NCheckbox v-model:checked="generationConfig.features.testing">
                   单元测试
-                </a-checkbox>
-                <a-checkbox v-model:checked="generationConfig.features.pagination">
+                </NCheckbox>
+                <NCheckbox v-model:checked="generationConfig.features.pagination">
                   分页查询
-                </a-checkbox>
-              </a-space>
+                </NCheckbox>
+              </NSpace>
             </div>
 
             <div class="config-section">
               <h4>命名规范</h4>
-              <a-form layout="vertical">
-                <a-form-item label="命名约定">
-                  <a-select v-model:value="generationConfig.naming.convention">
-                    <a-select-option value="camelCase">驼峰命名</a-select-option>
-                    <a-select-option value="pascalCase">帕斯卡命名</a-select-option>
-                    <a-select-option value="kebabCase">短横线命名</a-select-option>
-                    <a-select-option value="snakeCase">下划线命名</a-select-option>
-                  </a-select>
-                </a-form-item>
-                <a-form-item label="类名前缀">
-                  <a-input v-model:value="generationConfig.naming.prefix" placeholder="可选" />
-                </a-form-item>
-                <a-form-item label="类名后缀">
-                  <a-input v-model:value="generationConfig.naming.suffix" placeholder="可选" />
-                </a-form-item>
-              </a-form>
+              <NForm label-placement="top">
+                <NFormItem label="命名约定">
+                  <NSelect
+                    v-model:value="generationConfig.naming.convention"
+                    :options="namingConventionOptions"
+                  />
+                </NFormItem>
+                <NFormItem label="类名前缀">
+                  <NInput v-model:value="generationConfig.naming.prefix" placeholder="可选" />
+                </NFormItem>
+                <NFormItem label="类名后缀">
+                  <NInput v-model:value="generationConfig.naming.suffix" placeholder="可选" />
+                </NFormItem>
+              </NForm>
             </div>
 
             <div class="config-section">
               <h4>输出配置</h4>
-              <a-form layout="vertical">
-                <a-form-item label="输出目录">
-                  <a-input v-model:value="generationConfig.output.baseDir" placeholder="./generated" />
-                </a-form-item>
-                <a-form-item label="生成层级">
-                  <a-checkbox-group v-model:value="generationConfig.layers">
-                    <a-checkbox value="base">Base层 (基础代码)</a-checkbox>
-                    <a-checkbox value="biz">Biz层 (业务代码)</a-checkbox>
-                  </a-checkbox-group>
-                </a-form-item>
-              </a-form>
+              <NForm label-placement="top">
+                <NFormItem label="输出目录">
+                  <NInput v-model:value="generationConfig.output.baseDir" placeholder="./generated" />
+                </NFormItem>
+                <NFormItem label="生成层级">
+                  <NCheckboxGroup v-model:value="generationConfig.layers">
+                    <NCheckbox value="base">Base层 (基础代码)</NCheckbox>
+                    <NCheckbox value="biz">Biz层 (业务代码)</NCheckbox>
+                  </NCheckboxGroup>
+                </NFormItem>
+              </NForm>
             </div>
-          </a-tab-pane>
+          </NTabPane>
 
           <!-- 模板选择 -->
-          <a-tab-pane key="templates" tab="模板选择">
+          <NTabPane name="templates" tab="模板选择">
             <div class="templates-section">
               <div class="templates-filter">
-                <a-input
+                <NInput
                   v-model:value="templateSearchText"
                   placeholder="搜索模板..."
                   style="width: 200px"
                 >
-                  <template #prefix><SearchOutlined /></template>
-                </a-input>
-                <a-select v-model:value="templateCategoryFilter" style="width: 150px" placeholder="分类筛选">
-                  <a-select-option value="">全部分类</a-select-option>
-                  <a-select-option value="entity">实体模板</a-select-option>
-                  <a-select-option value="service">服务模板</a-select-option>
-                  <a-select-option value="controller">控制器模板</a-select-option>
-                  <a-select-option value="dto">DTO模板</a-select-option>
-                </a-select>
+                  <template #prefix>
+                    <NIcon><icon-mdi-magnify /></NIcon>
+                  </template>
+                </NInput>
+                <NSelect
+                  v-model:value="templateCategoryFilter"
+                  style="width: 150px"
+                  placeholder="分类筛选"
+                  :options="templateCategoryOptions"
+                />
               </div>
 
               <div class="templates-list">
@@ -207,7 +212,7 @@
                   @click="toggleTemplateSelection(template.id)"
                 >
                   <div class="template-checkbox">
-                    <a-checkbox
+                    <NCheckbox
                       :checked="selectedTemplates.includes(template.id)"
                       @click.stop
                     />
@@ -216,80 +221,82 @@
                     <div class="template-name">{{ template.name }}</div>
                     <div class="template-desc">{{ template.description }}</div>
                     <div class="template-meta">
-                      <a-tag size="small" :color="getCategoryColor(template.category)">
+                      <NTag size="small" :type="getCategoryColor(template.category)">
                         {{ template.category }}
-                      </a-tag>
-                      <a-tag size="small">{{ template.framework }}</a-tag>
+                      </NTag>
+                      <NTag size="small">{{ template.framework }}</NTag>
                       <span class="template-version">v{{ template.version }}</span>
                     </div>
                   </div>
                   <div class="template-actions">
-                    <a-button type="text" size="small" @click.stop="previewTemplate(template)">
-                      <template #icon><EyeOutlined /></template>
-                    </a-button>
+                    <NButton text size="small" @click.stop="previewTemplate(template)">
+                      <template #icon>
+                        <NIcon><icon-mdi-eye /></NIcon>
+                      </template>
+                    </NButton>
                   </div>
                 </div>
               </div>
             </div>
-          </a-tab-pane>
+          </NTabPane>
 
           <!-- 预览配置 -->
-          <a-tab-pane key="preview" tab="预览配置">
+          <NTabPane name="preview" tab="预览配置">
             <div class="preview-section">
               <div class="preview-entity-select">
                 <h4>选择预览实体</h4>
-                <a-select
+                <NSelect
                   v-model:value="previewEntityId"
                   style="width: 100%"
                   placeholder="选择要预览的实体"
-                  @change="generatePreview"
-                >
-                  <a-select-option v-for="entity in entities" :key="entity.id" :value="entity.id">
-                    {{ entity.name }}
-                  </a-select-option>
-                </a-select>
+                  :options="entityOptions"
+                  @update:value="generatePreview"
+                />
               </div>
 
               <div class="preview-templates" v-if="previewEntityId">
                 <h4>模板预览</h4>
-                <a-tabs v-model:activeKey="activePreviewTab" type="card" size="small">
-                  <a-tab-pane
+                <NTabs v-model:value="activePreviewTab" type="card" size="small">
+                  <NTabPane
                     v-for="template in selectedTemplateObjects"
                     :key="template.id"
+                    :name="template.id"
                     :tab="template.name"
                   >
                     <div class="preview-content">
                       <div class="preview-header">
                         <span>{{ template.name }} - {{ getPreviewEntityName() }}</span>
-                        <a-button size="small" @click="copyPreviewCode(template.id)">
-                          <template #icon><CopyOutlined /></template>
+                        <NButton size="small" @click="copyPreviewCode(template.id)">
+                          <template #icon>
+                            <NIcon><icon-mdi-content-copy /></NIcon>
+                          </template>
                           复制代码
-                        </a-button>
+                        </NButton>
                       </div>
                       <div class="preview-code">
                         <pre><code>{{ getPreviewCode(template.id) }}</code></pre>
                       </div>
                     </div>
-                  </a-tab-pane>
-                </a-tabs>
+                  </NTabPane>
+                </NTabs>
               </div>
             </div>
-          </a-tab-pane>
-        </a-tabs>
+          </NTabPane>
+        </NTabs>
       </div>
 
       <!-- 右侧生成结果 -->
       <div class="results-panel">
         <div class="panel-header">
           <h3>生成结果</h3>
-          <a-button type="link" size="small" @click="clearResults">
+          <NButton text size="small" @click="clearResults">
             清空结果
-          </a-button>
+          </NButton>
         </div>
 
         <div class="results-content">
           <div v-if="generationResults.length === 0" class="empty-results">
-            <a-empty description="暂无生成结果" />
+            <NEmpty description="暂无生成结果" />
           </div>
           
           <div v-else class="results-list">
@@ -309,10 +316,12 @@
                 <div class="result-meta">
                   <span class="result-files">{{ result.files?.length || 0 }} 文件</span>
                   <span class="result-time">{{ formatTime(result.createdAt) }}</span>
-                  <DownOutlined 
-                    class="expand-icon" 
+                  <NIcon
+                    class="expand-icon"
                     :class="{ expanded: expandedResults.includes(result.id) }"
-                  />
+                  >
+                    <icon-mdi-chevron-down />
+                  </NIcon>
                 </div>
               </div>
 
@@ -326,30 +335,38 @@
                     <div class="file-info">
                       <span class="file-path">{{ file.path }}</span>
                       <span class="file-size">{{ formatFileSize(file.size) }}</span>
-                      <a-tag size="small" :color="getFileTypeColor(file.type)">
+                      <NTag size="small" :type="getFileTypeColor(file.type)">
                         {{ file.type }}
-                      </a-tag>
+                      </NTag>
                     </div>
                     <div class="file-actions">
-                      <a-button type="text" size="small" @click="previewFile(file)">
-                        <template #icon><EyeOutlined /></template>
-                      </a-button>
-                      <a-button type="text" size="small" @click="downloadFile(file)">
-                        <template #icon><DownloadOutlined /></template>
-                      </a-button>
+                      <NButton text size="small" @click="showFilePreview(file)">
+                        <template #icon>
+                          <NIcon><icon-mdi-eye /></NIcon>
+                        </template>
+                      </NButton>
+                      <NButton text size="small" @click="downloadFile(file)">
+                        <template #icon>
+                          <NIcon><icon-mdi-download /></NIcon>
+                        </template>
+                      </NButton>
                     </div>
                   </div>
                 </div>
 
                 <div class="result-actions">
-                  <a-button size="small" @click="downloadResult(result)">
-                    <template #icon><DownloadOutlined /></template>
+                  <NButton size="small" @click="downloadResult(result)">
+                    <template #icon>
+                      <NIcon><icon-mdi-download /></NIcon>
+                    </template>
                     下载全部
-                  </a-button>
-                  <a-button size="small" @click="regenerateResult(result)">
-                    <template #icon><ReloadOutlined /></template>
+                  </NButton>
+                  <NButton size="small" @click="regenerateResult(result)">
+                    <template #icon>
+                      <NIcon><icon-mdi-refresh /></NIcon>
+                    </template>
                     重新生成
-                  </a-button>
+                  </NButton>
                 </div>
               </div>
             </div>
@@ -359,39 +376,41 @@
     </div>
 
     <!-- 文件预览弹窗 -->
-    <a-modal
-      v-model:open="filePreviewVisible"
+    <NModal
+      v-model:show="filePreviewVisible"
       title="文件预览"
-      width="80%"
-      :footer="null"
+      style="width: 80%"
+      preset="dialog"
     >
       <div class="file-preview">
         <div class="preview-header">
           <span class="file-path">{{ previewFile?.path }}</span>
-          <a-button size="small" @click="copyFileContent">
-            <template #icon><CopyOutlined /></template>
+          <NButton size="small" @click="copyFileContent">
+            <template #icon>
+              <NIcon><icon-mdi-content-copy /></NIcon>
+            </template>
             复制代码
-          </a-button>
+          </NButton>
         </div>
         <div class="preview-content">
           <pre><code>{{ previewFile?.content }}</code></pre>
         </div>
       </div>
-    </a-modal>
+    </NModal>
 
     <!-- 批量生成进度弹窗 -->
-    <a-modal
-      v-model:open="batchGenerationVisible"
+    <NModal
+      v-model:show="batchGenerationVisible"
       title="批量生成进度"
       :closable="false"
-      :maskClosable="false"
-      :footer="batchGenerationCompleted ? ['确定'] : null"
-      @ok="batchGenerationVisible = false"
+      :mask-closable="false"
+      preset="dialog"
+      :show-icon="false"
     >
       <div class="batch-progress">
-        <a-progress
-          :percent="batchProgress"
-          :status="batchGenerationCompleted ? 'success' : 'active'"
+        <NProgress
+          :percentage="batchProgress"
+          :status="batchGenerationCompleted ? 'success' : 'default'"
         />
         <div class="progress-info">
           <span>{{ batchProgressText }}</span>
@@ -407,24 +426,48 @@
           </div>
         </div>
       </div>
-    </a-modal>
+      <template #action>
+        <NButton v-if="batchGenerationCompleted" @click="batchGenerationVisible = false">
+          确定
+        </NButton>
+      </template>
+    </NModal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { message } from 'ant-design-vue'
-import {
-  ReloadOutlined,
-  ThunderboltOutlined,
-  SearchOutlined,
-  CodeOutlined,
-  EyeOutlined,
-  CopyOutlined,
-  DownloadOutlined,
-  DownOutlined
-} from '@ant-design/icons-vue'
+
+// 选项数据
+const databaseOptions = [
+  { label: 'PostgreSQL', value: 'postgresql' },
+  { label: 'MySQL', value: 'mysql' },
+  { label: 'MongoDB', value: 'mongodb' },
+  { label: 'SQLite', value: 'sqlite' }
+]
+
+const ormOptions = [
+  { label: 'TypeORM', value: 'typeorm' },
+  { label: 'Prisma', value: 'prisma' },
+  { label: 'Sequelize', value: 'sequelize' },
+  { label: 'Mongoose', value: 'mongoose' }
+]
+
+const namingConventionOptions = [
+  { label: '驼峰命名', value: 'camelCase' },
+  { label: '帕斯卡命名', value: 'pascalCase' },
+  { label: '短横线命名', value: 'kebabCase' },
+  { label: '下划线命名', value: 'snakeCase' }
+]
+
+const templateCategoryOptions = [
+  { label: '全部分类', value: '' },
+  { label: '实体模板', value: 'entity' },
+  { label: '服务模板', value: 'service' },
+  { label: '控制器模板', value: 'controller' },
+  { label: 'DTO模板', value: 'dto' }
+]
 
 // 路由参数
 const route = useRoute()
@@ -524,6 +567,13 @@ const selectedTemplateObjects = computed(() => {
   return templates.value.filter(template => selectedTemplates.value.includes(template.id))
 })
 
+const entityOptions = computed(() => {
+  return entities.value.map(entity => ({
+    label: entity.name,
+    value: entity.id
+  }))
+})
+
 // 初始化
 onMounted(async () => {
   await loadData()
@@ -569,7 +619,7 @@ const loadData = async () => {
       }
     ]
   } catch (error) {
-    message.error('加载数据失败')
+    window.$message?.error('加载数据失败')
     console.error(error)
   }
 }
@@ -613,7 +663,7 @@ const loadTemplates = async () => {
     // 默认选择所有模板
     selectedTemplates.value = templates.value.map(t => t.id)
   } catch (error) {
-    message.error('加载模板失败')
+    window.$message?.error('加载模板失败')
     console.error(error)
   }
 }
@@ -667,7 +717,7 @@ const getCategoryColor = (category) => {
 }
 
 const previewTemplate = (template) => {
-  message.info(`预览模板: ${template.name}`)
+  window.$message?.info(`预览模板: ${template.name}`)
 }
 
 // 配置操作
@@ -703,7 +753,7 @@ export class ${getPreviewEntityName()} {
       activePreviewTab.value = selectedTemplateObjects.value[0].id
     }
   } catch (error) {
-    message.error('生成预览失败')
+    window.$message?.error('生成预览失败')
     console.error(error)
   }
 }
@@ -720,13 +770,13 @@ const getPreviewCode = (templateId) => {
 const copyPreviewCode = (templateId) => {
   const code = getPreviewCode(templateId)
   navigator.clipboard.writeText(code)
-  message.success('代码已复制到剪贴板')
+  window.$message?.success('代码已复制到剪贴板')
 }
 
 // 生成操作
 const generateSingleEntity = async (entity) => {
   if (selectedTemplates.value.length === 0) {
-    message.warning('请先选择模板')
+    window.$message?.warning('请先选择模板')
     return
   }
 
@@ -760,21 +810,21 @@ const generateSingleEntity = async (entity) => {
     }
 
     generationResults.value.unshift(result)
-    message.success(`${entity.name} 代码生成成功`)
+    window.$message?.success(`${entity.name} 代码生成成功`)
   } catch (error) {
-    message.error('代码生成失败')
+    window.$message?.error('代码生成失败')
     console.error(error)
   }
 }
 
 const batchGenerate = async () => {
   if (selectedEntities.value.length === 0) {
-    message.warning('请先选择实体')
+    window.$message?.warning('请先选择实体')
     return
   }
 
   if (selectedTemplates.value.length === 0) {
-    message.warning('请先选择模板')
+    window.$message?.warning('请先选择模板')
     return
   }
 
@@ -827,13 +877,13 @@ const batchGenerate = async () => {
 
     batchProgressText.value = '批量生成完成'
     batchGenerationCompleted.value = true
-    message.success('批量生成完成')
+    window.$message?.success('批量生成完成')
   } catch (error) {
     batchGenerationLog.value.push({
       type: 'error',
       message: `生成失败: ${error.message}`
     })
-    message.error('批量生成失败')
+    window.$message?.error('批量生成失败')
     console.error(error)
   }
 }
@@ -878,14 +928,14 @@ const getFileTypeColor = (type) => {
   return colors[type] || 'default'
 }
 
-const previewFile = (file) => {
+const showFilePreview = (file) => {
   previewFile.value = file
   filePreviewVisible.value = true
 }
 
 const copyFileContent = () => {
   navigator.clipboard.writeText(previewFile.value.content)
-  message.success('文件内容已复制到剪贴板')
+  window.$message?.success('文件内容已复制到剪贴板')
 }
 
 const downloadFile = (file) => {
@@ -899,23 +949,23 @@ const downloadFile = (file) => {
 }
 
 const downloadResult = (result) => {
-  message.info(`下载 ${result.entityName} 的所有文件`)
+  window.$message?.info(`下载 ${result.entityName} 的所有文件`)
 }
 
 const regenerateResult = (result) => {
-  message.info(`重新生成 ${result.entityName}`)
+  window.$message?.info(`重新生成 ${result.entityName}`)
 }
 
 const clearResults = () => {
   generationResults.value = []
   expandedResults.value = []
-  message.success('结果已清空')
+  window.$message?.success('结果已清空')
 }
 
 const refreshData = () => {
   loadData()
   loadTemplates()
-  message.success('数据已刷新')
+  window.$message?.success('数据已刷新')
 }
 </script>
 
