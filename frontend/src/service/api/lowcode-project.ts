@@ -176,3 +176,29 @@ export function fetchValidateProjectConfig(config: any) {
     data: config
   });
 }
+
+/**
+ * deploy project
+ *
+ * @param id - project id
+ * @param config - deployment configuration
+ */
+export function fetchDeployProject(id: string, config: { port?: number; config?: Record<string, any> }) {
+  return request<Api.Lowcode.Project>({
+    url: `/projects/${id}/deploy`,
+    method: 'post',
+    data: config
+  });
+}
+
+/**
+ * stop project deployment
+ *
+ * @param id - project id
+ */
+export function fetchStopProjectDeployment(id: string) {
+  return request<Api.Lowcode.Project>({
+    url: `/projects/${id}/stop-deployment`,
+    method: 'post'
+  });
+}

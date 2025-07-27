@@ -20,7 +20,7 @@ const pathAliases = {
   'src/lib/bounded-contexts/api/': '@api-context/',
   'src/lib/bounded-contexts/codegen/': '@codegen/',
   'src/lib/bounded-contexts/project/': '@project/',
-  'src/lib/code-generation/': '@code-generation/',
+  'src/lib/bounded-contexts/code-generation/': '@code-generation/',
   
   // 共享模块别名
   'src/lib/shared/': '@shared/',

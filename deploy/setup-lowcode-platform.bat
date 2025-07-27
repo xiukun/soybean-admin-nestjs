@@ -60,13 +60,16 @@ set SQL_FILES[1]=01_create_table.sql:创建基础表结构
 set SQL_FILES[2]=04_sys_menu.sql:创建基础菜单数据
 set SQL_FILES[3]=10_lowcode_platform_tables.sql:创建低代码平台表结构
 set SQL_FILES[4]=17_prisma_schema_updates.sql:更新数据库结构（确保兼容性）
-set SQL_FILES[5]=16_lowcode_platform_pages.sql:创建低代码页面配置
-set SQL_FILES[6]=14_code_generation_menus.sql:创建低代码平台菜单
+set SQL_FILES[5]=18_project_deployment_features.sql:添加项目部署功能
+set SQL_FILES[6]=19_update_project_deployment_data.sql:更新项目部署数据
+set SQL_FILES[7]=16_lowcode_platform_pages.sql:创建低代码页面配置
+set SQL_FILES[8]=14_code_generation_menus.sql:创建低代码平台菜单
+set SQL_FILES[9]=20_deployment_verification.sql:验证部署功能
 
 set FAILED_COUNT=0
 
 REM 执行 SQL 文件
-for /L %%i in (0,1,6) do (
+for /L %%i in (0,1,9) do (
     set SQL_ENTRY=!SQL_FILES[%%i]!
     for /f "tokens=1,2 delims=:" %%a in ("!SQL_ENTRY!") do (
         set FILENAME=%%a

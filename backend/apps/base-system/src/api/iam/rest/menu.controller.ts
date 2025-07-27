@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Request,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
@@ -72,6 +73,24 @@ export class MenuController {
       MenuTreeProperties[]
     >(new MenusTreeQuery());
     return ApiRes.success(result);
+  }
+
+  @Get('isRouteExist')
+  @ApiOperation({
+    summary: 'Check if route exists',
+    description: 'Check if a route exists by route name.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns true if route exists, false otherwise.',
+  })
+  async isRouteExist(@Query('routeName') routeName: string): Promise<ApiRes<boolean>> {
+    try {
+      const menu = await this.menuService.getMenuByRouteName(routeName);
+      return ApiRes.success(!!menu);
+    } catch (error) {
+      return ApiRes.success(false);
+    }
   }
 
   @Post()

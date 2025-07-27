@@ -122,11 +122,9 @@ export const useLowcodeStore = defineStore('lowcode', () => {
       const { data } = await fetchGetAllProjects();
       if (data) {
         projects.value = data;
-        
-        // Auto-select first project if none selected
-        if (!currentProject.value && data.length > 0) {
-          await setCurrentProject(data[0].id);
-        }
+
+        // Only restore from localStorage, don't auto-select first project
+        // This prevents unwanted automatic navigation to demo-project-1
       }
     } catch (error) {
       console.error('Failed to load projects:', error);

@@ -7,6 +7,14 @@ export enum ProjectStatus {
   ARCHIVED = 'ARCHIVED'
 }
 
+// 部署状态枚举
+export enum DeploymentStatus {
+  INACTIVE = 'INACTIVE',
+  DEPLOYING = 'DEPLOYING',
+  DEPLOYED = 'DEPLOYED',
+  FAILED = 'FAILED'
+}
+
 // 项目属性接口
 export interface ProjectProperties {
   id?: string;
@@ -16,6 +24,12 @@ export interface ProjectProperties {
   version?: string;
   config?: any;
   status?: ProjectStatus;
+  // 新增部署相关属性
+  deploymentStatus?: DeploymentStatus;
+  deploymentPort?: number;
+  deploymentConfig?: any;
+  lastDeployedAt?: Date;
+  deploymentLogs?: string;
   createdBy: string;
   createdAt?: Date;
   updatedBy?: string;
@@ -39,12 +53,14 @@ export class Project extends AggregateRoot {
   static create(props: ProjectCreateProperties): Project {
     // 业务规则验证
     Project.validateBusinessRules(props);
-    
+
     const projectProps: ProjectProperties = {
       ...props,
       version: props.version || '1.0.0',
       status: props.status || ProjectStatus.ACTIVE,
       config: props.config || {},
+      deploymentStatus: props.deploymentStatus || DeploymentStatus.INACTIVE,
+      deploymentConfig: props.deploymentConfig || {},
       createdAt: props.createdAt || new Date(),
     };
 
@@ -98,6 +114,11 @@ export class Project extends AggregateRoot {
   get version(): string { return this.props.version || '1.0.0'; }
   get config(): any { return this.props.config; }
   get status(): ProjectStatus { return this.props.status || ProjectStatus.ACTIVE; }
+  get deploymentStatus(): DeploymentStatus { return this.props.deploymentStatus || DeploymentStatus.INACTIVE; }
+  get deploymentPort(): number | undefined { return this.props.deploymentPort; }
+  get deploymentConfig(): any { return this.props.deploymentConfig; }
+  get lastDeployedAt(): Date | undefined { return this.props.lastDeployedAt; }
+  get deploymentLogs(): string | undefined { return this.props.deploymentLogs; }
   get createdBy(): string { return this.props.createdBy; }
   get createdAt(): Date | undefined { return this.props.createdAt; }
   get updatedBy(): string | undefined { return this.props.updatedBy; }
@@ -134,6 +155,70 @@ export class Project extends AggregateRoot {
 
   isActive(): boolean {
     return this.status === ProjectStatus.ACTIVE;
+  }
+
+  // 部署相关业务方法
+  startDeployment(port?: number, config?: any): void {
+    if (this.deploymentStatus === DeploymentStatus.DEPLOYING) {
+      throw new Error('Project is already being deployed');
+    }
+
+    this.props.deploymentStatus = DeploymentStatus.DEPLOYING;
+    if (port) {
+      this.props.deploymentPort = port;
+    }
+    if (config) {
+      this.props.deploymentConfig = { ...this.props.deploymentConfig, ...config };
+    }
+    this.props.updatedAt = new Date();
+  }
+
+  completeDeployment(logs?: string): void {
+    if (this.deploymentStatus !== DeploymentStatus.DEPLOYING) {
+      throw new Error('Project is not being deployed');
+    }
+
+    this.props.deploymentStatus = DeploymentStatus.DEPLOYED;
+    this.props.lastDeployedAt = new Date();
+    if (logs) {
+      this.props.deploymentLogs = logs;
+    }
+    this.props.updatedAt = new Date();
+  }
+
+  failDeployment(errorMsg?: string): void {
+    if (this.deploymentStatus !== DeploymentStatus.DEPLOYING) {
+      throw new Error('Project is not being deployed');
+    }
+
+    this.props.deploymentStatus = DeploymentStatus.FAILED;
+    if (errorMsg) {
+      this.props.deploymentLogs = errorMsg;
+    }
+    this.props.updatedAt = new Date();
+  }
+
+  stopDeployment(): void {
+    if (this.deploymentStatus !== DeploymentStatus.DEPLOYED) {
+      throw new Error('Project is not deployed');
+    }
+
+    this.props.deploymentStatus = DeploymentStatus.INACTIVE;
+    this.props.updatedAt = new Date();
+  }
+
+  isDeployed(): boolean {
+    return this.deploymentStatus === DeploymentStatus.DEPLOYED;
+  }
+
+  canStop(): boolean {
+    return this.deploymentStatus === DeploymentStatus.DEPLOYED;
+  }
+
+  canDeploy(): boolean {
+    return this.status === ProjectStatus.ACTIVE &&
+           (this.deploymentStatus === DeploymentStatus.INACTIVE ||
+            this.deploymentStatus === DeploymentStatus.FAILED);
   }
 
   toJSON(): ProjectProperties {

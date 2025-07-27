@@ -4,6 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from '@src/app.module';
 import { PrismaService } from '@prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
+import { AmisDeploymentService } from '@project/application/services/amis-deployment.service';
 
 describe('Project Management Integration Tests', () => {
   let app: INestApplication;
@@ -291,6 +292,76 @@ describe('Project Management Integration Tests', () => {
     it('should handle database connection errors gracefully', async () => {
       // This test would require mocking database failures
       // For now, we'll skip it but it's important for production
+    });
+  });
+
+  describe('Project Deployment', () => {
+    let deploymentService: AmisDeploymentService;
+    let testProjectId: string;
+
+    beforeAll(async () => {
+      deploymentService = app.get<AmisDeploymentService>(AmisDeploymentService);
+
+      // Create a test project for deployment
+      const projectData = {
+        name: 'Deployment Test Project',
+        code: 'deployment-test',
+        description: 'Project for testing deployment functionality',
+        version: '1.0.0',
+        status: 'ACTIVE',
+      };
+
+      const response = await request(app.getHttpServer())
+        .post('/api/v1/projects')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(projectData)
+        .expect(201);
+
+      testProjectId = response.body.data.id;
+    });
+
+    describe('POST /api/v1/projects/:id/deploy', () => {
+      it('should deploy project successfully', async () => {
+        const deployConfig = {
+          port: 9525,
+          config: {
+            environment: 'test',
+            autoRestart: true
+          }
+        };
+
+        const response = await request(app.getHttpServer())
+          .post(`/api/v1/projects/${testProjectId}/deploy`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(deployConfig)
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.deploymentStatus).toBe('DEPLOYING');
+        expect(response.body.data.deploymentPort).toBe(9525);
+      });
+
+      it('should reject deployment with invalid port', async () => {
+        const invalidConfig = {
+          port: 80, // Privileged port
+          config: {}
+        };
+
+        await request(app.getHttpServer())
+          .post(`/api/v1/projects/${testProjectId}/deploy`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(invalidConfig)
+          .expect(400);
+      });
+    });
+
+    afterAll(async () => {
+      // Clean up test project
+      if (testProjectId) {
+        await prisma.project.delete({
+          where: { id: testProjectId }
+        });
+      }
     });
   });
 });

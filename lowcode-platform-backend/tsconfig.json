@@ -31,7 +31,7 @@
       "@api-context/*": ["src/lib/bounded-contexts/api/*"],
       "@codegen/*": ["src/lib/bounded-contexts/codegen/*"],
       "@project/*": ["src/lib/bounded-contexts/project/*"],
-      "@code-generation/*": ["src/lib/code-generation/*"],
+      "@code-generation/*": ["src/lib/bounded-contexts/code-generation/*"],
       "@shared/*": ["src/lib/shared/*"],
       "@config/*": ["src/lib/config/*"],
       "@utils/*": ["src/lib/utils/*"],

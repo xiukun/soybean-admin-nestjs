@@ -55,6 +55,14 @@ export class MenuService {
       },
     }));
   }
+
+  async getMenuByRouteName(routeName: string): Promise<MenuProperties | null> {
+    try {
+      return await this.repository.getMenuByRouteName(routeName);
+    } catch (error) {
+      return null;
+    }
+  }
 }
 
 function buildMenuTree(

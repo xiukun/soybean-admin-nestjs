@@ -3,6 +3,9 @@ declare namespace Api {
     /** Project status */
     type ProjectStatus = 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
 
+    /** Deployment status */
+    type DeploymentStatus = 'INACTIVE' | 'DEPLOYING' | 'DEPLOYED' | 'FAILED';
+
     /** Project */
     interface Project {
       /** Project ID */
@@ -19,6 +22,16 @@ declare namespace Api {
       config?: Record<string, any>;
       /** Project status */
       status: ProjectStatus;
+      /** Deployment status */
+      deploymentStatus?: DeploymentStatus;
+      /** Deployment port */
+      deploymentPort?: number;
+      /** Deployment configuration */
+      deploymentConfig?: Record<string, any>;
+      /** Last deployed time */
+      lastDeployedAt?: string;
+      /** Deployment logs */
+      deploymentLogs?: string;
       /** Created by */
       createdBy: string;
       /** Created time */

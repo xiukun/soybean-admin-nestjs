@@ -1,0 +1,21 @@
+[ ] NAME:Current Task List DESCRIPTION:Root task for conversation __NEW_AGENT__
+-[x] NAME:低代码平台项目管理系统重构 DESCRIPTION:对低代码平台项目管理系统进行全面重构，实现项目激活/停用功能、代码部署集成、数据库架构优化等功能
+--[x] NAME:修复项目管理跳转问题 DESCRIPTION:取消点击项目管理时自动跳转到 http://localhost:9527/lowcode/project/demo-project-1 的行为
+--[x] NAME:实现项目激活/停用功能 DESCRIPTION:实现项目启用/禁用切换功能，当项目设置为“启用”状态时执行部署操作
+--[x] NAME:数据库与架构重构 DESCRIPTION:重新设计数据库架构，更新 Prisma 模型，优化部署配置
+--[x] NAME:代码生成与部署集成 DESCRIPTION:整合 amis-lowcode-backend 代码生成器，实现自动部署功能
+--[x] NAME:模块化测试与提交 DESCRIPTION:逐个模块进行测试，确保功能正常后提交到 Git
+-[x] NAME:低代码平台项目管理系统重构 DESCRIPTION:对低代码平台项目管理系统进行全面重构，实现项目激活/停用功能、代码部署集成、数据库架构优化等功能
+--[x] NAME:修复项目管理跳转问题 DESCRIPTION:取消点击项目管理时自动跳转到 http://localhost:9527/lowcode/project/demo-project-1 的行为
+--[x] NAME:实现项目激活/停用功能 DESCRIPTION:实现项目启用/禁用切换功能，当项目设置为“启用”状态时执行部署操作
+--[x] NAME:数据库与架构重构 DESCRIPTION:重新设计数据库架构，更新 Prisma 模型，优化部署配置
+--[x] NAME:代码生成与部署集成 DESCRIPTION:整合 amis-lowcode-backend 代码生成器，实现自动部署功能
+--[x] NAME:模块化测试与提交 DESCRIPTION:逐个模块进行测试，确保功能正常后提交到 Git
+--[x] NAME:修复isRouteExist API问题 DESCRIPTION:解决前端路由守卫中的isRouteExist API 404错误问题
+--[x] NAME:前端界面优化 DESCRIPTION:优化项目管理界面，添加部署状态显示和操作按钮
+-[/] NAME:低代码平台项目管理系统全面重构 DESCRIPTION:对低代码平台项目管理系统进行全面重构，实现项目激活/停用功能、代码部署集成、数据库架构优化等功能
+-[/] NAME:低代码平台功能增强 DESCRIPTION:对低代码平台进行功能增强，包括部署功能、项目管理、性能优化和国际化修复
+--[x] NAME:国际化修复 DESCRIPTION:修复国际化文件中的重复属性和类型错误
+--[ ] NAME:增强部署功能 DESCRIPTION:添加部署日志实时查看、部署进度监控和部署配置自定义
+--[ ] NAME:完善项目管理 DESCRIPTION:添加项目模板功能、实现项目导入/导出、增加项目协作功能
+--[/] NAME:性能优化 DESCRIPTION:添加项目列表分页、实现搜索和过滤功能、优化大量项目的渲染性能

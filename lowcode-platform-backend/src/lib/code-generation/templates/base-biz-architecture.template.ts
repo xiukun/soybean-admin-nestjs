@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CodeTemplate } from '@code-generation/interfaces/code-template.interface';
+import { CodeTemplate } from '../interfaces/code-template.interface';
 
 @Injectable()
 export class BaseBizArchitectureTemplate {

@@ -15,6 +15,7 @@
 7. **测试API** - 在线测试API功能
 8. **管理模板** - 维护代码生成模板
 9. **生成代码** - 一键生成NestJS业务服务
+10. **项目部署** - 激活/停用项目，自动部署到amis-lowcode-backend
 
 ## SQL文件说明
 
@@ -35,6 +36,21 @@
    - 确保所有必要的表和字段存在
    - 检查并创建缺失的数据库结构
    - 保持与Prisma Schema的一致性
+
+4. **18_project_deployment_features.sql** - 项目部署功能
+   - 添加项目部署状态字段
+   - 创建项目部署历史表
+   - 设置部署相关索引和约束
+
+5. **19_update_project_deployment_data.sql** - 部署数据更新
+   - 更新现有项目的部署状态
+   - 插入示例部署记录
+   - 初始化部署配置
+
+6. **20_deployment_verification.sql** - 部署功能验证
+   - 验证数据库结构完整性
+   - 检查部署数据一致性
+   - 生成部署功能统计报告
 
 ### 依赖文件
 
@@ -60,11 +76,20 @@ psql -d your_database -f deploy/postgres/10_lowcode_platform_tables.sql
 # 4. 更新数据库结构（确保兼容性）
 psql -d your_database -f deploy/postgres/17_prisma_schema_updates.sql
 
-# 5. 创建低代码页面配置
+# 5. 添加项目部署功能
+psql -d your_database -f deploy/postgres/18_project_deployment_features.sql
+
+# 6. 更新项目部署数据
+psql -d your_database -f deploy/postgres/19_update_project_deployment_data.sql
+
+# 7. 创建低代码页面配置
 psql -d your_database -f deploy/postgres/16_lowcode_platform_pages.sql
 
-# 6. 创建低代码平台菜单
+# 8. 创建低代码平台菜单
 psql -d your_database -f deploy/postgres/14_code_generation_menus.sql
+
+# 9. 验证部署功能
+psql -d your_database -f deploy/postgres/20_deployment_verification.sql
 ```
 
 ### 2. 验证安装

@@ -218,36 +218,28 @@ async function loadProjects() {
         value: project.id
       }));
 
-      // 自动选择第一个项目
-      selectedProjectId.value = projects[0].id;
-      await handleProjectChange(projects[0].id);
+      // 不自动选择项目，让用户手动选择
+      // 这避免了自动跳转到 demo-project-1 的问题
     } else {
       console.warn('No projects found');
-      // 使用模拟数据
+      // 使用模拟数据，但不自动选择
       projectOptions.value = [
         { label: '示例项目1', value: 'project-1' },
         { label: '示例项目2', value: 'project-2' },
         { label: '示例项目3', value: 'project-3' }
       ];
-      selectedProjectId.value = 'project-1';
-      await handleProjectChange('project-1');
+      // 不自动选择项目，让用户手动选择
     }
   } catch (error) {
     console.error('Failed to load projects:', error);
 
-    // 使用模拟数据作为后备方案
+    // 使用模拟数据作为后备方案，但不自动选择
     projectOptions.value = [
       { label: '示例项目1', value: 'project-1' },
       { label: '示例项目2', value: 'project-2' },
       { label: '示例项目3', value: 'project-3' }
     ];
-    selectedProjectId.value = 'project-1';
-
-    try {
-      await handleProjectChange('project-1');
-    } catch (err) {
-      console.error('Failed to handle project change:', err);
-    }
+    // 不自动选择项目，让用户手动选择
 
     // 显示友好的错误提示
     window.$message?.warning('项目列表加载失败，已使用示例数据。');

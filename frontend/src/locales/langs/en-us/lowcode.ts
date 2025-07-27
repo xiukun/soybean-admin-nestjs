@@ -101,6 +101,19 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       inactive: 'Inactive',
       archived: 'Archived'
     },
+    deploy: 'Deploy',
+    deployProject: 'Deploy Project',
+    stopDeployment: 'Stop Deployment',
+    stopProjectDeployment: 'Stop Project Deployment',
+    deploymentStatusLabel: 'Deployment Status',
+    port: 'Port',
+    lastDeployed: 'Last Deployed',
+    deploymentStatus: {
+      inactive: 'Not Deployed',
+      deploying: 'Deploying',
+      deployed: 'Deployed',
+      failed: 'Deployment Failed'
+    },
     form: {
       name: {
         placeholder: 'Please enter project name',

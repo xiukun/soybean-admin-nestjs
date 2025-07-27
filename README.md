@@ -57,6 +57,9 @@ SoybeanAdmin NestJS 是一个基于 NestJS 的后台管理系统脚手架，采�
 - **前端技术栈**：Vue3、Vite5、TypeScript、Pinia 和 UnoCSS。
 - **主题定制**：丰富的主题配置选项。
 - **国际化支持**：轻松实现多语言支持。
+- **🚀 低代码平台**：内置完整的低代码开发平台，支持可视化开发。
+- **📦 项目部署**：支持项目激活/停用，自动代码生成和部署管理。
+- **🔧 智能代码生成**：基于实体模型自动生成 CRUD 接口和业务代码。
 
 ## 项目结构
 
@@ -97,6 +100,28 @@ soybean-admin-nestjs/
 │   ├── node_modules/        # 依赖包
 │   └── prisma/              # Prisma 配置和迁移
 ├── frontend/                # 前端代码
+├── lowcode-platform-backend/ # 低代码平台后端服务
+│   ├── src/                 # 源代码
+│   │   ├── api/             # API 接口层
+│   │   ├── lib/             # 业务逻辑层
+│   │   │   └── bounded-contexts/ # 限界上下文
+│   │   │       ├── project/ # 项目管理
+│   │   │       ├── entity/  # 实体管理
+│   │   │       └── code-generation/ # 代码生成
+│   │   └── infra/           # 基础设施层
+│   ├── prisma/              # 数据库模型和迁移
+│   └── test/                # 测试文件
+├── amis-lowcode-backend/    # Amis 低代码业务后端
+│   ├── src/                 # 源代码
+│   │   ├── base/            # 自动生成的基础代码
+│   │   ├── biz/             # 业务定制代码
+│   │   └── shared/          # 共享模块
+│   └── prisma/              # 数据库配置
+├── deploy/                  # 部署脚本和配置
+│   ├── postgres/            # PostgreSQL 初始化脚本
+│   └── docker/              # Docker 配置文件
+├── docs/                    # 项目文档
+├── scripts/                 # 工具脚本
 └── README.md                # 项目说明文档
 ```
 

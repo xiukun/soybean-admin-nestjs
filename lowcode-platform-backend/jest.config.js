@@ -31,7 +31,7 @@ module.exports = {
     '^@api-context/(.*)$': '<rootDir>/src/lib/bounded-contexts/api/$1',
     '^@codegen/(.*)$': '<rootDir>/src/lib/bounded-contexts/codegen/$1',
     '^@project/(.*)$': '<rootDir>/src/lib/bounded-contexts/project/$1',
-    '^@code-generation/(.*)$': '<rootDir>/src/lib/code-generation/$1',
+    '^@code-generation/(.*)$': '<rootDir>/src/lib/bounded-contexts/code-generation/$1',
     '^@shared/(.*)$': '<rootDir>/src/lib/shared/$1',
     '^@config/(.*)$': '<rootDir>/src/lib/config/$1',
     '^@utils/(.*)$': '<rootDir>/src/lib/utils/$1',

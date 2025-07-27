@@ -66,15 +66,31 @@
       <div class="project-tech mb-4" v-if="project.config?.techStack">
         <NText class="tech-label" depth="3">{{ $t('page.lowcode.project.techStack') }}:</NText>
         <NSpace class="tech-tags" size="small">
-          <NTag 
-            v-for="tech in project.config.techStack" 
-            :key="tech" 
-            size="small" 
+          <NTag
+            v-for="tech in project.config.techStack"
+            :key="tech"
+            size="small"
             type="info"
           >
             {{ tech }}
           </NTag>
         </NSpace>
+      </div>
+
+      <!-- 部署状态 -->
+      <div class="deployment-status mb-4">
+        <div class="deployment-header mb-2">
+          <NText depth="3">{{ $t('page.lowcode.project.deploymentStatusLabel') }}</NText>
+          <NTag :type="deploymentStatusType" size="small">{{ deploymentStatusText }}</NTag>
+        </div>
+        <div v-if="project.deploymentPort" class="deployment-info">
+          <NText depth="3" class="mr-2">{{ $t('page.lowcode.project.port') }}:</NText>
+          <NText>{{ project.deploymentPort }}</NText>
+        </div>
+        <div v-if="project.lastDeployedAt" class="deployment-info">
+          <NText depth="3" class="mr-2">{{ $t('page.lowcode.project.lastDeployed') }}:</NText>
+          <NText>{{ lastDeployedTime }}</NText>
+        </div>
       </div>
 
       <!-- 项目进度 -->
@@ -115,9 +131,9 @@
             
             <NTooltip>
               <template #trigger>
-                <NButton 
-                  type="info" 
-                  size="small" 
+                <NButton
+                  type="info"
+                  size="small"
                   @click="$emit('generate', project)"
                 >
                   <template #icon>
@@ -127,6 +143,41 @@
                 </NButton>
               </template>
               {{ $t('page.lowcode.project.generateCode') }}
+            </NTooltip>
+
+            <!-- 部署按钮 -->
+            <NTooltip v-if="canDeploy">
+              <template #trigger>
+                <NButton
+                  type="success"
+                  size="small"
+                  :loading="isDeploying"
+                  @click="$emit('deploy', project)"
+                >
+                  <template #icon>
+                    <NIcon><icon-mdi-rocket-launch /></NIcon>
+                  </template>
+                  {{ $t('page.lowcode.project.deploy') }}
+                </NButton>
+              </template>
+              {{ $t('page.lowcode.project.deployProject') }}
+            </NTooltip>
+
+            <!-- 停止部署按钮 -->
+            <NTooltip v-if="canStopDeployment">
+              <template #trigger>
+                <NButton
+                  type="error"
+                  size="small"
+                  @click="$emit('stop-deployment', project)"
+                >
+                  <template #icon>
+                    <NIcon><icon-mdi-stop /></NIcon>
+                  </template>
+                  {{ $t('page.lowcode.project.stopDeployment') }}
+                </NButton>
+              </template>
+              {{ $t('page.lowcode.project.stopProjectDeployment') }}
             </NTooltip>
           </NSpace>
 
@@ -156,7 +207,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, h } from 'vue';
 import { NIcon } from 'naive-ui';
 import { $t } from '@/locales';
 
@@ -171,6 +222,9 @@ interface Props {
     code: string;
     description?: string;
     status: 'active' | 'inactive' | 'archived';
+    deploymentStatus?: 'INACTIVE' | 'DEPLOYING' | 'DEPLOYED' | 'FAILED';
+    deploymentPort?: number;
+    lastDeployedAt?: string;
     entityCount?: number;
     relationshipCount?: number;
     generatedFiles?: number;
@@ -189,6 +243,8 @@ interface Emits {
   (e: 'design', project: any): void;
   (e: 'generate', project: any): void;
   (e: 'view', project: any): void;
+  (e: 'deploy', project: any): void;
+  (e: 'stop-deployment', project: any): void;
 }
 
 const props = defineProps<Props>();
@@ -247,22 +303,64 @@ const progressColor = computed(() => {
   return '#67c23a';
 });
 
+// 部署状态相关计算属性
+const deploymentStatusType = computed(() => {
+  const statusMap = {
+    INACTIVE: 'default',
+    DEPLOYING: 'warning',
+    DEPLOYED: 'success',
+    FAILED: 'error'
+  };
+  return statusMap[props.project.deploymentStatus || 'INACTIVE'];
+});
+
+const deploymentStatusText = computed(() => {
+  const statusMap = {
+    INACTIVE: $t('page.lowcode.project.deploymentStatus.inactive'),
+    DEPLOYING: $t('page.lowcode.project.deploymentStatus.deploying'),
+    DEPLOYED: $t('page.lowcode.project.deploymentStatus.deployed'),
+    FAILED: $t('page.lowcode.project.deploymentStatus.failed')
+  };
+  return statusMap[props.project.deploymentStatus || 'INACTIVE'];
+});
+
+const lastDeployedTime = computed(() => {
+  if (!props.project.lastDeployedAt) return '';
+  const date = new Date(props.project.lastDeployedAt);
+  return date.toLocaleString();
+});
+
+const isDeploying = computed(() => {
+  return props.project.deploymentStatus === 'DEPLOYING';
+});
+
+const canDeploy = computed(() => {
+  return props.project.status === 'active' &&
+         (props.project.deploymentStatus === 'INACTIVE' ||
+          props.project.deploymentStatus === 'FAILED');
+});
+
+const canStopDeployment = computed(() => {
+  return props.project.deploymentStatus === 'DEPLOYING' ||
+         props.project.deploymentStatus === 'DEPLOYED';
+});
+
 // 更多操作菜单
 const moreActions = computed(() => [
   {
     label: $t('page.lowcode.project.configure'),
     key: 'configure',
-    icon: () => <NIcon><icon-mdi-cog /></NIcon>
+    icon: () => h(NIcon, null, { default: () => h('icon-mdi-cog') })
   },
   {
     label: $t('page.lowcode.project.view'),
     key: 'view',
-    icon: () => <NIcon><icon-mdi-eye /></NIcon>
+    icon: () => h(NIcon, null, { default: () => h('icon-mdi-eye') })
   },
   {
     label: $t('common.edit'),
     key: 'edit',
-    icon: () => <NIcon><icon-mdi-pencil /></NIcon>
+    icon: () => h(NIcon, null, { default: () => h('icon-mdi-pencil') })
   },
   {
     type: 'divider',
@@ -271,12 +369,12 @@ const moreActions = computed(() => [
   {
     label: $t('page.lowcode.project.export'),
     key: 'export',
-    icon: () => <NIcon><icon-mdi-export /></NIcon>
+    icon: () => h(NIcon, null, { default: () => h('icon-mdi-export') })
   },
   {
     label: $t('page.lowcode.project.duplicate'),
     key: 'duplicate',
-    icon: () => <NIcon><icon-mdi-content-copy /></NIcon>
+    icon: () => h(NIcon, null, { default: () => h('icon-mdi-content-copy') })
   },
   {
     type: 'divider',
@@ -285,7 +383,7 @@ const moreActions = computed(() => [
   {
     label: $t('common.delete'),
     key: 'delete',
-    icon: () => <NIcon><icon-mdi-delete /></NIcon>,
+    icon: () => h(NIcon, null, { default: () => h('icon-mdi-delete') }),
     props: {
       style: 'color: #d03050'
     }
@@ -419,6 +517,30 @@ const handleMoreAction = (key: string) => {
 
 .tech-tags {
   flex: 1;
+}
+
+.deployment-status {
+  border: 1px solid #e0e0e6;
+  border-radius: 6px;
+  padding: 12px;
+  background: #fafafa;
+}
+
+.deployment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.deployment-info {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.deployment-info:last-child {
+  margin-bottom: 0;
 }
 
 .project-progress {

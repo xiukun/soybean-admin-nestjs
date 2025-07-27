@@ -45,7 +45,7 @@
     "@api-context": "${workspaceRoot}/src/lib/bounded-contexts/api",
     "@codegen": "${workspaceRoot}/src/lib/bounded-contexts/codegen",
     "@project": "${workspaceRoot}/src/lib/bounded-contexts/project",
-    "@code-generation": "${workspaceRoot}/src/lib/code-generation",
+    "@code-generation": "${workspaceRoot}/src/lib/bounded-contexts/code-generation",
     "@shared": "${workspaceRoot}/src/lib/shared",
     "@config": "${workspaceRoot}/src/lib/config",
     "@utils": "${workspaceRoot}/src/lib/utils",

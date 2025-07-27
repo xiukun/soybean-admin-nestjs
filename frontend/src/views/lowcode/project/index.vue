@@ -72,85 +72,43 @@
     </NCard>
 
     <!-- Project List -->
-    <div v-if="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      <NCard
-        v-for="project in filteredProjects"
-        :key="project.id"
-        hoverable
-        class="project-card cursor-pointer"
-        @click="handleViewProject(project)"
-      >
-        <template #header>
-          <NSpace justify="space-between" align="center">
-            <NSpace align="center">
-              <NAvatar :size="32" :style="{ backgroundColor: getProjectColor(project.id) }">
-                {{ project.name.charAt(0).toUpperCase() }}
-              </NAvatar>
-              <div>
-                <NText strong>{{ project.name }}</NText>
-                <br>
-                <NText depth="3" style="font-size: 12px">{{ project.code }}</NText>
-              </div>
-            </NSpace>
-            <NDropdown :options="getActionOptions(project)" @select="(key) => handleActionSelect(key, project)">
-              <NButton size="small" quaternary circle @click.stop>
-                <template #icon>
-                  <NIcon><icon-mdi-dots-vertical /></NIcon>
-                </template>
-              </NButton>
-            </NDropdown>
-          </NSpace>
-        </template>
+    <div v-if="viewMode === 'grid'">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+        <ProjectCard
+          v-for="project in paginatedProjects"
+          :key="project.id"
+          :project="project"
+          @edit="handleEditProject"
+          @delete="handleDeleteProject"
+          @configure="handleConfigureProject"
+          @design="handleDesignProject"
+          @generate="handleGenerateProject"
+          @view="handleViewProject"
+          @deploy="handleDeployProject"
+          @stop-deployment="handleStopDeployment"
+        />
+      </div>
 
-        <template #header-extra>
-          <NTag :type="getStatusType(project.status)" size="small">
-            {{ $t(`page.lowcode.project.status.${project.status.toLowerCase()}`) }}
-          </NTag>
-        </template>
-
-        <div class="space-y-3">
-          <NText depth="3" class="line-clamp-2">{{ project.description || $t('page.lowcode.project.noDescription') }}</NText>
-
-          <NSpace justify="space-between">
-            <NSpace vertical size="small">
-              <NText depth="3" style="font-size: 12px">
-                <NIcon size="14" class="mr-1"><icon-mdi-layers /></NIcon>
-                {{ project.entityCount || 0 }} {{ $t('page.lowcode.project.entities') }}
-              </NText>
-              <NText depth="3" style="font-size: 12px">
-                <NIcon size="14" class="mr-1"><icon-mdi-file-code /></NIcon>
-                {{ project.templateCount || 0 }} {{ $t('page.lowcode.project.templates') }}
-              </NText>
-            </NSpace>
-            <NSpace vertical size="small">
-              <NText depth="3" style="font-size: 12px">
-                <NIcon size="14" class="mr-1"><icon-mdi-account /></NIcon>
-                {{ project.createdBy }}
-              </NText>
-              <NText depth="3" style="font-size: 12px">
-                <NIcon size="14" class="mr-1"><icon-mdi-clock /></NIcon>
-                {{ formatDate(project.createdAt) }}
-              </NText>
-            </NSpace>
-          </NSpace>
-
-          <div v-if="project.config?.framework" class="flex flex-wrap gap-1">
-            <NTag size="tiny" type="info">{{ project.config.framework }}</NTag>
-            <NTag v-if="project.config?.architecture" size="tiny" type="info">{{ project.config.architecture }}</NTag>
-          </div>
-        </div>
-
-        <template #action>
-          <NSpace justify="space-between">
-            <NButton size="small" @click.stop="handleEditProject(project)">
-              {{ $t('common.edit') }}
-            </NButton>
-            <NButton size="small" type="primary" @click.stop="handleOpenProject(project)">
-              {{ $t('page.lowcode.project.open') }}
-            </NButton>
-          </NSpace>
-        </template>
-      </NCard>
+      <!-- Grid Pagination -->
+      <div class="flex justify-center">
+        <NPagination
+          v-model:page="pagination.page"
+          v-model:page-size="pagination.pageSize"
+          :item-count="pagination.itemCount"
+          :page-sizes="pagination.pageSizes"
+          show-size-picker
+          show-quick-jumper
+          :page-slot="7"
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+        >
+          <template #prefix="{ itemCount }">
+            <span class="text-sm text-gray-500">
+              {{ $t('common.total') }} {{ itemCount }} {{ $t('common.items') }}
+            </span>
+          </template>
+        </NPagination>
+      </div>
     </div>
 
     <!-- Table View -->
@@ -316,6 +274,86 @@
         </NSpace>
       </template>
     </NModal>
+
+    <!-- Deploy Configuration Modal -->
+    <NModal v-model:show="showDeployModal" preset="card" style="width: 500px">
+      <template #header>
+        <NSpace align="center">
+          <NIcon size="20" color="#18a058">
+            <icon-mdi-rocket-launch />
+          </NIcon>
+          部署项目: {{ deployingProject?.name }}
+        </NSpace>
+      </template>
+
+      <NForm :model="deployForm" label-placement="left" label-width="100px">
+        <NFormItem label="部署端口" path="port">
+          <NInputNumber
+            v-model:value="deployForm.port"
+            :min="1024"
+            :max="65535"
+            placeholder="请输入端口号"
+            style="width: 100%"
+          />
+          <template #feedback>
+            <NText depth="3" style="font-size: 12px">
+              建议使用 9522-9600 范围内的端口
+            </NText>
+          </template>
+        </NFormItem>
+
+        <NFormItem label="自动重启">
+          <NSwitch v-model:value="deployForm.config.autoRestart" />
+          <template #feedback>
+            <NText depth="3" style="font-size: 12px">
+              启用后，服务异常退出时会自动重启
+            </NText>
+          </template>
+        </NFormItem>
+
+        <NFormItem label="运行环境" path="config.environment">
+          <NSelect
+            v-model:value="deployForm.config.environment"
+            :options="[
+              { label: '开发环境', value: 'development' },
+              { label: '测试环境', value: 'testing' },
+              { label: '生产环境', value: 'production' }
+            ]"
+            placeholder="选择运行环境"
+          />
+        </NFormItem>
+
+        <NFormItem label="部署信息">
+          <NAlert type="info" style="margin-bottom: 12px">
+            <template #icon>
+              <NIcon><icon-mdi-information /></NIcon>
+            </template>
+            部署将会：
+            <ul style="margin: 8px 0 0 20px; padding: 0;">
+              <li>生成项目代码</li>
+              <li>更新 amis-lowcode-backend 配置</li>
+              <li>启动服务在指定端口</li>
+            </ul>
+          </NAlert>
+        </NFormItem>
+      </NForm>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="showDeployModal = false">取消</NButton>
+          <NButton
+            type="primary"
+            :loading="deployingProjects.has(deployingProject?.id || '')"
+            @click="confirmDeploy"
+          >
+            <template #icon>
+              <NIcon><icon-mdi-rocket-launch /></NIcon>
+            </template>
+            开始部署
+          </NButton>
+        </NSpace>
+      </template>
+    </NModal>
   </div>
 </template>
 
@@ -327,6 +365,7 @@ import { $t } from '@/locales';
 import { createRequiredFormRule } from '@/utils/form/rule';
 import { formatDate } from '@/utils/common';
 import { useLowcodeStore } from '@/store/modules/lowcode';
+import ProjectCard from './modules/project-card.vue';
 import {
   fetchGetAllProjects,
   fetchAddProject,
@@ -343,6 +382,12 @@ interface Project {
   code: string;
   description?: string;
   status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+  // 新增部署相关字段
+  deploymentStatus?: 'INACTIVE' | 'DEPLOYING' | 'DEPLOYED' | 'FAILED';
+  deploymentPort?: number;
+  deploymentConfig?: any;
+  lastDeployedAt?: string;
+  deploymentLogs?: string;
   config?: {
     framework?: string;
     architecture?: string;
@@ -379,6 +424,19 @@ const importJson = ref('');
 const gitUrl = ref('');
 const gitBranch = ref('main');
 const importFileList = ref<UploadFileInfo[]>([]);
+
+// 部署相关状态
+const deployingProjects = ref(new Set<string>());
+const stoppingProjects = ref(new Set<string>());
+const showDeployModal = ref(false);
+const deployingProject = ref<Project | null>(null);
+const deployForm = reactive({
+  port: 9522,
+  config: {
+    autoRestart: true,
+    environment: 'development'
+  }
+});
 
 const pagination = ref({
   page: 1,
@@ -425,7 +483,21 @@ const filteredProjects = computed(() => {
     filtered = filtered.filter(project => project.config?.framework === frameworkFilter.value);
   }
 
+  // Update pagination item count
+  pagination.value.itemCount = filtered.length;
+
   return filtered;
+});
+
+// Paginated projects for grid view
+const paginatedProjects = computed(() => {
+  if (viewMode.value === 'table') {
+    return filteredProjects.value; // Table handles its own pagination
+  }
+
+  const start = (pagination.value.page - 1) * pagination.value.pageSize;
+  const end = start + pagination.value.pageSize;
+  return filteredProjects.value.slice(start, end);
 });
 
 // Options
@@ -542,14 +614,35 @@ const tableColumns: DataTableColumns<Project> = [
 
 // Action dropdown methods
 function getActionOptions(project: Project) {
-  return [
+  const baseOptions = [
     { label: $t('common.view'), key: 'view' },
     { label: $t('common.edit'), key: 'edit' },
     { label: $t('common.duplicate'), key: 'duplicate' },
-    { label: $t('common.export'), key: 'export' },
+    { label: $t('common.export'), key: 'export' }
+  ];
+
+  // 添加部署相关选项
+  const deploymentOptions = [];
+  if (project.deploymentStatus === 'INACTIVE' || project.deploymentStatus === 'FAILED') {
+    deploymentOptions.push({
+      label: '部署项目',
+      key: 'deploy',
+      icon: 'rocket-launch'
+    });
+  } else if (project.deploymentStatus === 'DEPLOYED') {
+    deploymentOptions.push({
+      label: '停止部署',
+      key: 'stop-deployment',
+      icon: 'stop'
+    });
+  }
+
+  const endOptions = [
     { label: $t('common.archive'), key: 'archive', disabled: project.status === 'ARCHIVED' },
     { label: $t('common.delete'), key: 'delete' }
   ];
+
+  return [...baseOptions, ...deploymentOptions, ...endOptions];
 }
 
 function handleActionSelect(key: string, project: Project) {
@@ -572,6 +665,104 @@ function handleActionSelect(key: string, project: Project) {
     case 'delete':
       handleDeleteProject(project);
       break;
+    case 'deploy':
+      handleDeployProject(project);
+      break;
+    case 'stop-deployment':
+      handleStopDeployment(project);
+      break;
+  }
+}
+
+// 部署相关方法
+async function handleDeployProject(project: Project) {
+  try {
+    deployingProjects.value.add(project.id);
+
+    // 显示部署配置对话框
+    deployingProject.value = project;
+    showDeployModal.value = true;
+  } catch (error) {
+    window.$message?.error(`部署项目失败: ${error.message}`);
+  } finally {
+    deployingProjects.value.delete(project.id);
+  }
+}
+
+async function confirmDeploy() {
+  if (!deployingProject.value) return;
+
+  try {
+    deployingProjects.value.add(deployingProject.value.id);
+
+    // 调用部署 API
+    const response = await fetch(`/api/v1/projects/${deployingProject.value.id}/deploy`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        port: deployForm.port,
+        config: deployForm.config
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('部署请求失败');
+    }
+
+    const result = await response.json();
+
+    if (result.success) {
+      window.$message?.success('项目部署已启动');
+      // 更新项目状态
+      const projectIndex = projects.value.findIndex(p => p.id === deployingProject.value!.id);
+      if (projectIndex !== -1) {
+        projects.value[projectIndex].deploymentStatus = 'DEPLOYING';
+      }
+      showDeployModal.value = false;
+    } else {
+      throw new Error(result.message || '部署失败');
+    }
+  } catch (error) {
+    window.$message?.error(`部署项目失败: ${error.message}`);
+  } finally {
+    deployingProjects.value.delete(deployingProject.value.id);
+  }
+}
+
+async function handleStopDeployment(project: Project) {
+  try {
+    stoppingProjects.value.add(project.id);
+
+    // 调用停止部署 API
+    const response = await fetch(`/api/v1/projects/${project.id}/stop-deployment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('停止部署请求失败');
+    }
+
+    const result = await response.json();
+
+    if (result.success) {
+      window.$message?.success('项目部署已停止');
+      // 更新项目状态
+      const projectIndex = projects.value.findIndex(p => p.id === project.id);
+      if (projectIndex !== -1) {
+        projects.value[projectIndex].deploymentStatus = 'INACTIVE';
+      }
+    } else {
+      throw new Error(result.message || '停止部署失败');
+    }
+  } catch (error) {
+    window.$message?.error(`停止部署失败: ${error.message}`);
+  } finally {
+    stoppingProjects.value.delete(project.id);
   }
 }
 
@@ -583,6 +774,26 @@ function getStatusType(status: string): 'success' | 'warning' | 'error' | 'info'
     ARCHIVED: 'error'
   };
   return statusMap[status] || 'info';
+}
+
+function getDeploymentStatusType(deploymentStatus?: string): 'success' | 'warning' | 'error' | 'info' {
+  const statusMap: Record<string, 'success' | 'warning' | 'error' | 'info'> = {
+    DEPLOYED: 'success',
+    DEPLOYING: 'info',
+    FAILED: 'error',
+    INACTIVE: 'warning'
+  };
+  return statusMap[deploymentStatus || 'INACTIVE'] || 'warning';
+}
+
+function getDeploymentStatusText(deploymentStatus?: string): string {
+  const statusMap: Record<string, string> = {
+    DEPLOYED: '已部署',
+    DEPLOYING: '部署中',
+    FAILED: '部署失败',
+    INACTIVE: '未部署'
+  };
+  return statusMap[deploymentStatus || 'INACTIVE'] || '未知';
 }
 
 function getProjectColor(projectId: string): string {
@@ -834,6 +1045,22 @@ function handleImport() {
     // File import logic here
     window.$message?.info($t('page.lowcode.project.fileImportNotImplemented'));
   }
+}
+
+// 添加缺失的处理函数
+function handleConfigureProject(project: Project) {
+  // 配置项目 - 可以打开项目配置页面或模态框
+  router.push(`/lowcode/project/${project.id}/config`);
+}
+
+function handleDesignProject(project: Project) {
+  // 设计实体 - 跳转到实体设计页面
+  router.push(`/lowcode/entity?projectId=${project.id}`);
+}
+
+function handleGenerateProject(project: Project) {
+  // 生成代码 - 跳转到代码生成页面
+  router.push(`/lowcode/code-generation?projectId=${project.id}`);
 }
 
 // Lifecycle

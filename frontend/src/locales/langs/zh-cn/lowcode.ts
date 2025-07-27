@@ -101,6 +101,19 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       inactive: '非活跃',
       archived: '已归档'
     },
+    deploy: '部署',
+    deployProject: '部署项目',
+    stopDeployment: '停止部署',
+    stopProjectDeployment: '停止项目部署',
+    deploymentStatusLabel: '部署状态',
+    port: '端口',
+    lastDeployed: '最后部署',
+    deploymentStatus: {
+      inactive: '未部署',
+      deploying: '部署中',
+      deployed: '已部署',
+      failed: '部署失败'
+    },
     form: {
       name: {
         placeholder: '请输入项目名称',

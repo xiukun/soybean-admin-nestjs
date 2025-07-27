@@ -321,10 +321,8 @@ async function loadProjects() {
         value: project.id
       }));
 
-      // 如果只有一个项目，自动选择
-      if (projectOptions.value.length === 1) {
-        selectedProjectId.value = projectOptions.value[0].value;
-      }
+      // 不自动选择项目，让用户手动选择
+      // 这避免了自动跳转到特定项目的问题
     }
   } catch (error) {
     console.error('Failed to load projects:', error);

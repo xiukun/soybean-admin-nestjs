@@ -22,6 +22,12 @@ model Project {
   version     String?        @default("1.0.0") @db.VarChar(20)
   config      Json?          @default("{}")
   status      String?        @default("ACTIVE") @db.VarChar(20)
+  // 新增部署相关字段
+  deploymentStatus String?   @default("INACTIVE") @map("deployment_status") @db.VarChar(20) // INACTIVE, DEPLOYING, DEPLOYED, FAILED
+  deploymentPort   Int?      @map("deployment_port") // 部署端口
+  deploymentConfig Json?     @map("deployment_config") @default("{}") // 部署配置
+  lastDeployedAt   DateTime? @map("last_deployed_at") @db.Timestamp(6) // 最后部署时间
+  deploymentLogs   String?   @map("deployment_logs") // 部署日志
   createdBy   String         @map("created_by") @db.VarChar(36)
   createdAt   DateTime?      @default(now()) @map("created_at") @db.Timestamp(6)
   updatedBy   String?        @map("updated_by") @db.VarChar(36)
@@ -31,6 +37,7 @@ model Project {
   entities    Entity[]
   queries     LowcodeQuery[]
   relations   Relation[]
+  deployments ProjectDeployment[]
 
   @@map("lowcode_projects")
   @@schema("lowcode")
@@ -299,6 +306,28 @@ model TemplateVersion {
   @@index([templateId], map: "idx_lowcode_template_versions_template_id")
   @@index([version], map: "idx_lowcode_template_versions_version")
   @@map("lowcode_template_versions")
+  @@schema("lowcode")
+}
+
+// 项目部署历史记录
+model ProjectDeployment {
+  id          String    @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
+  projectId   String    @map("project_id") @db.VarChar(36)
+  version     String    @db.VarChar(20)
+  status      String    @db.VarChar(20) // PENDING, DEPLOYING, DEPLOYED, FAILED, STOPPED
+  port        Int?      // 部署端口
+  config      Json?     @default("{}") // 部署配置
+  logs        String?   // 部署日志
+  startedAt   DateTime? @map("started_at") @db.Timestamp(6)
+  completedAt DateTime? @map("completed_at") @db.Timestamp(6)
+  errorMsg    String?   @map("error_msg") // 错误信息
+  createdBy   String    @map("created_by") @db.VarChar(36)
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId], map: "idx_project_deployments_project_id")
+  @@index([status], map: "idx_project_deployments_status")
+  @@map("lowcode_project_deployments")
   @@schema("lowcode")
 }
 

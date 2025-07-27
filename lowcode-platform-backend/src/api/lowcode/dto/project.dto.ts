@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsObject, IsEnum, Min } from 'class-validator';
+import { IsString, IsOptional, IsObject, IsEnum, IsNumber, Min } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ProjectStatus } from '@project/domain/project.model';
+import { ProjectStatus, DeploymentStatus } from '@project/domain/project.model';
 
 export class CreateProjectDto {
   @ApiProperty({ description: 'Project name' })
@@ -83,6 +83,21 @@ export class ProjectResponseDto {
   @ApiProperty({ description: 'Project status', enum: ProjectStatus })
   status: ProjectStatus;
 
+  @ApiProperty({ description: 'Deployment status', enum: DeploymentStatus })
+  deploymentStatus: DeploymentStatus;
+
+  @ApiPropertyOptional({ description: 'Deployment port' })
+  deploymentPort?: number;
+
+  @ApiPropertyOptional({ description: 'Deployment configuration' })
+  deploymentConfig?: any;
+
+  @ApiPropertyOptional({ description: 'Last deployed at' })
+  lastDeployedAt?: Date;
+
+  @ApiPropertyOptional({ description: 'Deployment logs' })
+  deploymentLogs?: string;
+
   @ApiProperty({ description: 'Created by' })
   createdBy: string;
 
@@ -118,6 +133,57 @@ export class ProjectListQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
+}
+
+export class DeployProjectDto {
+  @ApiPropertyOptional({ description: 'Deployment port' })
+  @IsOptional()
+  @IsNumber()
+  @Min(1024)
+  port?: number;
+
+  @ApiPropertyOptional({ description: 'Deployment configuration' })
+  @IsOptional()
+  @IsObject()
+  config?: any;
+}
+
+export class ProjectDeploymentResponseDto {
+  @ApiProperty({ description: 'Deployment ID' })
+  id: string;
+
+  @ApiProperty({ description: 'Project ID' })
+  projectId: string;
+
+  @ApiProperty({ description: 'Deployment version' })
+  version: string;
+
+  @ApiProperty({ description: 'Deployment status' })
+  status: string;
+
+  @ApiPropertyOptional({ description: 'Deployment port' })
+  port?: number;
+
+  @ApiPropertyOptional({ description: 'Deployment configuration' })
+  config?: any;
+
+  @ApiPropertyOptional({ description: 'Deployment logs' })
+  logs?: string;
+
+  @ApiPropertyOptional({ description: 'Started at' })
+  startedAt?: Date;
+
+  @ApiPropertyOptional({ description: 'Completed at' })
+  completedAt?: Date;
+
+  @ApiPropertyOptional({ description: 'Error message' })
+  errorMsg?: string;
+
+  @ApiProperty({ description: 'Created by' })
+  createdBy: string;
+
+  @ApiProperty({ description: 'Created at' })
+  createdAt: Date;
 }
 
 export class ProjectListResponseDto {

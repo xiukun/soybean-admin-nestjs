@@ -6,11 +6,11 @@ import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaService } from '@shared/services/prisma.service';
-import { TestUserModule } from './biz/modules/test-user.module';
-import { RoleModule } from '@modules/role.module';
 import { DatabaseInitService } from '@shared/database/database-init.service';
 import { JwtStrategy } from '@shared/strategies/jwt.strategy';
 import { JwtAuthGuard } from '@shared/guards/jwt-auth.guard';
+import { RoleModule } from './biz/modules/role.module';
+import { TestUserModule } from './biz/modules/test-user.module';
 
 @Module({
   imports: [
@@ -32,8 +32,9 @@ import { JwtAuthGuard } from '@shared/guards/jwt-auth.guard';
       inject: [ConfigService],
     }),
 
-    TestUserModule,
-    RoleModule
+    // 生成的业务模块
+    RoleModule,
+    TestUserModule
   ],
   controllers: [AppController],
   providers: [
@@ -49,4 +50,6 @@ import { JwtAuthGuard } from '@shared/guards/jwt-auth.guard';
 })
 export class AppModule {
   // This module is dynamically updated by the code generator
+  // Project: 1
+  // Updated: 2025-07-27T11:55:08.281Z
 }

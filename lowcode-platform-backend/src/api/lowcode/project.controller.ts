@@ -30,11 +30,14 @@ import {
   ProjectListQueryDto,
   ProjectListResponseDto,
   ProjectStatsResponseDto,
+  DeployProjectDto,
+  ProjectDeploymentResponseDto,
 } from '@api/lowcode/dto/project.dto';
 import { CreateProjectCommand } from '@project/application/commands/create-project.command';
 import { UpdateProjectCommand } from '@project/application/commands/update-project.command';
 import { UpdateProjectStatusCommand } from '@project/application/commands/update-project-status.command';
 import { DeleteProjectCommand } from '@project/application/commands/delete-project.command';
+import { DeployProjectCommand, StopProjectDeploymentCommand } from '@project/application/commands/deploy-project.command';
 import {
   GetProjectQuery,
   GetProjectByCodeQuery,
@@ -290,6 +293,63 @@ export class ProjectController {
     await this.commandBus.execute(command);
   }
 
+  @Post(':id/deploy')
+  @ApiOperation({ summary: 'Deploy project' })
+  @ApiParam({ name: 'id', description: 'Project ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Project deployment started successfully',
+    type: ProjectResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Project not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Project cannot be deployed in current state',
+  })
+  async deployProject(
+    @Param('id') id: string,
+    @Body() deployDto: DeployProjectDto
+  ): Promise<ProjectResponseDto> {
+    const command = new DeployProjectCommand(
+      id,
+      deployDto.port,
+      deployDto.config,
+      'system' // TODO: Get from authenticated user
+    );
+
+    const project = await this.commandBus.execute(command);
+    return this.mapToResponseDto(project);
+  }
+
+  @Post(':id/stop-deployment')
+  @ApiOperation({ summary: 'Stop project deployment' })
+  @ApiParam({ name: 'id', description: 'Project ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Project deployment stopped successfully',
+    type: ProjectResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Project not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Project is not deployed',
+  })
+  async stopProjectDeployment(@Param('id') id: string): Promise<ProjectResponseDto> {
+    const command = new StopProjectDeploymentCommand(
+      id,
+      'system' // TODO: Get from authenticated user
+    );
+
+    const project = await this.commandBus.execute(command);
+    return this.mapToResponseDto(project);
+  }
+
   @Post(':id/duplicate')
   @Public()
   @ApiOperation({ summary: 'Duplicate project' })
@@ -407,6 +467,11 @@ export class ProjectController {
       version: project.version,
       config: project.config,
       status: project.status,
+      deploymentStatus: project.deploymentStatus || 'INACTIVE',
+      deploymentPort: project.deploymentPort,
+      deploymentConfig: project.deploymentConfig,
+      lastDeployedAt: project.lastDeployedAt,
+      deploymentLogs: project.deploymentLogs,
       createdBy: project.createdBy,
       createdAt: project.createdAt,
       updatedBy: project.updatedBy,
