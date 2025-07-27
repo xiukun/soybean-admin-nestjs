@@ -14,6 +14,7 @@ const local: App.I18n.Schema = {
     updatedAt: 'Updated At',
     updateFailed: 'Update Failed',
     action: 'Action',
+    actions: 'Actions',
     add: 'Add',
     addSuccess: 'Add Success',
     backToHome: 'Back to home',

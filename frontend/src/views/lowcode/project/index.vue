@@ -255,7 +255,7 @@
       <template #footer>
         <NSpace justify="end">
           <NButton @click="showProjectModal = false">{{ $t('common.cancel') }}</NButton>
-          <NButton type="primary" @click="handleSaveProject">{{ $t('page.lowcode.common.actions.save') }}</NButton>
+          <NButton type="primary" @click="handleSaveProject">{{ $t('common.save') }}</NButton>
         </NSpace>
       </template>
     </NModal>
@@ -478,7 +478,7 @@ const tableColumns: DataTableColumns<Project> = [
   { title: $t('page.lowcode.project.code'), key: 'code', width: 120 },
   { title: $t('page.lowcode.project.description'), key: 'description', width: 200, ellipsis: { tooltip: true } },
   {
-    title: $t('page.lowcode.project.status'),
+    title: $t('common.status'),
     key: 'status',
     width: 100,
     render: (row) => h('NTag', { type: getStatusType(row.status) },

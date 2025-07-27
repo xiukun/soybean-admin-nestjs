@@ -27,6 +27,8 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     entities: '实体',
     templates: '模板',
     createdBy: '创建者',
+    createdAt: '创建时间',
+    statusLabel: '状态',
     searchPlaceholder: '搜索项目名称、代码或描述',
     filterByStatus: '按状态筛选',
     filterByFramework: '按框架筛选',

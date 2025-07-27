@@ -27,6 +27,8 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     entities: 'Entities',
     templates: 'Templates',
     createdBy: 'Created By',
+    createdAt: 'Created At',
+    statusLabel: 'Status',
     searchPlaceholder: 'Search project name, code or description',
     filterByStatus: 'Filter by Status',
     filterByFramework: 'Filter by Framework',
