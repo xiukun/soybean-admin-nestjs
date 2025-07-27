@@ -19,7 +19,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { Public } from '@decorators/public.decorator';
-import { ListResponse, PaginationResponse } from '@lib/shared/response/api-response.util';
+import { ListResponse, PaginationResponse, AmisResponse } from '@lib/shared/response/api-response.util';
 import {
   CreateProjectDto,
   UpdateProjectDto,
@@ -93,6 +93,22 @@ export class ProjectController {
     return ListResponse.simple(projectDtos);
   }
 
+  @Get('amis')
+  @Public()
+  @ApiOperation({ summary: 'Get all projects for amis' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Projects found for amis',
+  })
+  async getProjectsForAmis(): Promise<any> {
+    const query = new GetProjectsQuery();
+    const projects = await this.queryBus.execute(query);
+    const projectDtos = projects.map((project: any) => this.mapToResponseDto(project));
+
+    // 返回amis格式的项目数据
+    return AmisResponse.table(projectDtos);
+  }
+
   @Get('paginated')
   @Public()
   @ApiOperation({ summary: 'Get paginated projects' })
@@ -116,6 +132,30 @@ export class ProjectController {
     // 返回Vue表格标准分页格式
     const projectDtos = result.projects.map((project: any) => this.mapToResponseDto(project));
     return PaginationResponse.simple(projectDtos, result.page, result.limit, result.total);
+  }
+
+  @Get('paginated/amis')
+  @Public()
+  @ApiOperation({ summary: 'Get paginated projects for amis' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Paginated projects found for amis',
+  })
+  async getProjectsPaginatedForAmis(@Query() query: ProjectListQueryDto): Promise<any> {
+    const paginatedQuery = new GetProjectsPaginatedQuery(
+      query.current || 1,
+      query.size || 10,
+      {
+        status: query.status,
+        search: query.search,
+      },
+    );
+
+    const result = await this.queryBus.execute(paginatedQuery);
+
+    // 返回amis分页格式
+    const projectDtos = result.projects.map((project: any) => this.mapToResponseDto(project));
+    return AmisResponse.paginationTable(projectDtos, result.page, result.limit, result.total);
   }
 
   @Get('stats')

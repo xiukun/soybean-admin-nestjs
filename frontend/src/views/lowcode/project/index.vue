@@ -327,6 +327,7 @@ import { $t } from '@/locales';
 import { createRequiredFormRule } from '@/utils/form/rule';
 import { formatDate } from '@/utils/common';
 import { useLowcodeStore } from '@/store/modules/lowcode';
+import { fetchGetAllProjects, fetchAddProject, fetchUpdateProject, fetchDeleteProject } from '@/service/api/lowcode-project';
 
 interface Project {
   id: string;
@@ -657,51 +658,28 @@ async function loadProjects() {
   try {
     loading.value = true;
 
-    // Mock data - in real implementation, this would call the API
-    const mockProjects: Project[] = [
-      {
-        id: 'project-1',
-        name: 'E-commerce Platform',
-        code: 'ecommerce-platform',
-        description: 'A comprehensive e-commerce platform with user management, product catalog, and order processing.',
-        status: 'ACTIVE',
-        config: {
-          framework: 'nestjs',
-          architecture: 'base-biz',
-          language: 'typescript',
-          database: 'postgresql'
-        },
-        entityCount: 15,
-        templateCount: 8,
-        createdBy: 'admin',
-        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: 'project-2',
-        name: 'CRM System',
-        code: 'crm-system',
-        description: 'Customer relationship management system with lead tracking and sales pipeline.',
-        status: 'ACTIVE',
-        config: {
-          framework: 'spring-boot',
-          architecture: 'ddd',
-          language: 'java',
-          database: 'mysql'
-        },
-        entityCount: 12,
-        templateCount: 6,
-        createdBy: 'developer',
-        createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    ];
+    // 调用真实的API接口
+    const { data } = await fetchGetAllProjects();
 
-    projects.value = mockProjects;
-    pagination.value.itemCount = mockProjects.length;
+    if (data) {
+      projects.value = data.map(project => ({
+        ...project,
+        entityCount: project.entityCount || 0,
+        templateCount: project.templateCount || 0,
+        config: project.config || {}
+      }));
+      pagination.value.itemCount = projects.value.length;
+    } else {
+      projects.value = [];
+      pagination.value.itemCount = 0;
+    }
   } catch (error) {
     console.error('Failed to load projects:', error);
     window.$message?.error($t('page.lowcode.project.loadFailed'));
+
+    // 如果API调用失败，显示空列表
+    projects.value = [];
+    pagination.value.itemCount = 0;
   } finally {
     loading.value = false;
   }
@@ -751,9 +729,15 @@ function handleDeleteProject(project: Project) {
     content: $t('page.lowcode.project.deleteConfirm'),
     positiveText: $t('common.delete'),
     negativeText: $t('common.cancel'),
-    onPositiveClick: () => {
-      // Delete project logic here
-      window.$message?.success($t('common.deleteSuccess'));
+    onPositiveClick: async () => {
+      try {
+        await fetchDeleteProject(project.id);
+        window.$message?.success($t('common.deleteSuccess'));
+        await loadProjects(); // 重新加载项目列表
+      } catch (error) {
+        console.error('Failed to delete project:', error);
+        window.$message?.error($t('common.deleteError'));
+      }
     }
   });
 }
@@ -767,26 +751,42 @@ function handleImportProject() {
 }
 
 async function handleSaveProject() {
-  await projectFormRef.value?.validate();
+  try {
+    await projectFormRef.value?.validate();
 
-  const projectData = {
-    ...projectForm,
-    config: {
-      framework: projectForm.framework,
-      architecture: projectForm.architecture,
-      language: projectForm.language,
-      database: projectForm.database,
-      packageName: projectForm.packageName,
-      basePackage: projectForm.basePackage,
-      author: projectForm.author,
-      version: projectForm.version,
-      outputPath: projectForm.outputPath
+    const projectData = {
+      name: projectForm.name,
+      code: projectForm.code,
+      description: projectForm.description,
+      config: {
+        framework: projectForm.framework,
+        architecture: projectForm.architecture,
+        language: projectForm.language,
+        database: projectForm.database,
+        packageName: projectForm.packageName,
+        basePackage: projectForm.basePackage,
+        author: projectForm.author,
+        version: projectForm.version,
+        outputPath: projectForm.outputPath
+      }
+    };
+
+    if (editingProject.value) {
+      // 更新项目
+      await fetchUpdateProject(editingProject.value.id, projectData);
+      window.$message?.success($t('common.updateSuccess'));
+    } else {
+      // 创建新项目
+      await fetchAddProject(projectData);
+      window.$message?.success($t('common.createSuccess'));
     }
-  };
 
-  // Save project logic here
-  showProjectModal.value = false;
-  window.$message?.success($t('common.saveSuccess'));
+    showProjectModal.value = false;
+    await loadProjects(); // 重新加载项目列表
+  } catch (error) {
+    console.error('Failed to save project:', error);
+    window.$message?.error($t('common.saveError'));
+  }
 }
 
 function handleBrowseOutputPath() {

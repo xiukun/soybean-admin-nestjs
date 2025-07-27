@@ -58,6 +58,7 @@ export class RoleController {
       PageRolesQuery,
       PaginationResult<RoleProperties>
     >(query);
+    console.log(ApiRes.success(result),'ApiRes.success(result)')
     return ApiRes.success(result);
   }
 

@@ -143,6 +143,8 @@ import type { FormInst, FormRules, DataTableColumns } from 'naive-ui';
 import { $t } from '@/locales';
 import { createRequiredFormRule } from '@/utils/form/rule';
 import { formatDate } from '@/utils/common';
+import { fetchGetAllEntities, fetchCreateEntity, fetchUpdateEntity, fetchDeleteEntity } from '@/service/api/lowcode-entity';
+import { fetchGetAllProjects } from '@/service/api/lowcode-project';
 import EntityRelationshipDesigner from './modules/entity-relationship-designer.vue';
 
 interface Props {
@@ -389,16 +391,17 @@ async function loadProjects() {
   try {
     projectLoading.value = true;
 
-    // Mock data
-    const mockProjects = [
-      { id: 'project-1', name: 'E-commerce Platform' },
-      { id: 'project-2', name: 'CRM System' }
-    ];
+    // 调用真实的API接口
+    const { data } = await fetchGetAllProjects();
 
-    projectOptions.value = mockProjects.map(project => ({
-      label: project.name,
-      value: project.id
-    }));
+    if (data) {
+      projectOptions.value = data.map(project => ({
+        label: project.name,
+        value: project.id
+      }));
+    } else {
+      projectOptions.value = [];
+    }
   } catch (error) {
     console.error('Failed to load projects:', error);
   } finally {
@@ -419,38 +422,20 @@ async function loadEntities() {
   try {
     loading.value = true;
 
-    // Mock data
-    const mockEntities: Entity[] = [
-      {
-        id: 'entity-1',
-        projectId: currentProjectId.value,
-        name: 'User',
-        code: 'user',
-        tableName: 'users',
-        description: 'User entity for authentication and profile management',
-        category: 'core',
-        status: 'ACTIVE',
-        fieldCount: 8,
-        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: 'entity-2',
-        projectId: currentProjectId.value,
-        name: 'Product',
-        code: 'product',
-        tableName: 'products',
-        description: 'Product catalog entity',
-        category: 'business',
-        status: 'ACTIVE',
-        fieldCount: 12,
-        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    ];
+    // 调用真实的API接口
+    const { data } = await fetchGetAllEntities(currentProjectId.value);
 
-    entities.value = mockEntities;
-    pagination.value.itemCount = mockEntities.length;
+    if (data) {
+      entities.value = data.map(entity => ({
+        ...entity,
+        fieldCount: entity.fieldCount || 0,
+        status: entity.status || 'DRAFT'
+      }));
+      pagination.value.itemCount = entities.value.length;
+    } else {
+      entities.value = [];
+      pagination.value.itemCount = 0;
+    }
   } catch (error) {
     console.error('Failed to load entities:', error);
     window.$message?.error($t('page.lowcode.entity.loadFailed'));

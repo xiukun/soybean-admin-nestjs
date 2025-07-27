@@ -123,3 +123,87 @@ export class ListResponse {
     return items;
   }
 }
+
+/**
+ * Amis低代码页面响应格式
+ */
+export interface AmisResponse<T = any> {
+  status: number;
+  msg: string;
+  data: T;
+}
+
+/**
+ * Amis表格数据格式
+ */
+export interface AmisTableData<T> {
+  options: T[];
+}
+
+/**
+ * Amis分页表格数据格式
+ */
+export interface AmisPaginationData<T> {
+  options: T[];
+  page: number;
+  perPage: number;
+  total: number;
+}
+
+/**
+ * Amis响应工具类
+ * 用于兼容amis低代码页面的接口格式
+ */
+export class AmisResponse {
+  /**
+   * 成功响应
+   */
+  static success<T>(data: T, message: string = 'success'): AmisResponse<T> {
+    return {
+      status: 0,
+      msg: message,
+      data,
+    };
+  }
+
+  /**
+   * 错误响应
+   */
+  static error<T = null>(message: string, status: number = 1): AmisResponse<T> {
+    return {
+      status,
+      msg: message,
+      data: null as T,
+    };
+  }
+
+  /**
+   * 创建表格数据响应
+   */
+  static table<T>(
+    items: T[],
+    message: string = 'success'
+  ): AmisResponse<AmisTableData<T>> {
+    return AmisResponse.success({
+      options: items,
+    }, message);
+  }
+
+  /**
+   * 创建分页表格数据响应
+   */
+  static paginationTable<T>(
+    items: T[],
+    page: number,
+    perPage: number,
+    total: number,
+    message: string = 'success'
+  ): AmisResponse<AmisPaginationData<T>> {
+    return AmisResponse.success({
+      options: items,
+      page,
+      perPage,
+      total,
+    }, message);
+  }
+}
