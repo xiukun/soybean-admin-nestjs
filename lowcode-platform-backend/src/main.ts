@@ -28,32 +28,35 @@ async function bootstrap() {
     //   credentials: true,
     // });
 
-    // Enable multipart support for file uploads (commented out due to version issues)
-    // await fastifyAdapter.register(require('@fastify/multipart'), {
-    //   limits: {
-    //     fieldNameSize: 100,
-    //     fieldSize: 100,
-    //     fields: 10,
-    //     fileSize: 10485760, // 10MB
-    //     files: 5,
-    //     headerPairs: 2000,
-    //   },
-    // });
+    // Enable multipart support for file uploads
+    await fastifyAdapter.register(require('@fastify/multipart'), {
+      limits: {
+        fieldNameSize: 100,
+        fieldSize: 100,
+        fields: 10,
+        fileSize: 10485760, // 10MB
+        files: 5,
+        headerPairs: 2000,
+      },
+    });
 
-    // Enable compression (commented out due to version issues)
-    // await fastifyAdapter.register(require('@fastify/compress'), {
-    //   global: true,
-    //   threshold: 1024,
-    // });
+    // Enable compression
+    await fastifyAdapter.register(require('@fastify/compress'), {
+      global: true,
+      threshold: 1024,
+      encodings: ['gzip', 'deflate'],
+    });
 
-    // Enable rate limiting (commented out due to version issues)
-    // await fastifyAdapter.register(require('@fastify/rate-limit'), {
-    //   max: parseInt(process.env.RATE_LIMIT_MAX || '200'),
-    //   timeWindow: parseInt(process.env.RATE_LIMIT_WINDOW || '60000'), // 1 minute
-    //   skipOnError: true,
-    // });
+    // Enable rate limiting
+    await fastifyAdapter.register(require('@fastify/rate-limit'), {
+      max: 200,
+      timeWindow: 60000, // 1 minute
+      skipOnError: true,
+      allowList: ['127.0.0.1', '::1'], // Allow localhost
+    });
+    logger.log('✅ Fastify plugins registered successfully');
   } catch (error) {
-    logger.warn('Some Fastify plugins failed to register:', error.message);
+    logger.warn('⚠️ Some Fastify plugins failed to register:', error.message);
   }
 
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -97,8 +100,7 @@ async function bootstrap() {
 
   // Setup Swagger documentation
   // 允许在所有环境中访问 API 文档，便于调试和开发
-  // Temporarily disabled due to @fastify/static version compatibility issues
-  if (appConfig.docSwaggerEnable && false) {
+  if (appConfig.docSwaggerEnable) {
     const config = new DocumentBuilder()
       .setTitle('Low-Code Platform API')
       .setDescription('API documentation for the Low-Code Platform Backend')
