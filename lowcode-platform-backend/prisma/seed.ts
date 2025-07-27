@@ -30,9 +30,130 @@ async function main() {
       return;
     }
 
-    // 创建示例项目
-    console.log('📁 创建示例项目...');
-    const project = await prisma.project.upsert({
+    // 创建Mock数据中的项目
+    console.log('📁 创建Mock数据项目...');
+    const mockProjects = [
+      {
+        id: '1',
+        name: 'E-commerce Platform',
+        code: 'ecommerce',
+        description: '电商平台低代码项目，包含商品管理、订单处理、用户管理等核心功能',
+        version: '1.0.0',
+        config: {
+          framework: 'nestjs',
+          architecture: 'base-biz',
+          language: 'typescript',
+          database: 'postgresql',
+          packageName: '',
+          basePackage: '',
+          author: '',
+          outputPath: './generated'
+        },
+        status: 'ACTIVE',
+        createdBy: 'admin',
+      },
+      {
+        id: '2',
+        name: 'CRM System',
+        code: 'crm',
+        description: '客户关系管理系统，帮助企业管理客户信息、销售流程和客户服务',
+        version: '1.2.0',
+        config: {
+          framework: 'nestjs',
+          architecture: 'ddd',
+          language: 'typescript',
+          database: 'postgresql',
+          packageName: '',
+          basePackage: '',
+          author: '',
+          outputPath: './generated'
+        },
+        status: 'ACTIVE',
+        createdBy: 'admin',
+      },
+      {
+        id: '3',
+        name: 'Blog Management System',
+        code: 'blog',
+        description: '博客管理系统，支持文章发布、分类管理、评论系统等功能',
+        version: '1.0.0',
+        config: {
+          framework: 'express',
+          architecture: 'clean',
+          language: 'javascript',
+          database: 'mysql',
+          packageName: '',
+          basePackage: '',
+          author: '',
+          outputPath: './generated'
+        },
+        status: 'INACTIVE',
+        createdBy: 'user1',
+      },
+      {
+        id: '4',
+        name: 'Inventory Management',
+        code: 'inventory',
+        description: '库存管理系统，实现商品入库、出库、盘点等库存管理功能',
+        version: '2.1.0',
+        config: {
+          framework: 'nestjs',
+          architecture: 'hexagonal',
+          language: 'typescript',
+          database: 'postgresql',
+          packageName: '',
+          basePackage: '',
+          author: '',
+          outputPath: './generated'
+        },
+        status: 'ACTIVE',
+        createdBy: 'manager',
+      },
+      {
+        id: '5',
+        name: 'HR Management Portal',
+        code: 'hr-portal',
+        description: '人力资源管理门户，包含员工信息管理、考勤管理、薪资管理等模块',
+        version: '1.5.0',
+        config: {
+          framework: 'nestjs',
+          architecture: 'base-biz',
+          language: 'typescript',
+          database: 'postgresql',
+          packageName: '',
+          basePackage: '',
+          author: '',
+          outputPath: './generated'
+        },
+        status: 'ARCHIVED',
+        createdBy: 'hr-admin',
+      },
+    ];
+
+    const projects = [];
+    for (const projectData of mockProjects) {
+      const project = await prisma.project.upsert({
+        where: { id: projectData.id },
+        update: {
+          name: projectData.name,
+          description: projectData.description,
+          version: projectData.version,
+          config: projectData.config,
+          status: projectData.status,
+          updatedAt: new Date(),
+        },
+        create: {
+          ...projectData,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+      projects.push(project);
+      console.log('✅ 项目创建完成:', project.name);
+    }
+
+    // 保留演示项目
+    const demoProject = await prisma.project.upsert({
       where: { id: 'demo-project-1' },
       update: {
         name: '演示项目',
@@ -55,8 +176,9 @@ async function main() {
         updatedAt: new Date(),
       },
     });
+    projects.push(demoProject);
 
-    console.log('✅ 项目创建完成:', project.name);
+    console.log(`✅ 总共创建了 ${projects.length} 个项目`);
 
     // 创建代码模板
     console.log('📝 创建代码模板...');
@@ -472,7 +594,7 @@ export class {{entityName}}Service {
     const created = await prisma.apiConfig.upsert({
       where: {
         projectId_code: {
-          projectId: project.id,
+          projectId: demoProject.id,
           code: apiConfig.code,
         },
       },
@@ -488,7 +610,7 @@ export class {{entityName}}Service {
         updatedAt: new Date(),
       },
       create: {
-        projectId: project.id,
+        projectId: demoProject.id,
         name: apiConfig.name,
         code: apiConfig.code,
         description: apiConfig.description,
@@ -514,7 +636,7 @@ export class {{entityName}}Service {
     const entities = [
       {
         id: 'demo-entity-user',
-        projectId: project.id,
+        projectId: demoProject.id,
         name: '用户',
         code: 'User',
         tableName: 'demo_users',
@@ -526,7 +648,7 @@ export class {{entityName}}Service {
       },
       {
         id: 'demo-entity-role',
-        projectId: project.id,
+        projectId: demoProject.id,
         name: '角色',
         code: 'Role',
         tableName: 'demo_roles',

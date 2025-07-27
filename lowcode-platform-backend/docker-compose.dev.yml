@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16.3
+    container_name: lowcode-postgres-dev
+    environment:
+      POSTGRES_PASSWORD: soybean@123.
+      POSTGRES_USER: soybean
+      POSTGRES_DB: soybean-admin-nest-backend
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - '25432:5432'
+    volumes:
+      - lowcode_postgres_data:/var/lib/postgresql/data
+      - ../../deploy/postgres:/docker-entrypoint-initdb.d
+    networks:
+      - lowcode-dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U soybean -d soybean-admin-nest-backend"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis/redis-stack:7.2.0-v11
+    container_name: lowcode-redis-dev
+    command: redis-server --requirepass 123456 --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - '26379:6379'
+    volumes:
+      - lowcode_redis_data:/data
+    networks:
+      - lowcode-dev
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "123456", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # Low-code Platform Backend (Development)
+  lowcode-platform:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lowcode-platform-dev
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      # Database Configuration
+      DATABASE_URL: 'postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend?schema=lowcode'
+      USE_REAL_DATABASE: 'true'
+      # Redis Configuration
+      REDIS_HOST: 'redis'
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: '123456'
+      REDIS_DB: 2
+      # JWT Configuration
+      JWT_SECRET: 'JWT_SECRET-soybean-admin-nest!@#123.'
+      JWT_EXPIRES_IN: '7d'
+      # Database Initialization
+      RUN_MIGRATIONS: 'true'
+      AUTO_INIT_DATA: 'true'
+      FIRST_RUN_DETECTION: 'true'
+      # CORS Configuration
+      CORS_ENABLED: 'true'
+      CORS_ORIGIN: 'http://localhost:9527,http://127.0.0.1:9527'
+      CORS_METHODS: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS'
+      CORS_CREDENTIALS: 'true'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - '3000:3000'
+    networks:
+      - lowcode-dev
+    volumes:
+      - ./generated:/app/generated
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+volumes:
+  lowcode_postgres_data:
+    driver: local
+    name: lowcode-postgres-data
+  lowcode_redis_data:
+    driver: local
+    name: lowcode-redis-data
+
+networks:
+  lowcode-dev:
+    driver: bridge
+    name: lowcode-dev-network

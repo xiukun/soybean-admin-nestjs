@@ -49,7 +49,9 @@
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "prisma:seed": "ts-node prisma/seed.ts",
+    "db:seed": "npm run prisma:seed"
   },
   "dependencies": {
     "@fastify/compress": "^6.0.0",
