@@ -1,4 +1,16 @@
 const lowcode: App.I18n.Schema['page']['lowcode'] = {
+  dashboard: {
+    title: 'Low-Code Platform Dashboard',
+    description: 'Welcome to the low-code platform, build your applications quickly',
+    totalProjects: 'Total Projects',
+    activeProjects: 'Active Projects',
+    totalEntities: 'Total Entities',
+    totalTemplates: 'Total Templates',
+    recentProjects: 'Recent Projects',
+    viewAll: 'View All',
+    quickActions: 'Quick Actions',
+    documentation: 'Documentation',
+  },
   project: {
     title: 'Project Management',
     management: 'Project Management',

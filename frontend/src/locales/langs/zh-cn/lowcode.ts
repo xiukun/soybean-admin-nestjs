@@ -1,4 +1,16 @@
 const lowcode: App.I18n.Schema['page']['lowcode'] = {
+  dashboard: {
+    title: '低代码平台仪表板',
+    description: '欢迎使用低代码平台，快速构建您的应用程序',
+    totalProjects: '总项目数',
+    activeProjects: '活跃项目',
+    totalEntities: '总实体数',
+    totalTemplates: '总模板数',
+    recentProjects: '最近项目',
+    viewAll: '查看全部',
+    quickActions: '快速操作',
+    documentation: '文档',
+  },
   project: {
     title: '项目管理',
     management: '项目管理',

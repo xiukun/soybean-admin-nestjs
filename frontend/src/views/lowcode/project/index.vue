@@ -92,7 +92,7 @@
                 <NText depth="3" style="font-size: 12px">{{ project.code }}</NText>
               </div>
             </NSpace>
-            <NDropdown :options="getProjectActions(project)" @select="(key) => handleProjectAction(key, project)">
+            <NDropdown :options="getActionOptions(project)" @select="(key) => handleActionSelect(key, project)">
               <NButton size="small" quaternary circle @click.stop>
                 <template #icon>
                   <NIcon><icon-mdi-dots-vertical /></NIcon>
@@ -327,7 +327,15 @@ import { $t } from '@/locales';
 import { createRequiredFormRule } from '@/utils/form/rule';
 import { formatDate } from '@/utils/common';
 import { useLowcodeStore } from '@/store/modules/lowcode';
-import { fetchGetAllProjects, fetchAddProject, fetchUpdateProject, fetchDeleteProject } from '@/service/api/lowcode-project';
+import {
+  fetchGetAllProjects,
+  fetchAddProject,
+  fetchUpdateProject,
+  fetchDeleteProject,
+  fetchDuplicateProject,
+  fetchArchiveProject,
+  fetchExportProject
+} from '@/service/api/lowcode-project';
 
 interface Project {
   id: string;
@@ -505,34 +513,67 @@ const tableColumns: DataTableColumns<Project> = [
     key: 'actions',
     width: 200,
     fixed: 'right',
-    render: (row) => [
-      h('NButton',
-        {
-          size: 'small',
-          onClick: () => handleViewProject(row),
-          style: { marginRight: '8px' }
-        },
-        $t('common.view')
-      ),
-      h('NButton',
-        {
-          size: 'small',
-          onClick: () => handleEditProject(row),
-          style: { marginRight: '8px' }
-        },
-        $t('common.edit')
-      ),
+    render: (row) => h('NSpace', { size: 'small' }, [
       h('NButton',
         {
           size: 'small',
           type: 'primary',
           onClick: () => handleOpenProject(row)
         },
-        $t('page.lowcode.project.open')
+        $t('common.open')
+      ),
+      h('NDropdown',
+        {
+          trigger: 'click',
+          options: getActionOptions(row),
+          onSelect: (key: string) => handleActionSelect(key, row)
+        },
+        h('NButton',
+          {
+            size: 'small',
+            quaternary: true
+          },
+          h('NIcon', { size: 16 }, h('icon-mdi-dots-vertical'))
+        )
       )
-    ]
+    ])
   }
 ];
+
+// Action dropdown methods
+function getActionOptions(project: Project) {
+  return [
+    { label: $t('common.view'), key: 'view' },
+    { label: $t('common.edit'), key: 'edit' },
+    { label: $t('common.duplicate'), key: 'duplicate' },
+    { label: $t('common.export'), key: 'export' },
+    { label: $t('common.archive'), key: 'archive', disabled: project.status === 'ARCHIVED' },
+    { label: $t('common.delete'), key: 'delete' }
+  ];
+}
+
+function handleActionSelect(key: string, project: Project) {
+  switch (key) {
+    case 'view':
+      handleViewProject(project);
+      break;
+    case 'edit':
+      handleEditProject(project);
+      break;
+    case 'duplicate':
+      handleDuplicateProject(project);
+      break;
+    case 'export':
+      handleExportProject(project);
+      break;
+    case 'archive':
+      handleArchiveProject(project);
+      break;
+    case 'delete':
+      handleDeleteProject(project);
+      break;
+  }
+}
 
 // Methods
 function getStatusType(status: string): 'success' | 'warning' | 'error' | 'info' {
@@ -548,17 +589,6 @@ function getProjectColor(projectId: string): string {
   const colors = ['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2'];
   const index = projectId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
   return colors[index];
-}
-
-function getProjectActions(project: Project) {
-  return [
-    { label: $t('common.view'), key: 'view' },
-    { label: $t('common.edit'), key: 'edit' },
-    { label: $t('common.duplicate'), key: 'duplicate' },
-    { label: $t('common.export'), key: 'export' },
-    { label: $t('common.archive'), key: 'archive', disabled: project.status === 'ARCHIVED' },
-    { label: $t('common.delete'), key: 'delete' }
-  ];
 }
 
 function handleNameChange() {
@@ -631,29 +661,6 @@ function handleOpenProject(project: Project) {
   router.push('/lowcode/dashboard');
 }
 
-function handleProjectAction(key: string, project: Project) {
-  switch (key) {
-    case 'view':
-      handleViewProject(project);
-      break;
-    case 'edit':
-      handleEditProject(project);
-      break;
-    case 'duplicate':
-      handleDuplicateProject(project);
-      break;
-    case 'export':
-      handleExportProject(project);
-      break;
-    case 'archive':
-      handleArchiveProject(project);
-      break;
-    case 'delete':
-      handleDeleteProject(project);
-      break;
-  }
-}
-
 async function loadProjects() {
   try {
     loading.value = true;
@@ -675,7 +682,7 @@ async function loadProjects() {
     }
   } catch (error) {
     console.error('Failed to load projects:', error);
-    window.$message?.error($t('page.lowcode.project.loadFailed'));
+    window.$message?.error($t('common.loadFailed'));
 
     // 如果API调用失败，显示空列表
     projects.value = [];
@@ -685,40 +692,51 @@ async function loadProjects() {
   }
 }
 
-// Placeholder functions for missing handlers
-function handleDuplicateProject(project: Project) {
-  const duplicated = { ...project };
-  duplicated.name += ' (Copy)';
-  duplicated.code += '-copy';
-  duplicated.id = ''; // Will be generated on save
-  Object.assign(projectForm, {
-    ...duplicated,
-    ...duplicated.config
-  });
-  editingProject.value = null;
-  showProjectModal.value = true;
+// CRUD operation handlers
+async function handleDuplicateProject(project: Project) {
+  try {
+    const duplicateName = `${project.name} (Copy)`;
+    await fetchDuplicateProject(project.id, { name: duplicateName });
+    window.$message?.success($t('common.createSuccess'));
+    await loadProjects();
+  } catch (error) {
+    console.error('Failed to duplicate project:', error);
+    window.$message?.error($t('common.createFailed'));
+  }
 }
 
-function handleExportProject(project: Project) {
-  const dataStr = JSON.stringify(project, null, 2);
-  const dataBlob = new Blob([dataStr], { type: 'application/json' });
-  const url = URL.createObjectURL(dataBlob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `${project.code}.json`;
-  link.click();
-  URL.revokeObjectURL(url);
+async function handleExportProject(project: Project) {
+  try {
+    const response = await fetchExportProject(project.id);
+    const blob = new Blob([response.data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${project.code}_export.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    window.$message?.success($t('common.exportSuccess'));
+  } catch (error) {
+    console.error('Failed to export project:', error);
+    window.$message?.error($t('common.exportFailed'));
+  }
 }
 
 function handleArchiveProject(project: Project) {
   window.$dialog?.warning({
     title: $t('common.confirm'),
-    content: $t('page.lowcode.project.archiveConfirm'),
-    positiveText: $t('common.archive'),
+    content: $t('common.confirmDelete'),
+    positiveText: $t('common.confirm'),
     negativeText: $t('common.cancel'),
-    onPositiveClick: () => {
-      // Archive project logic here
-      window.$message?.success($t('page.lowcode.project.archiveSuccess'));
+    onPositiveClick: async () => {
+      try {
+        await fetchArchiveProject(project.id);
+        window.$message?.success($t('common.updateSuccess'));
+        await loadProjects();
+      } catch (error) {
+        console.error('Failed to archive project:', error);
+        window.$message?.error($t('common.updateFailed'));
+      }
     }
   });
 }
@@ -726,7 +744,7 @@ function handleArchiveProject(project: Project) {
 function handleDeleteProject(project: Project) {
   window.$dialog?.error({
     title: $t('common.confirm'),
-    content: $t('page.lowcode.project.deleteConfirm'),
+    content: $t('common.confirmDelete'),
     positiveText: $t('common.delete'),
     negativeText: $t('common.cancel'),
     onPositiveClick: async () => {
@@ -736,7 +754,7 @@ function handleDeleteProject(project: Project) {
         await loadProjects(); // 重新加载项目列表
       } catch (error) {
         console.error('Failed to delete project:', error);
-        window.$message?.error($t('common.deleteError'));
+        window.$message?.error($t('common.deleteFailed'));
       }
     }
   });

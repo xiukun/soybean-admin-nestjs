@@ -191,6 +191,15 @@ export const generatedRoutes: GeneratedRoute[] = [
         }
       },
       {
+        name: 'lowcode_dashboard',
+        path: '/lowcode/dashboard',
+        component: 'view.lowcode_dashboard',
+        meta: {
+          title: 'lowcode_dashboard',
+          i18nKey: 'route.lowcode_dashboard'
+        }
+      },
+      {
         name: 'lowcode_entity',
         path: '/lowcode/entity',
         component: 'view.lowcode_entity',

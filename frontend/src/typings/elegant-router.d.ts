@@ -35,6 +35,7 @@ declare module "@elegant-router/types" {
     "lowcode_api-test": "/lowcode/api-test";
     "lowcode_code-generation": "/lowcode/code-generation";
     "lowcode_code-generator": "/lowcode/code-generator";
+    "lowcode_dashboard": "/lowcode/dashboard";
     "lowcode_entity": "/lowcode/entity";
     "lowcode_entity-designer": "/lowcode/entity-designer";
     "lowcode_field": "/lowcode/field";
@@ -126,6 +127,7 @@ declare module "@elegant-router/types" {
     | "lowcode_api-test"
     | "lowcode_code-generation"
     | "lowcode_code-generator"
+    | "lowcode_dashboard"
     | "lowcode_entity-designer"
     | "lowcode_entity"
     | "lowcode_field"

@@ -687,6 +687,8 @@ declare namespace App {
             code: string;
             description: string;
             version: string;
+            gridView: string;
+            tableView: string;
             status: {
               ACTIVE: string;
               INACTIVE: string;
