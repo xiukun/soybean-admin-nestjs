@@ -9,6 +9,7 @@ import {
   Query,
   HttpStatus,
   HttpCode,
+  Res,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import {
@@ -20,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { Public } from '@decorators/public.decorator';
 import { ListResponse, PaginationResponse, AmisResponse } from '@lib/shared/response/api-response.util';
+import { ProjectStatus } from '@project/domain/project.model';
 import {
   CreateProjectDto,
   UpdateProjectDto,
@@ -286,6 +288,114 @@ export class ProjectController {
   async deleteProject(@Param('id') id: string): Promise<void> {
     const command = new DeleteProjectCommand(id);
     await this.commandBus.execute(command);
+  }
+
+  @Post(':id/duplicate')
+  @Public()
+  @ApiOperation({ summary: 'Duplicate project' })
+  @ApiParam({ name: 'id', description: 'Project ID' })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Project duplicated successfully',
+    type: ProjectResponseDto,
+  })
+  async duplicateProject(
+    @Param('id') id: string,
+    @Body() data: { name: string }
+  ): Promise<any> {
+    // 获取原项目
+    const query = new GetProjectQuery(id);
+    const originalProject = await this.queryBus.execute(query);
+
+    // 创建新项目（复制）
+    const command = new CreateProjectCommand(
+      data.name,
+      `${originalProject.code}_copy_${Date.now()}`,
+      `${originalProject.description} (复制)`,
+      originalProject.version,
+      originalProject.config,
+      'system'
+    );
+
+    const project = await this.commandBus.execute(command);
+    return this.mapToResponseDto(project);
+  }
+
+  @Put(':id/archive')
+  @Public()
+  @ApiOperation({ summary: 'Archive project' })
+  @ApiParam({ name: 'id', description: 'Project ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Project archived successfully',
+    type: ProjectResponseDto,
+  })
+  async archiveProject(@Param('id') id: string): Promise<any> {
+    const command = new UpdateProjectStatusCommand(id, ProjectStatus.ARCHIVED);
+    const project = await this.commandBus.execute(command);
+    return this.mapToResponseDto(project);
+  }
+
+  @Get(':id/export')
+  @Public()
+  @ApiOperation({ summary: 'Export project' })
+  @ApiParam({ name: 'id', description: 'Project ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Project exported successfully',
+  })
+  async exportProject(@Param('id') id: string, @Res() res: any): Promise<void> {
+    const query = new GetProjectQuery(id);
+    const project = await this.queryBus.execute(query);
+
+    const exportData = {
+      project: this.mapToResponseDto(project),
+      exportedAt: new Date().toISOString(),
+      version: '1.0.0'
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="${project.code}_export.json"`);
+    res.send(JSON.stringify(exportData, null, 2));
+  }
+
+  @Post('test-connection')
+  @Public()
+  @ApiOperation({ summary: 'Test database connection' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Connection test result',
+  })
+  async testDatabaseConnection(@Body() config: any): Promise<any> {
+    // Mock implementation
+    return {
+      success: true,
+      message: 'Database connection successful'
+    };
+  }
+
+  @Post('validate-config')
+  @Public()
+  @ApiOperation({ summary: 'Validate project configuration' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Configuration validation result',
+  })
+  async validateProjectConfig(@Body() config: any): Promise<any> {
+    // Mock implementation
+    const errors: string[] = [];
+
+    if (!config.framework) {
+      errors.push('Framework is required');
+    }
+    if (!config.database) {
+      errors.push('Database is required');
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors
+    };
   }
 
   private mapToResponseDto(project: any): ProjectResponseDto {
