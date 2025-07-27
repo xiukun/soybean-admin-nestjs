@@ -19,7 +19,6 @@ test
 *.spec.js
 .DS_Store
 Thumbs.db
-.npmrc
 .yarnrc
 yarn-error.log
 .pnpm-debug.log

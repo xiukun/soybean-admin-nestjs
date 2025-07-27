@@ -18,6 +18,10 @@ WORKDIR /usr/src/app/soybean/backend
 
 # 生产部署可注释
 RUN apk --no-cache add curl
+
+# Configure npm registry for China
+RUN npm config set registry https://registry.npmmirror.com/
+
 # Install pnpm.
 RUN --mount=type=cache,target=/root/.npm \
     npm install -g pnpm@${PNPM_VERSION} pm2
@@ -32,7 +36,9 @@ FROM base AS deps
 # into this layer.
 RUN --mount=type=bind,source=package.json,target=package.json \
     --mount=type=bind,source=pnpm-lock.yaml,target=pnpm-lock.yaml \
+    --mount=type=bind,source=.npmrc,target=.npmrc \
     --mount=type=cache,target=/root/.local/share/pnpm/store/soybean-admin/backend \
+    PRISMA_ENGINES_MIRROR=https://registry.npmmirror.com/-/binary/prisma/ \
     pnpm install --prod --frozen-lockfile
 
 ################################################################################
@@ -43,7 +49,9 @@ FROM deps AS build
 # "devDependencies" to be installed to build. If you don't need this, remove this step.
 RUN --mount=type=bind,source=package.json,target=package.json \
     --mount=type=bind,source=pnpm-lock.yaml,target=pnpm-lock.yaml \
+    --mount=type=bind,source=.npmrc,target=.npmrc \
     --mount=type=cache,target=/root/.local/share/pnpm/store/soybean-admin/backend \
+    PRISMA_ENGINES_MIRROR=https://registry.npmmirror.com/-/binary/prisma/ \
     pnpm install --frozen-lockfile
 
 # Copy the rest of the source files into the image.
