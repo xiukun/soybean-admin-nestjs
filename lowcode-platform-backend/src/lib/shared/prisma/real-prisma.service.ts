@@ -46,9 +46,9 @@ export class RealPrismaService extends PrismaClient implements OnModuleInit, OnM
   // Get database statistics
   async getDatabaseStats() {
     try {
-      const projectCount = await this.lowcode_projects.count();
-      const entityCount = await this.lowcode_entities.count();
-      const fieldCount = await this.lowcode_fields.count();
+      const projectCount = await this.project.count();
+      const entityCount = await this.entity.count();
+      const fieldCount = await this.field.count();
       
       return {
         projects: projectCount,
