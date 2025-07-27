@@ -19,6 +19,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { Public } from '@decorators/public.decorator';
+import { ListResponse, PaginationResponse } from '@lib/shared/response/api-response.util';
 import {
   CreateProjectDto,
   UpdateProjectDto,
@@ -86,15 +87,10 @@ export class ProjectController {
   async getProjects(): Promise<any> {
     const query = new GetProjectsQuery();
     const projects = await this.queryBus.execute(query);
-    const projectDtos = projects.map(project => this.mapToResponseDto(project));
+    const projectDtos = projects.map((project: any) => this.mapToResponseDto(project));
 
-    return {
-      status: 0,
-      msg: 'success',
-      data: {
-        options: projectDtos,
-      },
-    };
+    // 返回项目数组（用于获取所有项目）
+    return ListResponse.simple(projectDtos);
   }
 
   @Get('paginated')
@@ -117,16 +113,9 @@ export class ProjectController {
 
     const result = await this.queryBus.execute(paginatedQuery);
 
-    return {
-      status: 0,
-      msg: 'success',
-      data: {
-        options: result.projects.map(project => this.mapToResponseDto(project)),
-        page: result.page,
-        perPage: result.limit,
-        total: result.total,
-      },
-    };
+    // 返回Vue表格标准分页格式
+    const projectDtos = result.projects.map((project: any) => this.mapToResponseDto(project));
+    return PaginationResponse.simple(projectDtos, result.page, result.limit, result.total);
   }
 
   @Get('stats')

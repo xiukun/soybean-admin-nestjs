@@ -22,7 +22,7 @@ import { ApiConfigController } from '@api/lowcode/api-config.controller';
 import { QueryController } from '@api/lowcode/query.controller';
 import { FieldController } from '@api/lowcode/field.controller';
 import { TemplateController } from '@api/lowcode/template.controller';
-import { AmisDemoController } from '@api/lowcode/amis-demo.controller';
+
 import { CodeGenerationController } from '@api/lowcode/code-generation.controller';
 import { CodeGenerationPageController } from '@api/lowcode/code-generation-page.controller';
 // import { TargetProjectController } from '@api/lowcode/target-project.controller';
@@ -86,7 +86,7 @@ import { DatabaseInitService } from '@infra/database/database-init.service';
     QueryController,
     FieldController,
     TemplateController,
-    AmisDemoController,
+
     CodeGenerationController,
     CodeGenerationPageController,
     // TargetProjectController
