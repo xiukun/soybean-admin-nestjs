@@ -110,10 +110,27 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
       const projects = await this.project.findMany();
       return projects.find(p => p.id === args.where.id) || null;
     },
-    findFirst: async () => {
+    findFirst: async (args?: any) => {
       this.logger.log('Mock: project.findFirst called');
       const projects = await this.project.findMany();
-      return projects[0] || null;
+
+      if (!args?.where) {
+        return projects[0] || null;
+      }
+
+      // 处理查询条件
+      return projects.find(project => {
+        if (args.where.code) {
+          return project.code === args.where.code;
+        }
+        if (args.where.id) {
+          return project.id === args.where.id;
+        }
+        if (args.where.name) {
+          return project.name === args.where.name;
+        }
+        return true;
+      }) || null;
     },
     create: async (args: any) => {
       this.logger.log('Mock: project.create called');
