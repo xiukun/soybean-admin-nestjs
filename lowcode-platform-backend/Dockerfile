@@ -13,7 +13,10 @@ WORKDIR /usr/src/app/lowcode-platform
 # Install system dependencies
 RUN apk --no-cache add curl dumb-init
 
-# Install pnpm.
+# Configure npm registry for China
+RUN npm config set registry https://registry.npmmirror.com/
+
+# Install pnpm with China registry
 RUN --mount=type=cache,target=/root/.npm \
     npm install -g pnpm@${PNPM_VERSION}
 
@@ -27,8 +30,10 @@ FROM base AS deps
 # into this layer.
 RUN --mount=type=bind,source=package.json,target=package.json \
     --mount=type=bind,source=pnpm-lock.yaml,target=pnpm-lock.yaml \
+    --mount=type=bind,source=.npmrc,target=.npmrc \
     --mount=type=cache,target=/root/.local/share/pnpm/store/lowcode-platform \
-    pnpm install --prod --frozen-lockfile
+    PRISMA_ENGINES_MIRROR=https://registry.npmmirror.com/-/binary/prisma/ \
+    pnpm install --frozen-lockfile
 
 ################################################################################
 # Create a stage for building the application.
@@ -38,14 +43,22 @@ FROM deps AS build
 # "devDependencies" to be installed to build. If you don't need this, remove this step.
 RUN --mount=type=bind,source=package.json,target=package.json \
     --mount=type=bind,source=pnpm-lock.yaml,target=pnpm-lock.yaml \
+    --mount=type=bind,source=.npmrc,target=.npmrc \
     --mount=type=cache,target=/root/.local/share/pnpm/store/lowcode-platform \
+    PRISMA_ENGINES_MIRROR=https://registry.npmmirror.com/-/binary/prisma/ \
     pnpm install --frozen-lockfile
 
 # Copy the rest of the source files into the image.
 COPY . .
 
-# Generate Prisma client and build the application
-RUN pnpm prisma:generate && pnpm build
+# Run the build script.
+# RUN pnpm prisma:generate && pnpm build
+
+# Copy pre-generated Prisma client
+COPY node_modules/.prisma ./node_modules/.prisma
+
+# Build the application (Prisma client should be pre-generated)
+RUN pnpm build
 
 ################################################################################
 # Create a new stage to run the application with minimal runtime dependencies
@@ -61,8 +74,8 @@ RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001
 # Create log directory and set permissions
 USER root
 RUN mkdir -p /usr/src/app/lowcode-platform/logs \
-             /usr/src/app/lowcode-platform/generated \
-             /usr/src/app/lowcode-platform/uploads && \
+    /usr/src/app/lowcode-platform/generated \
+    /usr/src/app/lowcode-platform/uploads && \
     chown -R nestjs:nodejs /usr/src/app/lowcode-platform
 
 # Run the application as a non-root user.
@@ -89,7 +102,7 @@ EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:3000/health || exit 1
+    CMD curl -f http://localhost:3000/health || exit 1
 
 # Run the application.
 CMD ["dumb-init", "./docker-entrypoint.sh"]
