@@ -122,7 +122,7 @@ export class FastifyResponseUtils {
   }
 
   static redirect(res: FastifyReply, url: string, statusCode = 302): FastifyReply {
-    return res.redirect(statusCode, url);
+    return res.redirect(url, statusCode);
   }
 
   static setCookie(

@@ -5,6 +5,9 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { APP_GUARD, APP_FILTER } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+
+// Import configurations
+import { AppConfig, CorsConfig, SecurityConfig } from '@lib/shared/config';
 import { AppController } from '@src/app.controller';
 import { AppService } from '@src/app.service';
 import { PrismaModule } from '@prisma/prisma.module';
@@ -40,18 +43,22 @@ import { DatabaseInitService } from '@infra/database/database-init.service';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
+      load: [AppConfig, CorsConfig, SecurityConfig],
     }),
 
     // 认证模块
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRES_IN', '7d'),
-        },
-      }),
+      useFactory: async (configService: ConfigService) => {
+        const securityConfig = configService.get('security');
+        return {
+          secret: securityConfig.jwtSecret,
+          signOptions: {
+            expiresIn: securityConfig.jwtExpiresIn,
+          },
+        };
+      },
       inject: [ConfigService],
     }),
 

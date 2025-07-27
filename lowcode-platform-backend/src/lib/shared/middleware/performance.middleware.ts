@@ -121,8 +121,8 @@ export class PerformanceMiddleware implements NestMiddleware {
 
   private getRoute(req: FastifyRequest): string {
     // Try to get the route pattern from the request
-    if (req.routerPath) {
-      return req.routerPath;
+    if ((req as any).routeOptions?.url) {
+      return (req as any).routeOptions.url;
     }
 
     // Fallback to URL path with parameter normalization

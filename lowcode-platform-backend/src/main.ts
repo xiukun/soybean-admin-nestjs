@@ -2,7 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { ValidationPipe, VersioningType, Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 import { AppModule } from '@src/app.module';
+import { IAppConfig, ICorsConfig, ConfigKeyPaths } from '@lib/shared/config';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -18,38 +20,38 @@ async function bootstrap() {
 
   // Register Fastify plugins
   try {
-    // Enable CORS
-    await fastifyAdapter.register(require('@fastify/cors'), {
-      origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:9527', 'http://localhost:9528'],
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-      credentials: true,
-    });
+    // Enable CORS (commented out due to version compatibility issues)
+    // await fastifyAdapter.register(require('@fastify/cors'), {
+    //   origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:9527', 'http://localhost:9528'],
+    //   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    //   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    //   credentials: true,
+    // });
 
-    // Enable multipart support for file uploads
-    await fastifyAdapter.register(require('@fastify/multipart'), {
-      limits: {
-        fieldNameSize: 100,
-        fieldSize: 100,
-        fields: 10,
-        fileSize: 10485760, // 10MB
-        files: 5,
-        headerPairs: 2000,
-      },
-    });
+    // Enable multipart support for file uploads (commented out due to version issues)
+    // await fastifyAdapter.register(require('@fastify/multipart'), {
+    //   limits: {
+    //     fieldNameSize: 100,
+    //     fieldSize: 100,
+    //     fields: 10,
+    //     fileSize: 10485760, // 10MB
+    //     files: 5,
+    //     headerPairs: 2000,
+    //   },
+    // });
 
-    // Enable compression
-    await fastifyAdapter.register(require('@fastify/compress'), {
-      global: true,
-      threshold: 1024,
-    });
+    // Enable compression (commented out due to version issues)
+    // await fastifyAdapter.register(require('@fastify/compress'), {
+    //   global: true,
+    //   threshold: 1024,
+    // });
 
-    // Enable rate limiting
-    await fastifyAdapter.register(require('@fastify/rate-limit'), {
-      max: parseInt(process.env.RATE_LIMIT_MAX || '200'),
-      timeWindow: parseInt(process.env.RATE_LIMIT_WINDOW || '60000'), // 1 minute
-      skipOnError: true,
-    });
+    // Enable rate limiting (commented out due to version issues)
+    // await fastifyAdapter.register(require('@fastify/rate-limit'), {
+    //   max: parseInt(process.env.RATE_LIMIT_MAX || '200'),
+    //   timeWindow: parseInt(process.env.RATE_LIMIT_WINDOW || '60000'), // 1 minute
+    //   skipOnError: true,
+    // });
   } catch (error) {
     logger.warn('Some Fastify plugins failed to register:', error.message);
   }
@@ -61,6 +63,16 @@ async function bootstrap() {
       logger: process.env.NODE_ENV === 'development' ? ['log', 'debug', 'error', 'verbose', 'warn'] : ['error', 'warn'],
     }
   );
+
+  // Get configuration services
+  const configService = app.get(ConfigService<ConfigKeyPaths>);
+  const appConfig = configService.get<IAppConfig>('app', { infer: true });
+  const corsConfig = configService.get<ICorsConfig>('cors', { infer: true });
+
+  // Enable CORS using configuration
+  if (corsConfig.enabled) {
+    app.enableCors(corsConfig.corsOptions);
+  }
 
   // Global validation pipe
   app.useGlobalPipes(
@@ -77,15 +89,16 @@ async function bootstrap() {
   // Enable versioning
   app.enableVersioning({
     type: VersioningType.URI,
-    defaultVersion: '1',
+    defaultVersion: appConfig.apiVersion,
   });
 
   // Global prefix for all API endpoints
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix(appConfig.apiPrefix);
 
   // Setup Swagger documentation
   // 允许在所有环境中访问 API 文档，便于调试和开发
-  if (true) {
+  // Temporarily disabled due to @fastify/static version compatibility issues
+  if (appConfig.docSwaggerEnable && false) {
     const config = new DocumentBuilder()
       .setTitle('Low-Code Platform API')
       .setDescription('API documentation for the Low-Code Platform Backend')
@@ -150,16 +163,20 @@ async function bootstrap() {
   });
 
   // Start the server
-  const port = parseInt(process.env.PORT || '3000');
-  const host = process.env.HOST || '0.0.0.0';
+  const port = appConfig.port;
+  const host = appConfig.host;
 
   try {
     await app.listen(port, host);
     logger.log(`🚀 Low-Code Platform Backend is running on: http://${host}:${port}`);
-    logger.log(`📚 API Documentation: http://${host}:${port}/api-docs`);
+    logger.log(`📚 API Documentation: http://${host}:${port}/${appConfig.docSwaggerPath}`);
     logger.log(`💓 Health Check: http://${host}:${port}/health`);
     logger.log(`📊 Metrics: http://${host}:${port}/health/metrics`);
-    logger.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.log(`🌍 Environment: ${appConfig.nodeEnv}`);
+    logger.log(`🔒 CORS Enabled: ${corsConfig.enabled}`);
+    if (corsConfig.enabled) {
+      logger.log(`🌐 CORS Origins: ${corsConfig.corsOptions.origin}`);
+    }
   } catch (error) {
     logger.error('Failed to start server:', error);
     process.exit(1);
