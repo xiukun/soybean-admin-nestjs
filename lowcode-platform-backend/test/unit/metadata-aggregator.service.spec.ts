@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { MetadataAggregatorService } from '../../src/lib/bounded-contexts/metadata/application/services/metadata-aggregator.service';
-import { PrismaService } from '@prisma/prisma.service';
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
 
 describe('MetadataAggregatorService', () => {
   let service: MetadataAggregatorService;

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@prisma/prisma.service';
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import { MultiTableQuery } from '../domain/multi-table-query.model';
 
 @Injectable()

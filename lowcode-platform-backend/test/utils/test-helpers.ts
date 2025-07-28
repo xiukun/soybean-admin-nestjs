@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { PrismaService } from '@prisma/prisma.service';
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import { Entity } from '@entity/domain/entity.model';
 import { Project } from '@project/domain/project.model';
 import { Relationship, RelationshipType } from '@lib/bounded-contexts/relationship/domain/relationship.model';

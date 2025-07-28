@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@prisma/prisma.service';
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as prettier from 'prettier';

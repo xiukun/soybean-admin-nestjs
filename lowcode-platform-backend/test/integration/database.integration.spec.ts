@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '@prisma/prisma.service';
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import { AppModule } from '@src/app.module';
 
 describe('Database Integration Tests', () => {

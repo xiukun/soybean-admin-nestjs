@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { CodeGenerationService } from './code-generation.service';
-import { PrismaService } from '@prisma/prisma.service';
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import { ServiceRegistry } from '@lib/shared/microservices/service-registry';
 
 describe('CodeGenerationService', () => {

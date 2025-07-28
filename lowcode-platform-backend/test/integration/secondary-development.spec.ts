@@ -3,7 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import { AppModule } from '@src/app.module';
-import { PrismaService } from '@prisma/prisma.service';
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { BaseBizArchitectureTemplate } from '@code-generation/templates/base-biz-architecture.template';
 

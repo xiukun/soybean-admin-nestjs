@@ -1,5 +1,5 @@
 import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@prisma/prisma.service';
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import * as Handlebars from 'handlebars';
 import { GeneratedFile, ProjectMetadata, EntityMetadata, FieldMetadata } from '../../../shared/types/metadata.types';
 import { MetadataAggregatorService } from '../../../metadata/application/services/metadata-aggregator.service';

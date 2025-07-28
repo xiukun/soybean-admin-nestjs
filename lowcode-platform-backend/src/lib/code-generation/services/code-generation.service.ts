@@ -3,7 +3,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as Handlebars from 'handlebars';
-import { PrismaService } from '@prisma/prisma.service';
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import { CodeTemplate, TemplateContext, TemplateGenerator } from '../interfaces/code-template.interface';
 import { GitIntegrationService, GitCommitResult } from './git-integration.service';
 

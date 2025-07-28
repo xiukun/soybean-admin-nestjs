@@ -3,7 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as request from 'supertest';
 import { AppModule } from '../../src/app.module';
-import { PrismaService } from '@prisma/prisma.service';
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import { MetadataAggregatorService } from '../../src/lib/bounded-contexts/metadata/application/services/metadata-aggregator.service';
 import { IntelligentCodeGeneratorService } from '../../src/lib/bounded-contexts/code-generation/application/services/intelligent-code-generator.service';
 

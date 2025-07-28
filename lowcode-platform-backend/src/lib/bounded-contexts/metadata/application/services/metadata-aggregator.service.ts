@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '@prisma/prisma.service';
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import { ProjectMetadata, EntityMetadata, FieldMetadata, RelationshipMetadata } from '../../../shared/types/metadata.types';
 
 @Injectable()

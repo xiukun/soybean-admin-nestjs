@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@prisma/prisma.service';
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import { ApiRepository } from '@api-context/domain/api.repository';
 import { Api, ApiMethod, ApiStatus } from '@api-context/domain/api.model';
 

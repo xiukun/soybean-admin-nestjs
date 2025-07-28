@@ -1,6 +1,6 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '@prisma/prisma.service';
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import { IntelligentCodeGeneratorService } from '@code-generation/application/services/intelligent-code-generator.service';
 import { ProjectRepository } from '@project/domain/project.repository';
 import * as fs from 'fs-extra';

@@ -3,7 +3,7 @@ import { BadRequestException } from '@nestjs/common';
 import { IntelligentCodeGeneratorService } from '../../src/lib/bounded-contexts/code-generation/application/services/intelligent-code-generator.service';
 import { MetadataAggregatorService } from '../../src/lib/bounded-contexts/metadata/application/services/metadata-aggregator.service';
 import { TemplateEngineService } from '../../src/lib/bounded-contexts/code-generation/infrastructure/template-engine.service';
-import { PrismaService } from '@prisma/prisma.service';
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
 
 describe('IntelligentCodeGeneratorService', () => {
   let service: IntelligentCodeGeneratorService;

@@ -295,7 +295,7 @@ async function initializeDatabase() {
         framework: 'nestjs',
         description: '用于生成 NestJS 服务类的模板',
         template: `import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@prisma/prisma.service';
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import { {{pascalCase entity.code}} } from '@prisma/client';
 
 @Injectable()
