@@ -137,8 +137,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, h } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, reactive, computed, onMounted, h, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import type { FormInst, FormRules, DataTableColumns } from 'naive-ui';
 import { $t } from '@/locales';
 import { createRequiredFormRule } from '@/utils/form/rule';
@@ -168,6 +168,7 @@ interface Entity {
 }
 
 const router = useRouter();
+const route = useRoute();
 
 // State
 const viewMode = ref<'list' | 'designer'>('list');
@@ -178,7 +179,7 @@ const categoryFilter = ref('');
 const showEntityModal = ref(false);
 const editingEntity = ref<Entity | null>(null);
 const entityFormRef = ref<FormInst | null>(null);
-const selectedProjectId = ref<string>(props.projectId || '');
+const selectedProjectId = ref<string>(props.projectId || (route.query.projectId as string) || '');
 const projectOptions = ref<Array<{ label: string; value: string }>>([]);
 const projectLoading = ref(false);
 
@@ -244,7 +245,7 @@ const columns: DataTableColumns<Entity> = [
   { title: $t('page.lowcode.entity.tableName'), key: 'tableName', width: 120 },
   { title: $t('page.lowcode.entity.category'), key: 'category', width: 100 },
   {
-    title: $t('page.lowcode.entity.status'),
+    title: $t('common.status'),
     key: 'status',
     width: 100,
     render: (row) => h('NTag', { type: getStatusType(row.status) },
@@ -357,7 +358,13 @@ function handleEditEntity(entity: Entity) {
 }
 
 function handleDesignFields(entity: Entity) {
-  router.push(`/lowcode/entity/${entity.id}/fields`);
+  router.push({
+    path: '/lowcode/field',
+    query: {
+      entityId: entity.id,
+      projectId: currentProjectId.value
+    }
+  });
 }
 
 function handleDeleteEntity(entity: Entity) {
@@ -444,11 +451,26 @@ async function loadEntities() {
   }
 }
 
-// Lifecycle
-onMounted(() => {
-  loadProjects();
-  if (currentProjectId.value) {
+// Watch for route changes
+watch(() => route.query.projectId, (newProjectId) => {
+  if (newProjectId && typeof newProjectId === 'string') {
+    selectedProjectId.value = newProjectId;
     loadEntities();
+  }
+}, { immediate: true });
+
+// Lifecycle
+onMounted(async () => {
+  await loadProjects();
+  
+  // 如果URL中有projectId参数，设置为默认值并加载实体
+  const urlProjectId = route.query.projectId as string;
+  if (urlProjectId && !props.projectId) {
+    selectedProjectId.value = urlProjectId;
+    // 等待项目列表加载完成后再加载实体
+    await loadEntities();
+  } else if (currentProjectId.value) {
+    await loadEntities();
   }
 });
 </script>

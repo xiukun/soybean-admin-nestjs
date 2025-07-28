@@ -566,7 +566,7 @@ const tableColumns: DataTableColumns<Project> = [
     key: 'status',
     width: 100,
     render: (row) => h('NTag', { type: getStatusType(row.status) },
-      $t(`page.lowcode.project.status.${row.status.toLowerCase()}`)
+      $t(`page.lowcode.project.status.${row.status}`)
     )
   },
   {

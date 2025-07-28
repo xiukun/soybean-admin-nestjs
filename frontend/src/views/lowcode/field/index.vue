@@ -16,6 +16,15 @@
       </NSpace>
     </NCard>
 
+    <!-- 显示当前选中的实体信息 -->
+    <NCard v-if="currentEntityId && currentEntityName" :bordered="false" size="small">
+      <NSpace align="center">
+        <NIcon><icon-mdi-table /></NIcon>
+        <span>当前实体：<strong>{{ currentEntityName }}</strong></span>
+        <NTag type="info">{{ data.length }} 个字段</NTag>
+      </NSpace>
+    </NCard>
+
     <NCard :title="$t('page.lowcode.field.title')" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
       <template #header-extra>
         <TableHeaderOperation
@@ -36,7 +45,7 @@
         :scroll-x="962"
         :loading="loading"
         remote
-        :row-key="row => row.id"
+        :row-key="(row: any) => row.id"
         :pagination="mobilePagination"
         class="sm:h-full"
       />
@@ -52,9 +61,10 @@
 </template>
 
 <script setup lang="tsx">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 import { NButton, NPopconfirm, NSpace, NTag, NSelect, NCard } from 'naive-ui';
 import { fetchDeleteField, fetchGetFieldList, fetchMoveField } from '@/service/api';
+import { fetchGetAllEntities } from '@/service/api/lowcode-entity';
 import { $t } from '@/locales';
 import { useAppStore } from '@/store/modules/app';
 import { useTable, useTableOperate } from '@/hooks/common/table';
@@ -81,6 +91,14 @@ const entityLoading = ref(false);
 // Get entityId from props or route query
 const currentEntityId = computed(() => {
   return props.entityId || (route.query.entityId as string) || selectedEntityId.value;
+});
+
+// Get current entity name for display
+const currentEntityName = computed(() => {
+  const entityId = currentEntityId.value;
+  if (!entityId) return '';
+  const entity = entityOptions.value.find(opt => opt.value === entityId);
+  return entity?.label || '';
 });
 
 // Create a wrapper function for the API call
@@ -291,12 +309,25 @@ async function loadEntities() {
 
   entityLoading.value = true;
   try {
-    // We need to get entities from all projects or show project selector first
-    // For now, let's assume we get entities from a default project or all projects
-    // This would need to be implemented based on your specific requirements
-    entityOptions.value = [];
+    const projectId = route.query.projectId as string;
+    if (projectId) {
+      const { data } = await fetchGetAllEntities(projectId);
+      if (data) {
+        entityOptions.value = data.map(entity => ({
+          label: entity.name,
+          value: entity.id
+        }));
+        
+        // 如果URL中有entityId参数，设置为默认选中
+        const urlEntityId = route.query.entityId as string;
+        if (urlEntityId && !selectedEntityId.value) {
+          selectedEntityId.value = urlEntityId;
+        }
+      }
+    }
   } catch (error) {
     console.error('Failed to load entities:', error);
+    window.$message?.error('加载实体列表失败');
   } finally {
     entityLoading.value = false;
   }
@@ -317,8 +348,24 @@ watch(() => currentEntityId.value, () => {
   }
 }, { immediate: true });
 
+// 监听路由参数变化
+watch(() => route.query, (newQuery) => {
+  const entityId = newQuery.entityId as string;
+  const projectId = newQuery.projectId as string;
+  
+  if (entityId && entityId !== selectedEntityId.value) {
+    selectedEntityId.value = entityId;
+  }
+  
+  if (projectId) {
+    loadEntities();
+  }
+}, { immediate: true });
+
 // Load entities on component mount
-loadEntities();
+onMounted(() => {
+  loadEntities();
+});
 </script>
 
 <style scoped></style>

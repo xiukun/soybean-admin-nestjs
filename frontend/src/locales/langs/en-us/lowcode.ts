@@ -93,6 +93,20 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     enableSoftDelete: 'Enable Soft Delete',
     enablePagination: 'Enable Pagination',
     enableCaching: 'Enable Caching',
+    relationships: 'Relationships',
+    generatedFiles: 'Generated Files',
+    lastUpdated: 'Last Updated',
+    techStack: 'Tech Stack',
+    progress: 'Progress',
+    design: 'Design',
+    designEntities: 'Design Entities',
+    generate: 'Generate',
+    generateCode: 'Generate Code',
+    yesterday: 'Yesterday',
+    daysAgo: '{days} days ago',
+    configure: 'Configure',
+    view: 'View',
+    generated: 'Generated',
     status: {
       ACTIVE: 'Active',
       INACTIVE: 'Inactive',
@@ -101,19 +115,19 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       inactive: 'Inactive',
       archived: 'Archived'
     },
-    deploy: 'Deploy',
-    deployProject: 'Deploy Project',
-    stopDeployment: 'Stop Deployment',
-    stopProjectDeployment: 'Stop Project Deployment',
-    deploymentStatusLabel: 'Deployment Status',
-    port: 'Port',
-    lastDeployed: 'Last Deployed',
     deploymentStatus: {
       inactive: 'Not Deployed',
       deploying: 'Deploying',
       deployed: 'Deployed',
       failed: 'Deployment Failed'
     },
+    deploymentStatusLabel: 'Deployment Status',
+    port: 'Port',
+    lastDeployed: 'Last Deployed',
+    deploy: 'Deploy',
+    deployProject: 'Deploy Project',
+    stopDeployment: 'Stop Deployment',
+    stopProjectDeployment: 'Stop Project Deployment',
     form: {
       name: {
         placeholder: 'Please enter project name',
@@ -219,8 +233,8 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       ACTIVE: 'Active',
       INACTIVE: 'Inactive',
       active: 'Active',
-      draft: 'Draft',
-      inactive: 'Inactive'
+      inactive: 'Inactive',
+      draft: 'Draft'
     },
     categories: {
       core: 'Core',
@@ -467,6 +481,7 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
   },
   template: {
     title: 'Template Management',
+    management: 'Template Management',
     selectProject: 'Select Project',
     currentProject: 'Current Project',
     addTemplate: 'Add Template',
@@ -485,7 +500,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     publish: 'Publish',
     publishSuccess: 'Template published successfully',
     publishFailed: 'Failed to publish template',
-    management: 'Template Management',
     managementDesc: 'Manage and edit your code templates',
     gridView: 'Grid View',
     listView: 'List View',
@@ -518,8 +532,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     batchDeleteConfirm: 'Confirm to delete selected templates?',
     editor: 'Template Editor',
     newTemplate: 'New Template',
-    content: 'Template Content',
-    variables: 'Template Variables',
     settings: 'Template Settings',
     templateVariables: 'Template Variables',
     addVariable: 'Add Variable',
@@ -527,7 +539,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     variableType: 'Variable Type',
     defaultValue: 'Default Value',
     required: 'Required',
-    description: 'Description',
     noVariables: 'No variables',
     lines: 'Lines',
     format: 'Format',
@@ -540,6 +551,25 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     validationPassed: 'Validation passed',
     validationFailed: 'Validation failed',
     tagsPlaceholder: 'Enter tags and press enter',
+    validate: 'Validate',
+    test: 'Test',
+    previewResult: 'Preview Result',
+    output: 'Output Result',
+    validation: 'Validation Result',
+    testResult: 'Test Result',
+    validationSuccess: 'Template validation passed',
+    testPassed: 'Test passed',
+    testFailed: 'Test failed',
+    errors: 'Errors',
+    warnings: 'Warnings',
+    suggestions: 'Suggestions',
+    extractedVariables: 'Extracted Variables',
+    usedVariables: 'Used Variables',
+    unusedVariables: 'Unused Variables',
+    variableAnalysis: 'Variable Analysis',
+    actualOutput: 'Actual Output',
+    newVariable: 'New Variable',
+    variableValue: 'Variable Value',
     status: {
       DRAFT: 'Draft',
       PUBLISHED: 'Published',
@@ -610,6 +640,12 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       },
       project: {
         placeholder: 'Please select project'
+      },
+      variableValue: {
+        stringPlaceholder: 'Please enter string value',
+        numberPlaceholder: 'Please enter number value',
+        arrayPlaceholder: 'Please enter JSON array, e.g.: ["item1", "item2"]',
+        objectPlaceholder: 'Please enter JSON object, e.g.: {"key": "value"}'
       }
     }
   },
@@ -698,6 +734,42 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       baseEntityAlias: {
         placeholder: 'Please enter base entity alias',
         required: 'Please enter base entity alias'
+      },
+      joinType: {
+        placeholder: 'Please select join type'
+      },
+      targetEntity: {
+        placeholder: 'Please select target entity'
+      },
+      sourceField: {
+        placeholder: 'Please enter source field'
+      },
+      targetField: {
+        placeholder: 'Please enter target field'
+      },
+      alias: {
+        placeholder: 'Please enter alias'
+      },
+      fieldName: {
+        placeholder: 'Please enter field name'
+      },
+      fieldAlias: {
+        placeholder: 'Please enter field alias'
+      },
+      entityAlias: {
+        placeholder: 'Please enter entity alias'
+      },
+      aggregation: {
+        placeholder: 'Please select aggregation function'
+      },
+      operator: {
+        placeholder: 'Please select operator'
+      },
+      value: {
+        placeholder: 'Please enter value'
+      },
+      direction: {
+        placeholder: 'Please select sort direction'
       }
     }
   },

@@ -193,7 +193,7 @@ const columns: DataTableColumns<Entity> = [
   { title: $t('page.lowcode.entity.tableName'), key: 'tableName', width: 120 },
   { title: $t('page.lowcode.entity.category'), key: 'category', width: 100 },
   {
-    title: $t('page.lowcode.entity.status'),
+    title: $t('common.status'),
     key: 'status',
     width: 100,
     render: (row) => h('NTag', { type: getStatusType(row.status) }, 

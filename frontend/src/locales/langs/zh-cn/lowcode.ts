@@ -62,11 +62,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     codeRequired: '请输入项目代码',
     frameworkRequired: '请选择开发框架',
     loadFailed: '加载项目失败',
-    entities: '实体数量',
-    templates: '模板数量',
-    createdBy: '创建者',
-    createdAt: '创建时间',
-    framework: '开发框架',
     archiveConfirm: '确认归档此项目？',
     deleteConfirm: '确认删除此项目？此操作不可恢复！',
     archiveSuccess: '项目归档成功',
@@ -98,6 +93,20 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     enableSoftDelete: '启用软删除',
     enablePagination: '启用分页',
     enableCaching: '启用缓存',
+    relationships: '关系',
+    generatedFiles: '生成文件',
+    lastUpdated: '最后更新',
+    techStack: '技术栈',
+    progress: '进度',
+    design: '设计',
+    designEntities: '设计实体',
+    generate: '生成',
+    generateCode: '生成代码',
+    yesterday: '昨天',
+    daysAgo: '{days}天前',
+    configure: '配置',
+    view: '查看',
+    generated: '已生成',
     status: {
       ACTIVE: '活跃',
       INACTIVE: '非活跃',
@@ -106,19 +115,19 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       inactive: '非活跃',
       archived: '已归档'
     },
-    deploy: '部署',
-    deployProject: '部署项目',
-    stopDeployment: '停止部署',
-    stopProjectDeployment: '停止项目部署',
-    deploymentStatusLabel: '部署状态',
-    port: '端口',
-    lastDeployed: '最后部署',
     deploymentStatus: {
       inactive: '未部署',
       deploying: '部署中',
       deployed: '已部署',
       failed: '部署失败'
     },
+    deploymentStatusLabel: '部署状态',
+    port: '端口',
+    lastDeployed: '最后部署',
+    deploy: '部署',
+    deployProject: '部署项目',
+    stopDeployment: '停止部署',
+    stopProjectDeployment: '停止项目部署',
     form: {
       name: {
         placeholder: '请输入项目名称',
@@ -217,6 +226,18 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     designFields: '设计字段',
     fieldCount: '字段数量',
     createdAt: '创建时间',
+    createdBy: '创建者',
+    fields: '字段',
+    relationships: '关系',
+    manageFields: '管理字段',
+    gridView: '网格视图',
+    tableView: '表格视图',
+    fieldAdded: '字段添加成功',
+    fieldUpdated: '字段更新成功',
+    fieldDeleted: '字段删除成功',
+    invalidJsonFormat: 'JSON格式无效',
+    sqlImportNotImplemented: 'SQL导入功能暂未实现',
+    dbImportNotImplemented: '数据库导入功能暂未实现',
     status: {
       DRAFT: '草稿',
       PUBLISHED: '已发布',
@@ -224,14 +245,16 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       ACTIVE: '活跃',
       INACTIVE: '非活跃',
       active: '活跃',
-      draft: '草稿',
-      inactive: '非活跃'
+      inactive: '非活跃',
+      draft: '草稿'
     },
     categories: {
       core: '核心',
       business: '业务',
       system: '系统',
-      config: '配置'
+      config: '配置',
+      lookup: '查找',
+      log: '日志'
     },
     dataTypes: {
       STRING: '字符串',
@@ -381,18 +404,51 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       }
     }
   },
-  codeGeneration: {
+  relationship: {
+    title: '关系管理',
+    addRelationship: '新增关系',
+    editRelationship: '编辑关系',
+    sourceEntity: '源实体',
+    targetEntity: '目标实体',
+    relationType: '关系类型',
+    relationshipName: '关系名称',
+    description: '关系描述',
+    cascadeDelete: '级联删除',
+    required: '必填',
+    relationTypes: {
+      oneToOne: '一对一',
+      oneToMany: '一对多',
+      manyToOne: '多对一',
+      manyToMany: '多对多'
+    },
+    form: {
+      sourceEntity: {
+        placeholder: '请选择源实体',
+        required: '请选择源实体'
+      },
+      targetEntity: {
+        placeholder: '请选择目标实体',
+        required: '请选择目标实体'
+      },
+      relationType: {
+        placeholder: '请选择关系类型',
+        required: '请选择关系类型'
+      },
+      relationshipName: {
+        placeholder: '请输入关系名称',
+        required: '请输入关系名称'
+      },
+      description: {
+        placeholder: '请输入关系描述'
+      }
+    }
+  },
+  codegen: {
     title: '代码生成',
-    project: '项目',
-    entity: '实体',
-    template: '代码模板',
-    outputPath: '输出目录',
     generate: '生成代码',
+    template: '代码模板',
+    output: '输出目录',
     progress: '生成进度',
-    logs: '生成日志',
-    result: '生成结果',
-    fileList: '文件列表',
-    fileContent: '文件内容',
     batchGeneration: '批量生成',
     batchMode: '批量模式',
     concurrency: '并发数',
@@ -404,9 +460,9 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     selectTemplates: '选择模板',
     outputStrategy: '输出策略',
     separateDirectories: '分离目录',
-    separateDirectoriesDesc: '每个项目/实体生成到独立目录',
+    separateDirectoriesDesc: '为每个项目/实体生成单独目录',
     mergedDirectory: '合并目录',
-    mergedDirectoryDesc: '所有生成内容合并到同一目录',
+    mergedDirectoryDesc: '将所有生成内容合并到同一目录',
     baseOutputPath: '基础输出路径',
     startBatchGeneration: '开始批量生成',
     batchProgress: '批量进度',
@@ -427,18 +483,11 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       FAILED: '失败'
     },
     form: {
-      project: {
-        placeholder: '请选择项目',
-        required: '请选择项目'
-      },
-      entity: {
-        placeholder: '请选择实体'
-      },
       template: {
         placeholder: '请选择代码模板',
         required: '请选择代码模板'
       },
-      outputPath: {
+      output: {
         placeholder: '请输入输出目录',
         required: '请输入输出目录'
       }
@@ -446,6 +495,7 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
   },
   template: {
     title: '模板管理',
+    management: '模板管理',
     selectProject: '选择项目',
     currentProject: '当前项目',
     addTemplate: '新增模板',
@@ -464,7 +514,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     publish: '发布',
     publishSuccess: '模板发布成功',
     publishFailed: '模板发布失败',
-    management: '模板管理',
     managementDesc: '管理和编辑您的代码模板',
     gridView: '网格视图',
     listView: '列表视图',
@@ -497,8 +546,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     batchDeleteConfirm: '确认删除选中的模板？',
     editor: '模板编辑器',
     newTemplate: '新模板',
-    content: '模板内容',
-    variables: '模板变量',
     settings: '模板设置',
     templateVariables: '模板变量',
     addVariable: '添加变量',
@@ -506,7 +553,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     variableType: '变量类型',
     defaultValue: '默认值',
     required: '必填',
-    description: '描述',
     noVariables: '暂无变量',
     lines: '行数',
     format: '格式化',
@@ -519,6 +565,25 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     validationPassed: '验证通过',
     validationFailed: '验证失败',
     tagsPlaceholder: '输入标签并按回车',
+    validate: '验证',
+    test: '测试',
+    previewResult: '预览结果',
+    output: '输出结果',
+    validation: '验证结果',
+    testResult: '测试结果',
+    validationSuccess: '模板验证通过',
+    testPassed: '测试通过',
+    testFailed: '测试失败',
+    errors: '错误',
+    warnings: '警告',
+    suggestions: '建议',
+    extractedVariables: '提取的变量',
+    usedVariables: '已使用变量',
+    unusedVariables: '未使用变量',
+    variableAnalysis: '变量分析',
+    actualOutput: '实际输出',
+    newVariable: '新变量',
+    variableValue: '变量值',
     status: {
       DRAFT: '草稿',
       PUBLISHED: '已发布',
@@ -595,135 +660,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
         numberPlaceholder: '请输入数字值',
         arrayPlaceholder: '请输入JSON数组，如: ["item1", "item2"]',
         objectPlaceholder: '请输入JSON对象，如: {"key": "value"}'
-      }
-    },
-    preview: '预览',
-    validate: '验证',
-    test: '测试',
-    previewResult: '预览结果',
-    output: '输出结果',
-    validation: '验证结果',
-    testResult: '测试结果',
-    validationSuccess: '模板验证通过',
-    validationFailed: '模板验证失败',
-    testPassed: '测试通过',
-    testFailed: '测试失败',
-    errors: '错误',
-    warnings: '警告',
-    suggestions: '建议',
-    extractedVariables: '提取的变量',
-    usedVariables: '已使用变量',
-    unusedVariables: '未使用变量',
-    variableAnalysis: '变量分析',
-    actualOutput: '实际输出',
-    addVariable: '添加变量',
-    newVariable: '新变量',
-    variableName: '变量名',
-    variableType: '变量类型',
-    variableValue: '变量值'
-  },
-  relation: {
-    title: '关系管理',
-    addRelation: '新增关系',
-    editRelation: '编辑关系',
-    name: '关系名称',
-    code: '关系代码',
-    description: '关系描述',
-    sourceEntity: '源实体',
-    targetEntity: '目标实体',
-    sourceField: '源字段',
-    targetField: '目标字段',
-    relationType: '关系类型',
-    onDelete: '删除时',
-    onUpdate: '更新时',
-    relationTypes: {
-      ONE_TO_ONE: '一对一',
-      ONE_TO_MANY: '一对多',
-      MANY_TO_ONE: '多对一',
-      MANY_TO_MANY: '多对多'
-    },
-    cascadeActions: {
-      CASCADE: '级联',
-      SET_NULL: '设为空',
-      RESTRICT: '限制',
-      NO_ACTION: '无操作'
-    },
-    form: {
-      name: {
-        placeholder: '请输入关系名称',
-        required: '请输入关系名称'
-      },
-      code: {
-        placeholder: '请输入关系代码',
-        required: '请输入关系代码'
-      },
-      description: {
-        placeholder: '请输入关系描述'
-      },
-      sourceEntity: {
-        placeholder: '请选择源实体',
-        required: '请选择源实体'
-      },
-      targetEntity: {
-        placeholder: '请选择目标实体',
-        required: '请选择目标实体'
-      },
-      sourceField: {
-        placeholder: '请选择源字段',
-        required: '请选择源字段'
-      },
-      targetField: {
-        placeholder: '请选择目标字段',
-        required: '请选择目标字段'
-      },
-      relationType: {
-        placeholder: '请选择关系类型',
-        required: '请选择关系类型'
-      },
-      onDelete: {
-        placeholder: '请选择删除时操作'
-      },
-      onUpdate: {
-        placeholder: '请选择更新时操作'
-      }
-    }
-  },
-  relationship: {
-    title: '关系管理',
-    addRelationship: '新增关系',
-    editRelationship: '编辑关系',
-    sourceEntity: '源实体',
-    targetEntity: '目标实体',
-    relationType: '关系类型',
-    relationshipName: '关系名称',
-    description: '关系描述',
-    cascadeDelete: '级联删除',
-    required: '必填',
-    relationTypes: {
-      oneToOne: '一对一',
-      oneToMany: '一对多',
-      manyToOne: '多对一',
-      manyToMany: '多对多'
-    },
-    form: {
-      sourceEntity: {
-        placeholder: '请选择源实体',
-        required: '请选择源实体'
-      },
-      targetEntity: {
-        placeholder: '请选择目标实体',
-        required: '请选择目标实体'
-      },
-      relationType: {
-        placeholder: '请选择关系类型',
-        required: '请选择关系类型'
-      },
-      relationshipName: {
-        placeholder: '请输入关系名称',
-        required: '请输入关系名称'
-      },
-      description: {
-        placeholder: '请输入关系描述'
       }
     }
   },
@@ -956,158 +892,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       search: {
         placeholder: '请输入API名称或路径进行搜索'
       }
-    },
-    selector: {
-      title: 'API配置选择器',
-      platformFormat: '平台管理格式 (current/size + records)',
-      lowcodeFormat: '低代码页面格式 (page/perPage + options)',
-      selectApi: '选择API配置',
-      selectApiPlaceholder: '请选择要使用的API配置',
-      selectedApi: '选中的API配置',
-      amisConfig: '生成的Amis配置'
-    },
-    tabs: {
-      management: 'API配置管理',
-      selector: '接口格式对比',
-      batchOperations: '批量操作',
-      onlineTest: '在线测试',
-      versionManagement: '版本管理',
-      documentation: '文档生成'
-    },
-    batchOperations: {
-      title: '批量操作',
-      export: {
-        title: '批量导出',
-        all: '导出全部',
-        selected: '导出选中',
-        allSuccess: '已成功导出所有API配置',
-        selectedSuccess: '已成功导出 {count} 个API配置'
-      },
-      import: {
-        title: '批量导入',
-        button: '开始导入',
-        dragText: '点击或拖拽文件到此区域上传',
-        hintText: '支持 JSON、YAML 格式，单个文件大小不超过 10MB',
-        overwrite: '覆盖已存在的配置',
-        invalidFormat: '不支持的文件格式，请上传 JSON 或 YAML 文件',
-        success: '导入成功：新建 {created} 个，更新 {updated} 个'
-      },
-      delete: {
-        title: '批量删除',
-        selected: '删除选中',
-        confirm: '确定要删除选中的 {count} 个API配置吗？此操作不可撤销。',
-        success: '已成功删除 {count} 个API配置'
-      },
-      template: {
-        title: '模板下载',
-        json: '下载JSON模板',
-        yaml: '下载YAML模板',
-        downloaded: '已下载 {format} 格式模板文件'
-      }
-    },
-    onlineTest: {
-      title: '在线API测试',
-      history: '测试历史',
-      selectApi: '选择API',
-      apiInfo: 'API信息',
-      testConfig: '测试配置',
-      headers: '请求头',
-      headerKey: '请求头名称',
-      headerValue: '请求头值',
-      addHeader: '添加请求头',
-      queryParams: '查询参数',
-      paramKey: '参数名',
-      paramValue: '参数值',
-      addParam: '添加参数',
-      requestBody: '请求体',
-      jsonPlaceholder: '请输入JSON格式的请求体',
-      fieldKey: '字段名',
-      fieldValue: '字段值',
-      addField: '添加字段',
-      rawPlaceholder: '请输入原始请求体内容',
-      execute: '执行测试',
-      saveCase: '保存用例',
-      result: '测试结果',
-      status: '状态码',
-      time: '响应时间',
-      responseHeaders: '响应头',
-      responseBody: '响应体',
-      formatted: '格式化',
-      raw: '原始',
-      testHistory: '测试历史',
-      envVariables: '环境变量',
-      variableKey: '变量名',
-      variableValue: '变量值',
-      addVariable: '添加变量',
-      testCases: '测试用例',
-      savedCases: '已保存的测试用例',
-      noCases: '暂无保存的测试用例',
-      load: '加载',
-      createdAt: '创建时间',
-      caseSaved: '测试用例已保存',
-      caseLoaded: '测试用例已加载',
-      caseDeleted: '测试用例已删除'
-    },
-    versionManagement: {
-      title: 'API版本管理',
-      selectApi: '选择API',
-      currentVersion: '当前版本',
-      versionHistory: '版本历史',
-      versionCompare: '版本对比',
-      createVersion: '创建版本',
-      version: '版本',
-      versionNumber: '版本号',
-      versionPlaceholder: '请输入版本号，如：1.0.0',
-      changeLog: '变更日志',
-      changeLogPlaceholder: '请输入本次变更的详细说明',
-      compare: '对比',
-      rollback: '回滚',
-      viewVersion: '查看版本 {version}',
-      selectSecondVersion: '请选择第二个版本进行对比',
-      compareReady: '版本对比已准备就绪',
-      sameVersion: '不能选择相同的版本进行对比',
-      versionCreated: '版本创建成功',
-      createFailed: '版本创建失败',
-      rollbackSuccess: '已成功回滚到版本 {version}',
-      rollbackFailed: '版本回滚失败',
-      loadFailed: '版本加载失败，使用模拟数据'
-    },
-    documentation: {
-      title: 'API文档生成',
-      generate: '生成文档',
-      exportSwagger: '导出Swagger',
-      selectProject: '选择项目',
-      selectProjectFirst: '请先选择项目',
-      includeInactive: '包含未激活的API',
-      config: '文档配置',
-      docTitle: '文档标题',
-      docVersion: '文档版本',
-      docDescription: '文档描述',
-      docBaseUrl: '基础URL',
-      titlePlaceholder: '请输入文档标题',
-      versionPlaceholder: '请输入文档版本',
-      descriptionPlaceholder: '请输入文档描述',
-      baseUrlPlaceholder: '请输入基础URL',
-      statistics: 'API统计',
-      totalApis: '总API数',
-      activeApis: '激活API数',
-      inactiveApis: '未激活API数',
-      methods: '方法类型',
-      methodDistribution: '方法分布',
-      preview: '文档预览',
-      swaggerFormat: 'Swagger格式',
-      markdownFormat: 'Markdown格式',
-      htmlFormat: 'HTML格式',
-      export: '导出文档',
-      exportMarkdown: '导出Markdown',
-      exportHtml: '导出HTML',
-      exportPostman: '导出Postman集合',
-      exportOpenAPI: '导出OpenAPI YAML',
-      exportInsomnia: '导出Insomnia集合',
-      generateSuccess: '文档生成成功',
-      generateFailed: '文档生成失败',
-      exportSuccess: '已成功导出 {format} 格式文档',
-      exportFailed: '文档导出失败'
     }
   },
   common: {
@@ -1131,7 +915,8 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       back: '返回',
       next: '下一步',
       previous: '上一步',
-      finish: '完成'
+      finish: '完成',
+      duplicate: '复制'
     },
     status: {
       enabled: '启用',
@@ -1152,7 +937,8 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       deleteSuccess: '删除成功',
       saveSuccess: '保存成功',
       updateSuccess: '更新成功',
-      createSuccess: '创建成功'
+      createSuccess: '创建成功',
+      importSuccess: '导入成功'
     },
     validation: {
       required: '此字段为必填项',
@@ -1165,61 +951,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       integer: '请输入有效的整数',
       positive: '请输入正数',
       unique: '此值已存在，请输入其他值'
-    }
-  },
-  apiTest: {
-    title: 'API测试',
-    project: '项目',
-    apiConfig: 'API配置',
-    requestConfig: '请求配置',
-    method: '请求方法',
-    url: '请求URL',
-    headers: '请求头',
-    params: '请求参数',
-    body: '请求体',
-    response: '响应结果',
-    status: '状态码',
-    time: '响应时间',
-    responseHeaders: '响应头',
-    responseData: '响应数据',
-    requestInfo: '请求信息',
-    testApi: '测试API',
-    clearResult: '清空结果',
-    saveAsTemplate: '保存为模板',
-    addHeader: '添加请求头',
-    addParam: '添加参数',
-    testSuccess: 'API测试成功',
-    testFailed: 'API测试失败',
-    saveAsTemplateNotImplemented: '保存为模板功能尚未实现',
-    queryParams: '查询参数',
-    test: '测试',
-    form: {
-      project: {
-        placeholder: '请选择项目',
-        required: '请选择项目'
-      },
-      apiConfig: {
-        placeholder: '请选择API配置',
-        required: '请选择API配置'
-      },
-      url: {
-        placeholder: '请求URL将自动生成'
-      },
-      headerKey: {
-        placeholder: '请求头名称'
-      },
-      headerValue: {
-        placeholder: '请求头值'
-      },
-      paramKey: {
-        placeholder: '参数名称'
-      },
-      paramValue: {
-        placeholder: '参数值'
-      },
-      body: {
-        placeholder: '请输入JSON格式的请求体'
-      }
     }
   }
 };
