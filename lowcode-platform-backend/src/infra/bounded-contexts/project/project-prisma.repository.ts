@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import { ProjectRepository } from '@project/domain/project.repository';
-import { Project, ProjectStatus } from '@project/domain/project.model';
+import { Project, ProjectStatus, DeploymentStatus } from '@project/domain/project.model';
 
 @Injectable()
 export class ProjectPrismaRepository implements ProjectRepository {
@@ -23,6 +23,7 @@ export class ProjectPrismaRepository implements ProjectRepository {
     return Project.fromPersistence({
       ...saved,
       status: saved.status as ProjectStatus,
+      deploymentStatus: saved.deploymentStatus as DeploymentStatus,
     });
   }
 
@@ -36,6 +37,7 @@ export class ProjectPrismaRepository implements ProjectRepository {
     return Project.fromPersistence({
       ...project,
       status: project.status as ProjectStatus,
+      deploymentStatus: project.deploymentStatus as DeploymentStatus,
     });
   }
 
@@ -49,6 +51,7 @@ export class ProjectPrismaRepository implements ProjectRepository {
     return Project.fromPersistence({
       ...project,
       status: project.status as ProjectStatus,
+      deploymentStatus: project.deploymentStatus as DeploymentStatus,
     });
   }
 
@@ -60,6 +63,7 @@ export class ProjectPrismaRepository implements ProjectRepository {
     return projects.map(project => Project.fromPersistence({
       ...project,
       status: project.status as ProjectStatus,
+      deploymentStatus: project.deploymentStatus as DeploymentStatus,
     }));
   }
 
@@ -83,6 +87,7 @@ export class ProjectPrismaRepository implements ProjectRepository {
     return Project.fromPersistence({
       ...updated,
       status: updated.status as ProjectStatus,
+      deploymentStatus: updated.deploymentStatus as DeploymentStatus,
     });
   }
 
@@ -143,6 +148,7 @@ export class ProjectPrismaRepository implements ProjectRepository {
       projects: projects.map(project => Project.fromPersistence({
         ...project,
         status: project.status as ProjectStatus,
+        deploymentStatus: project.deploymentStatus as DeploymentStatus,
       })),
       total,
       page,
