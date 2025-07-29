@@ -1,9 +1,0 @@
-{
-  "config": {
-    "projectId": "05462961-e82e-42e8-9b56-92ba28e342c2",
-    "entityIds": ["db383559-a1cf-4d59-bdb1-58d8d642b8db"],
-    "outputPath": "/tmp/generated-e2e",
-    "generateBase": true,
-    "generateBiz": true
-  }
-}
