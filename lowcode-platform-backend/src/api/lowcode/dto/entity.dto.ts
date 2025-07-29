@@ -4,8 +4,8 @@ import { Type } from 'class-transformer';
 import { EntityStatus } from '@entity/domain/entity.model';
 
 export class CreateEntityDto {
-  @ApiProperty({ description: 'Project ID' })
-  @IsUUID()
+  @ApiProperty({ description: 'Project ID', example: 'demo-project-1' })
+  @IsString()
   projectId: string;
 
   @ApiProperty({ description: 'Entity name' })
