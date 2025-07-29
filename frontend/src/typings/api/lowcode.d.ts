@@ -637,7 +637,8 @@ declare namespace Api {
     }
 
     /** Field data type */
-    type FieldDataType = 'STRING' | 'INTEGER' | 'DECIMAL' | 'BOOLEAN' | 'DATE' | 'DATETIME' | 'TEXT' | 'JSON';
+    /** Field data type */
+    type FieldDataType = 'STRING' | 'INTEGER' | 'DECIMAL' | 'BOOLEAN' | 'DATE' | 'DATETIME' | 'TEXT' | 'JSON' | 'UUID' | 'ENUM';
 
     /** Field */
     interface Field {
@@ -662,11 +663,17 @@ declare namespace Api {
       /** Is unique */
       unique: boolean;
       /** Default value */
-      defaultValue?: string;
+      defaultValue?: any;
       /** Field configuration */
       config?: Record<string, any>;
       /** Display order */
       displayOrder: number;
+      /** Is common field */
+      isCommon?: boolean;
+      /** Enum values (when dataType is ENUM) */
+      enumValues?: string[];
+      /** Field metadata */
+      metadata?: Record<string, any>;
       /** Created by */
       createdBy: string;
       /** Created time */
@@ -697,6 +704,7 @@ declare namespace Api {
     }
 
     /** Field edit */
+    /** Field edit */
     interface FieldEdit {
       /** Entity ID */
       entityId: string;
@@ -721,6 +729,109 @@ declare namespace Api {
       /** Field configuration */
       config?: Record<string, any>;
       /** Display order */
+      displayOrder: number;
+    }
+
+    // ==================== 通用字段自动生成功能相关类型定义 ====================
+
+    /** 通用字段配置选项 */
+    interface CommonFieldOptions {
+      /** 是否自动创建数据库表 */
+      autoCreateTable?: boolean;
+      /** 是否包含审计字段 */
+      includeAuditFields?: boolean;
+      /** 是否包含软删除字段 */
+      includeSoftDelete?: boolean;
+      /** 自定义通用字段 */
+      customCommonFields?: string[];
+    }
+
+    /** 增强的实体创建请求 */
+    interface EnhancedCreateEntityRequest extends EntityEdit {
+      /** 通用字段配置 */
+      commonFieldOptions?: CommonFieldOptions;
+      /** 业务字段列表 */
+      businessFields?: FieldEdit[];
+    }
+
+    /** 实体创建结果 */
+    interface EntityCreationResult {
+      /** 创建的实体 */
+      entity: Entity;
+      /** 自动添加的通用字段 */
+      commonFields: Field[];
+      /** 创建的业务字段 */
+      businessFields: Field[];
+      /** 数据库表创建状态 */
+      tableCreated: boolean;
+      /** 验证结果 */
+      validation: EntityValidationResult;
+    }
+
+    /** 实体验证结果 */
+    interface EntityValidationResult {
+      /** 是否有效 */
+      isValid: boolean;
+      /** 错误列表 */
+      errors: ValidationError[];
+      /** 警告列表 */
+      warnings: ValidationWarning[];
+      /** 验证摘要 */
+      summary: {
+        /** 总字段数 */
+        totalFields: number;
+        /** 通用字段数 */
+        commonFields: number;
+        /** 业务字段数 */
+        businessFields: number;
+        /** 必填字段数 */
+        requiredFields: number;
+        /** 唯一字段数 */
+        uniqueFields: number;
+      };
+    }
+
+    /** 验证错误 */
+    interface ValidationError {
+      /** 字段名 */
+      field: string;
+      /** 错误消息 */
+      message: string;
+      /** 错误代码 */
+      code: string;
+    }
+
+    /** 验证警告 */
+    interface ValidationWarning {
+      /** 字段名 */
+      field: string;
+      /** 警告消息 */
+      message: string;
+      /** 警告代码 */
+      code: string;
+    }
+
+    /** 通用字段定义 */
+    interface CommonFieldDefinition {
+      /** 字段名称 */
+      name: string;
+      /** 字段编码 */
+      code: string;
+      /** 数据类型 */
+      dataType: FieldDataType;
+      /** 字段长度 */
+      length?: number;
+      /** 数字精度 */
+      precision?: number;
+      /** 是否必填 */
+      required: boolean;
+      /** 是否唯一 */
+      unique: boolean;
+      /** 默认值 */
+      defaultValue?: string;
+      /** 字段描述 */
+      description: string;
+      /** 显示顺序 */
       displayOrder: number;
     }
   }

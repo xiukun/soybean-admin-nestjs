@@ -1,7 +1,22 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsObject, IsEnum, IsUUID, Min, Max } from 'class-validator';
+import { IsString, IsOptional, IsObject, IsEnum, IsUUID, Min, Max, IsBoolean, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { EntityStatus } from '@entity/domain/entity.model';
+
+export class CommonFieldOptionsDto {
+  @ApiProperty({ description: '是否启用通用字段', default: true })
+  @IsBoolean()
+  enabled: boolean;
+
+  @ApiProperty({ description: '是否自动创建数据库表', default: false })
+  @IsBoolean()
+  autoCreateTable: boolean;
+
+  @ApiPropertyOptional({ description: '自定义配置' })
+  @IsOptional()
+  @IsObject()
+  customConfigs?: Record<string, any>;
+}
 
 export class CreateEntityDto {
   @ApiProperty({ description: 'Project ID', example: 'demo-project-1' })
@@ -44,6 +59,12 @@ export class CreateEntityDto {
   @IsOptional()
   @IsEnum(EntityStatus)
   status?: EntityStatus;
+
+  @ApiPropertyOptional({ description: '通用字段配置选项' })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CommonFieldOptionsDto)
+  commonFieldOptions?: CommonFieldOptionsDto;
 }
 
 export class UpdateEntityDto {

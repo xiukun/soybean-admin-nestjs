@@ -144,6 +144,7 @@ export function fetchGenerateEntityTable(id: string) {
 }
 
 /**
+/**
  * validate entity
  *
  * @param data - entity data
@@ -153,5 +154,118 @@ export function fetchValidateEntity(data: Api.Lowcode.EntityEdit) {
     url: '/entities/validate',
     method: 'post',
     data
+  });
+}
+
+/**
+ * 增强的创建实体接口（支持通用字段自动生成）
+ *
+ * @param data - 增强的实体创建数据
+ */
+export function fetchCreateEnhancedEntity(data: {
+  name: string;
+  code: string;
+  description?: string;
+  projectId: string;
+  category?: string;
+  commonFieldOptions?: {
+    enabled: boolean;
+    autoCreateTable: boolean;
+    customConfigs?: Record<string, any>;
+  };
+  additionalFields?: Array<{
+    name: string;
+    code: string;
+    description?: string;
+    dataType: string;
+    required?: boolean;
+    unique?: boolean;
+    defaultValue?: any;
+  }>;
+}) {
+  return request<{
+    entity: Api.Lowcode.Entity;
+    fields: Api.Lowcode.Field[];
+    errors: string[];
+    warnings: string[];
+    tableCreated: boolean;
+  }>({
+    url: '/entities/enhanced',
+    method: 'post',
+    data
+  });
+}
+
+/**
+ * 验证实体字段和约束
+ *
+ * @param id - 实体ID
+ */
+export function fetchValidateEntityFields(id: string) {
+  return request<{
+    errors: string[];
+    warnings: string[];
+    fieldValidations: Array<{
+      fieldId: string;
+      fieldName: string;
+      errors: string[];
+      warnings: string[];
+    }>;
+  }>({
+    url: `/entities/${id}/validate`,
+    method: 'get'
+  });
+}
+
+/**
+ * 获取通用字段定义
+ */
+export function fetchGetCommonFieldDefinitions() {
+  return request<Array<{
+    name: string;
+    code: string;
+    description: string;
+    dataType: string;
+    required: boolean;
+    unique: boolean;
+    defaultValue?: any;
+    displayOrder: number;
+  }>>({
+    url: '/entities/common-fields',
+    method: 'get'
+  });
+}
+
+/**
+ * 获取数据库模式信息
+ *
+ * @param id - 实体ID
+ */
+export function fetchGetDatabaseSchema(id: string) {
+  return request<{
+    tableName: string;
+    columns: Array<{
+      name: string;
+      type: string;
+      nullable: boolean;
+      defaultValue?: any;
+      isPrimaryKey: boolean;
+      isUnique: boolean;
+    }>;
+    indexes: Array<{
+      name: string;
+      columns: string[];
+      unique: boolean;
+    }>;
+    constraints: Array<{
+      name: string;
+      type: string;
+      columns: string[];
+      referencedTable?: string;
+      referencedColumns?: string[];
+    }>;
+  }>({
+    url: `/entities/${id}/schema`,
+    method: 'get'
   });
 }

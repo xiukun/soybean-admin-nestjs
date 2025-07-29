@@ -20,6 +20,9 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { IntelligentCodeGeneratorService } from '@lib/bounded-contexts/code-generation/application/services/intelligent-code-generator.service';
+import { EntityFieldValidatorService } from '@lib/bounded-contexts/entity/application/services/entity-field-validator.service';
+import { DatabaseMigrationService } from '@lib/bounded-contexts/entity/application/services/database-migration.service';
+import { PrismaSchemaGeneratorService } from '@lib/bounded-contexts/entity/application/services/prisma-schema-generator.service';
 import {
   CreateEntityDto,
   UpdateEntityDto,
@@ -27,6 +30,14 @@ import {
   EntityListQueryDto,
   EntityListResponseDto,
 } from '@api/lowcode/dto/entity.dto';
+import {
+  EnhancedCreateEntityDto,
+  EntityCreationResultDto,
+  EntityValidationResultDto,
+  DatabaseTableStatusDto,
+  BatchCreateEntitiesDto,
+  BatchEntityCreationResultDto,
+} from '@api/lowcode/dto/enhanced-entity.dto';
 import { CreateEntityCommand } from '@entity/application/commands/create-entity.command';
 import { UpdateEntityCommand } from '@entity/application/commands/update-entity.command';
 import { DeleteEntityCommand } from '@entity/application/commands/delete-entity.command';
@@ -47,6 +58,9 @@ export class EntityController {
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
     private readonly codeGenerationService: IntelligentCodeGeneratorService,
+    private readonly entityFieldValidator: EntityFieldValidatorService,
+    private readonly databaseMigrationService: DatabaseMigrationService,
+    private readonly prismaSchemaGenerator: PrismaSchemaGeneratorService,
   ) {}
 
   @Post()
@@ -79,6 +93,77 @@ export class EntityController {
     return this.mapToResponseDto(entity);
   }
 
+  @Post('enhanced')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create a new entity with enhanced features (auto common fields, table creation)' })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Entity created successfully with enhanced features',
+    type: EntityCreationResultDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'Entity with the same code or table name already exists',
+  })
+  async createEnhancedEntity(@Body() createEntityDto: EnhancedCreateEntityDto): Promise<EntityCreationResultDto> {
+    const warnings: string[] = [];
+    const errors: string[] = [];
+    let commonFieldsAdded = false;
+    let databaseTableCreated = false;
+    let prismaSchema: string | undefined;
+
+    // 创建基础实体
+    const command = new CreateEntityCommand(
+      createEntityDto.projectId,
+      createEntityDto.name,
+      createEntityDto.code,
+      createEntityDto.tableName,
+      createEntityDto.description,
+      createEntityDto.category,
+      createEntityDto.diagramPosition,
+      createEntityDto.config,
+      createEntityDto.status,
+      createEntityDto.commonFieldOptions?.commonFieldsCreatedBy || 'system',
+    );
+
+    const entity = await this.commandBus.execute(command);
+
+    // 生成Prisma Schema（如果需要）
+    // 生成Prisma Schema（如果需要）
+    if (createEntityDto.commonFieldOptions?.generatePrismaSchema) {
+      try {
+        // 获取实体的字段信息
+        const entityWithFields = await this.queryBus.execute(new GetEntityQuery(entity.id!));
+        if (entityWithFields && entityWithFields.fields) {
+          prismaSchema = this.prismaSchemaGenerator.generateEntityModel(entity, entityWithFields.fields);
+        }
+      } catch (error) {
+        warnings.push(`生成Prisma Schema失败: ${error.message}`);
+      }
+    }
+
+    // 创建数据库表（如果需要）
+    // 创建数据库表（如果需要）
+    if (createEntityDto.commonFieldOptions?.autoCreateTable) {
+      try {
+        await this.databaseMigrationService.createTableForEntity(entity);
+        databaseTableCreated = true;
+      } catch (error) {
+        errors.push(`创建数据库表失败: ${error.message}`);
+      }
+    }
+
+    return {
+      entity: this.mapToResponseDto(entity),
+      commonFieldsAdded,
+      databaseTableCreated,
+      prismaSchema,
+      warnings,
+      errors,
+      createdAt: new Date(),
+    };
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get entity by ID' })
   @ApiParam({ name: 'id', description: 'Entity ID' })
@@ -95,6 +180,114 @@ export class EntityController {
     const query = new GetEntityQuery(id);
     const entity = await this.queryBus.execute(query);
     return this.mapToResponseDto(entity);
+  }
+
+  @Get(':id/validate')
+  @ApiOperation({ summary: 'Validate entity fields and constraints' })
+  @ApiParam({ name: 'id', description: 'Entity ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Entity validation result',
+    type: EntityValidationResultDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Entity not found',
+  })
+  async validateEntity(@Param('id') id: string): Promise<EntityValidationResultDto> {
+    // 获取实体和字段信息
+    const entity = await this.queryBus.execute(new GetEntityQuery(id));
+    if (!entity) {
+      throw new Error('Entity not found');
+    }
+
+    // 验证实体字段
+    // 验证实体字段
+    const validation = await this.entityFieldValidator.validateEntityFields(entity, entity.fields || []);
+
+    // 转换为DTO格式
+    const fieldValidations = validation.errors.map(error => ({
+      fieldCode: error.fieldCode,
+      fieldName: error.fieldName,
+      isValid: false,
+      errors: [error.message],
+      warnings: [],
+    }));
+
+    return {
+      entityId: id,
+      isValid: validation.isValid,
+      fieldValidations,
+      globalErrors: validation.errors.filter(e => !e.fieldCode).map(e => e.message),
+      warnings: validation.warnings.map(w => w.message),
+      validatedAt: new Date(),
+    };
+  }
+
+  @Get(':id/database-status')
+  @ApiOperation({ summary: 'Check database table status for entity' })
+  @ApiParam({ name: 'id', description: 'Entity ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Database table status',
+    type: DatabaseTableStatusDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Entity not found',
+  })
+  async getDatabaseTableStatus(@Param('id') id: string): Promise<DatabaseTableStatusDto> {
+    // 获取实体信息
+    const entity = await this.queryBus.execute(new GetEntityQuery(id));
+    if (!entity) {
+      throw new Error('Entity not found');
+    }
+
+    // 验证表结构
+    const validation = await this.databaseMigrationService.validateTableStructure(entity);
+
+    return {
+      tableName: entity.tableName,
+      exists: !validation.issues.includes(`表 ${entity.tableName} 不存在`),
+      structureValid: validation.isValid,
+      missingColumns: validation.missingColumns,
+      extraColumns: validation.extraColumns,
+      issues: validation.issues,
+      checkedAt: new Date(),
+    };
+  }
+
+  @Post(':id/repair-table')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Repair database table structure for entity' })
+  @ApiParam({ name: 'id', description: 'Entity ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Table structure repaired successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Entity not found',
+  })
+  async repairTableStructure(@Param('id') id: string): Promise<{ success: boolean; message: string }> {
+    // 获取实体信息
+    const entity = await this.queryBus.execute(new GetEntityQuery(id));
+    if (!entity) {
+      throw new Error('Entity not found');
+    }
+
+    try {
+      await this.databaseMigrationService.repairTableStructure(entity);
+      return {
+        success: true,
+        message: `表 ${entity.tableName} 结构修复成功`,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: `表结构修复失败: ${error.message}`,
+      };
+    }
   }
 
   @Get('project/:projectId')

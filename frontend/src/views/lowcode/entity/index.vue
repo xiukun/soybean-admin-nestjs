@@ -124,12 +124,62 @@
             </NFormItem>
           </NGridItem>
         </NGrid>
+
+        <!-- 通用字段配置 -->
+        <NDivider title-placement="left">
+          <NText>通用字段配置</NText>
+        </NDivider>
+        
+        <NGrid :cols="1" :y-gap="16">
+          <NGridItem>
+            <NFormItem>
+              <NCheckbox v-model:checked="entityForm.commonFieldOptions.enabled">
+                自动添加通用字段（id、createdBy、createdAt、updatedBy、updatedAt）
+              </NCheckbox>
+            </NFormItem>
+          </NGridItem>
+          
+          <NGridItem v-if="entityForm.commonFieldOptions.enabled">
+            <NFormItem>
+              <NCheckbox v-model:checked="entityForm.commonFieldOptions.autoCreateTable">
+                自动创建数据库表
+              </NCheckbox>
+            </NFormItem>
+          </NGridItem>
+          
+          <NGridItem v-if="entityForm.commonFieldOptions.enabled">
+            <NCard size="small" title="通用字段预览">
+              <NSpace vertical>
+                <div class="flex items-center gap-8px">
+                  <NTag type="info" size="small">UUID</NTag>
+                  <NText>id - 主键标识符</NText>
+                </div>
+                <div class="flex items-center gap-8px">
+                  <NTag type="success" size="small">STRING</NTag>
+                  <NText>createdBy - 创建者用户ID</NText>
+                </div>
+                <div class="flex items-center gap-8px">
+                  <NTag type="warning" size="small">DATETIME</NTag>
+                  <NText>createdAt - 创建时间</NText>
+                </div>
+                <div class="flex items-center gap-8px">
+                  <NTag type="success" size="small">STRING</NTag>
+                  <NText>updatedBy - 更新者用户ID</NText>
+                </div>
+                <div class="flex items-center gap-8px">
+                  <NTag type="warning" size="small">DATETIME</NTag>
+                  <NText>updatedAt - 更新时间</NText>
+                </div>
+              </NSpace>
+            </NCard>
+          </NGridItem>
+        </NGrid>
       </NForm>
 
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="showEntityModal = false">{{ $t('common.cancel') }}</NButton>
-          <NButton type="primary" @click="handleSaveEntity">{{ $t('page.lowcode.common.actions.save') }}</NButton>
+          <NButton @click="showEntityModal = false">取消</NButton>
+          <NButton type="primary" @click="handleSaveEntity">保存</NButton>
         </NSpace>
       </template>
     </NModal>
@@ -197,7 +247,11 @@ const entityForm = reactive({
   code: '',
   tableName: '',
   category: 'business',
-  description: ''
+  description: '',
+  commonFieldOptions: {
+    enabled: false,
+    autoCreateTable: false
+  }
 });
 
 // Computed
@@ -249,7 +303,7 @@ const columns: DataTableColumns<Entity> = [
     key: 'status',
     width: 100,
     render: (row) => h('NTag', { type: getStatusType(row.status) },
-      $t(`page.lowcode.entity.status.${row.status.toLowerCase()}`)
+      { default: () => $t(`page.lowcode.entity.status.${row.status.toLowerCase()}`) }
     )
   },
   { title: $t('page.lowcode.entity.fieldCount'), key: 'fieldCount', width: 80, align: 'center' },
@@ -272,7 +326,7 @@ const columns: DataTableColumns<Entity> = [
           onClick: () => handleDesignFields(row),
           style: { marginRight: '8px' }
         },
-        $t('page.lowcode.entity.designFields')
+        { default: () => $t('page.lowcode.entity.designFields') }
       ),
       h('NButton',
         {
@@ -280,7 +334,7 @@ const columns: DataTableColumns<Entity> = [
           onClick: () => handleEditEntity(row),
           style: { marginRight: '8px' }
         },
-        $t('common.edit')
+        { default: () => $t('common.edit') }
       ),
       h('NButton',
         {
@@ -288,7 +342,7 @@ const columns: DataTableColumns<Entity> = [
           type: 'error',
           onClick: () => handleDeleteEntity(row)
         },
-        $t('common.delete')
+        { default: () => $t('common.delete') }
       )
     ]
   }
@@ -345,14 +399,24 @@ function handleCreateEntity() {
     code: '',
     tableName: '',
     category: 'business',
-    description: ''
+    description: '',
+    commonFieldOptions: {
+      enabled: false,
+      autoCreateTable: false
+    }
   });
   editingEntity.value = null;
   showEntityModal.value = true;
 }
 
 function handleEditEntity(entity: Entity) {
-  Object.assign(entityForm, entity);
+  Object.assign(entityForm, {
+    ...entity,
+    commonFieldOptions: {
+      enabled: false,
+      autoCreateTable: false
+    }
+  });
   editingEntity.value = entity;
   showEntityModal.value = true;
 }
@@ -369,19 +433,19 @@ function handleDesignFields(entity: Entity) {
 
 function handleDeleteEntity(entity: Entity) {
   window.$dialog?.error({
-    title: $t('common.confirm'),
-    content: $t('page.lowcode.entity.deleteConfirm'),
-    positiveText: $t('common.delete'),
-    negativeText: $t('common.cancel'),
+    title: '确认删除',
+    content: '确定要删除此实体吗？删除后将无法恢复。',
+    positiveText: '删除',
+    negativeText: '取消',
     onPositiveClick: async () => {
       try {
         await fetchDeleteEntity(entity.id);
-        window.$message?.success($t('common.deleteSuccess'));
+        window.$message?.success('删除成功');
         // 重新加载实体列表
         await loadEntities();
       } catch (error) {
         console.error('Failed to delete entity:', error);
-        window.$message?.error($t('common.deleteFailed'));
+        window.$message?.error('删除失败');
       }
     }
   });
@@ -403,11 +467,11 @@ async function handleSaveEntity() {
     if (editingEntity.value) {
       // 更新实体
       await fetchUpdateEntity(editingEntity.value.id, entityData);
-      window.$message?.success($t('common.updateSuccess'));
+      window.$message?.success('更新成功');
     } else {
       // 创建新实体
       await fetchAddEntity(entityData);
-      window.$message?.success($t('common.createSuccess'));
+      window.$message?.success('创建成功');
     }
 
     showEntityModal.value = false;
@@ -415,7 +479,7 @@ async function handleSaveEntity() {
     await loadEntities();
   } catch (error) {
     console.error('Failed to save entity:', error);
-    window.$message?.error(editingEntity.value ? $t('common.updateFailed') : $t('common.createFailed'));
+    window.$message?.error(editingEntity.value ? '更新失败' : '创建失败');
   }
 }
 
@@ -472,7 +536,7 @@ async function loadEntities() {
     }
   } catch (error) {
     console.error('Failed to load entities:', error);
-    window.$message?.error($t('page.lowcode.entity.loadFailed'));
+    window.$message?.error('加载实体失败');
   } finally {
     loading.value = false;
   }
