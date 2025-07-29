@@ -307,3 +307,85 @@ model SysAccessKey {
   @@map("sys_access_key")
   @@schema("backend")
 }
+
+// 低代码项目表
+model LowcodeProject {
+  id          String   @id @default(uuid())
+  name        String   @map("name") @db.VarChar(100)
+  code        String   @unique @map("code") @db.VarChar(100)
+  description String?  @map("description") @db.Text
+  framework   String   @map("framework") @db.VarChar(50)
+  language    String   @map("language") @db.VarChar(50)
+  database    String   @map("database") @db.VarChar(50)
+  status      Status   @default(ENABLED)
+  config      Json?    @map("config")
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdBy   String   @map("created_by")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+  updatedBy   String?   @map("updated_by")
+
+  // 关联的实体
+  entities LowcodeEntity[]
+
+  @@map("lowcode_project")
+  @@schema("backend")
+}
+
+// 低代码实体表
+model LowcodeEntity {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+  name        String   @map("name") @db.VarChar(100)
+  code        String   @map("code") @db.VarChar(100)
+  tableName   String   @map("table_name") @db.VarChar(100)
+  description String?  @map("description") @db.Text
+  category    String   @map("category") @db.VarChar(50)
+  status      Status   @default(ENABLED)
+  config      Json?    @map("config")
+  version     Int      @default(1) @map("version")
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdBy   String   @map("created_by")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+  updatedBy   String?   @map("updated_by")
+
+  // 关联到项目
+  project LowcodeProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // 关联的字段
+  fields LowcodeField[]
+
+  @@unique([projectId, code])
+  @@map("lowcode_entity")
+  @@schema("backend")
+}
+
+// 低代码字段表
+model LowcodeField {
+  id          String   @id @default(uuid())
+  entityId    String   @map("entity_id")
+  name        String   @map("name") @db.VarChar(100)
+  code        String   @map("code") @db.VarChar(100)
+  type        String   @map("type") @db.VarChar(50)
+  length      Int?     @map("length")
+  precision   Int?     @map("precision")
+  scale       Int?     @map("scale")
+  nullable    Boolean  @default(true) @map("nullable")
+  defaultValue String? @map("default_value") @db.Text
+  comment     String?  @map("comment") @db.Text
+  isPrimaryKey Boolean @default(false) @map("is_primary_key")
+  isUnique    Boolean  @default(false) @map("is_unique")
+  isIndex     Boolean  @default(false) @map("is_index")
+  order       Int      @default(0) @map("order")
+  config      Json?    @map("config")
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdBy   String   @map("created_by")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+  updatedBy   String?   @map("updated_by")
+
+  // 关联到实体
+  entity LowcodeEntity @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@unique([entityId, code])
+  @@map("lowcode_field")
+  @@schema("backend")
+}
