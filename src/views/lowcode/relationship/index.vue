@@ -75,7 +75,7 @@
           :scroll-x="1200"
           :loading="loading"
           remote
-          :row-key="row => row.id"
+          :row-key="(row: any) => row.id"
           :pagination="mobilePagination"
           class="sm:h-full"
         />
@@ -89,11 +89,10 @@
 
     <!-- 关系操作抽屉 -->
     <RelationshipOperateDrawer
-      v-if="currentProjectId"
       v-model:visible="drawerVisible"
       :operate-type="operateType"
       :row-data="editingData as any"
-      :project-id="currentProjectId"
+      :project-id="currentProjectId || ''"
       @submitted="getTableData"
     />
   </div>
@@ -101,7 +100,7 @@
 
 <script setup lang="tsx">
 import { ref, watch, computed, onMounted } from 'vue';
-import { NButton, NPopconfirm, NSpace, NTag, NButtonGroup, NIcon } from 'naive-ui';
+import { NButton, NPopconfirm, NSpace, NTag, NButtonGroup, NIcon, NCard, NSelect, NDataTable } from 'naive-ui';
 import { useRoute } from 'vue-router';
 import { fetchDeleteRelationship, fetchGetRelationshipList, fetchGetProjectList } from '@/service/api';
 import { $t } from '@/locales';
@@ -220,27 +219,27 @@ const {
     },
     {
       key: 'name',
-      title: '关系名称',
+      title: $t('page.lowcode.relationship.name'),
       align: 'center',
       minWidth: 120
     },
     {
       key: 'code',
-      title: '关系代码',
+      title: $t('page.lowcode.relationship.code'),
       align: 'center',
       minWidth: 120
     },
     {
       key: 'type',
-      title: '关系类型',
+      title: $t('page.lowcode.relationship.relationType'),
       align: 'center',
       width: 120,
       render: (row: any) => {
         const typeMap: Record<string, { label: string; color: string }> = {
-          ONE_TO_ONE: { label: '一对一', color: 'info' },
-          ONE_TO_MANY: { label: '一对多', color: 'success' },
-          MANY_TO_ONE: { label: '多对一', color: 'warning' },
-          MANY_TO_MANY: { label: '多对多', color: 'error' }
+          ONE_TO_ONE: { label: $t('page.lowcode.relationship.relationshipTypes.ONE_TO_ONE'), color: 'info' },
+          ONE_TO_MANY: { label: $t('page.lowcode.relationship.relationshipTypes.ONE_TO_MANY'), color: 'success' },
+          MANY_TO_ONE: { label: $t('page.lowcode.relationship.relationshipTypes.MANY_TO_ONE'), color: 'warning' },
+          MANY_TO_MANY: { label: $t('page.lowcode.relationship.relationshipTypes.MANY_TO_MANY'), color: 'error' }
         };
 
         const typeInfo = typeMap[row.type];
@@ -249,21 +248,21 @@ const {
     },
     {
       key: 'sourceEntity',
-      title: '源实体',
+      title: $t('page.lowcode.relationship.sourceEntity'),
       align: 'center',
       minWidth: 120,
       render: (row: any) => row.sourceEntity?.name || row.sourceEntityId
     },
     {
       key: 'targetEntity',
-      title: '目标实体',
+      title: $t('page.lowcode.relationship.targetEntity'),
       align: 'center',
       minWidth: 120,
       render: (row: any) => row.targetEntity?.name || row.targetEntityId
     },
     {
       key: 'description',
-      title: '关系描述',
+      title: $t('page.lowcode.relationship.description'),
       align: 'center',
       minWidth: 150,
       ellipsis: {
@@ -325,7 +324,7 @@ const {
         </NSpace>
       )
     }
-  ] as any
+  ]
 });
 
 const {
@@ -368,7 +367,7 @@ watch(
   () => props.projectId,
   () => {
     if (props.projectId) {
-      searchParams.projectId = props.projectId;
+      (searchParams as any).projectId = props.projectId;
       getTableData();
     }
   },

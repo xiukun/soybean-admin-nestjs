@@ -76,3 +76,16 @@ export function fetchMoveField(id: string, direction: 'up' | 'down') {
     data: { direction }
   });
 }
+
+/**
+ * get all fields by project
+ *
+ * @param params - query parameters
+ */
+export function fetchGetAllFields(params: { projectId: string }) {
+  return request<Api.Lowcode.Field[]>({
+    url: '/fields',
+    method: 'get',
+    params
+  });
+}

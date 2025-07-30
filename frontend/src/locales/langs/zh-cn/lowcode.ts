@@ -238,6 +238,11 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     invalidJsonFormat: 'JSON格式无效',
     sqlImportNotImplemented: 'SQL导入功能暂未实现',
     dbImportNotImplemented: '数据库导入功能暂未实现',
+    commonFieldOptions: '通用字段选项',
+    enableCommonFields: '启用通用字段',
+    autoCreateTable: '自动创建表',
+    commonFieldsPreview: '通用字段预览',
+    commonFieldsDesc: '系统将自动为实体添加以下通用字段',
     status: {
       DRAFT: '草稿',
       PUBLISHED: '已发布',
@@ -353,6 +358,164 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       }
     }
   },
+  relationship: {
+    title: '关系管理',
+    name: '关系名称',
+    code: '关系代码',
+    relationType: '关系类型',
+    sourceEntity: '源实体',
+    targetEntity: '目标实体',
+    description: '关系描述',
+    cascadeDelete: '级联删除',
+    cascadeUpdate: '级联更新',
+    foreignKeyField: '外键字段',
+    required: '必填',
+    addRelationship: '新增关系',
+    editRelationship: '编辑关系',
+    deleteRelationship: '删除关系',
+    visualDesigner: '可视化设计器',
+    listView: '列表视图',
+    designerView: '设计器视图',
+    autoLayout: '自动布局',
+    zoomIn: '放大',
+    zoomOut: '缩小',
+    resetZoom: '重置缩放',
+    fitToScreen: '适应屏幕',
+    exportImage: '导出图片',
+    relationshipRecommendations: '关系推荐',
+    optimizationReport: '优化报告',
+    smartRecommendations: '智能推荐',
+    performanceAnalysis: '性能分析',
+    relationshipCount: '关系数量',
+    circularDependencies: '循环依赖',
+    missingIndexes: '缺失索引',
+    optimizationSuggestions: '优化建议',
+    applyRecommendation: '应用推荐',
+    generateReport: '生成报告',
+    refreshAnalysis: '刷新分析',
+    exportReport: '导出报告',
+    onDelete: '删除时',
+    onUpdate: '更新时',
+    relationshipTypes: {
+      ONE_TO_ONE: '一对一',
+      ONE_TO_MANY: '一对多',
+      MANY_TO_ONE: '多对一',
+      MANY_TO_MANY: '多对多'
+    },
+    relationTypes: {
+      oneToOne: '一对一',
+      oneToMany: '一对多',
+      manyToOne: '多对一',
+      manyToMany: '多对多'
+    },
+    cascadeActions: {
+      RESTRICT: '限制',
+      CASCADE: '级联',
+      SET_NULL: '设为空',
+      NO_ACTION: '无操作'
+    },
+    status: {
+      ACTIVE: '活跃',
+      INACTIVE: '非活跃'
+    },
+    form: {
+      name: {
+        placeholder: '请输入关系名称',
+        required: '请输入关系名称'
+      },
+      code: {
+        placeholder: '请输入关系代码',
+        required: '请输入关系代码'
+      },
+      sourceEntity: {
+        placeholder: '请选择源实体',
+        required: '请选择源实体'
+      },
+      targetEntity: {
+        placeholder: '请选择目标实体',
+        required: '请选择目标实体'
+      },
+      relationType: {
+        placeholder: '请选择关系类型',
+        required: '请选择关系类型'
+      },
+      relationshipName: {
+        placeholder: '请输入关系名称',
+        required: '请输入关系名称'
+      },
+      description: {
+        placeholder: '请输入关系描述'
+      },
+      foreignKeyField: {
+        placeholder: '请输入外键字段名'
+      },
+      onDelete: {
+        placeholder: '请选择删除时操作'
+      },
+      onUpdate: {
+        placeholder: '请选择更新时操作'
+      }
+    }
+  },
+  relation: {
+    title: '关系管理',
+    name: '关系名称',
+    code: '关系代码',
+    relationType: '关系类型',
+    sourceEntity: '源实体',
+    targetEntity: '目标实体',
+    description: '关系描述',
+    onDelete: '删除时',
+    onUpdate: '更新时',
+    addRelation: '新增关系',
+    editRelation: '编辑关系',
+    relationTypes: {
+      ONE_TO_ONE: '一对一',
+      ONE_TO_MANY: '一对多',
+      MANY_TO_ONE: '多对一',
+      MANY_TO_MANY: '多对多'
+    },
+    cascadeActions: {
+      RESTRICT: '限制',
+      CASCADE: '级联',
+      SET_NULL: '设为空',
+      NO_ACTION: '无操作'
+    },
+    form: {
+      name: {
+        placeholder: '请输入关系名称',
+        required: '请输入关系名称'
+      },
+      code: {
+        placeholder: '请输入关系代码',
+        required: '请输入关系代码'
+      },
+      type: {
+        required: '请选择关系类型'
+      },
+      sourceEntity: {
+        placeholder: '请选择源实体',
+        required: '请选择源实体'
+      },
+      targetEntity: {
+        placeholder: '请选择目标实体',
+        required: '请选择目标实体'
+      },
+      relationType: {
+        placeholder: '请选择关系类型',
+        required: '请选择关系类型'
+      },
+      description: {
+        placeholder: '请输入关系描述'
+      },
+      onDelete: {
+        placeholder: '请选择删除时操作'
+      },
+      onUpdate: {
+        placeholder: '请选择更新时操作'
+      }
+    }
+  },
   api: {
     title: 'API管理',
     addApi: '新增API',
@@ -401,45 +564,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       },
       status: {
         placeholder: '请选择API状态'
-      }
-    }
-  },
-  relationship: {
-    title: '关系管理',
-    addRelationship: '新增关系',
-    editRelationship: '编辑关系',
-    sourceEntity: '源实体',
-    targetEntity: '目标实体',
-    relationType: '关系类型',
-    relationshipName: '关系名称',
-    description: '关系描述',
-    cascadeDelete: '级联删除',
-    required: '必填',
-    relationTypes: {
-      oneToOne: '一对一',
-      oneToMany: '一对多',
-      manyToOne: '多对一',
-      manyToMany: '多对多'
-    },
-    form: {
-      sourceEntity: {
-        placeholder: '请选择源实体',
-        required: '请选择源实体'
-      },
-      targetEntity: {
-        placeholder: '请选择目标实体',
-        required: '请选择目标实体'
-      },
-      relationType: {
-        placeholder: '请选择关系类型',
-        required: '请选择关系类型'
-      },
-      relationshipName: {
-        placeholder: '请输入关系名称',
-        required: '请输入关系名称'
-      },
-      description: {
-        placeholder: '请输入关系描述'
       }
     }
   },
