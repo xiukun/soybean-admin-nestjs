@@ -1113,11 +1113,11 @@ JWT_EXPIRES_IN=7d
 
 # 服务间通信
 BACKEND_URL=http://backend:9528
-LOWCODE_PLATFORM_URL=http://lowcode-platform:3000
+LOWCODE_PLATFORM_URL=http://lowcode-platform:3002
 
 # CORS 配置
 CORS_ENABLED=true
-CORS_ORIGIN=http://localhost:9527,http://127.0.0.1:9527,http://localhost:3000,http://127.0.0.1:3000,http://localhost:9555,http://127.0.0.1:9555
+CORS_ORIGIN=http://localhost:9527,http://127.0.0.1:9527,http://localhost:3002,http://127.0.0.1:3002,http://localhost:9555,http://127.0.0.1:9555
 CORS_METHODS=GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS
 CORS_CREDENTIALS=true
 

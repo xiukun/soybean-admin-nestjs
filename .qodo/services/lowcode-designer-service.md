@@ -837,7 +837,7 @@ server {
     
     # API 代理
     location /api/ {
-        proxy_pass http://lowcode-platform:3000;
+        proxy_pass http://lowcode-platform:3002;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -848,12 +848,12 @@ server {
 ### 环境变量配置
 ```bash
 # 开发环境
-VITE_API_BASE_URL=http://localhost:3000/api/v1
+VITE_API_BASE_URL=http://localhost:3002/api/v1
 VITE_APP_TITLE=低代码设计器
 VITE_APP_VERSION=1.0.0
 
 # 生产环境
-VITE_API_BASE_URL=http://lowcode-platform:3000/api/v1
+VITE_API_BASE_URL=http://lowcode-platform:3002/api/v1
 VITE_APP_TITLE=Lowcode Designer
 VITE_BUILD_MODE=production
 ```
@@ -1266,7 +1266,7 @@ const goodSchema: AmisSchema = {
 ---
 
 **服务端口**: 9555  
-**API 基础路径**: http://localhost:3000/api/v1  
+**API 基础路径**: http://localhost:3002/api/v1  
 **文档版本**: v1.0.0  
 **更新时间**: 2024年12月  
 **维护团队**: SoybeanAdmin 低代码团队

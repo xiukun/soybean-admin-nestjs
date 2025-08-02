@@ -275,7 +275,7 @@ const request = axios.create({
 // 多服务配置
 const services = {
   main: 'http://localhost:9528/v1',
-  lowcode: 'http://localhost:3000/api/v1',
+  lowcode: 'http://localhost:3002/api/v1',
   amis: 'http://localhost:9522/api/v1'
 };
 ```
@@ -342,7 +342,7 @@ const locales = {
 ```bash
 # 开发环境配置
 VITE_SERVICE_BASE_URL=http://localhost:9528/v1
-VITE_OTHER_SERVICE_BASE_URL={"lowcodeService": "http://localhost:3000/api/v1", "amisService": "http://localhost:9522/api/v1"}
+VITE_OTHER_SERVICE_BASE_URL={"lowcodeService": "http://localhost:3002/api/v1", "amisService": "http://localhost:9522/api/v1"}
 VITE_ROUTER_HISTORY_MODE=history
 VITE_BASE_URL=/
 ```

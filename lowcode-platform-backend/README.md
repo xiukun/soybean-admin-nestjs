@@ -105,7 +105,7 @@ cp .env.example .env
 DATABASE_URL="postgresql://username:password@localhost:5432/lowcode_platform"
 
 # 服务配置
-PORT=3000
+PORT=3002
 NODE_ENV=development
 
 # JWT配置

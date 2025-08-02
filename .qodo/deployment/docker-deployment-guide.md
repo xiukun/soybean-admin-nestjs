@@ -14,7 +14,7 @@
 ├── backend (主后端服务)          # 端口: 9528  
 ├── lowcode-designer (设计器)     # 端口: 9555
 ├── amis-lowcode-backend (业务后端) # 端口: 9522
-├── lowcode-platform-backend (平台后端) # 端口: 3000
+├── lowcode-platform-backend (平台后端) # 端口: 3002
 ├── postgres (数据库)            # 端口: 25432
 └── redis (缓存)                # 端口: 26379
 ```
@@ -137,8 +137,8 @@ services:
       JWT_SECRET: JWT_SECRET-soybean-admin-nest!@#123.
       JWT_EXPIRES_IN: 7d
       BACKEND_URL: http://backend:9528
-      LOWCODE_PLATFORM_URL: http://lowcode-platform:3000
-      CORS_ORIGIN: http://localhost:9527,http://127.0.0.1:9527,http://localhost:3000,http://127.0.0.1:3000,http://localhost:9555,http://127.0.0.1:9555
+      LOWCODE_PLATFORM_URL: http://lowcode-platform:3002
+      CORS_ORIGIN: http://localhost:9527,http://127.0.0.1:9527,http://localhost:3002,http://127.0.0.1:3002,http://localhost:9555,http://127.0.0.1:9555
     ports:
       - "9522:9522"
     volumes:
@@ -165,7 +165,7 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      PORT: 3000
+      PORT: 3002
       DATABASE_URL: postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend?schema=lowcode
       JWT_SECRET: JWT_SECRET-soybean-admin-nest!@#123.
       JWT_EXPIRES_IN: 7d
@@ -174,7 +174,7 @@ services:
       CODE_GENERATION_PATH: /app/generated
       DOCKER_HOST: unix:///var/run/docker.sock
     ports:
-      - "3000:3000"
+      - "3002:3002"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - lowcode_generated:/app/generated
@@ -188,7 +188,7 @@ services:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3002/api/v1/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -202,7 +202,7 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      VITE_API_BASE_URL: http://lowcode-platform:3000/api/v1
+      VITE_API_BASE_URL: http://lowcode-platform:3002/api/v1
       VITE_AMIS_API_BASE_URL: http://amis-backend:9522/api/v1
     ports:
       - "9555:80"
@@ -227,7 +227,7 @@ services:
     environment:
       NODE_ENV: production
       VITE_SERVICE_BASE_URL: http://backend:9528
-      VITE_OTHER_SERVICE_BASE_URL: '{"lowcode": "http://lowcode-platform:3000", "amis": "http://amis-backend:9522"}'
+      VITE_OTHER_SERVICE_BASE_URL: '{"lowcode": "http://lowcode-platform:3002", "amis": "http://amis-backend:9522"}'
     ports:
       - "9527:80"
     networks:
@@ -452,10 +452,10 @@ COPY --from=builder /app/package.json ./
 
 RUN mkdir -p /app/generated /app/uploads /app/logs
 
-EXPOSE 3000
+EXPOSE 3002
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:3000/api/v1/health || exit 1
+  CMD curl -f http://localhost:3002/api/v1/health || exit 1
 
 CMD ["node", "dist/main.js"]
 ```
@@ -587,7 +587,7 @@ JWT_EXPIRES_IN=7d
 FRONTEND_PORT=9527
 BACKEND_PORT=9528
 AMIS_BACKEND_PORT=9522
-LOWCODE_PLATFORM_PORT=3000
+LOWCODE_PLATFORM_PORT=3002
 LOWCODE_DESIGNER_PORT=9555
 POSTGRES_PORT=25432
 REDIS_PORT=26379
@@ -658,7 +658,7 @@ show_access_info() {
     echo "🎨 低代码设计器: http://localhost:9555"
     echo "📡 主后端API: http://localhost:9528"
     echo "🔧 Amis后端API: http://localhost:9522"
-    echo "⚙️  平台后端API: http://localhost:3000"
+    echo "⚙️  平台后端API: http://localhost:3002"
     echo "🗄️  PostgreSQL: localhost:25432"
     echo "🔴 Redis: localhost:26379"
     echo ""
@@ -834,7 +834,7 @@ http {
         # 低代码平台 API 代理
         location /lowcode-api/ {
             rewrite ^/lowcode-api/(.*) /api/v1/$1 break;
-            proxy_pass http://lowcode-platform:3000;
+            proxy_pass http://lowcode-platform:3002;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -909,7 +909,7 @@ docker-compose logs -f
 curl http://localhost:9527/health
 curl http://localhost:9528/api/health
 curl http://localhost:9522/api/v1/health
-curl http://localhost:3000/api/v1/health
+curl http://localhost:3002/api/v1/health
 ```
 
 ## 运维管理
@@ -1118,7 +1118,7 @@ echo "开始系统健康检查..."
 check_service_health "Frontend" "http://localhost:9527/health"
 check_service_health "Backend" "http://localhost:9528/api/health"
 check_service_health "Amis Backend" "http://localhost:9522/api/v1/health"
-check_service_health "Lowcode Platform" "http://localhost:3000/api/v1/health"
+check_service_health "Lowcode Platform" "http://localhost:3002/api/v1/health"
 check_service_health "Lowcode Designer" "http://localhost:9555"
 
 echo "健康检查完成"
@@ -1285,7 +1285,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     ports:
-      - "3001:3000"
+      - "3001:3002"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
     volumes:

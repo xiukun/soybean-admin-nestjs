@@ -250,7 +250,7 @@ LOG_LEVEL=debug
 LOG_DIR=./logs
 
 # 跨域配置
-CORS_ORIGIN=http://localhost:9527,http://127.0.0.1:9527,http://localhost:3000,http://127.0.0.1:3000
+CORS_ORIGIN=http://localhost:9527,http://127.0.0.1:9527,http://localhost:3002,http://127.0.0.1:3002
 ```
 
 **Amis Backend 环境配置:**
@@ -268,17 +268,17 @@ JWT_EXPIRES_IN=7d
 
 # 服务间通信
 BACKEND_URL=http://localhost:9528
-LOWCODE_PLATFORM_URL=http://localhost:3000
+LOWCODE_PLATFORM_URL=http://localhost:3002
 
 # 跨域配置
-CORS_ORIGIN=http://localhost:9527,http://127.0.0.1:9527,http://localhost:3000,http://127.0.0.1:3000,http://localhost:9555,http://127.0.0.1:9555
+CORS_ORIGIN=http://localhost:9527,http://127.0.0.1:9527,http://localhost:3002,http://127.0.0.1:3002,http://localhost:9555,http://127.0.0.1:9555
 ```
 
 **Lowcode Platform 环境配置:**
 ```bash
 # lowcode-platform-backend/.env.development
 NODE_ENV=development
-PORT=3000
+PORT=3002
 
 # 数据库配置
 DATABASE_URL=postgresql://soybean:soybean@123.@localhost:5432/soybean-admin-nest-backend-dev?schema=lowcode
@@ -309,7 +309,7 @@ VITE_APP_DESC=基于 Vue3、Vite、TypeScript、NaiveUI 的低代码平台
 
 # API 服务地址
 VITE_SERVICE_BASE_URL=http://localhost:9528
-VITE_OTHER_SERVICE_BASE_URL={"lowcode": "http://localhost:3000", "amis": "http://localhost:9522"}
+VITE_OTHER_SERVICE_BASE_URL={"lowcode": "http://localhost:3002", "amis": "http://localhost:9522"}
 
 # 路由配置
 VITE_ROUTE_HOME_PATH=/dashboard/analysis
@@ -324,7 +324,7 @@ VITE_BUILD_COMPRESS_DELETE_ORIGIN_FILE=false
 ```bash
 # lowcode-designer/.env.development
 # API 配置
-VITE_API_BASE_URL=http://localhost:3000/api/v1
+VITE_API_BASE_URL=http://localhost:3002/api/v1
 VITE_AMIS_API_BASE_URL=http://localhost:9522/api/v1
 
 # 应用配置
@@ -534,7 +534,7 @@ check_port() {
 }
 
 # 检查所有端口
-ports=(9527 9528 9522 3000 9555)
+ports=(9527 9528 9522 3002 9555)
 services=("Frontend" "Backend" "Amis Backend" "Lowcode Platform" "Lowcode Designer")
 
 for i in "${!ports[@]}"; do
@@ -582,7 +582,7 @@ mkdir -p logs
 # 启动所有服务
 start_service "backend" "Backend" 9528
 start_service "amis-lowcode-backend" "Amis Backend" 9522
-start_service "lowcode-platform-backend" "Lowcode Platform" 3000
+start_service "lowcode-platform-backend" "Lowcode Platform" 3002
 start_service "frontend" "Frontend" 9527
 start_service "lowcode-designer" "Lowcode Designer" 9555
 
@@ -594,7 +594,7 @@ echo "   🌐 前端管理界面: http://localhost:9527"
 echo "   🎨 低代码设计器: http://localhost:9555"
 echo "   📡 主后端API: http://localhost:9528"
 echo "   🔧 Amis后端API: http://localhost:9522"
-echo "   ⚙️  平台后端API: http://localhost:3000"
+echo "   ⚙️  平台后端API: http://localhost:3002"
 echo ""
 echo "📝 查看日志: tail -f logs/[service].log"
 echo "🛑 停止服务: ./scripts/stop-dev.sh"
@@ -645,7 +645,7 @@ done
 
 # 清理端口占用
 echo "🧹 清理端口占用..."
-ports=(9527 9528 9522 3000 9555)
+ports=(9527 9528 9522 3002 9555)
 
 for port in "${ports[@]}"; do
     pid=$(lsof -ti:$port)

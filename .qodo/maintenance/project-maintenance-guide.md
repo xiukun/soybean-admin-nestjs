@@ -49,7 +49,7 @@ services=(
     "Frontend:9527:"
     "Backend:9528:/api/health"
     "Amis Backend:9522:/api/v1/health"
-    "Lowcode Platform:3000:/api/v1/health"
+    "Lowcode Platform:3002:/api/v1/health"
     "Lowcode Designer:9555:"
     "PostgreSQL:25432:"
     "Redis:26379:"
@@ -597,7 +597,7 @@ check_port_usage() {
 }
 
 # 检查所有服务端口
-ports=(9527:Frontend 9528:Backend 9522:"Amis Backend" 3000:"Lowcode Platform" 9555:"Lowcode Designer")
+ports=(9527:Frontend 9528:Backend 9522:"Amis Backend" 3002:"Lowcode Platform" 9555:"Lowcode Designer")
 
 for port_info in "${ports[@]}"; do
     IFS=':' read -r port service <<< "$port_info"
@@ -689,7 +689,7 @@ services=(
     "http://localhost:9527:Frontend:3"
     "http://localhost:9528/api/health:Backend:2"
     "http://localhost:9522/api/v1/health:Amis Backend:2"
-    "http://localhost:3000/api/v1/health:Lowcode Platform:2"
+    "http://localhost:3002/api/v1/health:Lowcode Platform:2"
 )
 
 for service_info in "${services[@]}"; do
@@ -759,7 +759,7 @@ check_service_connectivity() {
 connectivity_tests=(
     "soybean-frontend:soybean-backend:http://backend:9528/api/health"
     "soybean-frontend:soybean-amis-backend:http://amis-backend:9522/api/v1/health"
-    "soybean-amis-backend:soybean-lowcode-platform:http://lowcode-platform:3000/api/v1/health"
+    "soybean-amis-backend:soybean-lowcode-platform:http://lowcode-platform:3002/api/v1/health"
     "soybean-backend:soybean-postgres:postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend"
 )
 
@@ -1065,7 +1065,7 @@ export const databaseConfig = {
     // 最小连接数
     min: 5,
     // 连接超时时间
-    acquire: 30000,
+    acquire: 30020,
     // 空闲连接超时时间
     idle: 10000,
   },
@@ -1111,7 +1111,7 @@ monitor_response_times() {
         "frontend:http://localhost:9527"
         "backend:http://localhost:9528/api/health"
         "amis-backend:http://localhost:9522/api/v1/health"
-        "lowcode-platform:http://localhost:3000/api/v1/health"
+        "lowcode-platform:http://localhost:3002/api/v1/health"
     )
     
     for service_info in "${services[@]}"; do

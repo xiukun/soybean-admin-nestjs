@@ -805,7 +805,7 @@ LOG_LEVEL=debug
 LOG_DIR=./logs
 
 # 跨域配置
-CORS_ORIGIN=http://localhost:9527,http://127.0.0.1:9527,http://localhost:3000,http://127.0.0.1:3000
+CORS_ORIGIN=http://localhost:9527,http://127.0.0.1:9527,http://localhost:3002,http://127.0.0.1:3002
 EOF
 
 # Frontend 环境配置
@@ -816,7 +816,7 @@ VITE_APP_DESC=基于 Vue3、Vite、TypeScript、NaiveUI 的低代码平台
 
 # API 服务地址
 VITE_SERVICE_BASE_URL=http://localhost:9528
-VITE_OTHER_SERVICE_BASE_URL={"lowcode": "http://localhost:3000", "amis": "http://localhost:9522"}
+VITE_OTHER_SERVICE_BASE_URL={"lowcode": "http://localhost:3002", "amis": "http://localhost:9522"}
 
 # 路由配置
 VITE_ROUTE_HOME_PATH=/dashboard/analysis
@@ -949,7 +949,7 @@ services=(
     "Frontend:9527"
     "Backend:9528"
     "Amis Backend:9522"
-    "Lowcode Platform:3000"
+    "Lowcode Platform:3002"
     "Lowcode Designer:9555"
 )
 
@@ -973,5 +973,5 @@ echo "📊 性能监控完成！"
 lsof -i :9527
 
 # 批量清理端口
-for port in 9527 9528 9522 3000 9555; do
+for port in 9527 9528 9522 3002 9555; do
     pid=$(lsof -ti:

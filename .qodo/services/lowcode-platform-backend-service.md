@@ -2100,7 +2100,7 @@ export class DeploymentService {
       .map(([key, value]) => `-e ${key}=${value}`)
       .join(' ');
 
-    const command = `docker run -d --name ${containerName} -p ${port}:3000 ${envVars} ${imageName}`;
+    const command = `docker run -d --name ${containerName} -p ${port}:3002 ${envVars} ${imageName}`;
     
     try {
       const { stdout } = await execAsync(command);
@@ -2269,11 +2269,11 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/resources ./resources
 COPY --from=builder /app/package.json ./
 
-EXPOSE 3000
+EXPOSE 3002
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:3000/api/v1/health || exit 1
+  CMD curl -f http://localhost:3002/api/v1/health || exit 1
 
 CMD ["node", "dist/main.js"]
 ```
@@ -2282,7 +2282,7 @@ CMD ["node", "dist/main.js"]
 ```bash
 # 应用配置
 NODE_ENV=production
-PORT=3000
+PORT=3002
 SERVICE_NAME=lowcode-platform
 
 # 数据库配置
@@ -2374,7 +2374,7 @@ nest g service lib/new-feature
 
 ---
 
-**服务端口**: 3000  
+**服务端口**: 3002  
 **API 基础路径**: http://localhost:3
 # Lowcode Platform Backend 低代码平台核心后端服务说明文档
 
