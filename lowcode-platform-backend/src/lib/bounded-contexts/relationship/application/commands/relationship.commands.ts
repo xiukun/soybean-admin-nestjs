@@ -5,8 +5,10 @@
  * @LastEditors: henry.xiukun
  */
 
+import { RelationshipType } from '../../domain/relationship.model';
+
 export interface RelationshipConfig {
-  type: 'one-to-one' | 'one-to-many' | 'many-to-one' | 'many-to-many';
+  type: RelationshipType;
   sourceEntityId: string;
   sourceFieldId?: string;
   targetEntityId: string;

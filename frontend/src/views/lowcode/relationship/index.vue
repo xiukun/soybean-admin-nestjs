@@ -3,11 +3,11 @@
     <!-- Project selector when no projectId is provided -->
     <NCard v-if="!currentProjectId" :bordered="false" size="small">
       <NSpace align="center">
-        <span>选择项目：</span>
+        <span>{{ $t('page.lowcode.template.selectProject') }}：</span>
         <NSelect
           v-model:value="selectedProjectId"
           :options="projectOptions"
-          placeholder="请选择项目"
+          :placeholder="$t('page.lowcode.project.form.name.placeholder')"
           style="width: 300px"
           :loading="projectLoading"
           clearable
@@ -83,7 +83,7 @@
     </div>
 
     <!-- 可视化设计器视图 -->
-    <div v-if="currentProjectId && currentView === 'designer'" class="flex-1">
+    <div v-if="currentProjectId && currentView === 'designer'" class="flex-1 h-full min-h-600px">
       <VisualRelationshipDesigner :project-id="currentProjectId" @relationship-updated="getTableData" />
     </div>
 
@@ -100,7 +100,7 @@
 </template>
 
 <script setup lang="tsx">
-import { ref, watch, computed, onMounted } from 'vue';
+import { ref, watch, computed, onMounted, h } from 'vue';
 import { NButton, NPopconfirm, NSpace, NTag, NButtonGroup, NIcon } from 'naive-ui';
 import { useRoute } from 'vue-router';
 import { fetchDeleteRelationship, fetchGetRelationshipList, fetchGetProjectList } from '@/service/api';
@@ -163,27 +163,19 @@ function handleProjectChange(projectId: string | null) {
 
 // Create a wrapper function that matches the expected API signature
 const relationshipApiFn = (params: Api.Common.CommonSearchParams & { projectId?: string; type?: string; status?: string; search?: string; page?: number; limit?: number }) => {
-  return fetchGetRelationshipList(params as any);
+  // 转换参数格式以匹配后端API期望的格式
+  const apiParams = {
+    current: params.current || params.page || 1,
+    size: params.size || params.limit || 10,
+    projectId: params.projectId || currentProjectId.value,
+    type: params.type,
+    status: params.status,
+    search: params.search
+  };
+  
+  // fetchGetRelationshipList已经实现了正确的URL路径
+  return fetchGetRelationshipList(apiParams as any);
 };
-
-// Load projects on component mount
-onMounted(() => {
-  loadProjects();
-  // Only load data if we have a project ID
-  if (currentProjectId.value) {
-    (searchParams as any).projectId = currentProjectId.value;
-    getData();
-  }
-});
-
-// Watch for project changes and refresh data
-watch(currentProjectId, (newProjectId) => {
-  if (newProjectId) {
-    // Update search params with new project ID
-    (searchParams as any).projectId = newProjectId;
-    getData();
-  }
-});
 
 const {
   columns,
@@ -199,7 +191,7 @@ const {
   apiParams: {
     current: 1,
     size: 10,
-    projectId: '',
+    projectId: currentProjectId.value || '',
     type: null,
     status: null,
     search: null
@@ -220,50 +212,92 @@ const {
     },
     {
       key: 'name',
-      title: '关系名称',
+      title: $t('page.lowcode.relationship.name'),
       align: 'center',
       minWidth: 120
     },
     {
       key: 'code',
-      title: '关系代码',
+      title: $t('page.lowcode.relationship.code'),
       align: 'center',
       minWidth: 120
     },
     {
       key: 'type',
-      title: '关系类型',
+      title: $t('page.lowcode.relationship.relationType'),
       align: 'center',
       width: 120,
       render: (row: any) => {
-        const typeMap: Record<string, { label: string; color: string }> = {
-          ONE_TO_ONE: { label: '一对一', color: 'info' },
-          ONE_TO_MANY: { label: '一对多', color: 'success' },
-          MANY_TO_ONE: { label: '多对一', color: 'warning' },
-          MANY_TO_MANY: { label: '多对多', color: 'error' }
-        };
+        try {
+          // 标准化关系类型，支持多种格式
+          const normalizeType = (type: string) => {
+            if (!type) return '';
+            
+            // 转换为统一的大写格式
+            const typeStr = type.toString().toUpperCase();
+            
+            // 处理不同的命名格式
+            if (typeStr.includes('ONE') && typeStr.includes('ONE') && !typeStr.includes('MANY')) {
+              return 'ONE_TO_ONE';
+            } else if (typeStr.includes('ONE') && typeStr.includes('MANY')) {
+              if (typeStr.indexOf('ONE') < typeStr.indexOf('MANY')) {
+                return 'ONE_TO_MANY';
+              } else {
+                return 'MANY_TO_ONE';
+              }
+            } else if (typeStr.includes('MANY') && typeStr.includes('MANY')) {
+              return 'MANY_TO_MANY';
+            }
+            
+            // 处理驼峰格式
+            if (typeStr === 'ONETOMANY') return 'ONE_TO_MANY';
+            if (typeStr === 'MANYTOONE') return 'MANY_TO_ONE';
+            if (typeStr === 'MANYTOMANY') return 'MANY_TO_MANY';
+            if (typeStr === 'ONETOONE') return 'ONE_TO_ONE';
+            
+            // 处理连字符格式
+            return typeStr.replace(/-/g, '_');
+          };
 
-        const typeInfo = typeMap[row.type];
-        return typeInfo ? <NTag type={typeInfo.color as any}>{typeInfo.label}</NTag> : row.type;
+          const typeMap: Record<string, { label: string; color: string }> = {
+            ONE_TO_ONE: { label: $t('page.lowcode.relationship.relationshipTypes.ONE_TO_ONE'), color: 'info' },
+            ONE_TO_MANY: { label: $t('page.lowcode.relationship.relationshipTypes.ONE_TO_MANY'), color: 'success' },
+            MANY_TO_ONE: { label: $t('page.lowcode.relationship.relationshipTypes.MANY_TO_ONE'), color: 'warning' },
+            MANY_TO_MANY: { label: $t('page.lowcode.relationship.relationshipTypes.MANY_TO_MANY'), color: 'error' }
+          };
+
+          const normalizedType = normalizeType(row.type);
+          const typeInfo = typeMap[normalizedType];
+          
+          if (typeInfo) {
+            return h(NTag, { type: typeInfo.color as any }, () => typeInfo.label);
+          }
+          
+          // 如果没有匹配的类型，直接显示原始值
+          return row.type || '-';
+        } catch (error) {
+          console.error('Error rendering relationship type:', error, row);
+          return row.type || '-';
+        }
       }
     },
     {
       key: 'sourceEntity',
-      title: '源实体',
+      title: $t('page.lowcode.relationship.sourceEntity'),
       align: 'center',
       minWidth: 120,
       render: (row: any) => row.sourceEntity?.name || row.sourceEntityId
     },
     {
       key: 'targetEntity',
-      title: '目标实体',
+      title: $t('page.lowcode.relationship.targetEntity'),
       align: 'center',
       minWidth: 120,
       render: (row: any) => row.targetEntity?.name || row.targetEntityId
     },
     {
       key: 'description',
-      title: '关系描述',
+      title: $t('page.lowcode.relationship.description'),
       align: 'center',
       minWidth: 150,
       ellipsis: {
@@ -289,7 +323,7 @@ const {
           ? $t('page.lowcode.common.status.active')
           : $t('page.lowcode.common.status.inactive');
 
-        return <NTag type={tagMap[row.status]}>{label}</NTag>;
+        return h(NTag, { type: tagMap[row.status] }, () => label);
       }
     },
     {
@@ -306,27 +340,47 @@ const {
       title: $t('common.operate'),
       align: 'center',
       width: 130,
-      render: (row: any) => (
-        <NSpace justify={'center'}>
-          <NButton size={'small'} type={'primary'} onClick={() => handleEdit(row.id)}>
-            {$t('common.edit')}
-          </NButton>
-          <NPopconfirm
-            onPositiveClick={() => handleDelete(row.id)}
-            v-slots={{
-              default: () => $t('common.confirmDelete'),
-              trigger: () => (
-                <NButton size={'small'} type={'error'}>
-                  {$t('common.delete')}
-                </NButton>
-              )
-            }}
-          />
-        </NSpace>
-      )
+      render: (row: any) => h(NSpace, { justify: 'center' }, () => [
+        h(NButton, { 
+          size: 'small', 
+          type: 'primary', 
+          onClick: () => handleEdit(row.id) 
+        }, () => $t('common.edit')),
+        h(NPopconfirm, {
+          onPositiveClick: () => handleDelete(row.id)
+        }, {
+          default: () => $t('common.confirmDelete'),
+          trigger: () => h(NButton, { 
+            size: 'small', 
+            type: 'error' 
+          }, () => $t('common.delete'))
+        })
+      ])
     }
   ] as any
 });
+
+// Load projects on component mount
+onMounted(async () => {
+  await loadProjects();
+  // Load data if we have a project ID
+  if (currentProjectId.value) {
+    // 确保searchParams有正确的projectId
+    searchParams.projectId = currentProjectId.value;
+    // 强制调用getData来加载数据
+    await getData();
+  }
+});
+
+// Watch for project changes and refresh data
+watch(currentProjectId, async (newProjectId) => {
+  if (newProjectId) {
+    // Update search params with new project ID
+    searchParams.projectId = newProjectId;
+    // 强制刷新数据
+    await getData();
+  }
+}, { immediate: true });
 
 const {
   drawerVisible,

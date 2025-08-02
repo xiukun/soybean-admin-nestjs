@@ -48,7 +48,7 @@ import {
 } from '@lib/bounded-contexts/relationship/application/queries/relationship.queries';
 
 @ApiTags('关系管理')
-@Controller('api/v1/relationships')
+@Controller({ path: 'relationships', version: '1' })
 export class RelationshipController {
   private readonly logger = new Logger(RelationshipController.name);
 
@@ -230,6 +230,69 @@ export class RelationshipController {
     };
   }
 
+  @Get('project/:projectId/paginated')
+  @ApiOperation({ summary: '获取项目关系分页列表' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiQuery({ name: 'current', description: '当前页码', required: false })
+  @ApiQuery({ name: 'size', description: '每页数量', required: false })
+  @ApiQuery({ name: 'type', description: '关系类型', required: false })
+  @ApiQuery({ name: 'status', description: '状态', required: false })
+  @ApiQuery({ name: 'search', description: '搜索关键词', required: false })
+  @AmisResponse({ description: '获取成功', dataKey: 'options' })
+  async getProjectRelationshipsPaginated(
+    @Param('projectId') projectId: string,
+    @Query('current') current?: number,
+    @Query('size') size?: number,
+    @Query('type') type?: string,
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+  ): Promise<any> {
+    const filter: RelationshipListFilter = {
+      projectId,
+      type,
+      search,
+    };
+
+    const options: RelationshipListOptions = {
+      page: current || 1,
+      size: size || 10,
+      sortBy: 'createdAt',
+      sortOrder: 'desc',
+    };
+
+    const query = new GetProjectRelationshipsQuery(projectId, options);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: {
+        records: result.items || [],
+        current: result.pagination?.page || 1,
+        size: result.pagination?.size || 10,
+        total: result.pagination?.total || 0,
+        pages: result.pagination?.pages || 0,
+      },
+    };
+  }
+
+  @Get('project/:projectId')
+  @ApiOperation({ summary: '获取项目所有关系' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @AmisResponse({ description: '获取成功', dataKey: 'options' })
+  async getProjectAllRelationships(
+    @Param('projectId') projectId: string,
+  ): Promise<any> {
+    const query = new GetProjectRelationshipsQuery(projectId, { page: 1, size: 1000 });
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result.items || [],
+    };
+  }
+
   @Get('projects/:projectId')
   @ApiOperation({ summary: '获取项目关系列表' })
   @ApiParam({ name: 'projectId', description: '项目ID' })
@@ -286,6 +349,77 @@ export class RelationshipController {
     return {
       status: result ? 0 : 1,
       msg: result ? 'success' : 'relationship not found',
+      data: result,
+    };
+  }
+
+  @Get('project/:projectId/graph')
+  @ApiOperation({ summary: '获取项目关系图' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @AmisResponse({ description: '获取成功', dataKey: 'graph' })
+  async getProjectRelationshipGraph(@Param('projectId') projectId: string): Promise<any> {
+    const query = new GetRelationshipGraphQuery(projectId);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Get('project/:projectId/stats')
+  @ApiOperation({ summary: '获取项目关系统计' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @AmisResponse({ description: '获取成功', dataKey: 'stats' })
+  async getProjectRelationshipStats(@Param('projectId') projectId: string): Promise<any> {
+    const query = new GetRelationshipStatsQuery(projectId);
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
+      data: result,
+    };
+  }
+
+  @Get('project/:projectId/code/:code')
+  @ApiOperation({ summary: '根据代码获取关系' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiParam({ name: 'code', description: '关系代码' })
+  @AmisResponse({ description: '获取成功', dataKey: 'relationship' })
+  async getRelationshipByCode(
+    @Param('projectId') projectId: string,
+    @Param('code') code: string,
+  ): Promise<any> {
+    const filter: RelationshipListFilter = {
+      projectId,
+      search: code,
+    };
+
+    const query = new GetRelationshipsQuery(filter, { page: 1, size: 1 });
+    const result = await this.queryBus.execute(query);
+
+    const relationship = result.items?.find(item => item.code === code);
+
+    return {
+      status: relationship ? 0 : 1,
+      msg: relationship ? 'success' : 'relationship not found',
+      data: relationship,
+    };
+  }
+
+  @Get('entity/:entityId')
+  @ApiOperation({ summary: '获取实体关系' })
+  @ApiParam({ name: 'entityId', description: '实体ID' })
+  @AmisResponse({ description: '获取成功', dataKey: 'relationships' })
+  async getRelationshipsByEntity(@Param('entityId') entityId: string): Promise<any> {
+    const query = new GetEntityRelationshipsQuery(entityId, 'both');
+    const result = await this.queryBus.execute(query);
+
+    return {
+      status: 0,
+      msg: 'success',
       data: result,
     };
   }

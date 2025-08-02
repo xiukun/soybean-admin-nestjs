@@ -192,6 +192,7 @@ export const lowcodeRequest = createFlatRequest<App.Service.Response, RequestIns
     },
     isBackendSuccess(response) {
       // Low-code platform uses standard HTTP status codes
+      // Always return true for 2xx status codes since the backend is working correctly
       return response.status >= 200 && response.status < 300;
     },
     async onBackendFail(response, instance) {
@@ -213,6 +214,16 @@ export const lowcodeRequest = createFlatRequest<App.Service.Response, RequestIns
     },
     transformBackendResponse(response) {
       // For low-code platform, return the response data directly
+      // The backend returns data in the format we expect
+      // Check if response has the expected structure
+      if (response.data && typeof response.data === 'object') {
+        // If the response has status and data fields, extract the data
+        if ('status' in response.data && 'data' in response.data) {
+          return response.data.data;
+        }
+        // Otherwise return the response data directly
+        return response.data;
+      }
       return response.data;
     },
     onError(error) {

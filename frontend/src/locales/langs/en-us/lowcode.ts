@@ -394,22 +394,199 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
   },
   relationship: {
     title: 'Relationship Management',
-    addRelationship: 'Add Relationship',
-    editRelationship: 'Edit Relationship',
+    name: 'Relationship Name',
+    code: 'Relationship Code',
+    relationType: 'Relationship Type',
     sourceEntity: 'Source Entity',
     targetEntity: 'Target Entity',
-    relationType: 'Relationship Type',
-    relationshipName: 'Relationship Name',
     description: 'Description',
     cascadeDelete: 'Cascade Delete',
+    cascadeUpdate: 'Cascade Update',
+    foreignKeyField: 'Foreign Key Field',
     required: 'Required',
+    addRelationship: 'Add Relationship',
+    editRelationship: 'Edit Relationship',
+    deleteRelationship: 'Delete Relationship',
+    visualDesigner: 'Visual Designer',
+    listView: 'List View',
+    designerView: 'Designer View',
+    autoLayout: 'Auto Layout',
+    zoomIn: 'Zoom In',
+    zoomOut: 'Zoom Out',
+    resetZoom: 'Reset Zoom',
+    fitToScreen: 'Fit to Screen',
+    exportImage: 'Export Image',
+    relationshipRecommendations: 'Relationship Recommendations',
+    optimizationReport: 'Optimization Report',
+    smartRecommendations: 'Smart Recommendations',
+    performanceAnalysis: 'Performance Analysis',
+    relationshipCount: 'Relationship Count',
+    circularDependencies: 'Circular Dependencies',
+    missingIndexes: 'Missing Indexes',
+    optimizationSuggestions: 'Optimization Suggestions',
+    applyRecommendation: 'Apply Recommendation',
+    generateReport: 'Generate Report',
+    refreshAnalysis: 'Refresh Analysis',
+    exportReport: 'Export Report',
+    onDelete: 'On Delete',
+    onUpdate: 'On Update',
+    entityList: 'Entity List',
+    noEntities: 'No entities found',
+    // X6 relationship designer related
+    connectMode: 'Connect Mode',
+    selectSourceEntity: 'Please select source entity',
+    selectTargetEntity: 'Selected {name}, please select target entity',
+    cancelConnect: 'Cancel Connection',
+    createRelationshipDialog: 'Create Relationship',
+    relationshipExists: 'Relationship already exists',
+    relationshipCreated: 'Relationship created successfully',
+    relationshipUpdated: 'Relationship updated successfully',
+    relationshipDeleted: 'Relationship deleted successfully',
+    // Toolbar operations
+    toolbar: {
+      connectMode: 'Connect Mode',
+      autoLayout: 'Auto Layout',
+      minimap: 'Minimap',
+      zoomIn: 'Zoom In',
+      zoomOut: 'Zoom Out',
+      resetZoom: 'Reset Zoom',
+      fitCanvas: 'Fit Canvas',
+      toggleGrid: 'Show/Hide Grid',
+      snapToGrid: 'Snap to Grid',
+      export: 'Export',
+      saveState: 'Save State',
+      addEntity: 'Add Entity',
+      deleteSelected: 'Delete Selected',
+      undo: 'Undo',
+      redo: 'Redo',
+      legend: 'Legend'
+    },
+    // Export options
+    exportOptions: {
+      png: 'PNG Image',
+      jpg: 'JPG Image',
+      svg: 'SVG Vector',
+      json: 'JSON Data'
+    },
+    // Line styles
+    lineStyles: {
+      solid: 'Solid',
+      dashed: 'Dashed',
+      dotted: 'Dotted'
+    },
+    // Cascade actions
+    cascadeActions: {
+      restrict: 'Restrict',
+      cascade: 'Cascade',
+      setNull: 'Set Null',
+      noAction: 'No Action'
+    },
+    // Relationship types
     relationTypes: {
       oneToOne: 'One to One',
       oneToMany: 'One to Many',
       manyToOne: 'Many to One',
       manyToMany: 'Many to Many'
     },
+    // Form related
     form: {
+      name: {
+        placeholder: 'Please enter relationship name'
+      },
+      relationType: {
+        placeholder: 'Please select relationship type'
+      },
+      description: {
+        placeholder: 'Please enter description'
+      }
+    },
+    // Property panel
+    propertyPanel: {
+      title: 'Property Panel',
+      entityProperties: 'Entity Properties',
+      relationshipProperties: 'Relationship Properties',
+      basicInfo: 'Basic Information',
+      visualStyle: 'Visual Style',
+      fieldManagement: 'Field Management',
+      noSelection: 'Please select entity or relationship',
+      entityName: 'Entity Name',
+      displayName: 'Display Name',
+      description: 'Description',
+      color: 'Color',
+      position: 'Position',
+      size: 'Size',
+      fields: 'Field List',
+      addField: 'Add Field',
+      fieldName: 'Field Name',
+      fieldType: 'Field Type',
+      isPrimaryKey: 'Primary Key',
+      isRequired: 'Required',
+      isUnique: 'Unique',
+      isIndex: 'Index',
+      relationshipName: 'Relationship Name',
+      relationshipType: 'Relationship Type',
+      sourceEntity: 'Source Entity',
+      targetEntity: 'Target Entity',
+      lineStyle: 'Line Style',
+      lineColor: 'Line Color'
+    },
+    // Export formats
+    exportFormats: {
+      png: 'PNG Image',
+      jpg: 'JPG Image',
+      svg: 'SVG Vector',
+      json: 'JSON Data'
+    },
+    // Field types
+    fieldTypes: {
+      VARCHAR: 'String',
+      INT: 'Integer',
+      BIGINT: 'Big Integer',
+      DECIMAL: 'Decimal',
+      BOOLEAN: 'Boolean',
+      DATE: 'Date',
+      DATETIME: 'DateTime',
+      TEXT: 'Text',
+      JSON: 'JSON',
+      TIMESTAMP: 'Timestamp'
+    },
+    // Line styles
+    lineStyles: {
+      solid: 'Solid',
+      dashed: 'Dashed',
+      dotted: 'Dotted'
+    },
+    relationshipTypes: {
+      ONE_TO_ONE: 'One to One',
+      ONE_TO_MANY: 'One to Many',
+      MANY_TO_ONE: 'Many to One',
+      MANY_TO_MANY: 'Many to Many'
+    },
+    relationTypes: {
+      oneToOne: 'One to One',
+      oneToMany: 'One to Many',
+      manyToOne: 'Many to One',
+      manyToMany: 'Many to Many'
+    },
+    cascadeActions: {
+      RESTRICT: 'Restrict',
+      CASCADE: 'Cascade',
+      SET_NULL: 'Set Null',
+      NO_ACTION: 'No Action'
+    },
+    status: {
+      ACTIVE: 'Active',
+      INACTIVE: 'Inactive'
+    },
+    form: {
+      name: {
+        placeholder: 'Please enter relationship name',
+        required: 'Please enter relationship name'
+      },
+      code: {
+        placeholder: 'Please enter relationship code',
+        required: 'Please enter relationship code'
+      },
       sourceEntity: {
         placeholder: 'Please select source entity',
         required: 'Please select source entity'
@@ -427,7 +604,16 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
         required: 'Please enter relationship name'
       },
       description: {
-        placeholder: 'Please enter description'
+        placeholder: 'Please enter relationship description'
+      },
+      foreignKeyField: {
+        placeholder: 'Please enter foreign key field name'
+      },
+      onDelete: {
+        placeholder: 'Please select on delete action'
+      },
+      onUpdate: {
+        placeholder: 'Please select on update action'
       }
     }
   },

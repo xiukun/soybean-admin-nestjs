@@ -8,6 +8,7 @@
 import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@lib/shared/prisma/prisma.service';
 import { RelationshipConfig } from '../commands/relationship.commands';
+import { RelationshipType } from '../../domain/relationship.model';
 
 export interface RelationshipValidationResult {
   isValid: boolean;
@@ -301,8 +302,7 @@ export class RelationshipManagerService {
       }
 
       // 验证关系类型
-      const validTypes = ['one-to-one', 'one-to-many', 'many-to-one', 'many-to-many'];
-      if (config.type && !validTypes.includes(config.type)) {
+      if (config.type && !Object.values(RelationshipType).includes(config.type)) {
         errors.push(`无效的关系类型: ${config.type}`);
       }
 
@@ -353,7 +353,7 @@ export class RelationshipManagerService {
       }
 
       // 多对多关系验证
-      if (config.type === 'many-to-many') {
+      if (config.type === RelationshipType.MANY_TO_MANY) {
         if (!config.joinTableConfig) {
           errors.push('多对多关系需要配置中间表');
         } else {
@@ -379,11 +379,11 @@ export class RelationshipManagerService {
       }
 
       // 生成建议
-      if (config.type === 'one-to-many' && !config.indexed) {
+      if (config.type === RelationshipType.ONE_TO_MANY && !config.indexed) {
         suggestions.push('建议为一对多关系创建索引以提高查询性能');
       }
 
-      if (!config.foreignKeyName && config.type !== 'many-to-many') {
+      if (!config.foreignKeyName && config.type !== RelationshipType.MANY_TO_MANY) {
         suggestions.push('建议指定外键名称以便于数据库管理');
       }
 
@@ -420,10 +420,13 @@ export class RelationshipManagerService {
       status?: string;
     } = {},
   ): Promise<{
-    relationships: any[];
-    total: number;
-    page: number;
-    size: number;
+    items: any[];
+    pagination: {
+      page: number;
+      size: number;
+      total: number;
+      pages: number;
+    };
   }> {
     try {
       const {
@@ -500,11 +503,16 @@ export class RelationshipManagerService {
         this.prisma.relation.count({ where }),
       ]);
 
+      const pages = Math.ceil(total / size);
+
       return {
-        relationships,
-        total,
-        page,
-        size,
+        items: relationships,
+        pagination: {
+          page,
+          size,
+          total,
+          pages,
+        },
       };
 
     } catch (error) {
@@ -678,9 +686,9 @@ export class RelationshipManagerService {
       let sql = '';
 
       switch (relationship.type) {
-        case 'one-to-one':
-        case 'one-to-many':
-        case 'many-to-one':
+        case RelationshipType.ONE_TO_ONE:
+        case RelationshipType.ONE_TO_MANY:
+        case RelationshipType.MANY_TO_ONE:
           // 外键约束SQL
           const foreignKeyName = config.foreignKeyName ||
             `fk_${relationship.sourceEntity.tableName}_${relationship.targetEntity.tableName}`;
@@ -701,7 +709,7 @@ ON ${relationship.sourceEntity.tableName || relationship.sourceEntity.code}(${co
           }
           break;
 
-        case 'many-to-many':
+        case RelationshipType.MANY_TO_MANY:
           // 中间表SQL
           if (config.joinTableConfig) {
             const joinTable = config.joinTableConfig.tableName;

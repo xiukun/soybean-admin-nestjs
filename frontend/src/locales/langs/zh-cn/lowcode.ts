@@ -398,6 +398,132 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     exportReport: '导出报告',
     onDelete: '删除时',
     onUpdate: '更新时',
+    entityList: '实体列表',
+    noEntities: '没有找到实体',
+    // X6关系图设计器相关
+    connectMode: '连线模式',
+    selectSourceEntity: '请点击源实体开始连线',
+    selectTargetEntity: '已选择 "{name}"，请点击目标实体完成连线',
+    cancelConnect: '取消连线',
+    createRelationshipDialog: '创建关系',
+    relationshipExists: '关系已存在',
+    relationshipCreated: '关系创建成功',
+    relationshipUpdated: '关系更新成功',
+    relationshipDeleted: '关系删除成功',
+    // 工具栏操作
+    toolbar: {
+      connectMode: '连线模式',
+      autoLayout: '自动布局',
+      minimap: '小地图',
+      zoomIn: '放大',
+      zoomOut: '缩小',
+      resetZoom: '重置缩放',
+      fitCanvas: '适应画布',
+      toggleGrid: '显示/隐藏网格',
+      snapToGrid: '对齐网格',
+      export: '导出',
+      saveState: '保存状态',
+      addEntity: '添加实体',
+      deleteSelected: '删除选中',
+      undo: '撤销',
+      redo: '重做',
+      legend: '图例说明'
+    },
+    // 导出选项
+    exportOptions: {
+      png: 'PNG图片',
+      jpg: 'JPG图片',
+      svg: 'SVG矢量图',
+      json: 'JSON数据'
+    },
+    // 线条样式
+    lineStyles: {
+      solid: '实线',
+      dashed: '虚线',
+      dotted: '点线'
+    },
+    // 级联操作
+    cascadeActions: {
+      restrict: '限制',
+      cascade: '级联',
+      setNull: '设为空',
+      noAction: '无操作'
+    },
+    // 关系类型
+    relationTypes: {
+      oneToOne: '一对一',
+      oneToMany: '一对多',
+      manyToOne: '多对一',
+      manyToMany: '多对多'
+    },
+    // 表单相关
+    form: {
+      name: {
+        placeholder: '请输入关系名称'
+      },
+      relationType: {
+        placeholder: '请选择关系类型'
+      },
+      description: {
+        placeholder: '请输入关系描述'
+      }
+    },
+    // 属性面板
+    propertyPanel: {
+      title: '属性面板',
+      entityProperties: '实体属性',
+      relationshipProperties: '关系属性',
+      basicInfo: '基本信息',
+      visualStyle: '视觉样式',
+      fieldManagement: '字段管理',
+      noSelection: '请选择实体或关系',
+      entityName: '实体名称',
+      displayName: '显示名称',
+      description: '描述',
+      color: '颜色',
+      position: '位置',
+      size: '大小',
+      fields: '字段列表',
+      addField: '添加字段',
+      fieldName: '字段名称',
+      fieldType: '字段类型',
+      isPrimaryKey: '主键',
+      isRequired: '必填',
+      isUnique: '唯一',
+      isIndex: '索引',
+      relationshipName: '关系名称',
+      relationshipType: '关系类型',
+      sourceEntity: '源实体',
+      targetEntity: '目标实体',
+      lineStyle: '线条样式',
+      lineColor: '线条颜色'
+    },
+    // 导出格式
+    exportFormats: {
+      png: 'PNG图片',
+      jpg: 'JPG图片',
+      svg: 'SVG矢量图',
+      json: 'JSON数据'
+    },
+    // 字段类型
+    fieldTypes: {
+      VARCHAR: '字符串',
+      INT: '整数',
+      BIGINT: '长整数',
+      DECIMAL: '小数',
+      BOOLEAN: '布尔值',
+      DATE: '日期',
+      DATETIME: '日期时间',
+      TEXT: '文本',
+      JSON: 'JSON',
+      TIMESTAMP: '时间戳'
+    },
+    // 线条样式
+    lineStyles: {
+      solid: '实线',
+      dashed: '虚线',
+      dotted: '点线'
+    },
     relationshipTypes: {
       ONE_TO_ONE: '一对一',
       ONE_TO_MANY: '一对多',

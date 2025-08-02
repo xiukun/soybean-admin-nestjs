@@ -73,6 +73,19 @@ export class FieldController {
     return this.mapToResponseDto(field);
   }
 
+  @Get()
+  @ApiOperation({ summary: 'Get all fields by project ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Fields found',
+    type: [FieldResponseDto],
+  })
+  async getAllFields(@Query('projectId') projectId: string): Promise<FieldResponseDto[]> {
+    // 这里需要实现根据项目ID获取所有字段的逻辑
+    // 暂时返回空数组，需要后续实现具体的查询逻辑
+    return [];
+  }
+
   @Get('entity/:entityId')
   @ApiOperation({ summary: 'Get fields by entity ID' })
   @ApiParam({ name: 'entityId', description: 'Entity ID' })
