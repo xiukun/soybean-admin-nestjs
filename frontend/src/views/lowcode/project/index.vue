@@ -86,6 +86,7 @@
           @view="handleViewProject"
           @deploy="handleDeployProject"
           @stop-deployment="handleStopDeployment"
+          @relationship="handleRelationshipManagement"
         />
       </div>
 
@@ -1083,6 +1084,15 @@ function handleDesignProject(project: Project) {
 function handleGenerateProject(project: Project) {
   // 生成代码 - 跳转到代码生成页面
   router.push(`/lowcode/code-generation?projectId=${project.id}`);
+}
+
+function handleRelationshipManagement(project: Project) {
+  // 关系管理 - 跳转到实体关系图页面
+  // 使用查询参数传递项目ID
+  router.push({
+    path: '/lowcode/relationship',
+    query: { projectId: project.id }
+  });
 }
 
 // Lifecycle

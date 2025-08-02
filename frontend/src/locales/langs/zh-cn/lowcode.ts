@@ -102,6 +102,8 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     designEntities: '设计实体',
     generate: '生成',
     generateCode: '生成代码',
+    relationship: '关系',
+    viewRelationships: '查看实体关系图',
     yesterday: '昨天',
     daysAgo: '{days}天前',
     configure: '配置',

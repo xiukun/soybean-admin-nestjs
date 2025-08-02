@@ -145,6 +145,23 @@
               {{ $t('page.lowcode.project.generateCode') }}
             </NTooltip>
 
+            <!-- 关系管理按钮 -->
+            <NTooltip>
+              <template #trigger>
+                <NButton
+                  type="warning"
+                  size="small"
+                  @click="$emit('relationship', project)"
+                >
+                  <template #icon>
+                    <NIcon><icon-mdi-relation-many-to-many /></NIcon>
+                  </template>
+                  {{ $t('page.lowcode.project.relationship') }}
+                </NButton>
+              </template>
+              {{ $t('page.lowcode.project.viewRelationships') }}
+            </NTooltip>
+
             <!-- 部署按钮 -->
             <NTooltip v-if="canDeploy">
               <template #trigger>
@@ -245,6 +262,7 @@ interface Emits {
   (e: 'view', project: any): void;
   (e: 'deploy', project: any): void;
   (e: 'stop-deployment', project: any): void;
+  (e: 'relationship', project: any): void;
 }
 
 const props = defineProps<Props>();

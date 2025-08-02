@@ -102,6 +102,8 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     designEntities: 'Design Entities',
     generate: 'Generate',
     generateCode: 'Generate Code',
+    relationship: 'Relationship',
+    viewRelationships: 'View Entity Relationships',
     yesterday: 'Yesterday',
     daysAgo: '{days} days ago',
     configure: 'Configure',
