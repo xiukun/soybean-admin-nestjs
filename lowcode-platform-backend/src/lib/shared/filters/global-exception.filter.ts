@@ -9,6 +9,7 @@ import {
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { EnhancedLoggerService } from '../logging/enhanced-logger.service';
 import { LowcodeException, createLowcodeException } from '../exceptions/lowcode.exceptions';
+import { FriendlyValidationException } from '../exceptions/validation.exception';
 import { ConfigService } from '@nestjs/config';
 
 export interface ErrorResponse {
@@ -24,6 +25,15 @@ export interface ErrorResponse {
     method: string;
     requestId?: string;
     stack?: string;
+    // 验证错误的额外字段
+    validationErrors?: Array<{
+      field: string;
+      fieldLabel?: string;
+      message: string;
+      code: string;
+      value?: any;
+    }>;
+    errorSummary?: string;
   };
 }
 
@@ -63,6 +73,19 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   private convertToLowcodeException(exception: unknown): LowcodeException {
     if (exception instanceof LowcodeException) {
       return exception;
+    }
+
+    // 特殊处理友好验证异常
+    if (exception instanceof FriendlyValidationException) {
+      return new LowcodeException(
+        exception.getErrorSummary(),
+        HttpStatus.BAD_REQUEST,
+        'VALIDATION_FAILED',
+        {
+          validationErrors: exception.validationErrors,
+          errorsByField: exception.getErrorsByField(),
+        },
+      );
     }
 
     return createLowcodeException(exception);
@@ -241,9 +264,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const exceptionResponse = exception.getResponse() as any;
     const isDevelopment = this.configService.get('NODE_ENV') === 'development';
 
-    return {
+    // 基础错误响应
+    const errorResponse: ErrorResponse = {
       status: 1, // Error status for frontend compatibility
-      msg: 'error',
+      msg: this.getFriendlyErrorMessage(exception),
       data: null,
       error: {
         code: exceptionResponse.code || 'UNKNOWN_ERROR',
@@ -257,6 +281,62 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         ...(isDevelopment && { stack: exception.stack }),
       },
     };
+
+    // 如果是验证错误，添加验证相关的信息
+    if (exceptionResponse.code === 'VALIDATION_FAILED' && exceptionResponse.details) {
+      if (exceptionResponse.details.validationErrors) {
+        errorResponse.error.validationErrors = exceptionResponse.details.validationErrors;
+        errorResponse.error.errorSummary = exception.message;
+      }
+    }
+
+    return errorResponse;
+  }
+
+  /**
+   * 获取友好的错误消息
+   */
+  private getFriendlyErrorMessage(exception: LowcodeException): string {
+    const exceptionResponse = exception.getResponse() as any;
+    
+    switch (exceptionResponse.code) {
+      case 'VALIDATION_FAILED':
+        return '请求参数验证失败';
+      case 'ENTITY_NOT_FOUND':
+        return '实体不存在';
+      case 'PROJECT_NOT_FOUND':
+        return '项目不存在';
+      case 'TEMPLATE_NOT_FOUND':
+        return '模板不存在';
+      case 'ENTITY_ALREADY_EXISTS':
+        return '实体已存在';
+      case 'PROJECT_ALREADY_EXISTS':
+        return '项目已存在';
+      case 'TEMPLATE_ALREADY_EXISTS':
+        return '模板已存在';
+      case 'CODE_GENERATION_FAILED':
+        return '代码生成失败';
+      case 'DATABASE_CONNECTION_ERROR':
+        return '数据库连接失败';
+      case 'FILE_NOT_FOUND':
+        return '文件不存在';
+      case 'INSUFFICIENT_PERMISSIONS':
+        return '权限不足';
+      case 'UNAUTHORIZED':
+        return '未授权访问';
+      case 'FORBIDDEN':
+        return '访问被禁止';
+      case 'RATE_LIMIT_EXCEEDED':
+        return '请求频率超限';
+      case 'EXTERNAL_SERVICE_ERROR':
+        return '外部服务错误';
+      case 'CONFIGURATION_ERROR':
+        return '配置错误';
+      case 'BUSINESS_RULE_VIOLATION':
+        return '业务规则违反';
+      default:
+        return '操作失败';
+    }
   }
 }
 

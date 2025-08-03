@@ -206,7 +206,7 @@ export const lowcodeRequest = createFlatRequest<App.Service.Response, RequestIns
 
       // Handle 403 Forbidden
       if (response.status === 403) {
-        window.$message?.error($t('common.noPermission'));
+        window.$message?.error($t('route.403'));
         return null;
       }
 
@@ -231,13 +231,35 @@ export const lowcodeRequest = createFlatRequest<App.Service.Response, RequestIns
 
       // Handle different error types
       if (error.code === BACKEND_ERROR_CODE) {
-        const errorData = error.response?.data;
+        const errorData = error.response?.data as any;
         if (errorData) {
-          // Handle validation errors
-          if (errorData.message === 'Validation failed' && errorData.errors) {
+          // Handle new friendly validation errors format
+          if (errorData.error?.validationErrors && Array.isArray(errorData.error.validationErrors)) {
+            // 使用友好的验证错误信息
+            const validationMessages = errorData.error.validationErrors.map((err: any) => {
+              return err.fieldLabel ? `${err.fieldLabel}: ${err.message}` : err.message;
+            });
+            message = validationMessages.join('；');
+          }
+          // Handle error summary for validation errors
+          else if (errorData.error?.errorSummary) {
+            message = errorData.error.errorSummary;
+          }
+          // Handle legacy validation errors format
+          else if (errorData.message === 'Validation failed' && errorData.errors) {
             const validationErrors = Object.values(errorData.errors).flat();
             message = validationErrors.join(', ');
-          } else {
+          }
+          // Handle friendly error messages
+          else if (errorData.msg && errorData.msg !== 'error') {
+            message = errorData.msg;
+          }
+          // Handle detailed error messages
+          else if (errorData.error?.message) {
+            message = errorData.error.message;
+          }
+          // Fallback to generic error message
+          else {
             message = errorData.message || errorData.error || message;
           }
         }

@@ -5,6 +5,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from '@src/app.module';
 import { IAppConfig, ICorsConfig, ConfigKeyPaths } from '@lib/shared/config';
+import { FriendlyValidationPipe, FRIENDLY_VALIDATION_PIPE_OPTIONS } from '@lib/shared/pipes/friendly-validation.pipe';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -77,16 +78,14 @@ async function bootstrap() {
     app.enableCors(corsConfig.corsOptions);
   }
 
-  // Global validation pipe
+  // Global validation pipe with friendly error messages
+  const nodeEnv = appConfig.nodeEnv;
+  const validationOptions = nodeEnv === 'development' 
+    ? FRIENDLY_VALIDATION_PIPE_OPTIONS.debug
+    : FRIENDLY_VALIDATION_PIPE_OPTIONS.strict;
+    
   app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
-    })
+    new FriendlyValidationPipe(validationOptions)
   );
 
   // Enable versioning
