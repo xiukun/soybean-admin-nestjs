@@ -1,20 +1,52 @@
 <template>
   <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
+    <!-- 增强的API测试工具 -->
     <NCard :title="$t('page.lowcode.apiTest.title')" :bordered="false" size="small" class="card-wrapper">
+      <template #header-extra>
+        <NSpace>
+          <NButton type="info" size="small" @click="showEnvironmentModal = true">
+            <template #icon>
+              <icon-mdi-cog />
+            </template>
+            环境管理
+          </NButton>
+          <NButton type="success" size="small" @click="showHistoryModal = true">
+            <template #icon>
+              <icon-mdi-history />
+            </template>
+            测试历史
+          </NButton>
+          <NButton type="warning" size="small" @click="showBatchTestModal = true">
+            <template #icon>
+              <icon-mdi-playlist-check />
+            </template>
+            批量测试
+          </NButton>
+        </NSpace>
+      </template>
+      
       <NForm ref="formRef" :model="testForm" :rules="rules" label-placement="left" :label-width="120">
         <NGrid :cols="24" :x-gap="16">
-          <NFormItemGi :span="12" :label="$t('page.lowcode.apiTest.project')" path="projectId">
+          <NFormItemGi :span="8" label="环境" path="environment">
+            <NSelect 
+              v-model:value="testForm.environment" 
+              placeholder="请选择环境"
+              :options="environmentOptions"
+              @update:value="handleEnvironmentChange"
+            />
+          </NFormItemGi>
+          <NFormItemGi :span="8" label="项目" path="projectId">
             <NSelect 
               v-model:value="testForm.projectId" 
-              :placeholder="$t('page.lowcode.apiTest.form.project.placeholder')"
+              placeholder="请选择项目"
               :options="projectOptions"
               @update:value="handleProjectChange"
             />
           </NFormItemGi>
-          <NFormItemGi :span="12" :label="$t('page.lowcode.apiTest.apiConfig')" path="apiConfigId">
+          <NFormItemGi :span="8" label="API配置" path="apiConfigId">
             <NSelect 
               v-model:value="testForm.apiConfigId" 
-              :placeholder="$t('page.lowcode.apiTest.form.apiConfig.placeholder')"
+              placeholder="请选择API配置"
               :options="apiConfigOptions"
               :loading="apiConfigLoading"
               @update:value="handleApiConfigChange"
@@ -132,6 +164,83 @@
         </NTabPane>
       </NTabs>
     </NCard>
+
+    <!-- 环境管理模态框 -->
+    <NModal v-model:show="showEnvironmentModal" preset="card" title="环境管理" style="width: 600px">
+      <NForm label-placement="left" :label-width="100">
+        <NFormItem label="当前环境">
+          <NSelect v-model:value="testForm.environment" :options="environmentOptions" @update:value="handleEnvironmentChange" />
+        </NFormItem>
+        <NFormItem label="基础URL">
+          <NInput :value="getCurrentBaseUrl()" readonly />
+        </NFormItem>
+        <NFormItem label="环境变量">
+          <NSpace vertical class="w-full">
+            <NSpace v-for="(env, index) in environmentVariables" :key="index" align="center" class="w-full">
+              <NInput v-model:value="env.key" placeholder="变量名" style="flex: 1" />
+              <NInput v-model:value="env.value" placeholder="变量值" style="flex: 2" />
+              <NButton type="error" size="small" @click="removeEnvironmentVariable(index)">删除</NButton>
+            </NSpace>
+            <NButton type="default" dashed @click="addEnvironmentVariable" class="w-full">添加环境变量</NButton>
+          </NSpace>
+        </NFormItem>
+      </NForm>
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="showEnvironmentModal = false">取消</NButton>
+          <NButton type="primary" @click="saveEnvironmentConfig">保存</NButton>
+        </NSpace>
+      </template>
+    </NModal>
+
+    <!-- 测试历史模态框 -->
+    <NModal v-model:show="showHistoryModal" preset="card" title="测试历史" style="width: 800px">
+      <NDataTable
+        :columns="historyColumns"
+        :data="testHistory"
+        :pagination="{ pageSize: 10 }"
+        size="small"
+      />
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="clearTestHistory">清空历史</NButton>
+          <NButton @click="showHistoryModal = false">关闭</NButton>
+        </NSpace>
+      </template>
+    </NModal>
+
+    <!-- 批量测试模态框 -->
+    <NModal v-model:show="showBatchTestModal" preset="card" title="批量测试" style="width: 900px">
+      <NSpace vertical>
+        <NSpace>
+          <NButton type="primary" @click="runBatchTest" :loading="batchTesting">开始批量测试</NButton>
+          <NButton @click="selectAllApis">全选</NButton>
+          <NButton @click="clearApiSelection">清空选择</NButton>
+        </NSpace>
+        <NDataTable
+          v-model:checked-row-keys="selectedApiIds"
+          :columns="batchTestColumns"
+          :data="batchTestData"
+          :row-key="row => row.id"
+          size="small"
+          max-height="400"
+        />
+        <div v-if="batchTestResults.length > 0">
+          <NDivider>测试结果</NDivider>
+          <NDataTable
+            :columns="batchResultColumns"
+            :data="batchTestResults"
+            size="small"
+            max-height="300"
+          />
+        </div>
+      </NSpace>
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="showBatchTestModal = false">关闭</NButton>
+        </NSpace>
+      </template>
+    </NModal>
   </div>
 </template>
 
@@ -156,6 +265,7 @@ interface TestForm {
   apiConfigId: string;
   method: string;
   url: string;
+  environment: string;
   headers: KeyValuePair[];
   params: KeyValuePair[];
   body: string;
@@ -177,14 +287,59 @@ const formRef = ref<FormInst | null>(null);
 const testing = ref(false);
 const apiConfigLoading = ref(false);
 
+// 模态框状态
+const showEnvironmentModal = ref(false);
+const showHistoryModal = ref(false);
+const showBatchTestModal = ref(false);
+
 const projectOptions = ref<Array<{ label: string; value: string }>>([]);
 const apiConfigOptions = ref<Array<{ label: string; value: string }>>([]);
+const environmentOptions = ref<Array<{ label: string; value: string }>>([]);
+
+// 测试历史记录
+const testHistory = ref<TestResult[]>([]);
+
+// 环境变量管理
+const environmentVariables = ref<Array<{ key: string; value: string }>>([]);
+
+// 批量测试相关
+const batchTesting = ref(false);
+const selectedApiIds = ref<string[]>([]);
+const batchTestData = ref<Array<{ id: string; name: string; method: string; url: string; status?: string }>>([]);
+const batchTestResults = ref<Array<{ id: string; name: string; status: number; time: number; success: boolean }>>([]);
+
+// 表格列定义
+const historyColumns = ref([
+  { title: '时间', key: 'timestamp', width: 180 },
+  { title: 'API名称', key: 'apiName', width: 150 },
+  { title: '方法', key: 'method', width: 80 },
+  { title: 'URL', key: 'url', ellipsis: { tooltip: true } },
+  { title: '状态码', key: 'status', width: 80 },
+  { title: '响应时间', key: 'responseTime', width: 100, render: (row: any) => `${row.responseTime}ms` },
+  { title: '结果', key: 'success', width: 80, render: (row: any) => row.success ? '成功' : '失败' }
+]);
+
+const batchTestColumns = ref([
+  { type: 'selection' as const },
+  { title: 'API名称', key: 'name', width: 200 },
+  { title: '方法', key: 'method', width: 80 },
+  { title: 'URL', key: 'url', ellipsis: { tooltip: true } },
+  { title: '状态', key: 'status', width: 100 }
+]);
+
+const batchResultColumns = ref([
+  { title: 'API名称', key: 'name', width: 200 },
+  { title: '状态码', key: 'status', width: 100 },
+  { title: '响应时间', key: 'time', width: 120, render: (row: any) => `${row.time}ms` },
+  { title: '结果', key: 'success', width: 100, render: (row: any) => row.success ? '✅ 成功' : '❌ 失败' }
+]);
 
 const testForm = reactive<TestForm>({
   projectId: props.projectId || '',
   apiConfigId: '',
   method: 'GET',
   url: '',
+  environment: 'development',
   headers: [
     { key: 'Content-Type', value: 'application/json' },
     { key: 'Accept', value: 'application/json' }
@@ -258,7 +413,11 @@ async function loadProjects() {
 }
 
 async function loadApiConfigs(projectId: string) {
-  if (!projectId) return;
+  if (!projectId) {
+    apiConfigOptions.value = [];
+    batchTestData.value = [];
+    return;
+  }
 
   try {
     apiConfigLoading.value = true;
@@ -267,8 +426,12 @@ async function loadApiConfigs(projectId: string) {
     if (Array.isArray(apiConfigs)) {
       apiConfigOptions.value = apiConfigs.map((config: any) => ({
         label: `${config.method} ${config.path} - ${config.name}`,
-        value: config.id
+        value: config.id,
+        config // 保存完整的配置信息
       }));
+      
+      // 更新批量测试数据
+      initializeBatchTestData();
     } else {
       console.error('API configs data is not an array:', apiConfigs);
     }
@@ -284,6 +447,25 @@ function handleProjectChange(projectId: string) {
   testForm.url = '';
   testForm.method = 'GET';
   loadApiConfigs(projectId);
+}
+
+/**
+ * 处理环境变更
+ * @param environment - 选中的环境
+ */
+function handleEnvironmentChange(environment: string) {
+  // 根据环境更新基础URL
+  const baseUrls = {
+    development: 'http://localhost:3002',
+    staging: 'https://staging-api.example.com',
+    production: 'https://api.example.com'
+  };
+  
+  // 更新当前URL的基础部分
+  if (testForm.url) {
+    const pathPart = testForm.url.split('/api')[1] || '';
+    testForm.url = `${baseUrls[environment as keyof typeof baseUrls] || baseUrls.development}/api${pathPart}`;
+  }
 }
 
 function handleApiConfigChange(apiConfigId: string) {
@@ -309,7 +491,7 @@ async function handleTest() {
     // 处理响应结构
     const result = response.data || response;
 
-    testResult.value = {
+    const testResultData = {
       status: (result as any)?.status || 200,
       time: endTime - startTime,
       headers: (result as any)?.headers || {},
@@ -323,8 +505,14 @@ async function handleTest() {
           return acc;
         }, {} as Record<string, string>),
         body: testForm.body ? JSON.parse(testForm.body) : undefined
-      }
+      },
+      success: true
     };
+    
+    testResult.value = testResultData;
+    
+    // 保存到测试历史
+    saveTestToHistory(testResultData);
 
     window.$message?.success($t('page.lowcode.apiTest.testSuccess'));
   } catch (error: any) {
@@ -359,7 +547,190 @@ function handleSaveAsTemplate() {
   window.$message?.info($t('page.lowcode.apiTest.saveAsTemplateNotImplemented'));
 }
 
+/**
+ * 获取当前环境的基础URL
+ */
+function getCurrentBaseUrl(): string {
+  const baseUrls = {
+    development: 'http://localhost:3002',
+    staging: 'https://staging-api.example.com',
+    production: 'https://api.example.com'
+  };
+  return baseUrls[testForm.environment as keyof typeof baseUrls] || baseUrls.development;
+}
+
+/**
+ * 添加环境变量
+ */
+function addEnvironmentVariable() {
+  environmentVariables.value.push({ key: '', value: '' });
+}
+
+/**
+ * 移除环境变量
+ */
+function removeEnvironmentVariable(index: number) {
+  environmentVariables.value.splice(index, 1);
+}
+
+/**
+ * 保存环境配置
+ */
+function saveEnvironmentConfig() {
+  // 保存到本地存储
+  localStorage.setItem('api-test-env-vars', JSON.stringify(environmentVariables.value));
+  window.$message?.success('环境配置已保存');
+  showEnvironmentModal.value = false;
+}
+
+/**
+ * 清空测试历史
+ */
+function clearTestHistory() {
+  testHistory.value = [];
+  localStorage.removeItem('api-test-history');
+  window.$message?.success('测试历史已清空');
+}
+
+/**
+ * 全选API
+ */
+function selectAllApis() {
+  selectedApiIds.value = batchTestData.value.map(item => item.id);
+}
+
+/**
+ * 清空API选择
+ */
+function clearApiSelection() {
+  selectedApiIds.value = [];
+}
+
+/**
+ * 运行批量测试
+ */
+async function runBatchTest() {
+  if (selectedApiIds.value.length === 0) {
+    window.$message?.warning('请选择要测试的API');
+    return;
+  }
+  
+  batchTesting.value = true;
+  batchTestResults.value = [];
+  
+  try {
+    for (const apiId of selectedApiIds.value) {
+      const apiConfig = batchTestData.value.find(item => item.id === apiId);
+      if (!apiConfig) continue;
+      
+      const startTime = Date.now();
+      try {
+        const response = await fetch(apiConfig.url, {
+          method: apiConfig.method,
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const endTime = Date.now();
+        batchTestResults.value.push({
+          id: apiId,
+          name: apiConfig.name,
+          status: response.status,
+          time: endTime - startTime,
+          success: response.ok
+        });
+      } catch (error) {
+        const endTime = Date.now();
+        batchTestResults.value.push({
+          id: apiId,
+          name: apiConfig.name,
+          status: 0,
+          time: endTime - startTime,
+          success: false
+        });
+      }
+    }
+    
+    window.$message?.success(`批量测试完成，共测试 ${selectedApiIds.value.length} 个API`);
+  } finally {
+    batchTesting.value = false;
+  }
+}
+
+// 初始化环境选项
+function initializeEnvironmentOptions() {
+  environmentOptions.value = [
+    { label: '开发环境 (Development)', value: 'development' },
+    { label: '测试环境 (Staging)', value: 'staging' },
+    { label: '生产环境 (Production)', value: 'production' }
+  ];
+}
+
+/**
+ * 初始化批量测试数据
+ */
+function initializeBatchTestData() {
+  // 从API配置中生成批量测试数据
+  batchTestData.value = apiConfigOptions.value.map((option: any) => {
+    const config = option.config;
+    return {
+      id: option.value,
+      name: config?.name || option.label,
+      method: config?.method || 'GET',
+      url: config?.path ? `${getCurrentBaseUrl()}${config.path}` : `${getCurrentBaseUrl()}/api/example`,
+      status: '待测试'
+    };
+  });
+}
+
+/**
+ * 加载本地存储的数据
+ */
+function loadLocalStorageData() {
+  // 加载环境变量
+  const savedEnvVars = localStorage.getItem('api-test-env-vars');
+  if (savedEnvVars) {
+    try {
+      environmentVariables.value = JSON.parse(savedEnvVars);
+    } catch (error) {
+      console.warn('Failed to parse saved environment variables:', error);
+    }
+  }
+  
+  // 加载测试历史
+  const savedHistory = localStorage.getItem('api-test-history');
+  if (savedHistory) {
+    try {
+      testHistory.value = JSON.parse(savedHistory);
+    } catch (error) {
+      console.warn('Failed to parse saved test history:', error);
+    }
+  }
+}
+
+/**
+ * 保存测试结果到历史记录
+ */
+function saveTestToHistory(result: any) {
+  const historyItem = {
+    ...result,
+    timestamp: new Date().toLocaleString(),
+    apiName: apiConfigOptions.value.find(opt => opt.value === testForm.apiConfigId)?.label || 'Unknown API'
+  };
+  
+  testHistory.value.unshift(historyItem);
+  
+  // 限制历史记录数量
+  if (testHistory.value.length > 100) {
+    testHistory.value = testHistory.value.slice(0, 100);
+  }
+  
+  // 保存到本地存储
+  localStorage.setItem('api-test-history', JSON.stringify(testHistory.value));
+}
+
 onMounted(() => {
+  initializeEnvironmentOptions();
+  loadLocalStorageData();
   loadProjects();
   if (props.projectId) {
     loadApiConfigs(props.projectId);

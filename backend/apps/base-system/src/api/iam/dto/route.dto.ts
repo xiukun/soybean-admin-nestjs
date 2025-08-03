@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { MenuType, Status } from '@prisma/client';
+import { $Enums, MenuType, Status } from '@prisma/client';
 import {
   IsBoolean,
   IsInt,

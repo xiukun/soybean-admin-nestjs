@@ -1,7 +1,7 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { Status } from '@prisma/client';
+import { $Enums, Status } from '@prisma/client';
 
 export class UserCreateDto {
   @ApiProperty({ required: true })

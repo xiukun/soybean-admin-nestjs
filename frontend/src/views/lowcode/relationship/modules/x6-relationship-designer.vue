@@ -971,11 +971,11 @@ function registerCustomNodes() {
   try {
     // 使用try-catch来处理可能的重复注册
     try {
-      // 实体节点
+      // 实体节点 - 增强版本
       Graph.registerNode('entity-node', {
         inherit: 'rect',
-        width: 200,
-        height: 120,
+        width: 220,
+        height: 140,
         attrs: {
           body: {
             fill: '#ffffff',
@@ -983,10 +983,11 @@ function registerCustomNodes() {
             strokeWidth: 2,
             rx: 8,
             ry: 8,
-            shadowColor: 'rgba(0,0,0,0.2)',
-            shadowBlur: 10,
-            shadowOffsetX: 0,
-            shadowOffsetY: 0,
+            shadowColor: 'rgba(0,0,0,0.15)',
+            shadowBlur: 8,
+            shadowOffsetX: 2,
+            shadowOffsetY: 2,
+            cursor: 'move',
           },
           title: {
             text: '',
@@ -997,6 +998,32 @@ function registerCustomNodes() {
             fontSize: 16,
             fontWeight: 'bold',
             fill: '#333333',
+            cursor: 'pointer',
+          },
+          subtitle: {
+            text: '',
+            refX: 0.5,
+            refY: 40,
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle',
+            fontSize: 12,
+            fill: '#666666',
+          },
+          fieldCount: {
+            text: '',
+            refX: 0.5,
+            refY: 60,
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle',
+            fontSize: 11,
+            fill: '#999999',
+          },
+          statusIcon: {
+            text: '●',
+            refX: 10,
+            refY: 10,
+            fontSize: 12,
+            fill: '#4caf50',
           },
           code: {
             text: '',

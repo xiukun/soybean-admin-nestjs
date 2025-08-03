@@ -117,6 +117,36 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       inactive: '非活跃',
       archived: '已归档'
     },
+  apiTest: {
+    title: 'API测试',
+    project: '项目',
+    apiConfig: 'API配置',
+    environment: '环境',
+    history: '测试历史',
+    batchTest: '批量测试',
+    method: '请求方法',
+    url: '请求URL',
+    headers: '请求头',
+    params: '查询参数',
+    body: '请求体',
+    response: '响应结果',
+    test: '测试',
+    reset: '重置',
+    saveAsTemplate: '保存为模板',
+    testSuccess: '测试成功',
+    testFailed: '测试失败',
+    form: {
+      project: {
+        placeholder: '请选择项目'
+      },
+      apiConfig: {
+        placeholder: '请选择API配置'
+      },
+      environment: {
+        placeholder: '请选择环境'
+      }
+    }
+  },
     deploymentStatus: {
       inactive: '未部署',
       deploying: '部署中',
