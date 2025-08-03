@@ -174,7 +174,7 @@ VALUES
        "title": "实体列表",
        "api": {
          "method": "get",
-         "url": "/api/v1/entities"
+         "url": "/api/v1/entities/project/demo-project-1/paginated"
        },
        "headerToolbar": [
          {

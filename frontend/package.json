@@ -47,17 +47,20 @@
     "update-pkg": "sa update-pkg"
   },
   "dependencies": {
+    "@antv/layout": "1.2.14-beta.8",
     "@antv/x6": "^2.18.1",
+    "@antv/x6-plugin-clipboard": "^2.1.6",
+    "@antv/x6-plugin-dnd": "^2.1.1",
     "@antv/x6-plugin-history": "^2.2.4",
     "@antv/x6-plugin-keyboard": "^2.2.3",
     "@antv/x6-plugin-minimap": "^2.0.7",
+    "@antv/x6-plugin-scroller": "^2.0.10",
     "@antv/x6-plugin-selection": "^2.2.2",
     "@antv/x6-plugin-snapline": "^2.1.7",
     "@antv/x6-plugin-transform": "^2.1.8",
     "@better-scroll/core": "2.5.1",
     "@iconify/vue": "5.0.0",
     "@maita/amis-tools": "^0.1.7",
-
     "@sa/axios": "workspace:*",
     "@sa/color": "workspace:*",
     "@sa/hooks": "workspace:*",
@@ -75,7 +78,6 @@
     "nprogress": "0.2.0",
     "pinia": "3.0.3",
     "tailwind-merge": "3.3.0",
-
     "vue": "3.5.16",
     "vue-draggable-plus": "0.6.0",
     "vue-i18n": "11.1.5",

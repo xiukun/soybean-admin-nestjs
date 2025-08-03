@@ -290,9 +290,43 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       business: '业务',
       system: '系统',
       config: '配置',
-      lookup: '查找',
-      log: '日志'
     },
+    designer: {
+      title: '实体设计器',
+      entityList: '实体列表',
+      searchEntity: '搜索实体',
+      noEntities: '暂无实体',
+      createEntity: '创建实体',
+      properties: '属性',
+      autoLayout: '自动布局',
+      connectMode: '连线模式',
+      fitView: '适应视图',
+      minimap: '小地图',
+      saveSuccess: '保存成功',
+      saveFailed: '保存失败',
+      selectSourceEntity: '请选择源实体',
+      selectTargetEntity: '已选择 {name}，请选择目标实体',
+      layouts: {
+        hierarchical: '层次布局',
+        force: '力导向布局',
+        circular: '环形布局',
+        grid: '网格布局'
+      },
+      basicInfo: '基本信息',
+      appearance: '外观',
+      actions: '操作',
+      color: '颜色',
+      width: '宽度',
+      height: '高度',
+      manageFields: '管理字段',
+      generateCode: '生成代码',
+      deleteConfirm: '确定要删除这个实体吗？',
+      generateCodeTip: '代码生成功能开发中...',
+      addField: '添加字段',
+       noFields: '暂无字段'
+     },
+     lookup: '查找',
+     log: '日志',
     dataTypes: {
       STRING: '字符串',
       INTEGER: '整数',
@@ -528,91 +562,11 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       lineStyle: '线条样式',
       lineColor: '线条颜色'
     },
-    // 导出格式
-    exportFormats: {
-      png: 'PNG图片',
-      jpg: 'JPG图片',
-      svg: 'SVG矢量图',
-      json: 'JSON数据'
-    },
-    // 字段类型
-    fieldTypes: {
-      VARCHAR: '字符串',
-      INT: '整数',
-      BIGINT: '长整数',
-      DECIMAL: '小数',
-      BOOLEAN: '布尔值',
-      DATE: '日期',
-      DATETIME: '日期时间',
-      TEXT: '文本',
-      JSON: 'JSON',
-      TIMESTAMP: '时间戳'
-    },
-    // 线条样式
-    lineStyles: {
-      solid: '实线',
-      dashed: '虚线',
-      dotted: '点线'
-    },
     relationshipTypes: {
       ONE_TO_ONE: '一对一',
       ONE_TO_MANY: '一对多',
       MANY_TO_ONE: '多对一',
       MANY_TO_MANY: '多对多'
-    },
-    relationTypes: {
-      oneToOne: '一对一',
-      oneToMany: '一对多',
-      manyToOne: '多对一',
-      manyToMany: '多对多'
-    },
-    cascadeActions: {
-      RESTRICT: '限制',
-      CASCADE: '级联',
-      SET_NULL: '设为空',
-      NO_ACTION: '无操作'
-    },
-    status: {
-      ACTIVE: '活跃',
-      INACTIVE: '非活跃'
-    },
-    form: {
-      name: {
-        placeholder: '请输入关系名称',
-        required: '请输入关系名称'
-      },
-      code: {
-        placeholder: '请输入关系代码',
-        required: '请输入关系代码'
-      },
-      sourceEntity: {
-        placeholder: '请选择源实体',
-        required: '请选择源实体'
-      },
-      targetEntity: {
-        placeholder: '请选择目标实体',
-        required: '请选择目标实体'
-      },
-      relationType: {
-        placeholder: '请选择关系类型',
-        required: '请选择关系类型'
-      },
-      relationshipName: {
-        placeholder: '请输入关系名称',
-        required: '请输入关系名称'
-      },
-      description: {
-        placeholder: '请输入关系描述'
-      },
-      foreignKeyField: {
-        placeholder: '请输入外键字段名'
-      },
-      onDelete: {
-        placeholder: '请选择删除时操作'
-      },
-      onUpdate: {
-        placeholder: '请选择更新时操作'
-      }
     }
   },
   relation: {

@@ -37,9 +37,8 @@ declare module "@elegant-router/types" {
     "lowcode_code-generator": "/lowcode/code-generator";
     "lowcode_dashboard": "/lowcode/dashboard";
     "lowcode_entity": "/lowcode/entity";
-    "lowcode_entity-designer": "/lowcode/entity-designer";
     "lowcode_field": "/lowcode/field";
-    "lowcode_project": "/lowcode/project/:id";
+    "lowcode_project": "/lowcode/project";
     "lowcode_query": "/lowcode/query";
     "lowcode_relationship": "/lowcode/relationship";
     "lowcode_target-project": "/lowcode/target-project";
@@ -128,10 +127,8 @@ declare module "@elegant-router/types" {
     | "lowcode_code-generation"
     | "lowcode_code-generator"
     | "lowcode_dashboard"
-    | "lowcode_entity-designer"
     | "lowcode_entity"
     | "lowcode_field"
-    | "lowcode_project"
     | "lowcode_project"
     | "lowcode_query"
     | "lowcode_relationship"

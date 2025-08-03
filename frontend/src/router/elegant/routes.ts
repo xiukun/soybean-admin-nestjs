@@ -209,15 +209,6 @@ export const generatedRoutes: GeneratedRoute[] = [
         }
       },
       {
-        name: 'lowcode_entity-designer',
-        path: '/lowcode/entity-designer',
-        component: 'view.lowcode_entity-designer',
-        meta: {
-          title: 'lowcode_entity-designer',
-          i18nKey: 'route.lowcode_entity-designer'
-        }
-      },
-      {
         name: 'lowcode_field',
         path: '/lowcode/field',
         component: 'view.lowcode_field',
@@ -228,7 +219,7 @@ export const generatedRoutes: GeneratedRoute[] = [
       },
       {
         name: 'lowcode_project',
-        path: '/lowcode/project/:id',
+        path: '/lowcode/project',
         component: 'view.lowcode_project',
         meta: {
           title: 'lowcode_project',

@@ -237,9 +237,9 @@ export function fetchGetCommonFieldDefinitions() {
 }
 
 /**
- * 获取数据库模式信息
+ * get database schema by entity id
  *
- * @param id - 实体ID
+ * @param id - entity id
  */
 export function fetchGetDatabaseSchema(id: string) {
   return request<{
@@ -249,23 +249,145 @@ export function fetchGetDatabaseSchema(id: string) {
       type: string;
       nullable: boolean;
       defaultValue?: any;
+      comment?: string;
       isPrimaryKey: boolean;
-      isUnique: boolean;
+      isForeignKey: boolean;
+      foreignKeyTable?: string;
+      foreignKeyColumn?: string;
     }>;
     indexes: Array<{
       name: string;
       columns: string[];
       unique: boolean;
     }>;
-    constraints: Array<{
+    foreignKeys: Array<{
       name: string;
-      type: string;
-      columns: string[];
-      referencedTable?: string;
-      referencedColumns?: string[];
+      column: string;
+      referencedTable: string;
+      referencedColumn: string;
     }>;
   }>({
-    url: `/entities/${id}/schema`,
+    url: `/entities/${id}/database-schema`,
     method: 'get'
+  });
+}
+
+/**
+ * 保存实体设计器布局位置
+ * @param entityId - 实体ID
+ * @param position - 位置信息
+ */
+export function saveEntityPosition(entityId: string, position: {
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+}) {
+  return request({
+    url: `/entities/${entityId}/position`,
+    method: 'put',
+    data: position
+  });
+}
+
+/**
+ * 批量保存实体位置
+ * @param projectId - 项目ID
+ * @param positions - 位置信息列表
+ */
+export function batchSaveEntityPositions(projectId: string, positions: Array<{
+  entityId: string;
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+}>) {
+  return request({
+    url: `/entities/project/${projectId}/positions`,
+    method: 'put',
+    data: { positions }
+  });
+}
+
+/**
+ * 获取项目的实体关系
+ * @param projectId - 项目ID
+ */
+export function fetchEntityRelationships(projectId: string) {
+  return request<Array<{
+    id: string;
+    name: string;
+    sourceEntityId: string;
+    targetEntityId: string;
+    type: 'ONE_TO_ONE' | 'ONE_TO_MANY' | 'MANY_TO_ONE' | 'MANY_TO_MANY';
+    description?: string;
+    foreignKeyField?: string;
+    onDelete?: 'CASCADE' | 'RESTRICT' | 'SET_NULL' | 'NO_ACTION';
+    onUpdate?: 'CASCADE' | 'RESTRICT' | 'SET_NULL' | 'NO_ACTION';
+  }>>({
+    url: `/relationships/project/${projectId}`,
+    method: 'get'
+  });
+}
+
+/**
+ * 创建实体关系
+ * @param data - 关系数据
+ */
+export function createEntityRelationship(data: {
+  name: string;
+  sourceEntityId: string;
+  targetEntityId: string;
+  type: 'ONE_TO_ONE' | 'ONE_TO_MANY' | 'MANY_TO_ONE' | 'MANY_TO_MANY';
+  description?: string;
+  foreignKeyField?: string;
+  onDelete?: 'CASCADE' | 'RESTRICT' | 'SET_NULL' | 'NO_ACTION';
+  onUpdate?: 'CASCADE' | 'RESTRICT' | 'SET_NULL' | 'NO_ACTION';
+}) {
+  return request<{
+    id: string;
+    name: string;
+    sourceEntityId: string;
+    targetEntityId: string;
+    type: string;
+    description?: string;
+    foreignKeyField?: string;
+    onDelete?: string;
+    onUpdate?: string;
+  }>({
+    url: '/relationships',
+    method: 'post',
+    data
+  });
+}
+
+/**
+ * 更新实体关系
+ * @param relationshipId - 关系ID
+ * @param data - 更新数据
+ */
+export function updateEntityRelationship(relationshipId: string, data: Partial<{
+  name: string;
+  type: 'ONE_TO_ONE' | 'ONE_TO_MANY' | 'MANY_TO_ONE' | 'MANY_TO_MANY';
+  description?: string;
+  foreignKeyField?: string;
+  onDelete?: 'CASCADE' | 'RESTRICT' | 'SET_NULL' | 'NO_ACTION';
+  onUpdate?: 'CASCADE' | 'RESTRICT' | 'SET_NULL' | 'NO_ACTION';
+}>) {
+  return request({
+    url: `/relationships/${relationshipId}`,
+    method: 'put',
+    data
+  });
+}
+
+/**
+ * 删除实体关系
+ * @param relationshipId - 关系ID
+ */
+export function deleteEntityRelationship(relationshipId: string) {
+  return request({
+    url: `/relationships/${relationshipId}`,
+    method: 'delete'
   });
 }

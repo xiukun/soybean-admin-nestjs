@@ -1,93 +1,121 @@
 <template>
-  <div class="enhanced-entity-management">
-    <!-- Header with Project Selector -->
-    <div class="mb-6">
-      <NSpace justify="space-between" align="center">
-        <div>
-          <NText tag="h1" class="text-2xl font-bold">{{ $t('page.lowcode.entity.management') }}</NText>
-          <NText depth="3">{{ $t('page.lowcode.entity.managementDesc') }}</NText>
-        </div>
-        <NSpace>
-          <NSelect
-            v-if="!props.projectId"
-            v-model:value="selectedProjectId"
-            :options="projectOptions"
-            placeholder="请选择项目"
-            style="width: 300px"
-            :loading="projectLoading"
-            clearable
-            @update:value="handleProjectChange"
-          />
-        </NSpace>
-      </NSpace>
+  <div class="entity-management">
+    <!-- Header with Project Selector and View Switcher -->
+    <div class="header-section">
+      <div class="header-info">
+        <NText tag="h1" class="text-2xl font-bold">{{ $t('page.lowcode.entity.management') }}</NText>
+        <NText depth="3">{{ $t('page.lowcode.entity.managementDesc') }}</NText>
+      </div>
+      
+      <div class="header-controls">
+        <NSelect
+          v-if="!props.projectId"
+          v-model:value="selectedProjectId"
+          :options="projectOptions"
+          placeholder="请选择项目"
+          style="width: 300px"
+          :loading="projectLoading"
+          clearable
+          @update:value="handleProjectChange"
+        />
+      </div>
     </div>
 
-    <!-- View Mode Tabs -->
-    <div class="mb-4">
-      <NTabs v-model:value="viewMode" type="line" animated>
-        <NTabPane name="list" :tab="$t('page.lowcode.entity.listView')">
-          <!-- Entity List View -->
-          <div class="entity-list-view">
-            <!-- Filters and Search -->
-            <NCard class="mb-4">
-              <NSpace justify="space-between" align="center">
-                <NSpace>
-                  <NInput
-                    v-model:value="searchQuery"
-                    :placeholder="$t('page.lowcode.entity.searchPlaceholder')"
-                    style="width: 300px"
-                    clearable
-                    @input="handleSearch"
-                  >
-                    <template #prefix>
-                      <NIcon><icon-mdi-magnify /></NIcon>
-                    </template>
-                  </NInput>
-                  <NSelect
-                    v-model:value="categoryFilter"
-                    :placeholder="$t('page.lowcode.entity.filterByCategory')"
-                    :options="categoryOptions"
-                    style="width: 150px"
-                    clearable
-                    @update:value="handleFilterChange"
-                  />
-                </NSpace>
-                <NSpace>
-                  <NButton type="primary" :disabled="!currentProjectId" @click="handleCreateEntity">
-                    <template #icon>
-                      <NIcon><icon-mdi-plus /></NIcon>
-                    </template>
-                    {{ $t('page.lowcode.entity.create') }}
-                  </NButton>
-                  <NButton :disabled="!currentProjectId" @click="handleImportEntities">
-                    <template #icon>
-                      <NIcon><icon-mdi-import /></NIcon>
-                    </template>
-                    {{ $t('page.lowcode.entity.import') }}
-                  </NButton>
-                </NSpace>
-              </NSpace>
-            </NCard>
+    <!-- View Switcher Toolbar -->
+    <div class="toolbar-section">
+      <div class="view-switcher">
+        <NButtonGroup>
+          <NButton 
+            :type="currentView === 'designer' ? 'primary' : 'default'"
+            @click="switchView('designer')"
+          >
+            <template #icon>
+              <NIcon><icon-mdi-vector-polyline /></NIcon>
+            </template>
+            {{ $t('page.lowcode.entity.designerView') }}
+          </NButton>
+          <NButton 
+            :type="currentView === 'list' ? 'primary' : 'default'"
+            @click="switchView('list')"
+          >
+            <template #icon>
+              <NIcon><icon-mdi-table /></NIcon>
+            </template>
+            {{ $t('page.lowcode.entity.listView') }}
+          </NButton>
+        </NButtonGroup>
+      </div>
+      
+      <div class="toolbar-actions">
+        <NButton type="primary" :disabled="!currentProjectId" @click="handleCreateEntity">
+          <template #icon>
+            <NIcon><icon-mdi-plus /></NIcon>
+          </template>
+          {{ $t('page.lowcode.entity.create') }}
+        </NButton>
+        <NButton :disabled="!currentProjectId" @click="handleImportEntities">
+          <template #icon>
+            <NIcon><icon-mdi-import /></NIcon>
+          </template>
+          {{ $t('page.lowcode.entity.import') }}
+        </NButton>
+      </div>
+    </div>
 
-            <!-- Entity Table -->
-            <NDataTable
-              :columns="columns"
-              :data="filteredEntities"
-              :pagination="pagination"
-              :loading="loading"
-              size="small"
-              striped
-              @update:page="handlePageChange"
-              @update:page-size="handlePageSizeChange"
-            />
-          </div>
-        </NTabPane>
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <!-- Entity Designer View -->
+      <EntityDesigner 
+        v-if="currentView === 'designer'"
+        :project-id="currentProjectId"
+        :entities="entities"
+        @entity-select="handleEntitySelect"
+        @entity-create="handleCreateEntity"
+        @entity-update="handleEntityUpdate"
+        @entity-delete="handleEntityDelete"
+      />
+      
+      <!-- Entity List View -->
+      <div v-else-if="currentView === 'list'" class="entity-list-view">
+        <!-- Filters and Search -->
+        <NCard class="mb-4">
+          <NSpace justify="space-between" align="center">
+            <NSpace>
+              <NInput
+                v-model:value="searchQuery"
+                :placeholder="$t('page.lowcode.entity.searchPlaceholder')"
+                style="width: 300px"
+                clearable
+                @input="handleSearch"
+              >
+                <template #prefix>
+                  <NIcon><icon-mdi-magnify /></NIcon>
+                </template>
+              </NInput>
+              <NSelect
+                v-model:value="categoryFilter"
+                :placeholder="$t('page.lowcode.entity.filterByCategory')"
+                :options="categoryOptions"
+                style="width: 150px"
+                clearable
+                @update:value="handleFilterChange"
+              />
+            </NSpace>
+          </NSpace>
+        </NCard>
 
-        <NTabPane name="designer" :tab="$t('page.lowcode.entity.designerView')">
-          <!-- Entity Relationship Designer -->
-          <EntityRelationshipDesigner :project-id="currentProjectId" />
-        </NTabPane>
-      </NTabs>
+        <!-- Entity Table -->
+        <NDataTable
+          :columns="columns"
+          :data="filteredEntities"
+          :pagination="pagination"
+          :loading="loading"
+          size="small"
+          striped
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+        />
+      </div>
     </div>
 
     <!-- Entity Form Modal -->
@@ -195,7 +223,7 @@ import { createRequiredFormRule } from '@/utils/form/rule';
 import { formatDate } from '@/utils/common';
 import { fetchGetAllEntities, fetchAddEntity, fetchUpdateEntity, fetchDeleteEntity } from '@/service/api/lowcode-entity';
 import { fetchGetAllProjects } from '@/service/api/lowcode-project';
-import EntityRelationshipDesigner from './modules/entity-relationship-designer.vue';
+import EntityDesigner from './components/EntityDesigner.vue';
 
 interface Props {
   projectId?: string;
@@ -221,7 +249,7 @@ const router = useRouter();
 const route = useRoute();
 
 // State
-const viewMode = ref<'list' | 'designer'>('list');
+const currentView = ref<'list' | 'designer'>('designer');
 const loading = ref(false);
 const entities = ref<Entity[]>([]);
 const searchQuery = ref('');
@@ -302,9 +330,10 @@ const columns: DataTableColumns<Entity> = [
     title: $t('common.status'),
     key: 'status',
     width: 100,
-    render: (row) => h('NTag', { type: getStatusType(row.status) },
-      { default: () => $t(`page.lowcode.entity.status.${row.status.toLowerCase()}`) }
-    )
+    render: (row) => {
+      const statusText = row.status === 'ACTIVE' ? '活跃' : row.status === 'INACTIVE' ? '非活跃' : '草稿';
+      return h('NTag', { type: getStatusType(row.status) }, { default: () => statusText });
+    }
   },
   { title: $t('page.lowcode.entity.fieldCount'), key: 'fieldCount', width: 80, align: 'center' },
   {
@@ -314,7 +343,7 @@ const columns: DataTableColumns<Entity> = [
     render: (row) => formatDate(row.createdAt)
   },
   {
-    title: $t('common.actions'),
+    title: $t('common.operate'),
     key: 'actions',
     width: 200,
     fixed: 'right',
@@ -349,6 +378,48 @@ const columns: DataTableColumns<Entity> = [
 ];
 
 // Methods
+
+/**
+ * 切换视图模式
+ * @param view - 视图类型
+ */
+function switchView(view: 'list' | 'designer') {
+  currentView.value = view;
+}
+
+/**
+ * 处理实体选择事件
+ * @param entity - 选中的实体
+ */
+function handleEntitySelect(entity: Entity | null) {
+  // 可以在这里处理实体选择逻辑，比如显示属性面板
+  console.log('Entity selected:', entity);
+}
+
+/**
+ * 处理实体更新事件
+ * @param entity - 更新的实体
+ */
+function handleEntityUpdate(entity: Entity) {
+  // 更新本地实体列表
+  const index = entities.value.findIndex(e => e.id === entity.id);
+  if (index > -1) {
+    entities.value[index] = entity;
+  }
+}
+
+/**
+ * 处理实体删除事件
+ * @param entityId - 删除的实体ID
+ */
+function handleEntityDelete(entityId: string) {
+  // 从本地实体列表中移除
+  const index = entities.value.findIndex(e => e.id === entityId);
+  if (index > -1) {
+    entities.value.splice(index, 1);
+  }
+}
+
 function getStatusType(status: string): 'success' | 'warning' | 'error' | 'info' {
   const statusMap: Record<string, 'success' | 'warning' | 'error' | 'info'> = {
     ACTIVE: 'success',
@@ -524,10 +595,12 @@ async function loadEntities() {
     const { data } = await fetchGetAllEntities(currentProjectId.value);
 
     if (data) {
-      entities.value = data.map(entity => ({
+      entities.value = data.map((entity: any) => ({
         ...entity,
         fieldCount: entity.fieldCount || 0,
-        status: (entity.status === 'PUBLISHED' ? 'ACTIVE' : entity.status) as 'DRAFT' | 'ACTIVE' | 'INACTIVE'
+        status: (entity.status === 'PUBLISHED' ? 'ACTIVE' : entity.status) as 'DRAFT' | 'ACTIVE' | 'INACTIVE',
+        createdAt: entity.createdAt || '',
+        updatedAt: entity.updatedAt || ''
       }));
       pagination.value.itemCount = entities.value.length;
     } else {
@@ -550,6 +623,8 @@ watch(() => route.query.projectId, (newProjectId) => {
   }
 }, { immediate: true });
 
+
+
 // Lifecycle
 onMounted(async () => {
   await loadProjects();
@@ -567,11 +642,44 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.enhanced-entity-management {
-  @apply p-6;
+.entity-management {
+  @apply p-6 h-full flex flex-col;
+}
+
+.header-section {
+  @apply mb-6 flex justify-between items-start;
+}
+
+.header-info {
+  @apply flex-1;
+}
+
+.header-controls {
+  @apply flex-shrink-0;
+}
+
+.toolbar-section {
+  @apply mb-4 flex justify-between items-center p-4 bg-gray-50 rounded-lg;
+}
+
+.view-switcher {
+  @apply flex-shrink-0;
+}
+
+.toolbar-actions {
+  @apply flex gap-2;
+}
+
+.main-content {
+  @apply flex-1 min-h-0;
 }
 
 .entity-list-view {
-  @apply space-y-4;
+  @apply space-y-4 h-full;
+}
+
+/* 确保设计器组件占满剩余空间 */
+:deep(.entity-designer) {
+  @apply h-full;
 }
 </style>
