@@ -326,28 +326,21 @@ This architecture supports hot reloading:
 
     return `// AUTO-GENERATED FILE - DO NOT MODIFY
 // This file will be overwritten on next code generation
+// Prisma schema for ${pascalName}
 
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+model ${pascalName} {
+  id String @id @default(cuid())
+${fields.map(field => this.generatePrismaFieldDefinition(field)).join('\n')}
 
-@Entity('${entity.tableName}')
-export class ${pascalName}BaseEntity {
-${fields.map(field => this.generateFieldDefinition(field)).join('\n')}
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Soft delete support
-  @Column({ type: 'timestamp', nullable: true })
-  deletedAt?: Date;
+  deletedAt DateTime? @map("deleted_at")
+  createdBy String? @map("created_by")
+  updatedBy String? @map("updated_by")
 
-  @Column({ type: 'uuid', nullable: true })
-  createdBy?: string;
-
-  @Column({ type: 'uuid', nullable: true })
-  updatedBy?: string;
+  @@map("${entity.tableName}")
 }
 `;
   }
@@ -360,20 +353,18 @@ ${fields.map(field => this.generateFieldDefinition(field)).join('\n')}
 // This file will be overwritten on next code generation
 
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindManyOptions, FindOneOptions } from 'typeorm';
-import { ${pascalName}BaseEntity } from '../models/${entity.code}.base';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { ${pascalName} } from '@prisma/client';
 import { Create${pascalName}BaseDto, Update${pascalName}BaseDto, ${pascalName}QueryBaseDto } from '../dto/${entity.code}.base.dto';
 
 @Injectable()
 export class ${pascalName}BaseService {
   constructor(
-    @InjectRepository(${pascalName}BaseEntity)
-    protected readonly repository: Repository<${pascalName}BaseEntity>,
+    protected readonly prisma: PrismaService,
   ) {}
 
   async findAll(query: ${pascalName}QueryBaseDto = {}): Promise<{
-    records: ${pascalName}BaseEntity[];
+    records: ${pascalName}[];
     total: number;
     current: number;
     size: number;
@@ -381,14 +372,17 @@ export class ${pascalName}BaseService {
     const { current = 1, size = 10, ...filters } = query;
     const skip = (current - 1) * size;
 
-    const findOptions: FindManyOptions<${pascalName}BaseEntity> = {
-      skip,
-      take: size,
-      where: this.buildWhereClause(filters),
-      order: { createdAt: 'DESC' },
-    };
-
-    const [records, total] = await this.repository.findAndCount(findOptions);
+    const where = this.buildWhereClause(filters);
+    
+    const [records, total] = await Promise.all([
+      this.prisma.${camelName}.findMany({
+        skip,
+        take: size,
+        where,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.${camelName}.count({ where }),
+    ]);
 
     return {
       records,
@@ -398,10 +392,12 @@ export class ${pascalName}BaseService {
     };
   }
 
-  async findOne(id: string, options?: FindOneOptions<${pascalName}BaseEntity>): Promise<${pascalName}BaseEntity> {
-    const ${camelName} = await this.repository.findOne({
-      where: { id, deletedAt: null },
-      ...options,
+  async findOne(id: string): Promise<${pascalName}> {
+    const ${camelName} = await this.prisma.${camelName}.findFirst({
+      where: { 
+        id, 
+        deletedAt: null 
+      },
     });
 
     if (!${camelName}) {
@@ -411,40 +407,47 @@ export class ${pascalName}BaseService {
     return ${camelName};
   }
 
-  async create(createDto: Create${pascalName}BaseDto, userId?: string): Promise<${pascalName}BaseEntity> {
-    const ${camelName} = this.repository.create({
-      ...createDto,
-      createdBy: userId,
+  async create(createDto: Create${pascalName}BaseDto, userId?: string): Promise<${pascalName}> {
+    return this.prisma.${camelName}.create({
+      data: {
+        ...createDto,
+        createdBy: userId,
+      },
     });
-
-    return this.repository.save(${camelName});
   }
 
-  async update(id: string, updateDto: Update${pascalName}BaseDto, userId?: string): Promise<${pascalName}BaseEntity> {
+  async update(id: string, updateDto: Update${pascalName}BaseDto, userId?: string): Promise<${pascalName}> {
     await this.findOne(id); // Ensure entity exists
 
-    await this.repository.update(id, {
-      ...updateDto,
-      updatedBy: userId,
+    return this.prisma.${camelName}.update({
+      where: { id },
+      data: {
+        ...updateDto,
+        updatedBy: userId,
+      },
     });
-
-    return this.findOne(id);
   }
 
   async remove(id: string, userId?: string): Promise<void> {
     await this.findOne(id); // Ensure entity exists
 
     // Soft delete
-    await this.repository.update(id, {
-      deletedAt: new Date(),
-      updatedBy: userId,
+    await this.prisma.${camelName}.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+        updatedBy: userId,
+      },
     });
   }
 
-  async restore(id: string, userId?: string): Promise<${pascalName}BaseEntity> {
-    await this.repository.update(id, {
-      deletedAt: null,
-      updatedBy: userId,
+  async restore(id: string, userId?: string): Promise<${pascalName}> {
+    await this.prisma.${camelName}.update({
+      where: { id },
+      data: {
+        deletedAt: null,
+        updatedBy: userId,
+      },
     });
 
     return this.findOne(id);
@@ -722,6 +725,41 @@ ${fields.map(field => this.generateResponseField(field)).join('\n')}
     return `  ${decorators.join('\n  ')}\n  ${field.code}${optional}: ${tsType};`;
   }
 
+  private generatePrismaFieldDefinition(field: any): string {
+    if (field.isPrimaryKey) {
+      return '';
+    }
+
+    const typeMapping = {
+      'UUID': 'String',
+      'VARCHAR': 'String',
+      'TEXT': 'String',
+      'INTEGER': 'Int',
+      'DECIMAL': 'Float',
+      'BOOLEAN': 'Boolean',
+      'DATE': 'DateTime',
+      'TIME': 'String',
+      'TIMESTAMP': 'DateTime',
+      'BIGINT': 'BigInt'
+    };
+
+    const prismaType = typeMapping[field.type] || 'String';
+    const optional = field.nullable ? '?' : '';
+    const attributes = [];
+
+    if (field.unique) {
+      attributes.push('@unique');
+    }
+    if (field.defaultValue) {
+      const defaultVal = field.type === 'VARCHAR' || field.type === 'TEXT' ? `"${field.defaultValue}"` : field.defaultValue;
+      attributes.push(`@default(${defaultVal})`);
+    }
+    attributes.push(`@map("${field.code}")`);
+
+    const attributeStr = attributes.length > 0 ? ` ${attributes.join(' ')}` : '';
+    return `  ${field.code} ${prismaType}${optional}${attributeStr}`;
+  }
+
   private generateDtoField(field: any, isOptional: boolean): string {
     const validators = [];
     const apiDecorator = isOptional ? '@ApiPropertyOptional' : '@ApiProperty';
@@ -888,12 +926,7 @@ export { ${pascalName}ResponseDto } from '../../base/dto/${entity.code}.base.dto
     const pascalProjectName = this.toPascalCase(projectName);
     
     return `import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-
-// Import base entities
-${entities.map(entity => 
-  `import { ${this.toPascalCase(entity.code)}BaseEntity } from '../base/models/${entity.code}.base';`
-).join('\n')}
+import { PrismaService } from '../../prisma/prisma.service';
 
 // Import biz services
 ${entities.map(entity => 
@@ -907,17 +940,16 @@ ${entities.map(entity =>
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-${entities.map(entity => `      ${this.toPascalCase(entity.code)}BaseEntity,`).join('\n')}
-    ]),
   ],
   controllers: [
 ${entities.map(entity => `    ${this.toPascalCase(entity.code)}Controller,`).join('\n')}
   ],
   providers: [
+    PrismaService,
 ${entities.map(entity => `    ${this.toPascalCase(entity.code)}Service,`).join('\n')}
   ],
   exports: [
+    PrismaService,
 ${entities.map(entity => `    ${this.toPascalCase(entity.code)}Service,`).join('\n')}
   ],
 })

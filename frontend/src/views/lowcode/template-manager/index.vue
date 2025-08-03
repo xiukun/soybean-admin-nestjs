@@ -867,7 +867,7 @@ const loadTemplates = async () => {
       {
         id: '1',
         name: 'NestJS Entity Template',
-        description: 'NestJS实体模板，支持TypeORM装饰器',
+        description: 'NestJS实体模板，支持Prisma装饰器',
         category: 'entity',
         framework: 'nestjs',
         version: '1.2.0',
@@ -875,18 +875,18 @@ const loadTemplates = async () => {
         usageCount: 156,
         createdAt: '2024-01-15T10:00:00Z',
         updatedAt: '2024-02-20T15:30:00Z',
-        content: `import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
-
-@Entity('{{tableName}}')
-export class {{entityName}} {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+        content: `// Prisma model for {{entityName}}
+model {{entityName}} {
+  id     String @id @default(cuid())
+  
   {{#each fields}}
-  @Column({{#if options}}{{{options}}}{{/if}})
-  {{name}}: {{type}};
-
+  {{name}} {{type}}
   {{/each}}
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("{{tableName}}")
 }`
       },
       {
@@ -901,37 +901,42 @@ export class {{entityName}} {
         createdAt: '2024-01-20T14:00:00Z',
         updatedAt: '2024-02-18T09:15:00Z',
         content: `import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { {{entityName}} } from './{{entityNameKebab}}.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { {{entityName}} } from '@prisma/client';
 
 @Injectable()
 export class {{entityName}}Service {
   constructor(
-    @InjectRepository({{entityName}})
-    private readonly {{entityNameCamel}}Repository: Repository<{{entityName}}>,
+    private readonly prisma: PrismaService,
   ) {}
 
   async create(data: any): Promise<{{entityName}}> {
-    const entity = this.{{entityNameCamel}}Repository.create(data);
-    return this.{{entityNameCamel}}Repository.save(entity);
+    return this.prisma.{{entityNameCamel}}.create({
+      data,
+    });
   }
 
   async findAll(): Promise<{{entityName}}[]> {
-    return this.{{entityNameCamel}}Repository.find();
+    return this.prisma.{{entityNameCamel}}.findMany();
   }
 
-  async findOne(id: string): Promise<{{entityName}}> {
-    return this.{{entityNameCamel}}Repository.findOne({ where: { id } });
+  async findOne(id: string): Promise<{{entityName}} | null> {
+    return this.prisma.{{entityNameCamel}}.findUnique({
+      where: { id },
+    });
   }
 
   async update(id: string, data: any): Promise<{{entityName}}> {
-    await this.{{entityNameCamel}}Repository.update(id, data);
-    return this.findOne(id);
+    return this.prisma.{{entityNameCamel}}.update({
+      where: { id },
+      data,
+    });
   }
 
-  async remove(id: string): Promise<void> {
-    await this.{{entityNameCamel}}Repository.delete(id);
+  async remove(id: string): Promise<{{entityName}}> {
+    return this.prisma.{{entityNameCamel}}.delete({
+      where: { id },
+    });
   }
 }`
       },

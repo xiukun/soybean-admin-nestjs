@@ -84,24 +84,19 @@ VALUES
 -- 5. 插入代码模板
 INSERT INTO lowcode_code_templates (id, name, code, type, language, framework, description, template, variables, status, created_by, created_at, updated_at)
 VALUES
-  ('tpl-001', 'NestJS实体模板', 'nestjs_entity', 'ENTITY', 'TYPESCRIPT', 'NESTJS', 'NestJS实体类模板',
-   'import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from ''typeorm'';
-
-@Entity(''{{tableName}}'')
-export class {{entityName}} {
-  @PrimaryGeneratedColumn(''uuid'')
-  id: string;
+  ('tpl-001', 'Prisma实体模板', 'prisma_entity', 'ENTITY', 'PRISMA', 'NESTJS', 'Prisma Schema模板',
+   '// Prisma model for {{entityName}}
+model {{entityName}} {
+  id String @id @default(cuid())
 
 {{#each fields}}
-  @Column({{#if this.options}}{{this.options}}{{else}}''{{this.type}}''{{/if}})
-  {{this.name}}: {{this.tsType}};
-
+  {{this.name}} {{this.prismaType}}{{#if this.optional}}?{{/if}}{{#if this.unique}} @unique{{/if}} @map("{{this.dbName}}")
 {{/each}}
-  @CreateDateColumn()
-  createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("{{tableName}}")
 }', 
    '[{"name": "entityName", "type": "string", "required": true}, {"name": "tableName", "type": "string", "required": true}, {"name": "fields", "type": "array", "required": true}]', 
    'ACTIVE', 'admin', NOW(), NOW()),
@@ -152,38 +147,43 @@ export class {{controllerName}} {
    
   ('tpl-003', 'NestJS服务模板', 'nestjs_service', 'SERVICE', 'TYPESCRIPT', 'NESTJS', 'NestJS服务类模板',
    'import { Injectable } from ''@nestjs/common'';
-import { InjectRepository } from ''@nestjs/typeorm'';
-import { Repository } from ''typeorm'';
-import { {{entityName}} } from ''./entities/{{entityFileName}}'';
+import { PrismaService } from ''../prisma/prisma.service'';
+import { {{entityName}} } from ''@prisma/client'';
 import { Create{{entityName}}Dto, Update{{entityName}}Dto } from ''./dto'';
 
 @Injectable()
 export class {{serviceName}} {
   constructor(
-    @InjectRepository({{entityName}})
-    private readonly {{repositoryProperty}}: Repository<{{entityName}}>,
+    private readonly prisma: PrismaService,
   ) {}
 
   async findAll(query: any): Promise<{{entityName}}[]> {
-    return this.{{repositoryProperty}}.find(query);
+    return this.prisma.{{entityNameCamel}}.findMany(query);
   }
 
-  async findOne(id: string): Promise<{{entityName}}> {
-    return this.{{repositoryProperty}}.findOne({ where: { id } });
+  async findOne(id: string): Promise<{{entityName}} | null> {
+    return this.prisma.{{entityNameCamel}}.findUnique({ where: { id } });
   }
 
   async create(createDto: Create{{entityName}}Dto): Promise<{{entityName}}> {
-    const entity = this.{{repositoryProperty}}.create(createDto);
-    return this.{{repositoryProperty}}.save(entity);
+    return this.prisma.{{entityNameCamel}}.create({ data: createDto });
   }
 
   async update(id: string, updateDto: Update{{entityName}}Dto): Promise<{{entityName}}> {
-    await this.{{repositoryProperty}}.update(id, updateDto);
-    return this.findOne(id);
+    return this.prisma.{{entityNameCamel}}.update({
+      where: { id },
+      data: updateDto,
+    });
   }
 
-  async remove(id: string): Promise<void> {
-    await this.{{repositoryProperty}}.delete(id);
+  async remove(id: string): Promise<{{entityName}}> {
+    return this.prisma.{{entityNameCamel}}.delete({ where: { id } });
+  }
+
+  async removeMany(ids: string[]): Promise<void> {
+    await this.prisma.{{entityNameCamel}}.deleteMany({
+      where: { id: { in: ids } },
+    });
   }
 }',
    '[{"name": "entityName", "type": "string", "required": true}, {"name": "entityFileName", "type": "string", "required": true}, {"name": "serviceName", "type": "string", "required": true}, {"name": "repositoryProperty", "type": "string", "required": true}]',

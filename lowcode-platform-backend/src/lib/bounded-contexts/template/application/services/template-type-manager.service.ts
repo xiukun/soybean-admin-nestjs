@@ -33,11 +33,11 @@ export class TemplateTypeManagerService {
     this.registerTemplateType({
       id: 'nestjs-entity',
       name: 'NestJS Entity',
-      description: 'TypeORM entity class for NestJS',
+      description: 'Prisma schema model for NestJS',
       category: 'entity',
-      language: 'typescript',
+      language: 'prisma',
       framework: 'nestjs',
-      fileExtension: '.entity.ts',
+      fileExtension: '.prisma',
       defaultVariables: [
         { name: 'entityName', type: 'string', description: 'Entity class name', required: true },
         { name: 'tableName', type: 'string', description: 'Database table name', required: true },
@@ -50,8 +50,8 @@ export class TemplateTypeManagerService {
         { name: 'enableVersioning', type: 'boolean', description: 'Enable version field', required: false, defaultValue: false },
       ],
       outputPath: 'src/entities',
-      dependencies: ['typeorm', '@nestjs/typeorm'],
-      tags: ['entity', 'typeorm', 'database'],
+      dependencies: ['prisma', '@prisma/client'],
+      tags: ['entity', 'prisma', 'database'],
     });
 
     this.registerTemplateType({
@@ -93,7 +93,7 @@ export class TemplateTypeManagerService {
         { name: 'enableValidation', type: 'boolean', description: 'Enable business validation', required: false, defaultValue: true },
       ],
       outputPath: 'src/services',
-      dependencies: ['@nestjs/common', '@nestjs/typeorm'],
+      dependencies: ['@nestjs/common', '@prisma/client'],
       tags: ['service', 'business-logic'],
     });
 
@@ -119,13 +119,13 @@ export class TemplateTypeManagerService {
     });
 
     this.registerTemplateType({
-      id: 'nestjs-repository',
-      name: 'NestJS Repository',
-      description: 'Data access repository for NestJS',
-      category: 'repository',
+      id: 'nestjs-service',
+      name: 'NestJS Service with Prisma',
+      description: 'Business service with Prisma data access for NestJS',
+      category: 'service',
       language: 'typescript',
       framework: 'nestjs',
-      fileExtension: '.repository.ts',
+      fileExtension: '.service.ts',
       defaultVariables: [
         { name: 'entityName', type: 'string', description: 'Entity name', required: true },
         { name: 'fields', type: 'array', description: 'Entity fields', required: true },
@@ -133,9 +133,9 @@ export class TemplateTypeManagerService {
         { name: 'enableCache', type: 'boolean', description: 'Enable query caching', required: false, defaultValue: false },
         { name: 'enablePagination', type: 'boolean', description: 'Enable pagination support', required: false, defaultValue: true },
       ],
-      outputPath: 'src/repositories',
-      dependencies: ['@nestjs/common', '@nestjs/typeorm', 'typeorm'],
-      tags: ['repository', 'data-access'],
+      outputPath: 'src/services',
+      dependencies: ['@nestjs/common', '@prisma/client'],
+      tags: ['service', 'prisma', 'data-access'],
     });
 
     this.registerTemplateType({

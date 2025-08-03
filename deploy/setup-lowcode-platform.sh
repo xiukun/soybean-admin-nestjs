@@ -47,13 +47,9 @@ check_environment() {
 check_database_connection() {
     log_info "检查数据库连接..."
     
-    if ! command -v psql &> /dev/null; then
-        log_error "psql 命令未找到，请安装 PostgreSQL 客户端"
-        exit 1
-    fi
-    
-    if ! psql "$DATABASE_URL" -c "SELECT 1;" &> /dev/null; then
-        log_error "无法连接到数据库，请检查 DATABASE_URL"
+    # 使用 Docker 容器中的 psql
+    if ! docker exec soybean-postgres pg_isready -U soybean -d soybean-admin-nest-backend &> /dev/null; then
+        log_error "无法连接到数据库，请检查数据库服务状态"
         exit 1
     fi
     
@@ -73,7 +69,8 @@ execute_sql_file() {
     log_info "执行: $description"
     log_info "文件: $file_path"
     
-    if psql "$DATABASE_URL" -f "$file_path"; then
+    # 使用 Docker 容器中的 psql 执行 SQL 文件
+    if docker exec -i soybean-postgres psql -U soybean -d soybean-admin-nest-backend < "$file_path"; then
         log_success "✅ $description 完成"
         return 0
     else
@@ -143,7 +140,7 @@ verify_installation() {
     
     # 检查低代码平台菜单
     local menu_count
-    menu_count=$(psql "$DATABASE_URL" -t -c "SELECT COUNT(*) FROM backend.sys_menu WHERE route_name LIKE 'lowcode%';" | tr -d ' ')
+    menu_count=$(docker exec soybean-postgres psql -U soybean -d soybean-admin-nest-backend -t -c "SELECT COUNT(*) FROM backend.sys_menu WHERE route_name LIKE 'lowcode%';" | tr -d ' ')
     
     if [ "$menu_count" -gt 0 ]; then
         log_success "✅ 发现 $menu_count 个低代码平台菜单项"
@@ -154,7 +151,7 @@ verify_installation() {
     
     # 检查低代码页面
     local page_count
-    page_count=$(psql "$DATABASE_URL" -t -c "SELECT COUNT(*) FROM backend.sys_lowcode_page WHERE code LIKE 'lowcode%';" | tr -d ' ')
+    page_count=$(docker exec soybean-postgres psql -U soybean -d soybean-admin-nest-backend -t -c "SELECT COUNT(*) FROM backend.sys_lowcode_page WHERE code LIKE 'lowcode%';" | tr -d ' ')
     
     if [ "$page_count" -gt 0 ]; then
         log_success "✅ 发现 $page_count 个低代码页面配置"

@@ -111,6 +111,11 @@ fi
 
 # 5. 初始化数据库
 print_message "\n🔧 初始化数据库..." $YELLOW
+
+# 设置数据库连接环境变量
+export DATABASE_URL="postgresql://soybean:soybean@123.@localhost:25432/soybean-admin-nest-backend"
+export PGPASSWORD="soybean@123."
+
 cd deploy
 if [ -f "setup-lowcode-platform.sh" ]; then
     chmod +x setup-lowcode-platform.sh

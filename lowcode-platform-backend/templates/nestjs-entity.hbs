@@ -1,91 +1,56 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn{{#if hasRelations}}, {{#each relations}}{{#if @first}}{{/if}}{{relationType}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}} } from 'typeorm';
-{{#if hasRelations}}
-{{#each relations}}
-import { {{targetEntity}} } from './{{kebabCase targetEntity}}.entity';
-{{/each}}
-{{/if}}
-
-@Entity('{{tableName}}')
-export class {{entityName}} {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+// Prisma schema for {{entityName}}
+model {{entityName}} {
+  id String @id @default(cuid())
 
 {{#if enableTenancy}}
-  @Column({ name: 'tenant_id', type: 'uuid', nullable: true })
-  tenantId?: string;
+  tenantId String? @map("tenant_id")
 
 {{/if}}
 {{#each fields}}
 {{#unless isPrimaryKey}}
-  @Column({
-    name: '{{snakeCase code}}',
-    type: '{{mapTypeToTypeORM type}}',
-    {{#if length}}length: {{length}},{{/if}}
-    {{#if nullable}}nullable: true,{{else}}nullable: false,{{/if}}
-    {{#if defaultValue}}default: {{#if (eq type 'STRING')}}'{{defaultValue}}'{{else}}{{defaultValue}}{{/if}},{{/if}}
-    {{#if description}}comment: '{{description}}',{{/if}}
-    {{#if isUnique}}unique: true,{{/if}}
-  })
-  {{code}}: {{mapTypeToTS type}}{{#if nullable}} | null{{/if}};
+  {{code}} {{mapTypeToPrisma type}}{{#if nullable}}?{{/if}}{{#if isUnique}} @unique{{/if}}{{#if defaultValue}} @default({{#if (eq type 'STRING')}}"{{defaultValue}}"{{else}}{{defaultValue}}{{/if}}){{/if}} @map("{{snakeCase code}}"){{#if description}} // {{description}}{{/if}}
+{{/unless}}
+{{/each}}
 
 {{/unless}}
 {{/each}}
+
 {{#if hasRelations}}
+  // Relations
 {{#each relations}}
   {{#if (eq relationType 'OneToOne')}}
-  @OneToOne(() => {{targetEntity}}, {{targetEntity.toLowerCase}} => {{targetEntity.toLowerCase}}.{{sourceField}})
-  {{relationName}}: {{targetEntity}};
-
+  {{relationName}} {{targetEntity}}? @relation(fields: [{{relationName}}Id], references: [id])
+  {{relationName}}Id String? @map("{{snakeCase relationName}}_id")
   {{/if}}
   {{#if (eq relationType 'OneToMany')}}
-  @OneToMany(() => {{targetEntity}}, {{targetEntity.toLowerCase}} => {{targetEntity.toLowerCase}}.{{sourceField}})
-  {{relationName}}: {{targetEntity}}[];
-
+  {{relationName}} {{targetEntity}}[]
   {{/if}}
   {{#if (eq relationType 'ManyToOne')}}
-  @ManyToOne(() => {{targetEntity}}, {{targetEntity.toLowerCase}} => {{targetEntity.toLowerCase}}.{{targetField}})
-  {{relationName}}: {{targetEntity}};
-
+  {{relationName}} {{targetEntity}}? @relation(fields: [{{relationName}}Id], references: [id])
+  {{relationName}}Id String? @map("{{snakeCase relationName}}_id")
   {{/if}}
   {{#if (eq relationType 'ManyToMany')}}
-  @ManyToMany(() => {{targetEntity}}, {{targetEntity.toLowerCase}} => {{targetEntity.toLowerCase}}.{{targetField}})
-  @JoinTable({
-    name: '{{junctionTable}}',
-    joinColumn: { name: '{{sourceJoinColumn}}', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: '{{targetJoinColumn}}', referencedColumnName: 'id' },
-  })
-  {{relationName}}: {{targetEntity}}[];
-
+  {{relationName}} {{targetEntity}}[] @relation("{{entityName}}{{targetEntity}}")
   {{/if}}
 {{/each}}
 {{/if}}
+
 {{#if enableAudit}}
-  @Column({ name: 'created_by', type: 'varchar', length: 100, nullable: true })
-  createdBy?: string;
-
-  @Column({ name: 'updated_by', type: 'varchar', length: 100, nullable: true })
-  updatedBy?: string;
-
+  createdBy String? @map("created_by")
+  updatedBy String? @map("updated_by")
 {{/if}}
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
 {{#if enableSoftDelete}}
-  @Column({ name: 'deleted_at', type: 'timestamp', nullable: true })
-  deletedAt?: Date;
-
+  deletedAt DateTime? @map("deleted_at")
 {{/if}}
 {{#if enableStatus}}
-  @Column({ name: 'status', type: 'varchar', length: 20, default: 'ACTIVE' })
-  status: string;
-
+  status String @default("ACTIVE") @map("status")
 {{/if}}
 {{#if enableVersioning}}
-  @Column({ name: 'version', type: 'int', default: 1 })
-  version: number;
-
+  version Int @default(1) @map("version")
 {{/if}}
+
+  @@map("{{tableName}}")
 }

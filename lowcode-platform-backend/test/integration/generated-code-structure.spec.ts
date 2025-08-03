@@ -1,12 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { AppModule } from '@src/app.module';
-import { PrismaService } from '@lib/shared/prisma/prisma.service';
-import { JwtService } from '@nestjs/jwt';
-import { BaseBizArchitectureTemplate } from '@code-generation/templates/base-biz-architecture.template';
+import { AppModule } from '../../src/app.module';
+import { PrismaService } from '../../src/lib/shared/prisma/prisma.service';
+import { BaseBizArchitectureTemplate } from '../../src/lib/bounded-contexts/code-generation/templates/base-biz-architecture.template';
 
 describe('Generated Code Structure Tests', () => {
   let app: INestApplication;
@@ -264,8 +262,8 @@ describe('Generated Code Structure Tests', () => {
       // Check service imports
       const baseService = baseTemplates.find(t => t.path.includes('order.base.service.ts'));
       expect(baseService.content).toContain("import { Injectable, NotFoundException } from '@nestjs/common'");
-      expect(baseService.content).toContain("import { InjectRepository } from '@nestjs/typeorm'");
-      expect(baseService.content).toContain("import { Repository, FindManyOptions, FindOneOptions } from 'typeorm'");
+      expect(baseService.content).toContain("import { PrismaService } from '../../../prisma/prisma.service'");
+      expect(baseService.content).toContain("import { Order } from '@prisma/client'");
 
       // Check controller imports
       const baseController = baseTemplates.find(t => t.path.includes('order.base.controller.ts'));
@@ -273,9 +271,10 @@ describe('Generated Code Structure Tests', () => {
       expect(baseController.content).toContain("import { ApiTags, ApiOperation, ApiResponse");
       expect(baseController.content).toContain("import { JwtAuthGuard }");
 
-      // Check model imports
+      // Check model schema
       const baseModel = baseTemplates.find(t => t.path.includes('order.base.ts'));
-      expect(baseModel.content).toContain("import { Entity, PrimaryGeneratedColumn, Column");
+      expect(baseModel.content).toContain("model Order {");
+      expect(baseModel.content).toContain("@@map(");
     });
 
     it('should generate README files with proper documentation', async () => {

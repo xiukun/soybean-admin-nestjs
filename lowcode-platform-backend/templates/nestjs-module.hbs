@@ -1,16 +1,11 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { PrismaService } from '../prisma/prisma.service';
 {{#if useRedis}}
 import { CacheModule } from '@nestjs/cache-manager';
 {{/if}}
 {{#if useQueue}}
 import { BullModule } from '@nestjs/bull';
 {{/if}}
-
-// Entities
-{{#each entities}}
-import { {{name}} } from './entities/{{kebabCase name}}.entity';
-{{/each}}
 
 // Controllers
 {{#each entities}}
@@ -22,10 +17,7 @@ import { {{name}}Controller } from './controllers/{{kebabCase name}}.controller'
 import { {{name}}Service } from './services/{{kebabCase name}}.service';
 {{/each}}
 
-// Repositories
-{{#each entities}}
-import { {{name}}Repository } from './repositories/{{kebabCase name}}.repository';
-{{/each}}
+
 
 {{#if hasEventHandlers}}
 // Event Handlers
@@ -57,11 +49,7 @@ import { {{name}} } from './interceptors/{{kebabCase name}}.interceptor';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      {{#each entities}}
-      {{name}},
-      {{/each}}
-    ]),
+
     {{#if useRedis}}
     CacheModule.register({
       ttl: 300, // 5 minutes
@@ -80,9 +68,9 @@ import { {{name}} } from './interceptors/{{kebabCase name}}.interceptor';
     {{/each}}
   ],
   providers: [
+    PrismaService,
     {{#each entities}}
     {{name}}Service,
-    {{name}}Repository,
     {{/each}}
     {{#if hasEventHandlers}}
     {{#each eventHandlers}}
@@ -101,9 +89,9 @@ import { {{name}} } from './interceptors/{{kebabCase name}}.interceptor';
     {{/if}}
   ],
   exports: [
+    PrismaService,
     {{#each entities}}
     {{name}}Service,
-    {{name}}Repository,
     {{/each}}
   ],
 })

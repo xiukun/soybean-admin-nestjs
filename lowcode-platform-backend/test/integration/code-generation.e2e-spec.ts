@@ -99,24 +99,13 @@ describe('Code Generation (e2e)', () => {
       data: {
         projectId,
         name: 'NestJS Entity',
-        content: `import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
-
-@Entity('{{tableName}}')
-export class {{entityName}} {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+        content: `// Prisma model for {{entityName}}
+model {{entityName}} {
+  id String @id @default(cuid())
 
 {{#each fields}}
 {{#unless isPrimaryKey}}
-  @Column({
-    name: '{{snakeCase code}}',
-    type: '{{mapTypeToTypeORM type}}',
-    {{#if length}}length: {{length}},{{/if}}
-    {{#if nullable}}nullable: true,{{else}}nullable: false,{{/if}}
-    {{#if isUnique}}unique: true,{{/if}}
-  })
-  {{code}}: {{mapTypeToTS type}}{{#if nullable}} | null{{/if}};
-
+  {{code}} {{mapTypeToPrisma type}}{{#if nullable}}?{{/if}}{{#if isUnique}} @unique{{/if}} @map("{{snakeCase code}}"){{#if description}} // {{description}}{{/if}}
 {{/unless}}
 {{/each}}
 }`,

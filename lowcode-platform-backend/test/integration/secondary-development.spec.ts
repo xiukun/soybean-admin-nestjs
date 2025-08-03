@@ -623,10 +623,7 @@ export class SmsService {
 
       // Update module to include custom services
       const customModule = `import { Module, MiddlewareConsumer } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-
-// Import base entities
-import { NotificationBaseEntity } from '@test/base/models/notification.base';
+import { PrismaService } from '../../../prisma/prisma.service';
 
 // Import biz services
 import { NotificationService } from '@test/integration/services/notification.service';
@@ -643,9 +640,6 @@ import { AuditMiddleware } from '@test/integration/middleware/audit.middleware';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      NotificationBaseEntity,
-    ]),
   ],
   controllers: [
     NotificationController,

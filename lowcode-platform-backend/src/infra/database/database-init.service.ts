@@ -77,21 +77,15 @@ export class DatabaseInitService implements OnModuleInit {
 
   private async runPrismaMigrations(): Promise<void> {
     try {
-      this.logger.log('🔧 运行Prisma迁移...');
+      this.logger.log('🔧 跳过Prisma迁移（表已存在）...');
       
-      const isDocker = this.configService.get<string>('DOCKER_ENV', 'false');
+      // 跳过迁移，因为表结构已经通过其他方式创建
+      // 只生成 Prisma 客户端
+      await execAsync('npx prisma generate');
       
-      if (isDocker === 'true') {
-        // Docker环境使用db push
-        await execAsync('npx prisma db push --accept-data-loss');
-      } else {
-        // 非Docker环境使用migrate deploy
-        await execAsync('npx prisma migrate deploy');
-      }
-      
-      this.logger.log('✅ Prisma迁移完成');
+      this.logger.log('✅ Prisma客户端生成完成');
     } catch (error) {
-      this.logger.error('❌ Prisma迁移失败:', error);
+      this.logger.error('❌ Prisma客户端生成失败:', error);
       throw error;
     }
   }

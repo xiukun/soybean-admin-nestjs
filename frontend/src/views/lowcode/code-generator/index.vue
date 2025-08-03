@@ -448,7 +448,6 @@ const databaseOptions = [
 ]
 
 const ormOptions = [
-  { label: 'TypeORM', value: 'typeorm' },
   { label: 'Prisma', value: 'prisma' },
   { label: 'Sequelize', value: 'sequelize' },
   { label: 'Mongoose', value: 'mongoose' }
@@ -495,7 +494,7 @@ const currentEntity = ref(null)
 const generationConfig = reactive({
   framework: 'nestjs',
   database: 'postgresql',
-  orm: 'typeorm',
+  orm: 'prisma',
   features: {
     swagger: true,
     validation: true,

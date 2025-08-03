@@ -262,7 +262,7 @@ const configForm = reactive({
     backend: 'nestjs',
     frontend: 'vue3',
     database: 'mysql',
-    orm: 'typeorm',
+    orm: 'prisma',
     additionalLibs: []
   },
   generation: {
@@ -330,7 +330,6 @@ const databaseOptions = [
 ];
 
 const ormOptions = [
-  { label: 'TypeORM', value: 'typeorm' },
   { label: 'Prisma', value: 'prisma' },
   { label: 'Sequelize', value: 'sequelize' },
   { label: 'Mongoose', value: 'mongoose' }
