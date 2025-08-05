@@ -223,6 +223,7 @@ import {
   useMessage
 } from 'naive-ui';
 import { formatDate } from '@/utils/common';
+import type { Entity } from '../types';
 
 // 图标导入
 import IconMdiCog from '~icons/mdi/cog';
@@ -231,23 +232,6 @@ import IconMdiTableEdit from '~icons/mdi/table-edit';
 import IconMdiCodeBraces from '~icons/mdi/code-braces';
 import IconMdiExport from '~icons/mdi/export';
 import IconMdiDelete from '~icons/mdi/delete';
-
-interface Entity {
-  id: string;
-  name: string;
-  code: string;
-  tableName: string;
-  category: string;
-  description?: string;
-  status: string;
-  fieldCount?: number;
-  createdAt: string;
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
-  color?: string;
-}
 
 interface Props {
   entity: Entity;
@@ -272,7 +256,7 @@ const formData = reactive({
   code: '',
   tableName: '',
   category: '',
-  status: '',
+  status: 'DRAFT' as 'DRAFT' | 'ACTIVE' | 'INACTIVE',
   description: '',
   color: '#5F95FF',
   width: 200,
@@ -314,8 +298,8 @@ const categoryOptions = [
 ];
 
 const statusOptions = [
-  { label: '激活', value: 'ACTIVE' },
   { label: '草稿', value: 'DRAFT' },
+  { label: '激活', value: 'ACTIVE' },
   { label: '停用', value: 'INACTIVE' }
 ];
 
@@ -414,11 +398,19 @@ function handleReset() {
 function handleSave() {
   formRef.value?.validate((errors) => {
     if (!errors) {
-      const updatedEntity = {
+      const updatedEntity: Entity = {
         ...props.entity,
-        ...formData,
         x: positionX.value,
-        y: positionY.value
+        y: positionY.value,
+        name: formData.name,
+        code: formData.code,
+        tableName: formData.tableName,
+        category: formData.category,
+        status: formData.status,
+        description: formData.description,
+        color: formData.color,
+        width: formData.width,
+        height: formData.height
       };
       
       emit('update', updatedEntity);

@@ -84,7 +84,7 @@
 
     <!-- 可视化设计器视图 -->
     <div v-if="currentProjectId && currentView === 'designer'" class="flex-1 h-full min-h-600px">
-      <VisualRelationshipDesigner :project-id="currentProjectId" @relationship-updated="getTableData" />
+      <RelationshipDesigner :project-id="currentProjectId" @relationship-updated="getTableData" @error="handleDesignerError" />
     </div>
 
     <!-- 关系操作抽屉 -->
@@ -101,7 +101,7 @@
 
 <script setup lang="tsx">
 import { ref, watch, computed, onMounted, h } from 'vue';
-import { NButton, NPopconfirm, NSpace, NTag, NButtonGroup, NIcon } from 'naive-ui';
+import { NButton, NPopconfirm, NSpace, NTag, NButtonGroup, NIcon, useMessage } from 'naive-ui';
 import { useRoute } from 'vue-router';
 import { fetchDeleteRelationship, fetchGetRelationshipList, fetchGetProjectList } from '@/service/api';
 import { $t } from '@/locales';
@@ -110,9 +110,10 @@ import { useTable, useTableOperate } from '@/hooks/common/table';
 import RelationshipOperateDrawer from './modules/relationship-operate-drawer.vue';
 import RelationshipSearch from './modules/relationship-search.vue';
 import TableHeaderOperation from '@/components/advanced/table-header-operation.vue';
-import VisualRelationshipDesigner from './modules/visual-relationship-designer.vue';
+import RelationshipDesigner from './components/RelationshipDesigner.vue';
 
 const appStore = useAppStore();
+const message = useMessage();
 
 interface Props {
   projectId?: string;
@@ -212,13 +213,13 @@ const {
     },
     {
       key: 'name',
-      title: $t('page.lowcode.relationship.name'),
+      title: $t('page.lowcode.entity.name'),
       align: 'center',
       minWidth: 120
     },
     {
       key: 'code',
-      title: $t('page.lowcode.relationship.code'),
+      title: $t('page.lowcode.entity.code'),
       align: 'center',
       minWidth: 120
     },
@@ -260,10 +261,10 @@ const {
           };
 
           const typeMap: Record<string, { label: string; color: string }> = {
-            ONE_TO_ONE: { label: $t('page.lowcode.relationship.relationshipTypes.ONE_TO_ONE'), color: 'info' },
-            ONE_TO_MANY: { label: $t('page.lowcode.relationship.relationshipTypes.ONE_TO_MANY'), color: 'success' },
-            MANY_TO_ONE: { label: $t('page.lowcode.relationship.relationshipTypes.MANY_TO_ONE'), color: 'warning' },
-            MANY_TO_MANY: { label: $t('page.lowcode.relationship.relationshipTypes.MANY_TO_MANY'), color: 'error' }
+            ONE_TO_ONE: { label: $t('page.lowcode.relationship.relationTypes.oneToOne'), color: 'info' },
+            ONE_TO_MANY: { label: $t('page.lowcode.relationship.relationTypes.oneToMany'), color: 'success' },
+            MANY_TO_ONE: { label: $t('page.lowcode.relationship.relationTypes.manyToOne'), color: 'warning' },
+            MANY_TO_MANY: { label: $t('page.lowcode.relationship.relationTypes.manyToMany'), color: 'error' }
           };
 
           const normalizedType = normalizeType(row.type);
@@ -415,6 +416,14 @@ function openDrawer(_operateType: NaiveUI.TableOperateType) {
 
 function getTableData() {
   getData();
+}
+
+/**
+ * 处理设计器错误
+ * @param errorMessage - 错误信息
+ */
+function handleDesignerError(errorMessage: string) {
+  message.error(errorMessage);
 }
 
 // 监听项目ID变化，重新获取数据

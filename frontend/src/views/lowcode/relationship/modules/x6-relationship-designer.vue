@@ -54,6 +54,22 @@
           <span>{{ $t('page.lowcode.relationship.toolbar.minimap') || '小地图' }}</span>
         </n-tooltip>
 
+        <n-tooltip placement="bottom">
+          <template #trigger>
+            <n-button 
+              quaternary 
+              circle 
+              :type="showConnectionPoints ? 'primary' : 'default'"
+              @click="toggleConnectionPoints"
+            >
+              <template #icon>
+                <icon-mdi-circle-outline class="text-16px" />
+              </template>
+            </n-button>
+          </template>
+          <span>显示连接点</span>
+        </n-tooltip>
+
         <n-divider vertical />
 
         <n-tooltip placement="bottom">
@@ -470,6 +486,7 @@ import { debounce } from 'lodash-es';
 import { fetchGetAllEntities, fetchUpdateEntity } from '@/service/api/lowcode-entity';
 import { fetchGetAllFields } from '@/service/api/lowcode-field';
 import { fetchGetAllRelationships, fetchUpdateRelationship, fetchAddRelationship } from '@/service/api/lowcode-relationship';
+import { X6ConnectionManager } from './X6ConnectionManager';
 
 interface Props {
   projectId: string;
@@ -485,6 +502,7 @@ const message = useMessage();
 const { t } = useI18n();
 const containerRef = ref<HTMLDivElement>();
 let graph: Graph | null = null;
+let connectionManager: X6ConnectionManager | null = null;
 
 // 状态管理
 const loading = ref(false);
@@ -496,6 +514,7 @@ const entitySearchKeyword = ref('');
 const isMinimapVisible = ref(false);
 const isGridVisible = ref(true);
 const isSnapToGridEnabled = ref(false);
+const showConnectionPoints = ref(false);
 
 // 选中状态
 const selectedCell = ref<Cell | null>(null);
@@ -747,6 +766,9 @@ async function initGraph() {
     // 事件监听
     setupEventListeners();
     
+    // 创建连接管理器
+    connectionManager = new X6ConnectionManager(graph);
+    
     // 加载保存的状态
     loadGraphState();
     
@@ -971,11 +993,98 @@ function registerCustomNodes() {
   try {
     // 使用try-catch来处理可能的重复注册
     try {
-      // 实体节点 - 增强版本
+      // 实体节点 - 增强版本，使用X6原生连接桩
       Graph.registerNode('entity-node', {
         inherit: 'rect',
         width: 220,
         height: 140,
+        // 配置连接桩（ports）- 使用X6原生连接点功能
+        ports: {
+          groups: {
+            // 顶部连接桩组
+            top: {
+              position: 'top',
+              attrs: {
+                circle: {
+                  r: 4,
+                  magnet: true,
+                  stroke: '#1976d2',
+                  strokeWidth: 2,
+                  fill: '#ffffff',
+                  style: {
+                    visibility: 'hidden',
+                  },
+                },
+              },
+            },
+            // 右侧连接桩组
+            right: {
+              position: 'right',
+              attrs: {
+                circle: {
+                  r: 4,
+                  magnet: true,
+                  stroke: '#1976d2',
+                  strokeWidth: 2,
+                  fill: '#ffffff',
+                  style: {
+                    visibility: 'hidden',
+                  },
+                },
+              },
+            },
+            // 底部连接桩组
+            bottom: {
+              position: 'bottom',
+              attrs: {
+                circle: {
+                  r: 4,
+                  magnet: true,
+                  stroke: '#1976d2',
+                  strokeWidth: 2,
+                  fill: '#ffffff',
+                  style: {
+                    visibility: 'hidden',
+                  },
+                },
+              },
+            },
+            // 左侧连接桩组
+            left: {
+              position: 'left',
+              attrs: {
+                circle: {
+                  r: 4,
+                  magnet: true,
+                  stroke: '#1976d2',
+                  strokeWidth: 2,
+                  fill: '#ffffff',
+                  style: {
+                    visibility: 'hidden',
+                  },
+                },
+              },
+            },
+          },
+          items: [
+            // 顶部连接点
+            { id: 'top-1', group: 'top', args: { x: '25%' } },
+            { id: 'top-2', group: 'top', args: { x: '50%' } },
+            { id: 'top-3', group: 'top', args: { x: '75%' } },
+            // 右侧连接点
+            { id: 'right-1', group: 'right', args: { y: '25%' } },
+            { id: 'right-2', group: 'right', args: { y: '50%' } },
+            { id: 'right-3', group: 'right', args: { y: '75%' } },
+            // 底部连接点
+            { id: 'bottom-1', group: 'bottom', args: { x: '25%' } },
+            { id: 'bottom-2', group: 'bottom', args: { x: '50%' } },
+            { id: 'bottom-3', group: 'bottom', args: { x: '75%' } },
+            // 左侧连接点
+            { id: 'left-1', group: 'left', args: { y: '25%' } },
+            { id: 'left-2', group: 'left', args: { y: '50%' } },
+            { id: 'left-3', group: 'left', args: { y: '75%' } },
+          ],
+        },
         attrs: {
           body: {
             fill: '#ffffff',
@@ -1069,9 +1178,52 @@ function registerCustomNodes() {
   }
 }
 
+// 切换连接点显示
+function toggleConnectionPoints() {
+  showConnectionPoints.value = !showConnectionPoints.value;
+  if (connectionManager) {
+    connectionManager.setConnectionPointsVisible(showConnectionPoints.value);
+  }
+}
+
+// 控制连接桩显示
+function togglePortsVisibility(visible: boolean) {
+  if (!graph) return;
+  
+  const nodes = graph.getNodes();
+  nodes.forEach(node => {
+    const ports = node.getPorts();
+    ports.forEach(port => {
+      node.setPortProp(port.id!, 'attrs/circle/style/visibility', visible ? 'visible' : 'hidden');
+    });
+  });
+}
+
+// 鼠标悬停显示连接桩
+function setupPortsHoverEffect() {
+  if (!graph) return;
+  
+  graph.on('node:mouseenter', ({ node }) => {
+    const ports = node.getPorts();
+    ports.forEach(port => {
+      node.setPortProp(port.id!, 'attrs/circle/style/visibility', 'visible');
+    });
+  });
+  
+  graph.on('node:mouseleave', ({ node }) => {
+    const ports = node.getPorts();
+    ports.forEach(port => {
+      node.setPortProp(port.id!, 'attrs/circle/style/visibility', 'hidden');
+    });
+  });
+}
+
 // 设置事件监听器
 function setupEventListeners() {
   if (!graph) return;
+  
+  // 设置连接桩悬停效果
+  setupPortsHoverEffect();
 
   // 节点点击事件
   graph.on('node:click', ({ node }) => {
@@ -1304,6 +1456,31 @@ function updateGraphData() {
             fields: { text: `字段数量: ${fieldCount}` },
             table: { text: `表名: ${entity.tableName || '无表名'}` },
           },
+          ports: {
+            groups: {
+              'connection-port': {
+                position: 'absolute',
+                attrs: {
+                  circle: {
+                    r: 4,
+                    magnet: true,
+                    stroke: '#31d0c6',
+                    strokeWidth: 2,
+                    fill: '#fff',
+                    style: {
+                      visibility: 'hidden',
+                    },
+                  },
+                },
+              },
+            },
+            items: [
+              { id: 'top', group: 'connection-port', args: { x: '50%', y: 0 } },
+              { id: 'right', group: 'connection-port', args: { x: '100%', y: '50%' } },
+              { id: 'bottom', group: 'connection-port', args: { x: '50%', y: '100%' } },
+              { id: 'left', group: 'connection-port', args: { x: 0, y: '50%' } },
+            ],
+          },
           data: entity,
         });
         
@@ -1338,10 +1515,22 @@ function updateGraphData() {
           return;
         }
         
+        // 使用连接管理器找到最优连接点
+        const connectionPoints = connectionManager?.findOptimalConnectionPoints(
+          sourceNode as any,
+          targetNode as any
+        );
+        
         const edge = graph.addEdge({
           id: relationship.id,
-          source: relationship.sourceEntityId,
-          target: relationship.targetEntityId,
+          source: {
+            cell: relationship.sourceEntityId,
+            port: connectionPoints?.source?.port || 'right'
+          },
+          target: {
+            cell: relationship.targetEntityId,
+            port: connectionPoints?.target?.port || 'left'
+          },
           router: {
             name: 'orth',
           },
@@ -2010,6 +2199,31 @@ function addEntityToGraph(entity: any) {
       code: { text: entity.code },
       fields: { text: `字段数量: ${fieldCount}` },
       table: { text: `表名: ${entity.tableName}` },
+    },
+    ports: {
+      groups: {
+        'connection-port': {
+          position: 'absolute',
+          attrs: {
+            circle: {
+              r: 4,
+              magnet: true,
+              stroke: '#31d0c6',
+              strokeWidth: 2,
+              fill: '#fff',
+              style: {
+                visibility: 'hidden',
+              },
+            },
+          },
+        },
+      },
+      items: [
+        { id: 'top', group: 'connection-port', args: { x: '50%', y: 0 } },
+        { id: 'right', group: 'connection-port', args: { x: '100%', y: '50%' } },
+        { id: 'bottom', group: 'connection-port', args: { x: '50%', y: '100%' } },
+        { id: 'left', group: 'connection-port', args: { x: 0, y: '50%' } },
+      ],
     },
     data: entity,
   });

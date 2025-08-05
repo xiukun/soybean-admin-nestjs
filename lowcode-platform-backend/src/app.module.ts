@@ -25,6 +25,8 @@ import { ApiConfigController } from '@api/lowcode/api-config.controller';
 import { QueryController } from '@api/lowcode/query.controller';
 import { FieldController } from '@api/lowcode/field.controller';
 import { TemplateController } from '@api/lowcode/template.controller';
+import { EntityLayoutController } from '@api/lowcode/entity-layout.controller';
+import { EntityLayoutService } from './api/lowcode/services/entity-layout.service';
 
 import { CodeGenerationController } from '@api/lowcode/code-generation.controller';
 import { CodeGenerationPageController } from '@api/lowcode/code-generation-page.controller';
@@ -93,6 +95,7 @@ import { DatabaseInitService } from '@infra/database/database-init.service';
     QueryController,
     FieldController,
     TemplateController,
+    EntityLayoutController,
 
     CodeGenerationController,
     CodeGenerationPageController,
@@ -102,6 +105,7 @@ import { DatabaseInitService } from '@infra/database/database-init.service';
     AppService,
     JwtStrategy,
     DatabaseInitService,
+    EntityLayoutService,
     // {
     //   provide: APP_GUARD,
     //   useClass: JwtAuthGuard,

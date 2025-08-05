@@ -47,6 +47,12 @@
       </div>
       
       <div class="toolbar-actions">
+        <NButton :disabled="!currentProjectId" @click="handleRefreshEntities">
+          <template #icon>
+            <NIcon><icon-mdi-refresh /></NIcon>
+          </template>
+          {{ $t('common.refresh') }}
+        </NButton>
         <NButton type="primary" :disabled="!currentProjectId" @click="handleCreateEntity">
           <template #icon>
             <NIcon><icon-mdi-plus /></NIcon>
@@ -65,7 +71,7 @@
     <!-- Main Content Area -->
     <div class="main-content">
       <!-- Entity Designer View -->
-      <EntityDesigner 
+      <X6EntityDesigner 
         v-if="currentView === 'designer'"
         :project-id="currentProjectId"
         :entities="entities"
@@ -223,7 +229,12 @@ import { createRequiredFormRule } from '@/utils/form/rule';
 import { formatDate } from '@/utils/common';
 import { fetchGetAllEntities, fetchAddEntity, fetchUpdateEntity, fetchDeleteEntity } from '@/service/api/lowcode-entity';
 import { fetchGetAllProjects } from '@/service/api/lowcode-project';
-import EntityDesigner from './components/EntityDesigner.vue';
+import X6EntityDesigner from './components/X6EntityDesigner.vue';
+
+// 图标导入
+import IconMdiRefresh from '~icons/mdi/refresh';
+import IconMdiPlus from '~icons/mdi/plus';
+import IconMdiImport from '~icons/mdi/import';
 
 interface Props {
   projectId?: string;
@@ -243,6 +254,11 @@ interface Entity {
   fieldCount: number;
   createdAt: string;
   updatedAt: string;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  color?: string;
 }
 
 const router = useRouter();
@@ -580,8 +596,32 @@ async function loadProjects() {
 
 function handleProjectChange(projectId: string | null) {
   selectedProjectId.value = projectId || '';
+  // 项目切换时重新加载数据
+  // 因为默认显示设计器视图，需要加载实体和关系数据
   if (projectId) {
     loadEntities();
+  }
+}
+
+/**
+ * 刷新实体数据
+ * @description 手动刷新当前项目的实体列表和关系数据
+ */
+async function handleRefreshEntities() {
+  if (!currentProjectId.value) {
+    window.$message?.warning('请先选择一个项目');
+    return;
+  }
+  
+  try {
+    loading.value = true;
+    await loadEntities();
+    window.$message?.success('刷新成功');
+  } catch (error) {
+    console.error('刷新失败:', error);
+    window.$message?.error('刷新失败');
+  } finally {
+    loading.value = false;
   }
 }
 
@@ -595,13 +635,44 @@ async function loadEntities() {
     const { data } = await fetchGetAllEntities(currentProjectId.value);
 
     if (data) {
-      entities.value = data.map((entity: any) => ({
-        ...entity,
-        fieldCount: entity.fieldCount || 0,
-        status: (entity.status === 'PUBLISHED' ? 'ACTIVE' : entity.status) as 'DRAFT' | 'ACTIVE' | 'INACTIVE',
-        createdAt: entity.createdAt || '',
-        updatedAt: entity.updatedAt || ''
-      }));
+      entities.value = data.map((entity: any, index: number) => {
+        // 为实体添加默认坐标信息，避免堆叠
+        const gridCols = Math.ceil(Math.sqrt(data.length));
+        const row = Math.floor(index / gridCols);
+        const col = index % gridCols;
+        const spacing = 300; // 实体间距
+        const offsetX = 100; // 起始偏移
+        const offsetY = 100;
+        
+        // 确保所有数值属性都是number类型，避免undefined
+        const x: number = typeof entity.x === 'number' && !isNaN(entity.x) ? entity.x : (offsetX + col * spacing);
+        const y: number = typeof entity.y === 'number' && !isNaN(entity.y) ? entity.y : (offsetY + row * spacing);
+        const width: number = typeof entity.width === 'number' && !isNaN(entity.width) ? entity.width : 200;
+        const height: number = typeof entity.height === 'number' && !isNaN(entity.height) ? entity.height : 120;
+        
+        // 构建完整的Entity对象，确保所有必需属性都存在且类型正确
+        const processedEntity: Entity = {
+          id: entity.id,
+          projectId: entity.projectId,
+          name: entity.name,
+          code: entity.code,
+          tableName: entity.tableName,
+          description: entity.description,
+          category: entity.category,
+          status: (entity.status === 'PUBLISHED' ? 'ACTIVE' : entity.status) as 'DRAFT' | 'ACTIVE' | 'INACTIVE',
+          fieldCount: entity.fieldCount || 0,
+          createdAt: entity.createdAt || '',
+          updatedAt: entity.updatedAt || '',
+          // 确保类型安全的坐标信息
+          x,
+          y,
+          width,
+          height,
+          color: entity.color || '#1976d2'
+        };
+        
+        return processedEntity;
+      });
       pagination.value.itemCount = entities.value.length;
     } else {
       entities.value = [];

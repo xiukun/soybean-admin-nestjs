@@ -289,6 +289,16 @@ export class RelationshipManagerService {
 
     try {
       // 验证必填字段
+      if (!config || typeof config !== 'object') {
+        errors.push('关系配置不能为空');
+        return {
+          isValid: false,
+          errors,
+          warnings,
+          suggestions,
+        };
+      }
+
       if (!config.type) {
         errors.push('关系类型不能为空');
       }
@@ -325,7 +335,7 @@ export class RelationshipManagerService {
         }
       }
 
-      // 验证字段存在性
+      // 验证字段存在性（支持字段ID或字段名）
       if (config.sourceFieldId) {
         const sourceField = await this.prisma.field.findFirst({
           where: {
@@ -336,6 +346,21 @@ export class RelationshipManagerService {
 
         if (!sourceField) {
           errors.push('源字段不存在');
+        }
+      } else if (config.sourceFieldName) {
+        // 通过字段名查找字段ID
+        const sourceField = await this.prisma.field.findFirst({
+          where: {
+            code: config.sourceFieldName,
+            entityId: config.sourceEntityId,
+          },
+        });
+
+        if (!sourceField) {
+          errors.push(`源字段 "${config.sourceFieldName}" 不存在`);
+        } else {
+          // 将字段ID设置到config中，供后续使用
+          config.sourceFieldId = sourceField.id;
         }
       }
 
@@ -349,6 +374,21 @@ export class RelationshipManagerService {
 
         if (!targetField) {
           errors.push('目标字段不存在');
+        }
+      } else if (config.targetFieldName) {
+        // 通过字段名查找字段ID
+        const targetField = await this.prisma.field.findFirst({
+          where: {
+            code: config.targetFieldName,
+            entityId: config.targetEntityId,
+          },
+        });
+
+        if (!targetField) {
+          errors.push(`目标字段 "${config.targetFieldName}" 不存在`);
+        } else {
+          // 将字段ID设置到config中，供后续使用
+          config.targetFieldId = targetField.id;
         }
       }
 

@@ -11,8 +11,10 @@ export interface RelationshipConfig {
   type: RelationshipType;
   sourceEntityId: string;
   sourceFieldId?: string;
+  sourceFieldName?: string; // 支持通过字段名查找字段ID
   targetEntityId: string;
   targetFieldId?: string;
+  targetFieldName?: string; // 支持通过字段名查找字段ID
   foreignKeyName?: string;
   joinTableConfig?: {
     tableName: string;

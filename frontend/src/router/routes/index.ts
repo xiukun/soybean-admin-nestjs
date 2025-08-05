@@ -38,6 +38,36 @@ const customRoutes: any[] = [
     ]
   },
   {
+    name: 'test',
+    path: '/test',
+    component: 'layout.base',
+    meta: {
+      title: '测试页面',
+      icon: 'mdi:test-tube',
+      order: 10
+    },
+    children: [
+      {
+        name: 'test_create-relationship-modal',
+        path: '/test/create-relationship-modal',
+        component: 'view.test-create-relationship-modal',
+        meta: {
+          title: '关系创建弹窗测试',
+          icon: 'mdi:relation-many-to-many'
+        }
+      },
+      {
+        name: 'test_connection-points',
+        path: '/test/connection-points',
+        component: 'view.lowcode_entity_test-connection-points',
+        meta: {
+          title: '连接点显示测试',
+          icon: 'mdi:vector-point'
+        }
+      }
+    ]
+  },
+  {
     name: 'exception',
     path: '/exception',
     component: 'layout.base',

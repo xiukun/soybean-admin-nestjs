@@ -93,28 +93,77 @@ export class RelationshipController {
     @Body() createData: {
       projectId: string;
       name: string;
-      code: string;
+      code?: string;
       description: string;
-      config: RelationshipConfig;
-      userId: string;
+      type: string;
+      sourceEntityId: string;
+      targetEntityId: string;
+      sourceFieldName?: string;
+      targetFieldName?: string;
+      cascadeAction?: string;
+      lineColor?: string;
+      lineWidth?: number;
+      lineStyle?: string;
+      userId?: string;
+      // 兼容旧格式
+      config?: RelationshipConfig;
     },
   ): Promise<any> {
-    const command = new CreateRelationshipCommand(
-      createData.projectId,
-      createData.name,
-      createData.code,
-      createData.description,
-      createData.config,
-      createData.userId,
-    );
+    try {
+      // 数据转换：将前端扁平化的数据转换为后端期望的格式
+      let relationshipConfig: RelationshipConfig;
+      
+      if (createData.config) {
+        // 如果使用旧格式（config对象），直接使用
+        relationshipConfig = createData.config;
+      } else {
+        // 如果使用新格式（扁平化），转换为config对象
+        relationshipConfig = {
+          type: createData.type as any,
+          sourceEntityId: createData.sourceEntityId,
+          targetEntityId: createData.targetEntityId,
+          onDelete: (createData.cascadeAction as 'CASCADE' | 'RESTRICT' | 'SET_NULL' | 'NO_ACTION') || 'RESTRICT',
+          onUpdate: 'RESTRICT',
+          indexed: true,
+        };
 
-    const result = await this.commandBus.execute(command);
+        // 如果提供了字段名，需要根据字段名查找字段ID
+        if (createData.sourceFieldName) {
+          // 这里暂时不处理字段名到字段ID的转换，留给验证逻辑处理
+          relationshipConfig.sourceFieldName = createData.sourceFieldName;
+        }
+        if (createData.targetFieldName) {
+          relationshipConfig.targetFieldName = createData.targetFieldName;
+        }
+      }
 
-    return {
-      status: result.success ? 0 : 1,
-      msg: result.message,
-      data: result.data,
-    };
+      // 生成关系代码（如果没有提供）
+      const code = createData.code || `${createData.name.replace(/\s+/g, '_').toLowerCase()}`;
+
+      const command = new CreateRelationshipCommand(
+        createData.projectId,
+        createData.name,
+        code,
+        createData.description,
+        relationshipConfig,
+        createData.userId || 'system',
+      );
+
+      const result = await this.commandBus.execute(command);
+
+      return {
+        status: result.success ? 0 : 1,
+        msg: result.message,
+        data: result.data,
+      };
+    } catch (error) {
+      this.logger.error(`创建关系失败: ${error.message}`);
+      return {
+        status: 1,
+        msg: `关系配置无效: ${error.message}`,
+        data: null,
+      };
+    }
   }
 
   @Put(':id')
