@@ -48,10 +48,14 @@ model SysUser {
   phoneNumber String?   @unique @map("phone_number")
   nickName    String    @map("nick_name")
   status      Status
+  enterpriseId String?  @map("enterprise_id")
+  tenantId     String?  @map("tenant_id")
   createdAt   DateTime  @default(now()) @map("created_at")
   createdBy   String    @map("created_by")
   updatedAt   DateTime? @updatedAt @map("updated_at")
   updatedBy   String?   @map("updated_by")
+
+  tenant      Tenant?   @relation(fields: [tenantId], references: [id])
 
   @@map("sys_user")
   @@schema("backend")
@@ -387,5 +391,92 @@ model LowcodeField {
 
   @@unique([entityId, code])
   @@map("lowcode_field")
+  @@schema("backend")
+}
+
+// Enterprise, Tenant, AppSpace, UserGroup for multi-tenancy
+
+model Enterprise {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  status      Status   @default(ENABLED)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenants Tenant[]
+
+  @@map("enterprise")
+  @@schema("backend")
+}
+
+model Tenant {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  status       Status   @default(ENABLED)
+  enterpriseId String   @map("enterprise_id")
+  planId       String?  @map("plan_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  enterprise Enterprise @relation(fields: [enterpriseId], references: [id])
+  plan       Plan?      @relation(fields: [planId], references: [id])
+  appSpaces  AppSpace[]
+  userGroups UserGroup[]
+  users      SysUser[]
+
+  @@unique([enterpriseId, name])
+  @@map("tenant")
+  @@schema("backend")
+}
+
+model AppSpace {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  status      Status   @default(ENABLED)
+  tenantId    String   @map("tenant_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, name])
+  @@map("app_space")
+  @@schema("backend")
+}
+
+model UserGroup {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  tenantId    String   @map("tenant_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, name])
+  @@map("user_group")
+  @@schema("backend")
+}
+
+model Plan {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  description     String?
+  maxUsers        Int      @map("max_users")
+  maxAppSpaces    Int      @map("max_app_spaces")
+  pricePerMonth   Float    @map("price_per_month")
+  pricePerYear    Float    @map("price_per_year")
+  features        Json
+  status          Status   @default(ENABLED)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  tenants Tenant[]
+
+  @@map("plan")
   @@schema("backend")
 }

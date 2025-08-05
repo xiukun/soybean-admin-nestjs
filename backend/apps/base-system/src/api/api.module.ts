@@ -17,6 +17,10 @@ import { Controllers as LoginLogRest } from './log-audit/login-log/rest';
 import { Controllers as OperationLogRest } from './log-audit/operation-log/rest';
 import { Controllers as SystemManageRest } from './system-manage/rest';
 import { LowcodePageApiModule } from './manage/lowcode-page/lowcode-page-api.module';
+import { EnterpriseModule } from './enterprise/enterprise.module';
+import { TenantModule } from './tenant/tenant.module';
+import { AppSpaceModule } from './app-space/app-space.module';
+import { OrganizationModule } from './organization/organization.module';
 
 @Module({
   imports: [
@@ -30,6 +34,10 @@ import { LowcodePageApiModule } from './manage/lowcode-page/lowcode-page-api.mod
     TokensInfraModule,
     AccessKeyInfraModule,
     LowcodePageApiModule,
+    EnterpriseModule,
+    TenantModule,
+    AppSpaceModule,
+    OrganizationModule,
   ],
   controllers: [
     ...IamRest,
