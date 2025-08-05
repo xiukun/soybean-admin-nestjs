@@ -9,7 +9,7 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     recentProjects: 'Recent Projects',
     viewAll: 'View All',
     quickActions: 'Quick Actions',
-    documentation: 'Documentation',
+    documentation: 'Documentation'
   },
   project: {
     title: 'Project Management',
@@ -38,7 +38,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     outputPath: 'Output Path',
     entities: 'Entities',
     templates: 'Templates',
-    createdBy: 'Created By',
     createdAt: 'Created At',
     statusLabel: 'Status',
     searchPlaceholder: 'Search project name, code or description',
@@ -102,8 +101,7 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     designEntities: 'Design Entities',
     generate: 'Generate',
     generateCode: 'Generate Code',
-    relationship: 'Relationship',
-    viewRelationships: 'View Entity Relationships',
+    relationships: 'View Entity Relationships',
     yesterday: 'Yesterday',
     daysAgo: '{days} days ago',
     configure: 'Configure',
@@ -112,10 +110,37 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     status: {
       ACTIVE: 'Active',
       INACTIVE: 'Inactive',
-      ARCHIVED: 'Archived',
-      active: 'Active',
-      inactive: 'Inactive',
-      archived: 'Archived'
+      ARCHIVED: 'Archived'
+    },
+    apiTest: {
+      title: 'API Testing',
+      project: 'Project',
+      apiConfig: 'API Configuration',
+      environment: 'Environment',
+      history: 'Test History',
+      batchTest: 'Batch Test',
+      method: 'Request Method',
+      url: 'Request URL',
+      headers: 'Request Headers',
+      params: 'Query Parameters',
+      body: 'Request Body',
+      response: 'Response Result',
+      test: 'Test',
+      reset: 'Reset',
+      saveAsTemplate: 'Save as Template',
+      testSuccess: 'Test successful',
+      testFailed: 'Test failed',
+      form: {
+        project: {
+          placeholder: 'Please select project'
+        },
+        apiConfig: {
+          placeholder: 'Please select API configuration'
+        },
+        environment: {
+          placeholder: 'Please select environment'
+        }
+      }
     },
     deploymentStatus: {
       inactive: 'Not Deployed',
@@ -228,15 +253,27 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     designFields: 'Design Fields',
     fieldCount: 'Field Count',
     createdAt: 'Created At',
+    create: 'Created By',
+    fields: 'Fields',
+    relationships: 'Relationships',
+    manageFields: 'Manage Fields',
+    gridView: 'Grid View',
+    tableView: 'Table View',
+    fieldAdded: 'Field added successfully',
+    fieldUpdated: 'Field updated successfully',
+    fieldDeleted: 'Field deleted successfully',
+    invalidJsonFormat: 'Invalid JSON format',
+    sqlImportNotImplemented: 'SQL import feature not implemented yet',
+    dbImportNotImplemented: 'Database import feature not implemented yet',
+    commonFieldOptions: 'Common Field Options',
+    enableCommonFields: 'Enable Common Fields',
+    autoCreateTable: 'Auto Create Table',
+    commonFieldsPreview: 'Common Fields Preview',
+    commonFieldsDesc: 'System will automatically add the following common fields to entity',
     status: {
       DRAFT: 'Draft',
       PUBLISHED: 'Published',
-      DEPRECATED: 'Deprecated',
-      ACTIVE: 'Active',
-      INACTIVE: 'Inactive',
-      active: 'Active',
-      inactive: 'Inactive',
-      draft: 'Draft'
+      DEPRECATED: 'Deprecated'
     },
     categories: {
       core: 'Core',
@@ -244,6 +281,42 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       system: 'System',
       config: 'Configuration'
     },
+    designer: {
+      title: 'Entity Designer',
+      entityList: 'Entity List',
+      searchEntity: 'Search Entity',
+      noEntities: 'No entities',
+      createEntity: 'Create Entity',
+      properties: 'Properties',
+      autoLayout: 'Auto Layout',
+      connectMode: 'Connect Mode',
+      fitView: 'Fit View',
+      minimap: 'Minimap',
+      saveSuccess: 'Save successful',
+      saveFailed: 'Save failed',
+      selectSourceEntity: 'Please select source entity',
+      selectTargetEntity: 'Selected {name}, please select target entity',
+      layouts: {
+        hierarchical: 'Hierarchical Layout',
+        force: 'Force Layout',
+        circular: 'Circular Layout',
+        grid: 'Grid Layout'
+      },
+      basicInfo: 'Basic Information',
+      appearance: 'Appearance',
+      actions: 'Actions',
+      color: 'Color',
+      width: 'Width',
+      height: 'Height',
+      manageFields: 'Manage Fields',
+      generateCode: 'Generate Code',
+      deleteConfirm: 'Are you sure to delete this entity?',
+      generateCodeTip: 'Code generation feature is under development...',
+      addField: 'Add Field',
+      noFields: 'No fields'
+    },
+    lookup: 'Lookup',
+    log: 'Log',
     dataTypes: {
       STRING: 'String',
       INTEGER: 'Integer',
@@ -341,57 +414,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       }
     }
   },
-  api: {
-    title: 'API Management',
-    addApi: 'Add API',
-    editApi: 'Edit API',
-    name: 'API Name',
-    code: 'API Code',
-    path: 'API Path',
-    method: 'HTTP Method',
-    description: 'Description',
-    version: 'Version',
-    status: {
-      DRAFT: 'Draft',
-      PUBLISHED: 'Published',
-      DEPRECATED: 'Deprecated'
-    },
-    methods: {
-      GET: 'GET',
-      POST: 'POST',
-      PUT: 'PUT',
-      DELETE: 'DELETE',
-      PATCH: 'PATCH'
-    },
-    form: {
-      name: {
-        placeholder: 'Please enter API name',
-        required: 'Please enter API name'
-      },
-      code: {
-        placeholder: 'Please enter API code',
-        required: 'Please enter API code'
-      },
-      path: {
-        placeholder: 'Please enter API path',
-        required: 'Please enter API path'
-      },
-      method: {
-        placeholder: 'Please select HTTP method',
-        required: 'Please select HTTP method'
-      },
-      description: {
-        placeholder: 'Please enter description'
-      },
-      version: {
-        placeholder: 'Please enter version',
-        required: 'Please enter version'
-      },
-      status: {
-        placeholder: 'Please select status'
-      }
-    }
-  },
   relationship: {
     title: 'Relationship Management',
     name: 'Relationship Name',
@@ -429,10 +451,8 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     refreshAnalysis: 'Refresh Analysis',
     exportReport: 'Export Report',
     onDelete: 'On Delete',
-    onUpdate: 'On Update',
     entityList: 'Entity List',
     noEntities: 'No entities found',
-    // X6 relationship designer related
     connectMode: 'Connect Mode',
     selectSourceEntity: 'Please select source entity',
     selectTargetEntity: 'Selected {name}, please select target entity',
@@ -442,7 +462,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     relationshipCreated: 'Relationship created successfully',
     relationshipUpdated: 'Relationship updated successfully',
     relationshipDeleted: 'Relationship deleted successfully',
-    // Toolbar operations
     toolbar: {
       connectMode: 'Connect Mode',
       autoLayout: 'Auto Layout',
@@ -461,27 +480,23 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       redo: 'Redo',
       legend: 'Legend'
     },
-    // Export options
     exportOptions: {
       png: 'PNG Image',
       jpg: 'JPG Image',
       svg: 'SVG Vector',
       json: 'JSON Data'
     },
-    // Line styles
     lineStyles: {
       solid: 'Solid',
       dashed: 'Dashed',
       dotted: 'Dotted'
     },
-    // Cascade actions
     cascadeActions: {
       RESTRICT: 'Restrict',
       CASCADE: 'Cascade',
       SET_NULL: 'Set Null',
       NO_ACTION: 'No Action'
     },
-    // Relationship types
     relationshipTypes: {
       ONE_TO_ONE: 'One to One',
       ONE_TO_MANY: 'One to Many',
@@ -492,16 +507,9 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       ACTIVE: 'Active',
       INACTIVE: 'Inactive'
     },
-    // Form related
     form: {
-      name: {
-        placeholder: 'Please enter relationship name',
-        required: 'Please enter relationship name'
-      },
-      code: {
-        placeholder: 'Please enter relationship code',
-        required: 'Please enter relationship code'
-      },
+
+      
       sourceEntity: {
         placeholder: 'Please select source entity',
         required: 'Please select source entity'
@@ -521,9 +529,7 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       description: {
         placeholder: 'Please enter relationship description'
       },
-      foreignKeyField: {
-        placeholder: 'Please enter foreign key field name'
-      },
+
       onDelete: {
         placeholder: 'Please select on delete action'
       },
@@ -531,7 +537,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
         placeholder: 'Please select on update action'
       }
     },
-    // Property panel
     propertyPanel: {
       title: 'Property Panel',
       entityProperties: 'Entity Properties',
@@ -561,14 +566,12 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       lineStyle: 'Line Style',
       lineColor: 'Line Color'
     },
-    // Export formats
     exportFormats: {
       png: 'PNG Image',
       jpg: 'JPG Image',
       svg: 'SVG Vector',
       json: 'JSON Data'
     },
-    // Field types
     fieldTypes: {
       VARCHAR: 'String',
       INT: 'Integer',
@@ -581,57 +584,12 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       JSON: 'JSON',
       TIMESTAMP: 'Timestamp'
     },
-    // Line styles
-    lineStyles: {
-      solid: 'Solid',
-      dashed: 'Dashed',
-      dotted: 'Dotted'
-    },
-    // Validation messages
     validation: {
       nameRequired: 'Please enter relationship name',
       codeRequired: 'Please enter relationship code',
       sourceEntityRequired: 'Please select source entity',
       targetEntityRequired: 'Please select target entity',
       relationshipTypeRequired: 'Please select relationship type'
-    },
-    form: {
-      name: {
-        placeholder: 'Please enter relationship name',
-        required: 'Please enter relationship name'
-      },
-      code: {
-        placeholder: 'Please enter relationship code',
-        required: 'Please enter relationship code'
-      },
-      sourceEntity: {
-        placeholder: 'Please select source entity',
-        required: 'Please select source entity'
-      },
-      targetEntity: {
-        placeholder: 'Please select target entity',
-        required: 'Please select target entity'
-      },
-      relationType: {
-        placeholder: 'Please select relationship type',
-        required: 'Please select relationship type'
-      },
-      relationshipName: {
-        placeholder: 'Please enter relationship name',
-        required: 'Please enter relationship name'
-      },
-      description: {
-        placeholder: 'Please enter relationship description'
-      },
-      foreignKeyField: {
-        placeholder: 'Please enter foreign key field name'
-      },
-      onDelete: {
-        placeholder: 'Please select on delete action'
-      },
-      onUpdate: {
-        placeholder: 'Please select on update action'
-      }
     }
   },
   codegen: {
@@ -1083,213 +1041,63 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       search: {
         placeholder: 'Please enter API name or path to search'
       }
-    },
-    selector: {
-      title: 'API Configuration Selector',
-      platformFormat: 'Platform Management Format (current/size + records)',
-      lowcodeFormat: 'Lowcode Page Format (page/perPage + options)',
-      selectApi: 'Select API Configuration',
-      selectApiPlaceholder: 'Please select an API configuration to use',
-      selectedApi: 'Selected API Configuration',
-      amisConfig: 'Generated Amis Configuration'
-    },
-    tabs: {
-      management: 'API Configuration Management',
-      selector: 'Interface Format Comparison',
-      batchOperations: 'Batch Operations',
-      onlineTest: 'Online Test',
-      versionManagement: 'Version Management',
-      documentation: 'Documentation'
-    },
-    batchOperations: {
-      title: 'Batch Operations',
-      export: {
-        title: 'Batch Export',
-        all: 'Export All',
-        selected: 'Export Selected',
-        allSuccess: 'Successfully exported all API configurations',
-        selectedSuccess: 'Successfully exported {count} API configurations'
-      },
-      import: {
-        title: 'Batch Import',
-        button: 'Start Import',
-        dragText: 'Click or drag files to this area to upload',
-        hintText: 'Supports JSON, YAML formats, single file size not exceeding 10MB',
-        overwrite: 'Overwrite existing configurations',
-        invalidFormat: 'Unsupported file format, please upload JSON or YAML files',
-        success: 'Import successful: created {created}, updated {updated}'
-      },
-      delete: {
-        title: 'Batch Delete',
-        selected: 'Delete Selected',
-        confirm: 'Are you sure you want to delete the selected {count} API configurations? This operation cannot be undone.',
-        success: 'Successfully deleted {count} API configurations'
-      },
-      template: {
-        title: 'Template Download',
-        json: 'Download JSON Template',
-        yaml: 'Download YAML Template',
-        downloaded: 'Downloaded {format} format template file'
-      }
-    },
-    onlineTest: {
-      title: 'Online API Test',
-      history: 'Test History',
-      selectApi: 'Select API',
-      apiInfo: 'API Information',
-      testConfig: 'Test Configuration',
-      headers: 'Request Headers',
-      headerKey: 'Header Name',
-      headerValue: 'Header Value',
-      addHeader: 'Add Header',
-      queryParams: 'Query Parameters',
-      paramKey: 'Parameter Name',
-      paramValue: 'Parameter Value',
-      addParam: 'Add Parameter',
-      requestBody: 'Request Body',
-      jsonPlaceholder: 'Please enter JSON format request body',
-      fieldKey: 'Field Name',
-      fieldValue: 'Field Value',
-      addField: 'Add Field',
-      rawPlaceholder: 'Please enter raw request body content',
-      execute: 'Execute Test',
-      saveCase: 'Save Test Case',
-      result: 'Test Result',
-      status: 'Status Code',
-      time: 'Response Time',
-      responseHeaders: 'Response Headers',
-      responseBody: 'Response Body',
-      formatted: 'Formatted',
-      raw: 'Raw',
-      testHistory: 'Test History',
-      envVariables: 'Environment Variables',
-      variableKey: 'Variable Name',
-      variableValue: 'Variable Value',
-      addVariable: 'Add Variable',
-      testCases: 'Test Cases',
-      savedCases: 'Saved Test Cases',
-      noCases: 'No saved test cases',
-      load: 'Load',
-      createdAt: 'Created At',
-      caseSaved: 'Test case saved',
-      caseLoaded: 'Test case loaded',
-      caseDeleted: 'Test case deleted'
-    },
-    versionManagement: {
-      title: 'API Version Management',
-      selectApi: 'Select API',
-      currentVersion: 'Current Version',
-      versionHistory: 'Version History',
-      versionCompare: 'Version Compare',
-      createVersion: 'Create Version',
-      version: 'Version',
-      versionNumber: 'Version Number',
-      versionPlaceholder: 'Please enter version number, e.g.: 1.0.0',
-      changeLog: 'Change Log',
-      changeLogPlaceholder: 'Please enter detailed description of changes',
-      compare: 'Compare',
-      rollback: 'Rollback',
-      viewVersion: 'View version {version}',
-      selectSecondVersion: 'Please select a second version for comparison',
-      compareReady: 'Version comparison is ready',
-      sameVersion: 'Cannot select the same version for comparison',
-      versionCreated: 'Version created successfully',
-      createFailed: 'Failed to create version',
-      rollbackSuccess: 'Successfully rolled back to version {version}',
-      rollbackFailed: 'Failed to rollback version',
-      loadFailed: 'Failed to load versions, using mock data'
-    },
-    documentation: {
-      title: 'API Documentation Generation',
-      generate: 'Generate Documentation',
-      exportSwagger: 'Export Swagger',
-      selectProject: 'Select Project',
-      selectProjectFirst: 'Please select a project first',
-      includeInactive: 'Include inactive APIs',
-      config: 'Documentation Configuration',
-      docTitle: 'Documentation Title',
-      docVersion: 'Documentation Version',
-      docDescription: 'Documentation Description',
-      docBaseUrl: 'Base URL',
-      titlePlaceholder: 'Please enter documentation title',
-      versionPlaceholder: 'Please enter documentation version',
-      descriptionPlaceholder: 'Please enter documentation description',
-      baseUrlPlaceholder: 'Please enter base URL',
-      statistics: 'API Statistics',
-      totalApis: 'Total APIs',
-      activeApis: 'Active APIs',
-      inactiveApis: 'Inactive APIs',
-      methods: 'Method Types',
-      methodDistribution: 'Method Distribution',
-      preview: 'Documentation Preview',
-      swaggerFormat: 'Swagger Format',
-      markdownFormat: 'Markdown Format',
-      htmlFormat: 'HTML Format',
-      export: 'Export Documentation',
-      exportMarkdown: 'Export Markdown',
-      exportHtml: 'Export HTML',
-      exportPostman: 'Export Postman Collection',
-      exportOpenAPI: 'Export OpenAPI YAML',
-      exportInsomnia: 'Export Insomnia Collection',
-      generateSuccess: 'Documentation generated successfully',
-      generateFailed: 'Failed to generate documentation',
-      exportSuccess: 'Successfully exported {format} format documentation',
-      exportFailed: 'Failed to export documentation'
     }
   },
-  apiTest: {
-    title: 'API Testing',
-    project: 'Project',
-    apiConfig: 'API Configuration',
-    requestConfig: 'Request Configuration',
-    method: 'Request Method',
-    url: 'Request URL',
-    headers: 'Request Headers',
-    params: 'Request Parameters',
-    body: 'Request Body',
-    response: 'Response Result',
-    status: 'Status Code',
-    time: 'Response Time',
-    responseHeaders: 'Response Headers',
-    responseData: 'Response Data',
-    requestInfo: 'Request Information',
-    testApi: 'Test API',
-    clearResult: 'Clear Result',
-    saveAsTemplate: 'Save as Template',
-    addHeader: 'Add Header',
-    addParam: 'Add Parameter',
-    testSuccess: 'API test successful',
-    testFailed: 'API test failed',
-    saveAsTemplateNotImplemented: 'Save as template feature not implemented yet',
-    queryParams: 'Query Parameters',
-    test: 'Test',
-    form: {
-      project: {
-        placeholder: 'Please select a project',
-        required: 'Please select a project'
-      },
-      apiConfig: {
-        placeholder: 'Please select an API configuration',
-        required: 'Please select an API configuration'
-      },
-      url: {
-        placeholder: 'Request URL will be generated automatically'
-      },
-      headerKey: {
-        placeholder: 'Header name'
-      },
-      headerValue: {
-        placeholder: 'Header value'
-      },
-      paramKey: {
-        placeholder: 'Parameter name'
-      },
-      paramValue: {
-        placeholder: 'Parameter value'
-      },
-      body: {
-        placeholder: 'Please enter JSON format request body'
-      }
+  common: {
+    search: {
+      placeholder: 'Please enter search keywords'
+    },
+    actions: {
+      add: 'Add',
+      edit: 'Edit',
+      delete: 'Delete',
+      view: 'View',
+      copy: 'Copy',
+      export: 'Export',
+      import: 'Import',
+      refresh: 'Refresh',
+      reset: 'Reset',
+      submit: 'Submit',
+      cancel: 'Cancel',
+      confirm: 'Confirm',
+      save: 'Save',
+      back: 'Back',
+      next: 'Next',
+      previous: 'Previous',
+      finish: 'Finish'
+    },
+    status: {
+      enabled: 'Enabled',
+      disabled: 'Disabled',
+      active: 'Active',
+      inactive: 'Inactive',
+      draft: 'Draft',
+      published: 'Published',
+      archived: 'Archived',
+      deprecated: 'Deprecated'
+    },
+    messages: {
+      success: 'Operation successful',
+      error: 'Operation failed',
+      loading: 'Loading...',
+      noData: 'No data',
+      confirmDelete: 'Confirm to delete this item?',
+      deleteSuccess: 'Delete successful',
+      saveSuccess: 'Save successful',
+      updateSuccess: 'Update successful',
+      createSuccess: 'Create successful'
+    },
+    validation: {
+      required: 'This field is required',
+      minLength: 'Length cannot be less than {min} characters',
+      maxLength: 'Length cannot exceed {max} characters',
+      email: 'Please enter a valid email address',
+      phone: 'Please enter a valid phone number',
+      url: 'Please enter a valid URL',
+      number: 'Please enter a valid number',
+      integer: 'Please enter a valid integer',
+      positive: 'Please enter a positive number',
+      unique: 'This value already exists, please enter another value'
     }
   }
 };

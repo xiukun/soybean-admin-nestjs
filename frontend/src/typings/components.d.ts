@@ -39,7 +39,6 @@ declare module 'vue' {
     IconMdiArrowDownThin: typeof import('~icons/mdi/arrow-down-thin')['default']
     IconMdiArrowUpThin: typeof import('~icons/mdi/arrow-up-thin')['default']
     IconMdiAutoFix: typeof import('~icons/mdi/auto-fix')['default']
-    IconMdiBackupRestore: typeof import('~icons/mdi/backup-restore')['default']
     IconMdiBookOpen: typeof import('~icons/mdi/book-open')['default']
     IconMdiChartLine: typeof import('~icons/mdi/chart-line')['default']
     IconMdiCheckCircle: typeof import('~icons/mdi/check-circle')['default']

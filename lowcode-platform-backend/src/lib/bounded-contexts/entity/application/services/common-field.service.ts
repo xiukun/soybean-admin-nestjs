@@ -12,6 +12,10 @@ export interface CommonFieldDefinition {
   comment: string;
   displayOrder: number;
   isCommon: boolean;
+  category: 'SYSTEM' | 'AUDIT' | 'BUSINESS'; // 字段分类
+  editable: boolean; // 是否允许用户编辑
+  length?: number; // 字段长度
+  precision?: number; // 精度
 }
 
 @Injectable()
@@ -31,6 +35,9 @@ export class CommonFieldService {
         comment: '实体唯一标识符',
         displayOrder: 1,
         isCommon: true,
+        category: 'SYSTEM',
+        editable: false,
+        length: 36,
       },
       {
         name: '创建者',
@@ -41,6 +48,9 @@ export class CommonFieldService {
         comment: '记录创建者用户ID',
         displayOrder: 2,
         isCommon: true,
+        category: 'AUDIT',
+        editable: false,
+        length: 50,
       },
       {
         name: '创建时间',
@@ -52,6 +62,8 @@ export class CommonFieldService {
         comment: '记录创建时间戳',
         displayOrder: 3,
         isCommon: true,
+        category: 'AUDIT',
+        editable: false,
       },
       {
         name: '更新者',
@@ -62,6 +74,9 @@ export class CommonFieldService {
         comment: '记录最后更新者用户ID',
         displayOrder: 4,
         isCommon: true,
+        category: 'AUDIT',
+        editable: false,
+        length: 50,
       },
       {
         name: '更新时间',
@@ -73,6 +88,8 @@ export class CommonFieldService {
         comment: '记录最后更新时间戳',
         displayOrder: 5,
         isCommon: true,
+        category: 'AUDIT',
+        editable: false,
       },
     ];
   }
@@ -123,5 +140,105 @@ export class CommonFieldService {
     if (this.isCommonFieldCode(fieldCode)) {
       throw new Error(`字段代码 '${fieldCode}' 与系统通用字段冲突，请使用其他名称`);
     }
+  }
+
+  /**
+   * 根据分类获取通用字段
+   */
+  getCommonFieldsByCategory(category: 'SYSTEM' | 'AUDIT' | 'BUSINESS'): CommonFieldDefinition[] {
+    return this.getCommonFieldDefinitions().filter(field => field.category === category);
+  }
+
+  /**
+   * 获取可编辑的通用字段
+   */
+  getEditableCommonFields(): CommonFieldDefinition[] {
+    return this.getCommonFieldDefinitions().filter(field => field.editable);
+  }
+
+  /**
+   * 获取扩展通用字段定义（包含可选的业务通用字段）
+   */
+  getExtendedCommonFieldDefinitions(): CommonFieldDefinition[] {
+    const baseFields = this.getCommonFieldDefinitions();
+    const extendedFields: CommonFieldDefinition[] = [
+      {
+        name: '状态',
+        code: 'status',
+        dataType: FieldDataType.STRING,
+        required: true,
+        unique: false,
+        defaultValue: 'ACTIVE',
+        comment: '记录状态（ACTIVE/INACTIVE/DELETED）',
+        displayOrder: 6,
+        isCommon: true,
+        category: 'BUSINESS',
+        editable: true,
+        length: 20,
+      },
+      {
+        name: '版本号',
+        code: 'version',
+        dataType: FieldDataType.INTEGER,
+        required: true,
+        unique: false,
+        defaultValue: '1',
+        comment: '记录版本号，用于乐观锁控制',
+        displayOrder: 7,
+        isCommon: true,
+        category: 'SYSTEM',
+        editable: false,
+      },
+      {
+        name: '租户ID',
+        code: 'tenantId',
+        dataType: FieldDataType.STRING,
+        required: true,
+        unique: false,
+        comment: '多租户隔离标识',
+        displayOrder: 8,
+        isCommon: true,
+        category: 'SYSTEM',
+        editable: false,
+        length: 36,
+      },
+    ];
+    
+    return [...baseFields, ...extendedFields];
+  }
+
+  /**
+   * 验证通用字段配置的完整性
+   */
+  validateCommonFieldsIntegrity(): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
+    const fields = this.getCommonFieldDefinitions();
+    
+    // 检查必需的系统字段
+    const requiredSystemFields = ['id', 'createdBy', 'createdAt'];
+    for (const requiredField of requiredSystemFields) {
+      if (!fields.find(f => f.code === requiredField)) {
+        errors.push(`缺少必需的系统字段: ${requiredField}`);
+      }
+    }
+    
+    // 检查字段代码唯一性
+    const fieldCodes = fields.map(f => f.code);
+    const duplicateCodes = fieldCodes.filter((code, index) => fieldCodes.indexOf(code) !== index);
+    if (duplicateCodes.length > 0) {
+      errors.push(`通用字段代码重复: ${duplicateCodes.join(', ')}`);
+    }
+    
+    // 检查显示顺序唯一性
+    const displayOrders = fields.map(f => f.displayOrder);
+    const duplicateOrders = displayOrders.filter((order, index) => displayOrders.indexOf(order) !== index);
+    if (duplicateOrders.length > 0) {
+      errors.push(`通用字段显示顺序重复: ${duplicateOrders.join(', ')}`);
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
   }
 }

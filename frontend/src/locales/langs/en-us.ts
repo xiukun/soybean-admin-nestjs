@@ -65,7 +65,6 @@ const local: App.I18n.Schema = {
     tip: 'Tip',
     trigger: 'Trigger',
     update: 'Update',
-    updateSuccess: 'Update Success',
     userCenter: 'User Center',
     yesOrNo: {
       yes: 'Yes',

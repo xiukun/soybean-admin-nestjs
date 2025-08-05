@@ -1,5 +1,5 @@
 <template>
-  <NModal v-model:show="visible" preset="card" :title="$t('page.lowcode.template.preview')" class="w-95vw h-90vh">
+  <NModal :show="visible" @update:show="(value) => emit('update:visible', value)" preset="card" :title="$t('page.lowcode.template.preview')" class="w-95vw h-90vh">
     <template #header-extra>
       <NSpace>
         <NButton type="primary" @click="handlePreview" :loading="previewing">
@@ -167,7 +167,7 @@ import { $t } from '@/locales';
 
 interface Props {
   visible: boolean;
-  templateData?: Api.Lowcode.Template | null;
+  templateData?: Api.Lowcode.CodeTemplate | null;
 }
 
 interface Emits {
@@ -271,8 +271,8 @@ function getVariableInput(type: string): Component {
   }
 }
 
-function getVariableTypeColor(type: string) {
-  const colorMap: Record<string, string> = {
+function getVariableTypeColor(type: string): 'success' | 'error' | 'warning' | 'default' | 'info' | 'primary' {
+  const colorMap: Record<string, 'success' | 'error' | 'warning' | 'default' | 'info' | 'primary'> = {
     string: 'info',
     number: 'success',
     boolean: 'warning',

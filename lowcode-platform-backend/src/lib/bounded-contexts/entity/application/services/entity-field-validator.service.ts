@@ -20,7 +20,10 @@ export interface EntityValidationResult {
     warningCount: number;
     commonFieldsCount: number;
     businessFieldsCount: number;
+    validationDuration: number; // 验证耗时（毫秒）
+    performanceScore: number; // 性能评分（0-100）
   };
+  recommendations: string[]; // 优化建议
 }
 
 @Injectable()
@@ -31,8 +34,10 @@ export class EntityFieldValidatorService {
    * 验证实体的所有字段
    */
   async validateEntityFields(entity: Entity, fields: Field[]): Promise<EntityValidationResult> {
+    const startTime = Date.now();
     const errors: FieldValidationError[] = [];
     const warnings: FieldValidationError[] = [];
+    const recommendations: string[] = [];
 
     // 验证通用字段
     const commonFieldValidation = this.validateCommonFields(fields);
@@ -57,19 +62,32 @@ export class EntityFieldValidatorService {
     errors.push(...entityValidation.errors);
     warnings.push(...entityValidation.warnings);
 
+    // 生成性能优化建议
+    const performanceRecommendations = this.generatePerformanceRecommendations(entity, fields);
+    recommendations.push(...performanceRecommendations);
+
+    // 生成数据库优化建议
+    const databaseRecommendations = this.generateDatabaseOptimizationRecommendations(fields);
+    recommendations.push(...databaseRecommendations);
+
     const commonFieldsCount = this.commonFieldService.getCommonFieldDefinitions().length;
     const businessFieldsCount = fields.length - commonFieldsCount;
+    const validationDuration = Date.now() - startTime;
+    const performanceScore = this.calculatePerformanceScore(entity, fields, validationDuration);
 
     return {
       isValid: errors.length === 0,
       errors,
       warnings,
+      recommendations,
       summary: {
         totalFields: fields.length,
         errorCount: errors.length,
         warningCount: warnings.length,
         commonFieldsCount,
         businessFieldsCount: Math.max(0, businessFieldsCount),
+        validationDuration,
+        performanceScore,
       },
     };
   }
@@ -560,6 +578,98 @@ export class EntityFieldValidatorService {
   }
 
   /**
+   * 生成性能优化建议
+   */
+  private generatePerformanceRecommendations(entity: Entity, fields: Field[]): string[] {
+    const recommendations: string[] = [];
+
+    // 检查字段数量
+    if (fields.length > 50) {
+      recommendations.push('实体字段数量较多，建议考虑拆分为多个相关实体以提升性能');
+    }
+
+    // 检查索引字段
+    const indexableFields = fields.filter(f => f.unique || f.required);
+    if (indexableFields.length > 10) {
+      recommendations.push('索引字段过多可能影响写入性能，建议优化索引策略');
+    }
+
+    // 检查大文本字段
+    const textFields = fields.filter(f => f.dataType === FieldDataType.TEXT);
+    if (textFields.length > 3) {
+      recommendations.push('大文本字段较多，建议考虑使用外部存储或分离存储策略');
+    }
+
+    // 检查JSON字段
+    const jsonFields = fields.filter(f => f.dataType === FieldDataType.JSON);
+    if (jsonFields.length > 2) {
+      recommendations.push('JSON字段过多可能影响查询性能，建议规范化数据结构');
+    }
+
+    return recommendations;
+  }
+
+  /**
+   * 生成数据库优化建议
+   */
+  private generateDatabaseOptimizationRecommendations(fields: Field[]): string[] {
+    const recommendations: string[] = [];
+
+    // 检查字符串字段长度
+    const longStringFields = fields.filter(f => 
+      f.dataType === FieldDataType.STRING && f.length && f.length > 1000
+    );
+    if (longStringFields.length > 0) {
+      recommendations.push('存在长度超过1000的字符串字段，建议评估是否需要调整为TEXT类型');
+    }
+
+    // 检查必填字段比例
+    const requiredFieldsRatio = fields.filter(f => f.required).length / fields.length;
+    if (requiredFieldsRatio < 0.3) {
+      recommendations.push('必填字段比例较低，可能导致数据质量问题，建议增加必要的约束');
+    }
+
+    // 检查唯一字段
+    const uniqueFields = fields.filter(f => f.unique);
+    if (uniqueFields.length === 0) {
+      recommendations.push('建议为实体添加至少一个唯一字段以支持高效查询');
+    }
+
+    return recommendations;
+  }
+
+  /**
+   * 计算性能评分
+   */
+  private calculatePerformanceScore(entity: Entity, fields: Field[], validationDuration: number): number {
+    let score = 100;
+
+    // 验证耗时影响评分
+    if (validationDuration > 100) {
+      score -= Math.min(20, validationDuration / 10);
+    }
+
+    // 字段数量影响评分
+    if (fields.length > 50) {
+      score -= (fields.length - 50) * 0.5;
+    }
+
+    // 复杂字段类型影响评分
+    const complexFields = fields.filter(f => 
+      f.dataType === FieldDataType.JSON || f.dataType === FieldDataType.TEXT
+    );
+    score -= complexFields.length * 2;
+
+    // 索引字段数量影响评分
+    const indexFields = fields.filter(f => f.unique || f.required);
+    if (indexFields.length > 10) {
+      score -= (indexFields.length - 10) * 1.5;
+    }
+
+    return Math.max(0, Math.min(100, Math.round(score)));
+  }
+
+  /**
    * 获取字段验证规则说明
    */
   getValidationRules(): any {
@@ -587,6 +697,12 @@ export class EntityFieldValidatorService {
       constraints: {
         maxFieldsPerEntity: 100,
         maxUniqueFields: 5,
+      },
+      performance: {
+        maxRecommendedFields: 50,
+        maxRecommendedIndexes: 10,
+        maxRecommendedTextFields: 3,
+        maxRecommendedJsonFields: 2,
       },
     };
   }
