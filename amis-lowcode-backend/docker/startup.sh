@@ -5,6 +5,12 @@
 
 set -e
 
+# Ensure correct permissions for node_modules
+if [ -d "node_modules" ]; then
+    echo "🔐 Ensuring correct permissions for node_modules..."
+    sudo chown -R node:node node_modules
+fi
+
 echo "🚀 Starting Amis Low-code Backend..."
 
 # Environment variables with defaults

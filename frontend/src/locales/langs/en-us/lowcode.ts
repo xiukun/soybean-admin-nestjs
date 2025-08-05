@@ -476,28 +476,59 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     },
     // Cascade actions
     cascadeActions: {
-      restrict: 'Restrict',
-      cascade: 'Cascade',
-      setNull: 'Set Null',
-      noAction: 'No Action'
+      RESTRICT: 'Restrict',
+      CASCADE: 'Cascade',
+      SET_NULL: 'Set Null',
+      NO_ACTION: 'No Action'
     },
     // Relationship types
-    relationTypes: {
-      oneToOne: 'One to One',
-      oneToMany: 'One to Many',
-      manyToOne: 'Many to One',
-      manyToMany: 'Many to Many'
+    relationshipTypes: {
+      ONE_TO_ONE: 'One to One',
+      ONE_TO_MANY: 'One to Many',
+      MANY_TO_ONE: 'Many to One',
+      MANY_TO_MANY: 'Many to Many'
+    },
+    status: {
+      ACTIVE: 'Active',
+      INACTIVE: 'Inactive'
     },
     // Form related
     form: {
       name: {
-        placeholder: 'Please enter relationship name'
+        placeholder: 'Please enter relationship name',
+        required: 'Please enter relationship name'
+      },
+      code: {
+        placeholder: 'Please enter relationship code',
+        required: 'Please enter relationship code'
+      },
+      sourceEntity: {
+        placeholder: 'Please select source entity',
+        required: 'Please select source entity'
+      },
+      targetEntity: {
+        placeholder: 'Please select target entity',
+        required: 'Please select target entity'
       },
       relationType: {
-        placeholder: 'Please select relationship type'
+        placeholder: 'Please select relationship type',
+        required: 'Please select relationship type'
+      },
+      relationshipName: {
+        placeholder: 'Please enter relationship name',
+        required: 'Please enter relationship name'
       },
       description: {
-        placeholder: 'Please enter description'
+        placeholder: 'Please enter relationship description'
+      },
+      foreignKeyField: {
+        placeholder: 'Please enter foreign key field name'
+      },
+      onDelete: {
+        placeholder: 'Please select on delete action'
+      },
+      onUpdate: {
+        placeholder: 'Please select on update action'
       }
     },
     // Property panel
@@ -556,27 +587,13 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       dashed: 'Dashed',
       dotted: 'Dotted'
     },
-    relationshipTypes: {
-      ONE_TO_ONE: 'One to One',
-      ONE_TO_MANY: 'One to Many',
-      MANY_TO_ONE: 'Many to One',
-      MANY_TO_MANY: 'Many to Many'
-    },
-    relationTypes: {
-      oneToOne: 'One to One',
-      oneToMany: 'One to Many',
-      manyToOne: 'Many to One',
-      manyToMany: 'Many to Many'
-    },
-    cascadeActions: {
-      RESTRICT: 'Restrict',
-      CASCADE: 'Cascade',
-      SET_NULL: 'Set Null',
-      NO_ACTION: 'No Action'
-    },
-    status: {
-      ACTIVE: 'Active',
-      INACTIVE: 'Inactive'
+    // Validation messages
+    validation: {
+      nameRequired: 'Please enter relationship name',
+      codeRequired: 'Please enter relationship code',
+      sourceEntityRequired: 'Please select source entity',
+      targetEntityRequired: 'Please select target entity',
+      relationshipTypeRequired: 'Please select relationship type'
     },
     form: {
       name: {
