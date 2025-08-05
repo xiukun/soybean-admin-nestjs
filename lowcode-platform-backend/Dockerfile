@@ -51,14 +51,8 @@ RUN --mount=type=bind,source=package.json,target=package.json \
 # Copy the rest of the source files into the image.
 COPY . .
 
-# Run the build script.
-# RUN pnpm prisma:generate && pnpm build
-
-# Copy pre-generated Prisma client
-COPY node_modules/.prisma ./node_modules/.prisma
-
-# Build the application (Prisma client should be pre-generated)
-RUN pnpm build
+# Generate Prisma client and build the application
+RUN pnpm prisma:generate && pnpm build
 
 ################################################################################
 # Create a new stage to run the application with minimal runtime dependencies
