@@ -34,6 +34,11 @@ export class QueryOrganizationDto {
   @IsString()
   parentId?: string;
 
+  @ApiPropertyOptional({ description: '租户ID过滤', example: 'cmdy37z6o0000kx22oxaeb51n' })
+  @IsOptional()
+  @IsString()
+  tenantId?: string;
+
   @ApiPropertyOptional({ 
     description: '状态过滤', 
     enum: Status 

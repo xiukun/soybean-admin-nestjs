@@ -18,6 +18,11 @@ export class CreateOrganizationDto {
   @IsOptional()
   parentId?: string;
 
+  @ApiPropertyOptional({ description: '租户ID' })
+  @IsString()
+  @IsOptional()
+  tenantId?: string;
+
   @ApiPropertyOptional({ description: '状态', enum: Status, default: Status.ENABLED })
   @IsEnum(Status)
   @IsOptional()

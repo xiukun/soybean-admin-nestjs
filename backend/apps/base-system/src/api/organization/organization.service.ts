@@ -13,7 +13,7 @@ export class OrganizationService {
    * 创建组织
    */
   async create(createOrganizationDto: CreateOrganizationDto) {
-    const { name, description, status } = createOrganizationDto;
+    const { name, description, status, tenantId } = createOrganizationDto;
     let { parentId } = createOrganizationDto;
 
     // 如果没有指定父组织，设置为根组织
@@ -32,14 +32,22 @@ export class OrganizationService {
       if (parentOrg.status !== Status.ENABLED) {
         throw new BadRequestException('父组织状态不可用');
       }
+      // 检查父组织是否属于同一租户
+      if (tenantId && parentOrg.tenantId !== tenantId) {
+        throw new BadRequestException('父组织必须属于同一租户');
+      }
     }
 
-    // 检查组织名称是否唯一
+    // 检查组织名称在租户内是否唯一
+    const whereCondition: any = { name };
+    if (tenantId) {
+      whereCondition.tenantId = tenantId;
+    }
     const existingOrg = await this.prisma.sysOrganization.findFirst({
-      where: { name },
+      where: whereCondition,
     });
     if (existingOrg) {
-      throw new ConflictException('组织名称已存在');
+      throw new ConflictException('组织名称在当前租户内已存在');
     }
 
     // 生成组织代码
@@ -52,6 +60,7 @@ export class OrganizationService {
         name,
         description,
         pid: parentId,
+        tenantId,
         status: status || Status.ENABLED,
         createdBy: 'system', // TODO: 从当前用户上下文获取
       },
@@ -62,7 +71,7 @@ export class OrganizationService {
    * 查询组织列表（分页）
    */
   async findAll(queryDto: QueryOrganizationDto) {
-    const { page = 1, limit = 10, name, parentId, status } = queryDto;
+    const { page = 1, limit = 10, name, parentId, status, tenantId } = queryDto;
     const skip = (page - 1) * limit;
 
     const where: any = {};
@@ -74,6 +83,9 @@ export class OrganizationService {
     }
     if (status) {
       where.status = status;
+    }
+    if (tenantId) {
+      where.tenantId = tenantId;
     }
 
     const [organizations, total] = await Promise.all([
@@ -116,7 +128,7 @@ export class OrganizationService {
   async update(id: string, updateOrganizationDto: UpdateOrganizationDto) {
     const organization = await this.findOne(id);
 
-    const { name, description, status } = updateOrganizationDto;
+    const { name, description, status, tenantId } = updateOrganizationDto;
     let { parentId } = updateOrganizationDto;
 
     // 如果更新父组织，检查父组织是否存在且不会形成循环引用
@@ -129,6 +141,12 @@ export class OrganizationService {
           throw new NotFoundException('父组织不存在');
         }
         
+        // 检查父组织是否属于同一租户
+        const currentTenantId = tenantId || (organization as any).tenantId;
+        if (currentTenantId && (parentOrg as any).tenantId !== currentTenantId) {
+          throw new BadRequestException('父组织必须属于同一租户');
+        }
+        
         // 检查是否会形成循环引用
         if (await this.wouldCreateCycle(id, parentId)) {
           throw new BadRequestException('不能将组织设置为其子组织的父组织');
@@ -138,16 +156,21 @@ export class OrganizationService {
       }
     }
 
-    // 如果更新名称，检查名称是否唯一
+    // 如果更新名称，检查名称在租户内是否唯一
     if (name && name !== organization.name) {
+      const currentTenantId = tenantId || (organization as any).tenantId;
+      const whereCondition: any = {
+        name,
+        id: { not: id },
+      };
+      if (currentTenantId) {
+        whereCondition.tenantId = currentTenantId;
+      }
       const existingOrg = await this.prisma.sysOrganization.findFirst({
-        where: {
-          name,
-          id: { not: id },
-        },
+        where: whereCondition,
       });
       if (existingOrg) {
-        throw new ConflictException('组织名称已存在');
+        throw new ConflictException('组织名称在当前租户内已存在');
       }
     }
 
@@ -157,6 +180,7 @@ export class OrganizationService {
         ...(name && { name }),
         ...(description !== undefined && { description }),
         ...(parentId !== undefined && { pid: parentId }),
+        ...(tenantId !== undefined && { tenantId }),
         ...(status && { status }),
         updatedBy: 'system', // TODO: 从当前用户上下文获取
       },
@@ -184,9 +208,16 @@ export class OrganizationService {
 
   /**
    * 查询组织树
+   * @param tenantId - 可选的租户ID，用于过滤特定租户的组织架构
    */
-  async findTree() {
+  async findTree(tenantId?: string) {
+    const where: any = {};
+    if (tenantId) {
+      where.tenantId = tenantId;
+    }
+
     const organizations = await this.prisma.sysOrganization.findMany({
+      where,
       orderBy: [{ createdAt: 'desc' }],
     });
 

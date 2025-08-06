@@ -22,8 +22,12 @@ import { GlobalCqrsModule } from '@lib/global/global.module';
 import { SharedModule } from '@lib/global/shared.module';
 import { AuthZModule, AUTHZ_ENFORCER, PrismaAdapter } from '@lib/infra/casbin';
 import { AllExceptionsFilter } from '@lib/infra/filters/all-exceptions.filter';
+import { CryptoModule } from '@lib/infra/crypto/crypto.module';
 import { ApiKeyModule } from '@lib/infra/guard/api-key/api-key.module';
 import { JwtAuthGuard } from '@lib/infra/guard/jwt.auth.guard';
+import { TenantGuard } from '@lib/infra/guard/tenant.guard';
+import { Reflector } from '@nestjs/core';
+import { TenantContextService } from '@lib/shared/services/tenant-context.service';
 import { JwtStrategy } from '@lib/infra/strategies/jwt.passport-strategy';
 import { LoggerModule } from '@lib/logger';
 import { IAuthentication } from '@lib/typings/global';
@@ -154,6 +158,7 @@ class ThrottlerStorageAdapter implements ThrottlerStorage {
 
     SharedModule,
 
+    CryptoModule.register(),
     ApiKeyModule,
     BootstrapModule,
   ],
@@ -171,6 +176,15 @@ class ThrottlerStorageAdapter implements ThrottlerStorage {
     // { provide: APP_INTERCEPTOR, useClass: LogInterceptor },
 
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    {
+      provide: APP_GUARD,
+      useFactory: (reflector: Reflector, tenantContextService?: TenantContextService) => {
+        console.log('=== TenantGuard FACTORY - reflector:', reflector);
+        console.log('=== TenantGuard FACTORY - tenantContextService:', tenantContextService);
+        return new TenantGuard(reflector, tenantContextService);
+      },
+      inject: [Reflector, TenantContextService],
+    },
     // { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })

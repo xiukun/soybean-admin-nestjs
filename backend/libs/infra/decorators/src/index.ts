@@ -4,3 +4,4 @@ export * from './api-result.decorator';
 export * from './bypass-transform.decorator';
 export * from './log.decorator';
 export * from './public.decorator';
+export * from './tenant.decorator';

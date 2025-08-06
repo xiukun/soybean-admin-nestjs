@@ -1,0 +1,45 @@
+### 测试多租户功能 - 通过请求头传递租户ID
+POST http://127.0.0.1:9528/v1/organization/tenant-test
+Content-Type: application/json
+X-Tenant-ID: tenant-001
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzMzNDI0MDAwLCJleHAiOjE3MzM1MTA0MDB9.test
+
+{
+  "message": "Hello from tenant 001"
+}
+
+### 测试多租户功能 - 通过查询参数传递租户ID
+POST http://127.0.0.1:9528/v1/organization/tenant-test?tenantId=tenant-002
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzMzNDI0MDAwLCJleHAiOjE3MzM1MTA0MDB9.test
+
+{
+  "message": "Hello from tenant 002"
+}
+
+### 测试多租户功能 - 缺少租户ID（应该返回错误）
+POST http://127.0.0.1:9528/v1/organization/tenant-test
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzMzNDI0MDAwLCJleHAiOjE3MzM1MTA0MDB9.test
+
+{
+  "message": "Hello without tenant"
+}
+
+### 测试组织创建 - 多租户支持
+POST http://127.0.0.1:9528/v1/organization
+Content-Type: application/json
+X-Tenant-ID: tenant-001
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzMzNDI0MDAwLCJleHAiOjE3MzM1MTA0MDB9.test
+
+{
+  "name": "测试组织",
+  "code": "TEST_ORG_001",
+  "description": "这是一个测试组织",
+  "status": "ACTIVE"
+}
+
+### 测试组织查询 - 多租户支持
+GET http://127.0.0.1:9528/v1/organization
+X-Tenant-ID: tenant-001
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzMzNDI0MDAwLCJleHAiOjE3MzM1MTA0MDB9.test

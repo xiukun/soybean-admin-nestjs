@@ -49,6 +49,7 @@ SQL_FILES=(
     "12_lowcode_queries_init.sql"
     "13_prisma_templates_update.sql"
     "14_code_generation_menus.sql"
+    "22_multi_tenant_init_data.sql"
 )
 
 # 执行SQL文件

@@ -65,6 +65,7 @@ set SQL_FILES[6]=19_update_project_deployment_data.sql:更新项目部署数据
 set SQL_FILES[7]=16_lowcode_platform_pages.sql:创建低代码页面配置
 set SQL_FILES[8]=14_code_generation_menus.sql:创建低代码平台菜单
 set SQL_FILES[9]=20_deployment_verification.sql:验证部署功能
+set SQL_FILES[10]=22_multi_tenant_init_data.sql:初始化多租户基础数据
 
 set FAILED_COUNT=0
 

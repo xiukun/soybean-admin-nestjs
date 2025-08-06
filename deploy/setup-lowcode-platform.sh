@@ -96,15 +96,16 @@ main_installation() {
     # SQL 文件执行顺序
     declare -a sql_files=(
         "00_init_schemas.sql:初始化数据库 Schema"
-        "01_create_table.sql:创建基础表结构"
-        "04_sys_menu.sql:创建基础菜单数据"
-        "10_lowcode_platform_tables.sql:创建低代码平台表结构"
-        "17_prisma_schema_updates.sql:更新数据库结构（确保兼容性）"
-        "18_project_deployment_features.sql:添加项目部署功能"
-        "19_update_project_deployment_data.sql:更新项目部署数据"
-        "16_lowcode_platform_pages.sql:创建低代码页面配置"
-        "14_code_generation_menus.sql:创建低代码平台菜单"
-        "20_deployment_verification.sql:验证部署功能"
+    "01_create_table.sql:创建基础表结构"
+    "04_sys_menu.sql:创建基础菜单数据"
+    "10_lowcode_platform_tables.sql:创建低代码平台表结构"
+    "17_prisma_schema_updates.sql:更新数据库结构（确保兼容性）"
+    "18_project_deployment_features.sql:添加项目部署功能"
+    "19_update_project_deployment_data.sql:更新项目部署数据"
+    "16_lowcode_platform_pages.sql:创建低代码页面配置"
+    "14_code_generation_menus.sql:创建低代码平台菜单"
+    "20_deployment_verification.sql:验证部署功能"
+    "22_multi_tenant_init_data.sql:初始化多租户基础数据"
     )
     
     # 执行 SQL 文件

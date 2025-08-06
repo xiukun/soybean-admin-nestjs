@@ -4,6 +4,7 @@ import {
   Injectable,
   NestInterceptor,
   RequestTimeoutException,
+  Inject,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { FastifyReply } from 'fastify';

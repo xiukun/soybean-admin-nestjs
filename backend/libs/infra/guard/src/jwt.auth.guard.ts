@@ -2,6 +2,7 @@ import {
   ExecutionContext,
   Injectable,
   UnauthorizedException,
+  Inject,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
@@ -18,6 +19,11 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
+    console.log('JwtAuthGuard.canActivate - reflector:', this.reflector);
+    if (!this.reflector) {
+      console.error('JwtAuthGuard: Reflector is undefined!');
+      throw new Error('JwtAuthGuard: Reflector is undefined!');
+    }
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),

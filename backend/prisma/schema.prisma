@@ -129,12 +129,15 @@ model SysOrganization {
   name        String
   description String?
   pid         String    @default("0")
+  tenantId    String?   @map("tenant_id")
   status      Status
   createdAt   DateTime  @default(now()) @map("created_at")
   createdBy   String    @map("created_by")
   updatedAt   DateTime? @updatedAt @map("updated_at")
   updatedBy   String?   @map("updated_by")
+  tenant      Tenant?   @relation(fields: [tenantId], references: [id])
 
+  @@unique([tenantId, code])
   @@map("sys_organization")
   @@schema("backend")
 }
@@ -303,19 +306,20 @@ model Enterprise {
 }
 
 model Tenant {
-  id           String      @id @default(cuid())
-  name         String
-  description  String?
-  status       Status      @default(ENABLED)
-  enterpriseId String      @map("enterprise_id")
-  planId       String?     @map("plan_id")
-  createdAt    DateTime    @default(now()) @map("created_at")
-  updatedAt    DateTime    @updatedAt @map("updated_at")
-  appSpaces    AppSpace[]
-  users        SysUser[]
-  enterprise   Enterprise  @relation(fields: [enterpriseId], references: [id])
-  plan         Plan?       @relation(fields: [planId], references: [id])
-  userGroups   UserGroup[]
+  id            String            @id @default(cuid())
+  name          String
+  description   String?
+  status        Status            @default(ENABLED)
+  enterpriseId  String            @map("enterprise_id")
+  planId        String?           @map("plan_id")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+  appSpaces     AppSpace[]
+  users         SysUser[]
+  organizations SysOrganization[]
+  enterprise    Enterprise        @relation(fields: [enterpriseId], references: [id])
+  plan          Plan?             @relation(fields: [planId], references: [id])
+  userGroups    UserGroup[]
 
   @@unique([enterpriseId, name])
   @@map("tenant")

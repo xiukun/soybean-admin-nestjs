@@ -42,6 +42,7 @@ CREATE TABLE backend.sys_user (
     "created_by" TEXT NOT NULL,
     "updated_at" TIMESTAMP(3),
     "updated_by" TEXT,
+    "tenant_id" TEXT,
 
     CONSTRAINT "sys_user_pkey" PRIMARY KEY ("id")
 );
@@ -121,6 +122,7 @@ CREATE TABLE backend.sys_organization (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "pid" TEXT NOT NULL DEFAULT '0',
+    "tenant_id" TEXT,
     "status" backend."Status" NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by" TEXT NOT NULL,
@@ -294,3 +296,103 @@ ALTER TABLE "sys_menu" ADD CONSTRAINT "sys_menu_lowcode_page_id_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "sys_lowcode_page_version" ADD CONSTRAINT "sys_lowcode_page_version_page_id_fkey" FOREIGN KEY ("page_id") REFERENCES backend.sys_lowcode_page("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- CreateTable - Multi-tenant tables
+CREATE TABLE backend.enterprise (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "status" backend."Status" NOT NULL DEFAULT 'ENABLED',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "enterprise_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE backend.tenant (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "status" backend."Status" NOT NULL DEFAULT 'ENABLED',
+    "enterprise_id" TEXT NOT NULL,
+    "plan_id" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "tenant_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE backend.app_space (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "tenant_id" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "app_space_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE backend.user_group (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "tenant_id" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "user_group_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE backend.plan (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "max_users" INTEGER NOT NULL,
+    "max_app_spaces" INTEGER NOT NULL,
+    "price_per_month" DOUBLE PRECISION NOT NULL,
+    "price_per_year" DOUBLE PRECISION NOT NULL,
+    "features" JSONB NOT NULL,
+    "status" backend."Status" NOT NULL DEFAULT 'ENABLED',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "plan_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "enterprise_name_key" ON "enterprise"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "tenant_enterprise_id_name_key" ON "tenant"("enterprise_id", "name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "app_space_tenant_id_name_key" ON "app_space"("tenant_id", "name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_group_tenant_id_name_key" ON "user_group"("tenant_id", "name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "plan_name_key" ON "plan"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "sys_organization_tenant_id_code_key" ON "sys_organization"("tenant_id", "code");
+
+-- AddForeignKey
+ALTER TABLE "sys_organization" ADD CONSTRAINT "sys_organization_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES backend.tenant("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "tenant" ADD CONSTRAINT "tenant_enterprise_id_fkey" FOREIGN KEY ("enterprise_id") REFERENCES backend.enterprise("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "tenant" ADD CONSTRAINT "tenant_plan_id_fkey" FOREIGN KEY ("plan_id") REFERENCES backend.plan("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "app_space" ADD CONSTRAINT "app_space_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES backend.tenant("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_group" ADD CONSTRAINT "user_group_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES backend.tenant("id") ON DELETE RESTRICT ON UPDATE CASCADE;

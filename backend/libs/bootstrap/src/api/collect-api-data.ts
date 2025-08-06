@@ -5,6 +5,7 @@ import {
   Logger,
   OnModuleInit,
   RequestMethod,
+  Inject,
 } from '@nestjs/common';
 import { ModulesContainer, Reflector } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';

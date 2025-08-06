@@ -15,11 +15,12 @@ import { OrganizationService } from './organization.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { QueryOrganizationDto } from './dto/query-organization.dto';
-import { Public } from '../../../../../libs/infra/decorators/src/public.decorator';
+import { TenantTestDto } from './dto/tenant-test.dto';
+import { CurrentTenant, TenantRequired } from '@lib/infra/decorators/tenant.decorator';
 
 @ApiTags('组织管理')
 @Controller('organization')
-@Public()
+@TenantRequired()
 export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) {}
 
@@ -31,8 +32,8 @@ export class OrganizationController {
   @ApiResponse({ status: 201, description: '创建成功' })
   @ApiResponse({ status: 400, description: '请求参数错误' })
   @ApiResponse({ status: 409, description: '组织名称已存在' })
-  create(@Body() createOrganizationDto: CreateOrganizationDto) {
-    return this.organizationService.create(createOrganizationDto);
+  create(@Body() createOrganizationDto: CreateOrganizationDto, @CurrentTenant() tenantId: string) {
+    return this.organizationService.create({ ...createOrganizationDto, tenantId });
   }
 
   /**
@@ -41,8 +42,8 @@ export class OrganizationController {
   @Get()
   @ApiOperation({ summary: '查询组织列表' })
   @ApiResponse({ status: 200, description: '查询成功' })
-  findAll(@Query() queryDto: QueryOrganizationDto) {
-    return this.organizationService.findAll(queryDto);
+  findAll(@Query() queryDto: QueryOrganizationDto, @CurrentTenant() tenantId: string) {
+    return this.organizationService.findAll({ ...queryDto, tenantId });
   }
 
   /**
@@ -51,8 +52,8 @@ export class OrganizationController {
   @Get('tree')
   @ApiOperation({ summary: '查询组织树' })
   @ApiResponse({ status: 200, description: '查询成功' })
-  findTree() {
-    return this.organizationService.findTree();
+  findTree(@CurrentTenant() tenantId: string) {
+    return this.organizationService.findTree(tenantId);
   }
 
   /**
@@ -77,8 +78,8 @@ export class OrganizationController {
   @ApiResponse({ status: 400, description: '请求参数错误' })
   @ApiResponse({ status: 404, description: '组织不存在' })
   @ApiResponse({ status: 409, description: '组织名称已存在' })
-  update(@Param('id') id: string, @Body() updateOrganizationDto: UpdateOrganizationDto) {
-    return this.organizationService.update(id, updateOrganizationDto);
+  update(@Param('id') id: string, @Body() updateOrganizationDto: UpdateOrganizationDto, @CurrentTenant() tenantId: string) {
+    return this.organizationService.update(id, { ...updateOrganizationDto, tenantId });
   }
 
   /**
@@ -120,5 +121,19 @@ export class OrganizationController {
   @ApiResponse({ status: 404, description: '组织不存在' })
   suspend(@Param('id') id: string) {
     return this.organizationService.suspend(id);
+  }
+
+  /**
+   * 测试多租户功能
+   */
+  @Post('tenant-test')
+  @ApiOperation({ summary: '测试多租户功能' })
+  @ApiResponse({ status: 200, description: '测试成功' })
+  tenantTest(@Body() tenantTestDto: TenantTestDto, @CurrentTenant() tenantId: string) {
+    return {
+      message: `租户 ${tenantId} 收到消息: ${tenantTestDto.message}`,
+      tenantId,
+      timestamp: new Date().toISOString(),
+    };
   }
 }

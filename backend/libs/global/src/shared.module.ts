@@ -3,6 +3,7 @@ import fs from 'fs';
 import { HttpModule } from '@nestjs/axios';
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { Reflector } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import * as yaml from 'js-yaml';
@@ -11,6 +12,7 @@ import { CacheManagerModule } from '@lib/global/cache-manager.module';
 import { Ip2regionModule } from '@lib/shared/ip2region/ip2region.module';
 import { OssModule } from '@lib/shared/oss/oss.module';
 import { PrismaModule } from '@lib/shared/prisma/prisma.module';
+import { TenantContextService } from '@lib/shared/services/tenant-context.service';
 import { getConfigPath } from '@lib/utils/env';
 
 @Global()
@@ -48,6 +50,7 @@ import { getConfigPath } from '@lib/utils/env';
     PrismaModule,
     CacheManagerModule,
   ],
-  exports: [HttpModule, PrismaModule, CacheManagerModule],
+  providers: [TenantContextService, Reflector],
+  exports: [HttpModule, PrismaModule, CacheManagerModule, TenantContextService, Reflector],
 })
 export class SharedModule {}

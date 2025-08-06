@@ -19,8 +19,10 @@ deploy/
     ├── 08_casbin_rule.sql           # Casbin权限规则数据
     ├── 09_lowcode_pages.sql         # 低代码页面表数据
     ├── 10_lowcode_platform_tables.sql  # 低代码平台表结构
-    ├── 11_lowcode_platform_data.sql    # 低代码平台初始数据
-    └── 12_lowcode_queries_init.sql     # 查询管理初始化脚本
+├── 11_lowcode_platform_data.sql    # 低代码平台初始数据
+├── 12_lowcode_queries_init.sql     # 查询管理初始化脚本
+├── 22_multi_tenant_init_data.sql   # 多租户基础数据初始化
+└── ... (其他更新文件)
 ```
 
 ## 执行顺序
