@@ -182,18 +182,22 @@
       </div>
     </div>
 
-    <!-- Property Panel -->
-    <div v-if="selectedEntity" class="property-panel">
-      <EntityPropertyPanel
-        :entity="selectedEntity"
-        @update="handleEntityUpdate"
-        @close="handleClosePropertyPanel"
-        @fields-update="handleFieldsUpdate"
-        @field-add="handleFieldAdd"
-        @field-update="handleFieldUpdate"
-        @field-delete="handleFieldDelete"
-      />
-    </div>
+    <!-- Property Panel - 使用 Teleport 传送到 body -->
+    <Teleport to="body">
+      <div v-if="selectedEntity" class="property-panel-overlay">
+        <div class="property-panel-container">
+          <EntityPropertyPanel
+            :entity="selectedEntity"
+            @update="handleEntityUpdate"
+            @close="handleClosePropertyPanel"
+            @fields-update="handleFieldsUpdate"
+            @field-add="handleFieldAdd"
+            @field-update="handleFieldUpdate"
+            @field-delete="handleFieldDelete"
+          />
+        </div>
+      </div>
+    </Teleport>
     
     <!-- 创建关系弹窗 -->
     <CreateRelationshipModal
@@ -208,7 +212,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, watch, onUnmounted } from 'vue';
+import { ref, computed, onMounted, nextTick, watch, onUnmounted, Teleport } from 'vue';
 import { Graph, Node, Edge } from '@antv/x6';
 import { NButton, NSpace, NText, NSpin, NIcon, NButtonGroup, NDivider, NCheckbox, useMessage } from 'naive-ui';
 import EntityPropertyPanel from './EntityPropertyPanel.vue';
@@ -974,7 +978,12 @@ onUnmounted(() => {
   @apply flex flex-col items-center text-center;
 }
 
-.property-panel {
-  @apply absolute top-0 right-0 w-80 h-full bg-white border-l border-gray-200 shadow-lg z-20;
+/* 属性面板覆盖层样式 */
+.property-panel-overlay {
+  @apply fixed inset-0 z-[1000] pointer-events-none;
+}
+
+.property-panel-container {
+  @apply absolute top-0 right-0 w-80 h-full bg-white border-l border-gray-200 shadow-lg pointer-events-auto;
 }
 </style>
