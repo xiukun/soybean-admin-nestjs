@@ -188,6 +188,10 @@
         :entity="selectedEntity"
         @update="handleEntityUpdate"
         @close="handleClosePropertyPanel"
+        @fields-update="handleFieldsUpdate"
+        @field-add="handleFieldAdd"
+        @field-update="handleFieldUpdate"
+        @field-delete="handleFieldDelete"
       />
     </div>
     
@@ -775,6 +779,29 @@ function handleClosePropertyPanel() {
   selectedRelationship.value = null;
   emit('entity-select', null);
   emit('relationship-select', null);
+}
+
+/**
+ * 字段管理事件处理函数
+ */
+function handleFieldsUpdate(fields: any[]) {
+  // 字段列表更新，可以在这里处理相关逻辑
+  console.log('Fields updated:', fields);
+}
+
+function handleFieldAdd(field: any) {
+  // 字段添加，可以在这里处理相关逻辑
+  console.log('Field added:', field);
+}
+
+function handleFieldUpdate(field: any, index: number) {
+  // 字段更新，可以在这里处理相关逻辑
+  console.log('Field updated:', field, 'at index:', index);
+}
+
+function handleFieldDelete(index: number) {
+  // 字段删除，可以在这里处理相关逻辑
+  console.log('Field deleted at index:', index);
 }
 
 /**

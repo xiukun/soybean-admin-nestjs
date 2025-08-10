@@ -713,6 +713,11 @@ async function initGraph() {
         modifiers: ['ctrl', 'meta'],
         minScale: 0.5,
         maxScale: 3,
+        factor: 1.1,
+      },
+      panning: {
+        enabled: true,
+        eventTypes: ['leftMouseDown', 'mouseWheel'],
       },
       interacting: {
         nodeMovable: true,
@@ -729,7 +734,7 @@ async function initGraph() {
       },
       history: {
         enabled: true,
-        beforeAddCommand(event, args) {
+        beforeAddCommand(event: any, args: any) {
           if (args.key === 'tools') return false;
           return true;
         },
@@ -753,10 +758,7 @@ async function initGraph() {
         autoResize: true,
       },
       translating: {
-        restrict: isSnapToGridEnabled.value ? {
-          grid: true,
-          gridSize: 10,
-        } : false,
+        restrict: isSnapToGridEnabled.value,
       },
     });
 
@@ -789,7 +791,7 @@ async function registerPlugins() {
     
     try {
       const minimapModule = await import('@antv/x6-plugin-minimap');
-      Minimap = minimapModule.Minimap;
+      Minimap = minimapModule.MiniMap;
     } catch (error) {
       console.error('小地图插件加载失败:', error);
       message.warning('小地图功能不可用');
@@ -841,7 +843,7 @@ async function registerPlugins() {
             padding: 10,
             graphOptions: {
               async: true,
-              getCellView(cell) {
+              getCellView(cell: any) {
                 if (cell.isNode()) {
                   return graph?.findViewByCell(cell);
                 }
@@ -2627,5 +2629,23 @@ const handleResize = debounce(() => {
 
 .property-panel-content {
   touch-action: pan-y;
+}
+
+/* 修复X6图形容器的触摸事件问题 */
+:deep(.x6-graph) {
+  touch-action: none;
+}
+
+:deep(.x6-graph-svg) {
+  touch-action: none;
+}
+
+/* 为X6图形元素添加被动事件监听器支持 */
+:deep(.x6-graph-svg-viewport) {
+  touch-action: none;
+}
+
+:deep(.x6-graph-svg-stage) {
+  touch-action: none;
 }
 </style>

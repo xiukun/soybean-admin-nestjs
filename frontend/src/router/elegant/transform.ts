@@ -183,6 +183,7 @@ const routeMap: RouteMap = {
   "lowcode_code-generator": "/lowcode/code-generator",
   "lowcode_dashboard": "/lowcode/dashboard",
   "lowcode_entity": "/lowcode/entity",
+  "lowcode_entity_designer": "/lowcode/entity/designer",
   "lowcode_field": "/lowcode/field",
   "lowcode_project": "/lowcode/project",
   "lowcode_query": "/lowcode/query",

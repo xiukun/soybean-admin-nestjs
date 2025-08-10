@@ -413,10 +413,10 @@ function saveField() {
 <style scoped>
 .property-panel {
   position: fixed;
-  top: 60px;
+  top: 80px;
   right: -400px;
   width: 380px;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 80px);
   background: white;
   border-left: 1px solid #e8e8e8;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);

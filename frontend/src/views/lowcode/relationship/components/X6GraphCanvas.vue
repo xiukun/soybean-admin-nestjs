@@ -25,39 +25,46 @@
     ></div>
 
     <!-- 小地图容器 -->
-    <div 
-      ref="minimapRef" 
-      class="minimap-container"
-      v-show="showMinimap"
-    >
-      <div class="minimap-header">
-        <span class="minimap-title">导航</span>
+    <Transition name="minimap-slide">
+      <div 
+        ref="minimapRef" 
+        class="minimap-container"
+        v-show="showMinimap"
+      >
+        <div class="minimap-header">
+          <span class="minimap-title">导航</span>
+          <n-button 
+            size="tiny" 
+            quaternary 
+            @click="toggleMinimap"
+            class="minimap-toggle"
+            title="隐藏导航地图"
+          >
+            <template #icon>
+              <n-icon><icon-mdi-chevron-left /></n-icon>
+            </template>
+          </n-button>
+        </div>
+        <div ref="minimapContentRef" class="minimap-content"></div>
+      </div>
+    </Transition>
+
+    <!-- 小地图切换按钮 -->
+    <Transition name="toggle-btn-fade">
+      <div class="minimap-toggle-btn" v-show="!showMinimap">
         <n-button 
-          size="tiny" 
-          quaternary 
+          size="small" 
           @click="toggleMinimap"
-          class="minimap-toggle"
+          title="显示导航地图"
+          type="primary"
+          ghost
         >
           <template #icon>
-            <n-icon><icon-mdi-close /></n-icon>
+            <n-icon><icon-mdi-map /></n-icon>
           </template>
         </n-button>
       </div>
-      <div ref="minimapContentRef" class="minimap-content"></div>
-    </div>
-
-    <!-- 小地图切换按钮 -->
-    <div class="minimap-toggle-btn" v-show="!showMinimap">
-      <n-button 
-        size="small" 
-        @click="toggleMinimap"
-        title="显示导航地图"
-      >
-        <template #icon>
-          <n-icon><icon-mdi-map /></n-icon>
-        </template>
-      </n-button>
-    </div>
+    </Transition>
   </div>
 </template>
 
@@ -66,12 +73,13 @@ import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { Graph, Shape, Node, Edge, Cell } from '@antv/x6';
 import { Scroller } from '@antv/x6-plugin-scroller';
 import { MiniMap } from '@antv/x6-plugin-minimap';
+import { Selection } from '@antv/x6-plugin-selection';
 import { useI18n } from 'vue-i18n';
 import { NAlert, NButton, NIcon } from 'naive-ui';
 import { X6ConnectionManager } from '../modules/X6ConnectionManager';
 
 // 图标导入
-import IconMdiClose from '~icons/mdi/close';
+import IconMdiChevronLeft from '~icons/mdi/chevron-left';
 import IconMdiMap from '~icons/mdi/map';
 
 /**
@@ -316,9 +324,8 @@ async function initGraph() {
         vertexMovable: false,
         vertexAddable: false,
         vertexDeletable: false
-      },
-      keyboard: true,
-      clipboard: true,
+      }
+      // keyboard and clipboard configurations removed due to compatibility issues
     });
 
     // 添加滚动插件
@@ -330,6 +337,15 @@ async function initGraph() {
         pageVisible: false,
         pageBreak: false,
         autoResize: true,
+      })
+    );
+
+    // 添加选择插件
+    graph.use(
+      new Selection({
+        enabled: true,
+        showNodeSelectionBox: true,
+        showEdgeSelectionBox: true,
       })
     );
 
@@ -384,10 +400,15 @@ function bindGraphEvents() {
     emit('selection-cleared');
   });
 
-  // 节点点击事件（连线模式）
+  // 节点点击事件
   graph.on('node:click', ({ node }) => {
-    if (props.isConnectMode) {
-      emit('node-clicked', node);
+    emit('node-clicked', node);
+    // 在非连线模式下，点击节点也应该选中节点
+    if (!props.isConnectMode && graph) {
+      // 清除当前选择
+      graph.cleanSelection();
+      // 选中当前节点
+      graph.select(node);
     }
   });
 
@@ -499,9 +520,39 @@ onUnmounted(() => {
 
 /* 小地图容器样式 */
 .minimap-container {
-  @apply absolute bottom-4 right-4 bg-white border border-gray-200 rounded-lg shadow-lg z-20;
+  @apply absolute left-4 bg-white border border-gray-200 rounded-lg shadow-lg z-20;
+  top: 120px;
   width: 220px;
   height: 200px;
+  transition: all 0.3s ease;
+}
+
+/* 小地图滑动动画 */
+.minimap-slide-enter-active,
+.minimap-slide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.minimap-slide-enter-from {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.minimap-slide-leave-to {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+/* 切换按钮淡入淡出动画 */
+.toggle-btn-fade-enter-active,
+.toggle-btn-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.toggle-btn-fade-enter-from,
+.toggle-btn-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.8);
 }
 
 .minimap-header {
@@ -523,7 +574,18 @@ onUnmounted(() => {
 
 /* 小地图切换按钮样式 */
 .minimap-toggle-btn {
-  @apply absolute bottom-4 right-4 z-20;
+  @apply absolute left-4 z-20;
+  top: 120px;
+}
+
+.minimap-toggle-btn .n-button {
+  @apply shadow-lg;
+  border-radius: 8px;
+}
+
+.minimap-toggle-btn .n-button:hover {
+  @apply shadow-xl;
+  transform: translateY(-1px);
 }
 
 /* 深色模式适配 */
@@ -548,5 +610,23 @@ onUnmounted(() => {
 :deep(.x6-widget-minimap-viewport) {
   border: 2px solid #1976d2 !important;
   background-color: rgba(25, 118, 210, 0.1) !important;
+}
+
+/* 修复X6图形容器的触摸事件问题 */
+:deep(.x6-graph) {
+  touch-action: none;
+}
+
+:deep(.x6-graph-svg) {
+  touch-action: none;
+}
+
+/* 为X6图形元素添加被动事件监听器支持 */
+:deep(.x6-graph-svg-viewport) {
+  touch-action: none;
+}
+
+:deep(.x6-graph-svg-stage) {
+  touch-action: none;
 }
 </style>

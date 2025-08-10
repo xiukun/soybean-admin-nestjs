@@ -180,10 +180,10 @@ export class DataSyncService {
           name: field.name,
           code: field.code,
           type: field.type,
-          required: field.required,
+          required: field.required || false,
           defaultValue: field.defaultValue,
           validation: field.validation,
-          config: field.config,
+          config: field.config || {},
         })),
         relationships: [
           ...entity.sourceRelations.map(rel => ({

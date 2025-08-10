@@ -156,22 +156,11 @@ import IconMdiPencil from '~icons/mdi/pencil';
 import IconMdiCodeTags from '~icons/mdi/code-tags';
 import IconMdiDelete from '~icons/mdi/delete';
 
-interface EntityRelationship {
-  id: string;
-  name: string;
-  type: 'ONE_TO_ONE' | 'ONE_TO_MANY' | 'MANY_TO_ONE' | 'MANY_TO_MANY';
-  sourceEntityId: string;
-  targetEntityId: string;
-  description?: string;
-  style?: {
-    lineColor?: string;
-    lineWidth?: number;
-    lineStyle?: 'solid' | 'dashed' | 'dotted';
-  };
-}
+import type { EntityRelationship, Entity } from '../types';
 
 interface Props {
   relationship: EntityRelationship;
+  entities?: Entity[];
 }
 
 interface Emits {
@@ -188,7 +177,7 @@ const message = useMessage();
 // 表单数据
 const formData = reactive({
   name: '',
-  type: 'ONE_TO_MANY' as 'ONE_TO_ONE' | 'ONE_TO_MANY' | 'MANY_TO_ONE' | 'MANY_TO_MANY',
+  type: 'ONE_TO_MANY' as EntityRelationship['type'],
   description: ''
 });
 
@@ -196,14 +185,13 @@ const formData = reactive({
 const styleData = reactive({
   lineColor: '#5F95FF',
   lineWidth: 2,
-  lineStyle: 'solid' as 'solid' | 'dashed' | 'dotted'
+  lineStyle: 'solid' as EntityRelationship['lineStyle']
 });
 
 // 选项配置
 const relationshipTypeOptions = [
   { label: '一对一', value: 'ONE_TO_ONE' },
   { label: '一对多', value: 'ONE_TO_MANY' },
-  { label: '多对一', value: 'MANY_TO_ONE' },
   { label: '多对多', value: 'MANY_TO_MANY' }
 ];
 
@@ -232,11 +220,9 @@ function initFormData() {
   formData.type = props.relationship.type;
   formData.description = props.relationship.description || '';
   
-  if (props.relationship.style) {
-    styleData.lineColor = props.relationship.style.lineColor || '#5F95FF';
-    styleData.lineWidth = props.relationship.style.lineWidth || 2;
-    styleData.lineStyle = props.relationship.style.lineStyle || 'solid';
-  }
+  styleData.lineColor = props.relationship.lineColor || '#5F95FF';
+  styleData.lineWidth = props.relationship.lineWidth || 2;
+  styleData.lineStyle = props.relationship.lineStyle || 'solid';
 }
 
 /**
@@ -259,12 +245,9 @@ function handleUpdate() {
 function handleStyleUpdate() {
   const updatedRelationship: EntityRelationship = {
     ...props.relationship,
-    style: {
-      ...props.relationship.style,
-      lineColor: styleData.lineColor,
-      lineWidth: styleData.lineWidth,
-      lineStyle: styleData.lineStyle
-    }
+    lineColor: styleData.lineColor,
+    lineWidth: styleData.lineWidth,
+    lineStyle: styleData.lineStyle
   };
   
   emit('update', updatedRelationship);

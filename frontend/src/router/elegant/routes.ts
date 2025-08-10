@@ -206,7 +206,18 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: 'lowcode_entity',
           i18nKey: 'route.lowcode_entity'
-        }
+        },
+        children: [
+          {
+            name: 'lowcode_entity_designer',
+            path: '/lowcode/entity/designer',
+            component: 'view.lowcode_entity_designer',
+            meta: {
+              title: 'lowcode_entity_designer',
+              i18nKey: 'route.lowcode_entity_designer'
+            }
+          }
+        ]
       },
       {
         name: 'lowcode_field',

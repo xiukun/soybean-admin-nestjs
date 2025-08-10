@@ -1,5 +1,5 @@
 <template>
-  <NModal v-model:show="visible" preset="dialog" title="字段编辑" style="width: 600px">
+  <NModal :show="visible" @update:show="emit('update:visible', $event)" preset="dialog" title="字段编辑" style="width: 600px">
     <NForm ref="formRef" :model="formData" :rules="rules" label-placement="left" label-width="100px">
       <NFormItem label="字段名称" path="name">
         <NInput v-model:value="formData.name" placeholder="请输入字段名称" />

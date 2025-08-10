@@ -1,12 +1,12 @@
 <template>
   <div class="entity-property-panel">
-    <!-- Panel Header -->
+    <!-- 面板头部 -->
     <div class="panel-header">
       <div class="header-title">
-        <NIcon class="mr-2">
+        <NIcon class="mr-2 text-blue-500">
           <icon-mdi-cog />
         </NIcon>
-        <NText class="font-medium">实体属性</NText>
+        <NText class="font-semibold">实体属性</NText>
       </div>
       <NButton size="small" quaternary @click="$emit('close')">
         <template #icon>
@@ -15,18 +15,23 @@
       </NButton>
     </div>
 
-    <!-- Panel Content -->
+    <!-- 面板内容 -->
     <div class="panel-content">
       <NScrollbar class="h-full">
         <div class="p-4 space-y-6">
-          <!-- Basic Information -->
-          <div class="section">
-            <NText class="section-title">基本信息</NText>
+          <!-- 基本信息 -->
+          <div class="property-section">
+            <div class="section-header">
+              <NIcon class="text-green-500">
+                <icon-mdi-information />
+              </NIcon>
+              <NText class="section-title">基本信息</NText>
+            </div>
             <div class="section-content">
               <NForm
                 ref="formRef"
                 :model="formData"
-                :rules="rules"
+                :rules="formRules"
                 label-placement="top"
                 size="small"
               >
@@ -80,41 +85,101 @@
             </div>
           </div>
 
-          <!-- Statistics -->
-          <div class="section">
-            <NText class="section-title">统计信息</NText>
+          <!-- 字段管理 -->
+          <div class="property-section">
+            <div class="section-header">
+              <NIcon class="text-purple-500">
+                <icon-mdi-table-column />
+              </NIcon>
+              <NText class="section-title">字段管理</NText>
+            </div>
+            <div class="section-content">
+              <EntityFieldManager 
+                :entity-id="entity.id"
+                :fields="entity.fields || []"
+                @update:fields="handleFieldsUpdate"
+                @field-add="handleFieldAdd"
+                @field-update="handleFieldUpdate"
+                @field-delete="handleFieldDelete"
+              />
+            </div>
+          </div>
+
+          <!-- 统计信息 -->
+          <div class="property-section">
+            <div class="section-header">
+              <NIcon class="text-orange-500">
+                <icon-mdi-chart-line />
+              </NIcon>
+              <NText class="section-title">统计信息</NText>
+            </div>
             <div class="section-content">
               <div class="stats-grid">
-                <div class="stat-item">
-                  <NText class="stat-label">字段数量</NText>
-                  <NText class="stat-value">{{ entity.fieldCount || 0 }}</NText>
+                <div class="stat-card">
+                  <div class="stat-icon">
+                    <NIcon class="text-blue-500">
+                      <icon-mdi-table-column />
+                    </NIcon>
+                  </div>
+                  <div class="stat-info">
+                    <NText class="stat-label">字段数量</NText>
+                    <NText class="stat-value">{{ fieldCount }}</NText>
+                  </div>
                 </div>
-                <div class="stat-item">
-                  <NText class="stat-label">创建时间</NText>
-                  <NText class="stat-value text-xs">{{ formatDate(entity.createdAt) }}</NText>
+                <div class="stat-card">
+                  <div class="stat-icon">
+                    <NIcon class="text-green-500">
+                      <icon-mdi-clock />
+                    </NIcon>
+                  </div>
+                  <div class="stat-info">
+                    <NText class="stat-label">创建时间</NText>
+                    <NText class="stat-value text-xs">{{ formatDate(entity.createdAt) }}</NText>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Appearance Settings -->
-          <div class="section">
-            <NText class="section-title">外观设置</NText>
+          <!-- 外观设置 -->
+          <div class="property-section">
+            <div class="section-header">
+              <NIcon class="text-pink-500">
+                <icon-mdi-palette />
+              </NIcon>
+              <NText class="section-title">外观设置</NText>
+            </div>
             <div class="section-content">
               <NForm label-placement="top" size="small">
-                <NFormItem label="颜色">
-                  <NColorPicker v-model:value="formData.color" :show-alpha="false" />
+                <NFormItem label="实体颜色">
+                  <NColorPicker 
+                    v-model:value="formData.color" 
+                    :show-alpha="false"
+                    @update:value="handleColorChange"
+                  />
                 </NFormItem>
                 
                 <NGrid cols="2" x-gap="12">
                   <NGridItem>
                     <NFormItem label="宽度">
-                      <NInputNumber v-model:value="formData.width" :min="100" :max="400" size="small" />
+                      <NInputNumber 
+                        v-model:value="formData.width" 
+                        :min="120" 
+                        :max="400" 
+                        size="small"
+                        @update:value="handleSizeChange"
+                      />
                     </NFormItem>
                   </NGridItem>
                   <NGridItem>
                     <NFormItem label="高度">
-                      <NInputNumber v-model:value="formData.height" :min="60" :max="300" size="small" />
+                      <NInputNumber 
+                        v-model:value="formData.height" 
+                        :min="80" 
+                        :max="300" 
+                        size="small"
+                        @update:value="handleSizeChange"
+                      />
                     </NFormItem>
                   </NGridItem>
                 </NGrid>
@@ -122,32 +187,46 @@
             </div>
           </div>
 
-          <!-- Position Settings -->
-          <div class="section">
-            <NText class="section-title">位置设置</NText>
+          <!-- 位置设置 -->
+          <div class="property-section">
+            <div class="section-header">
+              <NIcon class="text-cyan-500">
+                <icon-mdi-crosshairs-gps />
+              </NIcon>
+              <NText class="section-title">位置设置</NText>
+            </div>
             <div class="section-content">
-              <NSpace>
-                <NInputNumber
-                  v-model:value="positionX"
-                  placeholder="X坐标"
-                  size="small"
-                  style="width: 80px"
-                  @update:value="handlePositionChange"
-                />
-                <NInputNumber
-                  v-model:value="positionY"
-                  placeholder="Y坐标"
-                  size="small"
-                  style="width: 80px"
-                  @update:value="handlePositionChange"
-                />
-              </NSpace>
+              <NGrid cols="2" x-gap="12">
+                <NGridItem>
+                  <NFormItem label="X坐标">
+                    <NInputNumber
+                      v-model:value="positionX"
+                      size="small"
+                      @update:value="handlePositionChange"
+                    />
+                  </NFormItem>
+                </NGridItem>
+                <NGridItem>
+                  <NFormItem label="Y坐标">
+                    <NInputNumber
+                      v-model:value="positionY"
+                      size="small"
+                      @update:value="handlePositionChange"
+                    />
+                  </NFormItem>
+                </NGridItem>
+              </NGrid>
             </div>
           </div>
 
-          <!-- Quick Actions -->
-          <div class="section">
-            <NText class="section-title">快速操作</NText>
+          <!-- 快速操作 -->
+          <div class="property-section">
+            <div class="section-header">
+              <NIcon class="text-red-500">
+                <icon-mdi-lightning-bolt />
+              </NIcon>
+              <NText class="section-title">快速操作</NText>
+            </div>
             <div class="section-content">
               <NSpace vertical class="w-full">
                 <NButton block size="small" @click="handleDesignFields">
@@ -177,7 +256,7 @@
                       删除实体
                     </NButton>
                   </template>
-                  确定要删除这个实体吗？
+                  确定要删除这个实体吗？此操作不可撤销。
                 </NPopconfirm>
               </NSpace>
             </div>
@@ -186,13 +265,13 @@
       </NScrollbar>
     </div>
 
-    <!-- Panel Footer -->
+    <!-- 面板底部 -->
     <div class="panel-footer">
       <NSpace justify="end">
         <NButton size="small" @click="handleReset">
           重置
         </NButton>
-        <NButton type="primary" size="small" @click="handleSave">
+        <NButton type="primary" size="small" @click="handleSave" :loading="saving">
           保存
         </NButton>
       </NSpace>
@@ -201,7 +280,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue';
+import { ref, reactive, computed, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   NButton,
@@ -224,22 +303,56 @@ import {
 } from 'naive-ui';
 import { formatDate } from '@/utils/common';
 import type { Entity } from '../types';
+import EntityFieldManager from './EntityFieldManager.vue';
 
 // 图标导入
 import IconMdiCog from '~icons/mdi/cog';
 import IconMdiClose from '~icons/mdi/close';
+import IconMdiInformation from '~icons/mdi/information';
+import IconMdiTableColumn from '~icons/mdi/table-column';
+import IconMdiChartLine from '~icons/mdi/chart-line';
+import IconMdiClock from '~icons/mdi/clock';
+import IconMdiPalette from '~icons/mdi/palette';
+import IconMdiCrosshairsGps from '~icons/mdi/crosshairs-gps';
+import IconMdiLightningBolt from '~icons/mdi/lightning-bolt';
 import IconMdiTableEdit from '~icons/mdi/table-edit';
 import IconMdiCodeBraces from '~icons/mdi/code-braces';
 import IconMdiExport from '~icons/mdi/export';
 import IconMdiDelete from '~icons/mdi/delete';
 
+// 扩展Entity接口以包含fields属性
+interface EntityWithFields extends Entity {
+  fields?: Array<{
+    id: string;
+    entityId: string;
+    name: string;
+    code: string;
+    dataType: string;
+    length?: number;
+    precision?: number;
+    scale?: number;
+    defaultValue?: string;
+    description?: string;
+    isPrimaryKey: boolean;
+    isRequired: boolean;
+    isUnique: boolean;
+    isForeignKey?: boolean;
+    foreignKeyEntityId?: string;
+    foreignKeyFieldId?: string;
+  }>;
+}
+
 interface Props {
-  entity: Entity;
+  entity: EntityWithFields;
 }
 
 interface Emits {
-  (e: 'update', entity: Entity): void;
+  (e: 'update', entity: EntityWithFields): void;
   (e: 'close'): void;
+  (e: 'fields-update', fields: any[]): void;
+  (e: 'field-add', field: any): void;
+  (e: 'field-update', field: any, index: number): void;
+  (e: 'field-delete', index: number): void;
 }
 
 const props = defineProps<Props>();
@@ -249,13 +362,14 @@ const message = useMessage();
 
 // 表单引用
 const formRef = ref<FormInst>();
+const saving = ref(false);
 
 // 表单数据
 const formData = reactive({
   name: '',
   code: '',
   tableName: '',
-  category: '',
+  category: 'BUSINESS' as 'BUSINESS' | 'SYSTEM' | 'CONFIG' | 'LOG',
   status: 'DRAFT' as 'DRAFT' | 'ACTIVE' | 'INACTIVE',
   description: '',
   color: '#5F95FF',
@@ -267,8 +381,13 @@ const formData = reactive({
 const positionX = ref<number>(0);
 const positionY = ref<number>(0);
 
+// 计算字段数量
+const fieldCount = computed(() => {
+  return props.entity.fields?.length || 0;
+});
+
 // 表单验证规则
-const rules: FormRules = {
+const formRules: FormRules = {
   name: [
     { required: true, message: '请输入实体名称', trigger: 'blur' },
     { min: 2, max: 50, message: '实体名称长度在 2 到 50 个字符', trigger: 'blur' }
@@ -308,7 +427,7 @@ const statusOptions = [
  */
 function handleNameChange() {
   if (formData.name && !formData.code) {
-    // 将中文名称转换为拼音或英文编码（这里简化处理）
+    // 简化处理：将中文名称转换为拼音或英文编码
     const code = formData.name
       .replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '')
       .toLowerCase();
@@ -321,20 +440,49 @@ function handleNameChange() {
 }
 
 /**
+ * 处理颜色变化
+ */
+function handleColorChange() {
+  emitUpdate();
+}
+
+/**
+ * 处理尺寸变化
+ */
+function handleSizeChange() {
+  emitUpdate();
+}
+
+/**
  * 处理位置变化
  */
 function handlePositionChange() {
-  // 实时更新位置（可以考虑防抖）
-  const updatedEntity = {
+  emitUpdate();
+}
+
+/**
+ * 发送更新事件
+ */
+function emitUpdate() {
+  const updatedEntity: EntityWithFields = {
     ...props.entity,
     x: positionX.value,
-    y: positionY.value
+    y: positionY.value,
+    name: formData.name,
+    code: formData.code,
+    tableName: formData.tableName,
+    category: formData.category,
+    status: formData.status,
+    description: formData.description,
+    color: formData.color,
+    width: formData.width,
+    height: formData.height
   };
   emit('update', updatedEntity);
 }
 
 /**
- * 快速操作处理
+ * 快速操作处理函数
  */
 function handleDesignFields() {
   router.push({
@@ -344,12 +492,10 @@ function handleDesignFields() {
 }
 
 function handleViewCode() {
-  // 查看生成的代码
   message.info('查看代码功能开发中...');
 }
 
 function handleExport() {
-  // 导出实体配置
   const config = {
     entity: props.entity,
     exportTime: new Date().toISOString()
@@ -370,7 +516,6 @@ function handleExport() {
 }
 
 function handleDeleteEntity() {
-  // 删除实体逻辑由父组件处理
   emit('close');
 }
 
@@ -398,53 +543,70 @@ function handleReset() {
 function handleSave() {
   formRef.value?.validate((errors) => {
     if (!errors) {
-      const updatedEntity: Entity = {
-        ...props.entity,
-        x: positionX.value,
-        y: positionY.value,
-        name: formData.name,
-        code: formData.code,
-        tableName: formData.tableName,
-        category: formData.category,
-        status: formData.status,
-        description: formData.description,
-        color: formData.color,
-        width: formData.width,
-        height: formData.height
-      };
+      saving.value = true;
       
-      emit('update', updatedEntity);
-      message.success('保存成功');
+      // 模拟保存过程
+      setTimeout(() => {
+        emitUpdate();
+        saving.value = false;
+        message.success('保存成功');
+      }, 500);
     }
   });
+}
+
+/**
+ * 处理字段相关事件
+ */
+function handleFieldsUpdate(fields: any[]) {
+  const updatedEntity: EntityWithFields = {
+    ...props.entity,
+    fields
+  };
+  emit('update', updatedEntity);
+  emit('fields-update', fields);
+}
+
+function handleFieldAdd(field: any) {
+  emit('field-add', field);
+}
+
+function handleFieldUpdate(field: any, index: number) {
+  emit('field-update', field, index);
+}
+
+function handleFieldDelete(index: number) {
+  emit('field-delete', index);
 }
 
 // 监听实体变化，更新表单数据
 watch(
   () => props.entity,
   (newEntity) => {
-    Object.assign(formData, {
-      name: newEntity.name,
-      code: newEntity.code,
-      tableName: newEntity.tableName,
-      category: newEntity.category,
-      status: newEntity.status,
-      description: newEntity.description || '',
-      color: newEntity.color || '#5F95FF',
-      width: newEntity.width || 200,
-      height: newEntity.height || 120
-    });
-    
-    positionX.value = newEntity.x || 0;
-    positionY.value = newEntity.y || 0;
+    if (newEntity) {
+      Object.assign(formData, {
+        name: newEntity.name || '',
+        code: newEntity.code || '',
+        tableName: newEntity.tableName || '',
+        category: newEntity.category || 'BUSINESS',
+        status: newEntity.status || 'DRAFT',
+        description: newEntity.description || '',
+        color: newEntity.color || '#5F95FF',
+        width: newEntity.width || 200,
+        height: newEntity.height || 120
+      });
+      
+      positionX.value = newEntity.x || 0;
+      positionY.value = newEntity.y || 0;
+    }
   },
-  { immediate: true }
+  { immediate: true, deep: true }
 );
 </script>
 
 <style scoped>
 .entity-property-panel {
-  @apply h-full flex flex-col;
+  @apply h-full flex flex-col bg-white;
 }
 
 .panel-header {
@@ -463,12 +625,16 @@ watch(
   @apply p-4 border-t border-gray-200 bg-gray-50;
 }
 
-.section {
+.property-section {
   @apply space-y-3;
 }
 
+.section-header {
+  @apply flex items-center space-x-2 pb-2 border-b border-gray-200;
+}
+
 .section-title {
-  @apply text-sm font-medium text-gray-700 border-b border-gray-200 pb-2;
+  @apply text-sm font-medium text-gray-700;
 }
 
 .section-content {
@@ -479,15 +645,23 @@ watch(
   @apply grid grid-cols-1 gap-3;
 }
 
-.stat-item {
-  @apply flex justify-between items-center p-2 bg-gray-50 rounded;
+.stat-card {
+  @apply flex items-center space-x-3 p-3 bg-gray-50 rounded-lg;
+}
+
+.stat-icon {
+  @apply flex-shrink-0;
+}
+
+.stat-info {
+  @apply flex-1 min-w-0;
 }
 
 .stat-label {
-  @apply text-xs text-gray-600;
+  @apply text-xs text-gray-600 block;
 }
 
 .stat-value {
-  @apply text-sm font-medium;
+  @apply text-sm font-medium text-gray-900 block;
 }
 </style>
