@@ -51,7 +51,7 @@ export function createDownloadBlob(data: any, filename: string): void {
 // 状态映射
 export const statusMap = {
   ACTIVE: 'active',
-  INACTIVE: 'inactive', 
+  INACTIVE: 'inactive',
   ARCHIVED: 'archived'
 } as const;
 

@@ -1,255 +1,9 @@
-<template>
-  <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
-    <!-- 增强的API测试工具 -->
-    <NCard :title="$t('page.lowcode.apiTest.title')" :bordered="false" size="small" class="card-wrapper">
-      <template #header-extra>
-        <NSpace>
-          <NButton type="info" size="small" @click="showEnvironmentModal = true">
-            <template #icon>
-              <icon-mdi-cog />
-            </template>
-            环境管理
-          </NButton>
-          <NButton type="success" size="small" @click="showHistoryModal = true">
-            <template #icon>
-              <icon-mdi-history />
-            </template>
-            测试历史
-          </NButton>
-          <NButton type="warning" size="small" @click="showBatchTestModal = true">
-            <template #icon>
-              <icon-mdi-playlist-check />
-            </template>
-            批量测试
-          </NButton>
-        </NSpace>
-      </template>
-      
-      <NForm ref="formRef" :model="testForm" :rules="rules" label-placement="left" :label-width="120">
-        <NGrid :cols="24" :x-gap="16">
-          <NFormItemGi :span="8" label="环境" path="environment">
-            <NSelect 
-              v-model:value="testForm.environment" 
-              placeholder="请选择环境"
-              :options="environmentOptions"
-              @update:value="handleEnvironmentChange"
-            />
-          </NFormItemGi>
-          <NFormItemGi :span="8" label="项目" path="projectId">
-            <NSelect 
-              v-model:value="testForm.projectId" 
-              placeholder="请选择项目"
-              :options="projectOptions"
-              @update:value="handleProjectChange"
-            />
-          </NFormItemGi>
-          <NFormItemGi :span="8" label="API配置" path="apiConfigId">
-            <NSelect 
-              v-model:value="testForm.apiConfigId" 
-              placeholder="请选择API配置"
-              :options="apiConfigOptions"
-              :loading="apiConfigLoading"
-              @update:value="handleApiConfigChange"
-            />
-          </NFormItemGi>
-        </NGrid>
-        
-        <NDivider title-placement="left">{{ $t('page.lowcode.apiTest.requestConfig') }}</NDivider>
-        
-        <NFormItem :label="$t('page.lowcode.apiTest.method')" path="method">
-          <NTag :type="getMethodTagType(testForm.method)">{{ testForm.method }}</NTag>
-        </NFormItem>
-        
-        <NFormItem :label="$t('page.lowcode.apiTest.url')" path="url">
-          <NInput v-model:value="testForm.url" :placeholder="$t('page.lowcode.apiTest.form.url.placeholder')" readonly />
-        </NFormItem>
-        
-        <NFormItem :label="$t('page.lowcode.apiTest.headers')" path="headers">
-          <NSpace vertical class="w-full">
-            <NSpace v-for="(header, index) in testForm.headers" :key="index" align="center" class="w-full">
-              <NInput 
-                v-model:value="header.key" 
-                :placeholder="$t('page.lowcode.apiTest.form.headerKey.placeholder')" 
-                style="flex: 1"
-              />
-              <NInput 
-                v-model:value="header.value" 
-                :placeholder="$t('page.lowcode.apiTest.form.headerValue.placeholder')" 
-                style="flex: 2"
-              />
-              <NButton type="error" size="small" @click="removeHeader(index)">
-                {{ $t('common.delete') }}
-              </NButton>
-            </NSpace>
-            <NButton type="default" dashed @click="addHeader" class="w-full">
-              {{ $t('page.lowcode.apiTest.addHeader') }}
-            </NButton>
-          </NSpace>
-        </NFormItem>
-        
-        <NFormItem v-if="['POST', 'PUT'].includes(testForm.method)" :label="$t('page.lowcode.apiTest.requestBody')" path="body">
-          <NInput
-            v-model:value="testForm.body"
-            :placeholder="$t('page.lowcode.apiTest.form.body.placeholder')"
-            type="textarea"
-            :rows="8"
-          />
-        </NFormItem>
-        
-        <NFormItem v-if="['GET', 'DELETE'].includes(testForm.method)" :label="$t('page.lowcode.apiTest.queryParams')" path="params">
-          <NSpace vertical class="w-full">
-            <NSpace v-for="(param, index) in testForm.params" :key="index" align="center" class="w-full">
-              <NInput 
-                v-model:value="param.key" 
-                :placeholder="$t('page.lowcode.apiTest.form.paramKey.placeholder')" 
-                style="flex: 1"
-              />
-              <NInput 
-                v-model:value="param.value" 
-                :placeholder="$t('page.lowcode.apiTest.form.paramValue.placeholder')" 
-                style="flex: 2"
-              />
-              <NButton type="error" size="small" @click="removeParam(index)">
-                {{ $t('common.delete') }}
-              </NButton>
-            </NSpace>
-            <NButton type="default" dashed @click="addParam" class="w-full">
-              {{ $t('page.lowcode.apiTest.addParam') }}
-            </NButton>
-          </NSpace>
-        </NFormItem>
-        
-        <NFormItem>
-          <NSpace>
-            <NButton type="primary" :loading="testing" @click="handleTest">
-              {{ $t('page.lowcode.apiTest.test') }}
-            </NButton>
-            <NButton @click="handleReset">
-              {{ $t('common.reset') }}
-            </NButton>
-            <NButton type="info" @click="handleSaveAsTemplate">
-              {{ $t('page.lowcode.apiTest.saveAsTemplate') }}
-            </NButton>
-          </NSpace>
-        </NFormItem>
-      </NForm>
-    </NCard>
-    
-    <NCard v-if="testResult" :title="$t('page.lowcode.apiTest.result')" :bordered="false" size="small" class="card-wrapper">
-      <NTabs type="line" animated>
-        <NTabPane name="response" :tab="$t('page.lowcode.apiTest.response')">
-          <NSpace vertical>
-            <NSpace align="center">
-              <NText strong>{{ $t('page.lowcode.apiTest.status') }}:</NText>
-              <NTag :type="getStatusTagType(testResult.status)">{{ testResult.status }}</NTag>
-              <NText strong>{{ $t('page.lowcode.apiTest.time') }}:</NText>
-              <NText>{{ testResult.time }}ms</NText>
-            </NSpace>
-            <NDivider />
-            <NText strong>{{ $t('page.lowcode.apiTest.responseHeaders') }}:</NText>
-            <NCode :code="JSON.stringify(testResult.headers, null, 2)" language="json" />
-            <NText strong>{{ $t('page.lowcode.apiTest.responseBody') }}:</NText>
-            <NCode :code="formatResponseBody(testResult.data)" language="json" />
-          </NSpace>
-        </NTabPane>
-        <NTabPane name="request" :tab="$t('page.lowcode.apiTest.requestInfo')">
-          <NSpace vertical>
-            <NText strong>{{ $t('page.lowcode.apiTest.requestUrl') }}:</NText>
-            <NCode :code="testResult.request?.url || ''" language="text" />
-            <NText strong>{{ $t('page.lowcode.apiTest.requestHeaders') }}:</NText>
-            <NCode :code="JSON.stringify(testResult.request?.headers, null, 2)" language="json" />
-            <NText v-if="testResult.request?.body" strong>{{ $t('page.lowcode.apiTest.requestBody') }}:</NText>
-            <NCode v-if="testResult.request?.body" :code="JSON.stringify(testResult.request.body, null, 2)" language="json" />
-          </NSpace>
-        </NTabPane>
-      </NTabs>
-    </NCard>
-
-    <!-- 环境管理模态框 -->
-    <NModal v-model:show="showEnvironmentModal" preset="card" title="环境管理" style="width: 600px">
-      <NForm label-placement="left" :label-width="100">
-        <NFormItem label="当前环境">
-          <NSelect v-model:value="testForm.environment" :options="environmentOptions" @update:value="handleEnvironmentChange" />
-        </NFormItem>
-        <NFormItem label="基础URL">
-          <NInput :value="getCurrentBaseUrl()" readonly />
-        </NFormItem>
-        <NFormItem label="环境变量">
-          <NSpace vertical class="w-full">
-            <NSpace v-for="(env, index) in environmentVariables" :key="index" align="center" class="w-full">
-              <NInput v-model:value="env.key" placeholder="变量名" style="flex: 1" />
-              <NInput v-model:value="env.value" placeholder="变量值" style="flex: 2" />
-              <NButton type="error" size="small" @click="removeEnvironmentVariable(index)">删除</NButton>
-            </NSpace>
-            <NButton type="default" dashed @click="addEnvironmentVariable" class="w-full">添加环境变量</NButton>
-          </NSpace>
-        </NFormItem>
-      </NForm>
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="showEnvironmentModal = false">取消</NButton>
-          <NButton type="primary" @click="saveEnvironmentConfig">保存</NButton>
-        </NSpace>
-      </template>
-    </NModal>
-
-    <!-- 测试历史模态框 -->
-    <NModal v-model:show="showHistoryModal" preset="card" title="测试历史" style="width: 800px">
-      <NDataTable
-        :columns="historyColumns"
-        :data="testHistory"
-        :pagination="{ pageSize: 10 }"
-        size="small"
-      />
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="clearTestHistory">清空历史</NButton>
-          <NButton @click="showHistoryModal = false">关闭</NButton>
-        </NSpace>
-      </template>
-    </NModal>
-
-    <!-- 批量测试模态框 -->
-    <NModal v-model:show="showBatchTestModal" preset="card" title="批量测试" style="width: 900px">
-      <NSpace vertical>
-        <NSpace>
-          <NButton type="primary" @click="runBatchTest" :loading="batchTesting">开始批量测试</NButton>
-          <NButton @click="selectAllApis">全选</NButton>
-          <NButton @click="clearApiSelection">清空选择</NButton>
-        </NSpace>
-        <NDataTable
-          v-model:checked-row-keys="selectedApiIds"
-          :columns="batchTestColumns"
-          :data="batchTestData"
-          :row-key="row => row.id"
-          size="small"
-          max-height="400"
-        />
-        <div v-if="batchTestResults.length > 0">
-          <NDivider>测试结果</NDivider>
-          <NDataTable
-            :columns="batchResultColumns"
-            :data="batchTestResults"
-            size="small"
-            max-height="300"
-          />
-        </div>
-      </NSpace>
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="showBatchTestModal = false">关闭</NButton>
-        </NSpace>
-      </template>
-    </NModal>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { reactive, ref, watch, onMounted } from 'vue';
+import { onMounted, reactive, ref, watch } from 'vue';
 import type { FormInst, FormRules } from 'naive-ui';
-import { fetchGetAllProjects, fetchGetAllApiConfigs, fetchTestApiConfig } from '@/service/api';
-import { $t } from '@/locales';
+import { fetchGetAllApiConfigs, fetchGetAllProjects, fetchTestApiConfig } from '@/service/api';
 import { createRequiredFormRule } from '@/utils/form/rule';
+import { $t } from '@/locales';
 
 const props = defineProps<{
   projectId?: string;
@@ -316,7 +70,7 @@ const historyColumns = ref([
   { title: 'URL', key: 'url', ellipsis: { tooltip: true } },
   { title: '状态码', key: 'status', width: 80 },
   { title: '响应时间', key: 'responseTime', width: 100, render: (row: any) => `${row.responseTime}ms` },
-  { title: '结果', key: 'success', width: 80, render: (row: any) => row.success ? '成功' : '失败' }
+  { title: '结果', key: 'success', width: 80, render: (row: any) => (row.success ? '成功' : '失败') }
 ]);
 
 const batchTestColumns = ref([
@@ -331,7 +85,7 @@ const batchResultColumns = ref([
   { title: 'API名称', key: 'name', width: 200 },
   { title: '状态码', key: 'status', width: 100 },
   { title: '响应时间', key: 'time', width: 120, render: (row: any) => `${row.time}ms` },
-  { title: '结果', key: 'success', width: 100, render: (row: any) => row.success ? '✅ 成功' : '❌ 失败' }
+  { title: '结果', key: 'success', width: 100, render: (row: any) => (row.success ? '✅ 成功' : '❌ 失败') }
 ]);
 
 const testForm = reactive<TestForm>({
@@ -429,7 +183,7 @@ async function loadApiConfigs(projectId: string) {
         value: config.id,
         config // 保存完整的配置信息
       }));
-      
+
       // 更新批量测试数据
       initializeBatchTestData();
     } else {
@@ -451,6 +205,7 @@ function handleProjectChange(projectId: string) {
 
 /**
  * 处理环境变更
+ *
  * @param environment - 选中的环境
  */
 function handleEnvironmentChange(environment: string) {
@@ -460,7 +215,7 @@ function handleEnvironmentChange(environment: string) {
     staging: 'https://staging-api.example.com',
     production: 'https://api.example.com'
   };
-  
+
   // 更新当前URL的基础部分
   if (testForm.url) {
     const pathPart = testForm.url.split('/api')[1] || '';
@@ -479,7 +234,7 @@ function handleApiConfigChange(apiConfigId: string) {
 
 async function handleTest() {
   await formRef.value?.validate();
-  
+
   try {
     testing.value = true;
     testResult.value = null;
@@ -498,19 +253,22 @@ async function handleTest() {
       data: result,
       request: {
         url: testForm.url,
-        headers: testForm.headers.reduce((acc, header) => {
-          if (header.key && header.value) {
-            acc[header.key] = header.value;
-          }
-          return acc;
-        }, {} as Record<string, string>),
+        headers: testForm.headers.reduce(
+          (acc, header) => {
+            if (header.key && header.value) {
+              acc[header.key] = header.value;
+            }
+            return acc;
+          },
+          {} as Record<string, string>
+        ),
         body: testForm.body ? JSON.parse(testForm.body) : undefined
       },
       success: true
     };
-    
+
     testResult.value = testResultData;
-    
+
     // 保存到测试历史
     saveTestToHistory(testResultData);
 
@@ -547,9 +305,7 @@ function handleSaveAsTemplate() {
   window.$message?.info($t('page.lowcode.apiTest.saveAsTemplateNotImplemented'));
 }
 
-/**
- * 获取当前环境的基础URL
- */
+/** 获取当前环境的基础URL */
 function getCurrentBaseUrl(): string {
   const baseUrls = {
     development: 'http://localhost:3002',
@@ -559,23 +315,17 @@ function getCurrentBaseUrl(): string {
   return baseUrls[testForm.environment as keyof typeof baseUrls] || baseUrls.development;
 }
 
-/**
- * 添加环境变量
- */
+/** 添加环境变量 */
 function addEnvironmentVariable() {
   environmentVariables.value.push({ key: '', value: '' });
 }
 
-/**
- * 移除环境变量
- */
+/** 移除环境变量 */
 function removeEnvironmentVariable(index: number) {
   environmentVariables.value.splice(index, 1);
 }
 
-/**
- * 保存环境配置
- */
+/** 保存环境配置 */
 function saveEnvironmentConfig() {
   // 保存到本地存储
   localStorage.setItem('api-test-env-vars', JSON.stringify(environmentVariables.value));
@@ -583,53 +333,45 @@ function saveEnvironmentConfig() {
   showEnvironmentModal.value = false;
 }
 
-/**
- * 清空测试历史
- */
+/** 清空测试历史 */
 function clearTestHistory() {
   testHistory.value = [];
   localStorage.removeItem('api-test-history');
   window.$message?.success('测试历史已清空');
 }
 
-/**
- * 全选API
- */
+/** 全选API */
 function selectAllApis() {
   selectedApiIds.value = batchTestData.value.map(item => item.id);
 }
 
-/**
- * 清空API选择
- */
+/** 清空API选择 */
 function clearApiSelection() {
   selectedApiIds.value = [];
 }
 
-/**
- * 运行批量测试
- */
+/** 运行批量测试 */
 async function runBatchTest() {
   if (selectedApiIds.value.length === 0) {
     window.$message?.warning('请选择要测试的API');
     return;
   }
-  
+
   batchTesting.value = true;
   batchTestResults.value = [];
-  
+
   try {
     for (const apiId of selectedApiIds.value) {
       const apiConfig = batchTestData.value.find(item => item.id === apiId);
       if (!apiConfig) continue;
-      
+
       const startTime = Date.now();
       try {
         const response = await fetch(apiConfig.url, {
           method: apiConfig.method,
           headers: { 'Content-Type': 'application/json' }
         });
-        
+
         const endTime = Date.now();
         batchTestResults.value.push({
           id: apiId,
@@ -649,7 +391,7 @@ async function runBatchTest() {
         });
       }
     }
-    
+
     window.$message?.success(`批量测试完成，共测试 ${selectedApiIds.value.length} 个API`);
   } finally {
     batchTesting.value = false;
@@ -665,9 +407,7 @@ function initializeEnvironmentOptions() {
   ];
 }
 
-/**
- * 初始化批量测试数据
- */
+/** 初始化批量测试数据 */
 function initializeBatchTestData() {
   // 从API配置中生成批量测试数据
   batchTestData.value = apiConfigOptions.value.map((option: any) => {
@@ -682,9 +422,7 @@ function initializeBatchTestData() {
   });
 }
 
-/**
- * 加载本地存储的数据
- */
+/** 加载本地存储的数据 */
 function loadLocalStorageData() {
   // 加载环境变量
   const savedEnvVars = localStorage.getItem('api-test-env-vars');
@@ -695,7 +433,7 @@ function loadLocalStorageData() {
       console.warn('Failed to parse saved environment variables:', error);
     }
   }
-  
+
   // 加载测试历史
   const savedHistory = localStorage.getItem('api-test-history');
   if (savedHistory) {
@@ -707,23 +445,21 @@ function loadLocalStorageData() {
   }
 }
 
-/**
- * 保存测试结果到历史记录
- */
+/** 保存测试结果到历史记录 */
 function saveTestToHistory(result: any) {
   const historyItem = {
     ...result,
     timestamp: new Date().toLocaleString(),
     apiName: apiConfigOptions.value.find(opt => opt.value === testForm.apiConfigId)?.label || 'Unknown API'
   };
-  
+
   testHistory.value.unshift(historyItem);
-  
+
   // 限制历史记录数量
   if (testHistory.value.length > 100) {
     testHistory.value = testHistory.value.slice(0, 100);
   }
-  
+
   // 保存到本地存储
   localStorage.setItem('api-test-history', JSON.stringify(testHistory.value));
 }
@@ -737,12 +473,277 @@ onMounted(() => {
   }
 });
 
-watch(() => props.projectId, (newProjectId) => {
-  if (newProjectId) {
-    testForm.projectId = newProjectId;
-    loadApiConfigs(newProjectId);
+watch(
+  () => props.projectId,
+  newProjectId => {
+    if (newProjectId) {
+      testForm.projectId = newProjectId;
+      loadApiConfigs(newProjectId);
+    }
   }
-});
+);
 </script>
+
+<template>
+  <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
+    <!-- 增强的API测试工具 -->
+    <NCard :title="$t('page.lowcode.apiTest.title')" :bordered="false" size="small" class="card-wrapper">
+      <template #header-extra>
+        <NSpace>
+          <NButton type="info" size="small" @click="showEnvironmentModal = true">
+            <template #icon>
+              <icon-mdi-cog />
+            </template>
+            环境管理
+          </NButton>
+          <NButton type="success" size="small" @click="showHistoryModal = true">
+            <template #icon>
+              <icon-mdi-history />
+            </template>
+            测试历史
+          </NButton>
+          <NButton type="warning" size="small" @click="showBatchTestModal = true">
+            <template #icon>
+              <icon-mdi-playlist-check />
+            </template>
+            批量测试
+          </NButton>
+        </NSpace>
+      </template>
+
+      <NForm ref="formRef" :model="testForm" :rules="rules" label-placement="left" :label-width="120">
+        <NGrid :cols="24" :x-gap="16">
+          <NFormItemGi :span="8" label="环境" path="environment">
+            <NSelect
+              v-model:value="testForm.environment"
+              placeholder="请选择环境"
+              :options="environmentOptions"
+              @update:value="handleEnvironmentChange"
+            />
+          </NFormItemGi>
+          <NFormItemGi :span="8" label="项目" path="projectId">
+            <NSelect
+              v-model:value="testForm.projectId"
+              placeholder="请选择项目"
+              :options="projectOptions"
+              @update:value="handleProjectChange"
+            />
+          </NFormItemGi>
+          <NFormItemGi :span="8" label="API配置" path="apiConfigId">
+            <NSelect
+              v-model:value="testForm.apiConfigId"
+              placeholder="请选择API配置"
+              :options="apiConfigOptions"
+              :loading="apiConfigLoading"
+              @update:value="handleApiConfigChange"
+            />
+          </NFormItemGi>
+        </NGrid>
+
+        <NDivider title-placement="left">{{ $t('page.lowcode.apiTest.requestConfig') }}</NDivider>
+
+        <NFormItem :label="$t('page.lowcode.apiTest.method')" path="method">
+          <NTag :type="getMethodTagType(testForm.method)">{{ testForm.method }}</NTag>
+        </NFormItem>
+
+        <NFormItem :label="$t('page.lowcode.apiTest.url')" path="url">
+          <NInput
+            v-model:value="testForm.url"
+            :placeholder="$t('page.lowcode.apiTest.form.url.placeholder')"
+            readonly
+          />
+        </NFormItem>
+
+        <NFormItem :label="$t('page.lowcode.apiTest.headers')" path="headers">
+          <NSpace vertical class="w-full">
+            <NSpace v-for="(header, index) in testForm.headers" :key="index" align="center" class="w-full">
+              <NInput
+                v-model:value="header.key"
+                :placeholder="$t('page.lowcode.apiTest.form.headerKey.placeholder')"
+                style="flex: 1"
+              />
+              <NInput
+                v-model:value="header.value"
+                :placeholder="$t('page.lowcode.apiTest.form.headerValue.placeholder')"
+                style="flex: 2"
+              />
+              <NButton type="error" size="small" @click="removeHeader(index)">
+                {{ $t('common.delete') }}
+              </NButton>
+            </NSpace>
+            <NButton type="default" dashed class="w-full" @click="addHeader">
+              {{ $t('page.lowcode.apiTest.addHeader') }}
+            </NButton>
+          </NSpace>
+        </NFormItem>
+
+        <NFormItem
+          v-if="['POST', 'PUT'].includes(testForm.method)"
+          :label="$t('page.lowcode.apiTest.requestBody')"
+          path="body"
+        >
+          <NInput
+            v-model:value="testForm.body"
+            :placeholder="$t('page.lowcode.apiTest.form.body.placeholder')"
+            type="textarea"
+            :rows="8"
+          />
+        </NFormItem>
+
+        <NFormItem
+          v-if="['GET', 'DELETE'].includes(testForm.method)"
+          :label="$t('page.lowcode.apiTest.queryParams')"
+          path="params"
+        >
+          <NSpace vertical class="w-full">
+            <NSpace v-for="(param, index) in testForm.params" :key="index" align="center" class="w-full">
+              <NInput
+                v-model:value="param.key"
+                :placeholder="$t('page.lowcode.apiTest.form.paramKey.placeholder')"
+                style="flex: 1"
+              />
+              <NInput
+                v-model:value="param.value"
+                :placeholder="$t('page.lowcode.apiTest.form.paramValue.placeholder')"
+                style="flex: 2"
+              />
+              <NButton type="error" size="small" @click="removeParam(index)">
+                {{ $t('common.delete') }}
+              </NButton>
+            </NSpace>
+            <NButton type="default" dashed class="w-full" @click="addParam">
+              {{ $t('page.lowcode.apiTest.addParam') }}
+            </NButton>
+          </NSpace>
+        </NFormItem>
+
+        <NFormItem>
+          <NSpace>
+            <NButton type="primary" :loading="testing" @click="handleTest">
+              {{ $t('page.lowcode.apiTest.test') }}
+            </NButton>
+            <NButton @click="handleReset">
+              {{ $t('common.reset') }}
+            </NButton>
+            <NButton type="info" @click="handleSaveAsTemplate">
+              {{ $t('page.lowcode.apiTest.saveAsTemplate') }}
+            </NButton>
+          </NSpace>
+        </NFormItem>
+      </NForm>
+    </NCard>
+
+    <NCard
+      v-if="testResult"
+      :title="$t('page.lowcode.apiTest.result')"
+      :bordered="false"
+      size="small"
+      class="card-wrapper"
+    >
+      <NTabs type="line" animated>
+        <NTabPane name="response" :tab="$t('page.lowcode.apiTest.response')">
+          <NSpace vertical>
+            <NSpace align="center">
+              <NText strong>{{ $t('page.lowcode.apiTest.status') }}:</NText>
+              <NTag :type="getStatusTagType(testResult.status)">{{ testResult.status }}</NTag>
+              <NText strong>{{ $t('page.lowcode.apiTest.time') }}:</NText>
+              <NText>{{ testResult.time }}ms</NText>
+            </NSpace>
+            <NDivider />
+            <NText strong>{{ $t('page.lowcode.apiTest.responseHeaders') }}:</NText>
+            <NCode :code="JSON.stringify(testResult.headers, null, 2)" language="json" />
+            <NText strong>{{ $t('page.lowcode.apiTest.responseBody') }}:</NText>
+            <NCode :code="formatResponseBody(testResult.data)" language="json" />
+          </NSpace>
+        </NTabPane>
+        <NTabPane name="request" :tab="$t('page.lowcode.apiTest.requestInfo')">
+          <NSpace vertical>
+            <NText strong>{{ $t('page.lowcode.apiTest.requestUrl') }}:</NText>
+            <NCode :code="testResult.request?.url || ''" language="text" />
+            <NText strong>{{ $t('page.lowcode.apiTest.requestHeaders') }}:</NText>
+            <NCode :code="JSON.stringify(testResult.request?.headers, null, 2)" language="json" />
+            <NText v-if="testResult.request?.body" strong>{{ $t('page.lowcode.apiTest.requestBody') }}:</NText>
+            <NCode
+              v-if="testResult.request?.body"
+              :code="JSON.stringify(testResult.request.body, null, 2)"
+              language="json"
+            />
+          </NSpace>
+        </NTabPane>
+      </NTabs>
+    </NCard>
+
+    <!-- 环境管理模态框 -->
+    <NModal v-model:show="showEnvironmentModal" preset="card" title="环境管理" style="width: 600px">
+      <NForm label-placement="left" :label-width="100">
+        <NFormItem label="当前环境">
+          <NSelect
+            v-model:value="testForm.environment"
+            :options="environmentOptions"
+            @update:value="handleEnvironmentChange"
+          />
+        </NFormItem>
+        <NFormItem label="基础URL">
+          <NInput :value="getCurrentBaseUrl()" readonly />
+        </NFormItem>
+        <NFormItem label="环境变量">
+          <NSpace vertical class="w-full">
+            <NSpace v-for="(env, index) in environmentVariables" :key="index" align="center" class="w-full">
+              <NInput v-model:value="env.key" placeholder="变量名" style="flex: 1" />
+              <NInput v-model:value="env.value" placeholder="变量值" style="flex: 2" />
+              <NButton type="error" size="small" @click="removeEnvironmentVariable(index)">删除</NButton>
+            </NSpace>
+            <NButton type="default" dashed class="w-full" @click="addEnvironmentVariable">添加环境变量</NButton>
+          </NSpace>
+        </NFormItem>
+      </NForm>
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="showEnvironmentModal = false">取消</NButton>
+          <NButton type="primary" @click="saveEnvironmentConfig">保存</NButton>
+        </NSpace>
+      </template>
+    </NModal>
+
+    <!-- 测试历史模态框 -->
+    <NModal v-model:show="showHistoryModal" preset="card" title="测试历史" style="width: 800px">
+      <NDataTable :columns="historyColumns" :data="testHistory" :pagination="{ pageSize: 10 }" size="small" />
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="clearTestHistory">清空历史</NButton>
+          <NButton @click="showHistoryModal = false">关闭</NButton>
+        </NSpace>
+      </template>
+    </NModal>
+
+    <!-- 批量测试模态框 -->
+    <NModal v-model:show="showBatchTestModal" preset="card" title="批量测试" style="width: 900px">
+      <NSpace vertical>
+        <NSpace>
+          <NButton type="primary" :loading="batchTesting" @click="runBatchTest">开始批量测试</NButton>
+          <NButton @click="selectAllApis">全选</NButton>
+          <NButton @click="clearApiSelection">清空选择</NButton>
+        </NSpace>
+        <NDataTable
+          v-model:checked-row-keys="selectedApiIds"
+          :columns="batchTestColumns"
+          :data="batchTestData"
+          :row-key="row => row.id"
+          size="small"
+          max-height="400"
+        />
+        <div v-if="batchTestResults.length > 0">
+          <NDivider>测试结果</NDivider>
+          <NDataTable :columns="batchResultColumns" :data="batchTestResults" size="small" max-height="300" />
+        </div>
+      </NSpace>
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="showBatchTestModal = false">关闭</NButton>
+        </NSpace>
+      </template>
+    </NModal>
+  </div>
+</template>
 
 <style scoped></style>

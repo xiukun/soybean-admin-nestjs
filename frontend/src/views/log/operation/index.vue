@@ -140,7 +140,12 @@ const { columns, data, getData, getDataByPage, loading, mobilePagination, search
 <template>
   <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
     <OperationSearch v-model:model="searchParams" @reset="resetSearchParams" @search="getDataByPage" />
-    <NCard :title="$t('page.manage.log.operation.title')" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
+    <NCard
+      :title="$t('page.manage.log.operation.title')"
+      :bordered="false"
+      size="small"
+      class="sm:flex-1-hidden card-wrapper"
+    >
       <template #header-extra>
         <TableHeaderOperation :loading="loading" @refresh="getData" />
       </template>

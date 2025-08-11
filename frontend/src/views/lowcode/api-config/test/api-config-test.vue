@@ -1,117 +1,7 @@
-<template>
-  <div class="api-config-test p-4">
-    <NCard title="API配置功能测试" :bordered="false">
-      <NSpace vertical :size="16">
-        <!-- 项目选择 -->
-        <div>
-          <h3 class="mb-2">1. 项目选择测试</h3>
-          <NSelect
-            v-model:value="selectedProjectId"
-            :placeholder="$t('page.lowcode.project.form.name.placeholder')"
-            :options="projectOptions"
-            style="width: 300px"
-            @update:value="handleProjectChange"
-          />
-          <div class="mt-2 text-sm text-gray-500">
-            当前选中项目ID: {{ selectedProjectId || '未选择' }}
-          </div>
-        </div>
-
-        <!-- 平台管理接口测试 -->
-        <div>
-          <h3 class="mb-2">2. 平台管理接口测试 (current/size + records)</h3>
-          <NSpace>
-            <NButton type="primary" @click="testPlatformApi" :loading="platformLoading">
-              测试平台管理接口
-            </NButton>
-            <NButton @click="clearPlatformResult">清空结果</NButton>
-          </NSpace>
-          <div v-if="platformResult" class="mt-2">
-            <NCard size="small" title="平台管理接口响应">
-              <NScrollbar style="max-height: 200px">
-                <pre class="text-sm">{{ JSON.stringify(platformResult, null, 2) }}</pre>
-              </NScrollbar>
-            </NCard>
-          </div>
-        </div>
-
-        <!-- 低代码页面接口测试 -->
-        <div>
-          <h3 class="mb-2">3. 低代码页面接口测试 (page/perPage + options)</h3>
-          <NSpace>
-            <NButton type="primary" @click="testLowcodeApi" :loading="lowcodeLoading">
-              测试低代码页面接口
-            </NButton>
-            <NButton @click="clearLowcodeResult">清空结果</NButton>
-          </NSpace>
-          <div v-if="lowcodeResult" class="mt-2">
-            <NCard size="small" title="低代码页面接口响应">
-              <NScrollbar style="max-height: 200px">
-                <pre class="text-sm">{{ JSON.stringify(lowcodeResult, null, 2) }}</pre>
-              </NScrollbar>
-            </NCard>
-          </div>
-        </div>
-
-        <!-- API配置选择器测试 -->
-        <div>
-          <h3 class="mb-2">4. API配置选择器测试</h3>
-          <NSelect
-            v-model:value="selectedApiId"
-            :placeholder="$t('page.lowcode.apiConfig.selector.selectApiPlaceholder')"
-            :options="apiOptions"
-            filterable
-            clearable
-            style="width: 400px"
-            @update:value="handleApiSelect"
-          />
-          <div v-if="selectedApiConfig" class="mt-2">
-            <NCard size="small" title="选中的API配置">
-              <NDescriptions :column="2" bordered size="small">
-                <NDescriptionsItem label="名称">{{ selectedApiConfig.name }}</NDescriptionsItem>
-                <NDescriptionsItem label="方法">{{ selectedApiConfig.method }}</NDescriptionsItem>
-                <NDescriptionsItem label="路径">{{ selectedApiConfig.fullPath }}</NDescriptionsItem>
-                <NDescriptionsItem label="认证">{{ selectedApiConfig.hasAuthentication ? '需要' : '不需要' }}</NDescriptionsItem>
-              </NDescriptions>
-            </NCard>
-          </div>
-        </div>
-
-        <!-- amis配置生成测试 -->
-        <div>
-          <h3 class="mb-2">5. amis配置生成测试</h3>
-          <NButton type="primary" @click="generateAmisConfig" :disabled="!selectedApiConfig">
-            生成amis配置
-          </NButton>
-          <div v-if="amisConfig" class="mt-2">
-            <NCard size="small" title="生成的amis配置">
-              <NScrollbar style="max-height: 200px">
-                <pre class="text-sm">{{ JSON.stringify(amisConfig, null, 2) }}</pre>
-              </NScrollbar>
-            </NCard>
-          </div>
-        </div>
-
-        <!-- 错误信息显示 -->
-        <div v-if="errorMessage" class="mt-4">
-          <NAlert type="error" :title="errorMessage" />
-        </div>
-      </NSpace>
-    </NCard>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { 
-  NCard, NSelect, NButton, NSpace, NScrollbar, NDescriptions, 
-  NDescriptionsItem, NAlert 
-} from 'naive-ui';
-import { 
-  fetchGetApiConfigList, 
-  fetchGetApiConfigListForLowcode,
-  fetchGetAllProjects 
-} from '@/service/api';
+import { computed, onMounted, ref } from 'vue';
+import { NAlert, NButton, NCard, NDescriptions, NDescriptionsItem, NScrollbar, NSelect, NSpace } from 'naive-ui';
+import { fetchGetAllProjects, fetchGetApiConfigList, fetchGetApiConfigListForLowcode } from '@/service/api';
 import { $t } from '@/locales';
 
 defineOptions({
@@ -151,7 +41,7 @@ async function loadProjects() {
   try {
     errorMessage.value = '';
     const response = await fetchGetAllProjects();
-    
+
     // Handle different response structures
     let projects: any[] = [];
     if (Array.isArray(response)) {
@@ -164,12 +54,12 @@ async function loadProjects() {
       console.warn('Unexpected response structure:', response);
       projects = [];
     }
-    
+
     projectOptions.value = projects.map((project: any) => ({
       label: project.name,
       value: project.id
     }));
-    
+
     // 自动选择第一个项目
     if (projects.length > 0) {
       selectedProjectId.value = projects[0].id;
@@ -194,16 +84,16 @@ async function testPlatformApi() {
     errorMessage.value = '请先选择项目';
     return;
   }
-  
+
   try {
     platformLoading.value = true;
     errorMessage.value = '';
-    
+
     const response = await fetchGetApiConfigList(selectedProjectId.value, {
       current: 1,
       size: 5
     });
-    
+
     platformResult.value = response.data;
   } catch (error) {
     console.error('Platform API test failed:', error);
@@ -218,16 +108,16 @@ async function testLowcodeApi() {
     errorMessage.value = '请先选择项目';
     return;
   }
-  
+
   try {
     lowcodeLoading.value = true;
     errorMessage.value = '';
-    
+
     const response = await fetchGetApiConfigListForLowcode(selectedProjectId.value, {
       page: 1,
       perPage: 5
     });
-    
+
     lowcodeResult.value = response.data;
   } catch (error) {
     console.error('Lowcode API test failed:', error);
@@ -254,9 +144,9 @@ function handleApiSelect(apiId: string) {
 
 function generateAmisConfig() {
   if (!selectedApiConfig.value) return;
-  
+
   const config = selectedApiConfig.value;
-  
+
   // 根据HTTP方法生成不同的amis配置
   if (config.method === 'GET') {
     amisConfig.value = {
@@ -307,6 +197,103 @@ onMounted(() => {
   loadProjects();
 });
 </script>
+
+<template>
+  <div class="api-config-test p-4">
+    <NCard title="API配置功能测试" :bordered="false">
+      <NSpace vertical :size="16">
+        <!-- 项目选择 -->
+        <div>
+          <h3 class="mb-2">1. 项目选择测试</h3>
+          <NSelect
+            v-model:value="selectedProjectId"
+            :placeholder="$t('page.lowcode.project.form.name.placeholder')"
+            :options="projectOptions"
+            style="width: 300px"
+            @update:value="handleProjectChange"
+          />
+          <div class="mt-2 text-sm text-gray-500">当前选中项目ID: {{ selectedProjectId || '未选择' }}</div>
+        </div>
+
+        <!-- 平台管理接口测试 -->
+        <div>
+          <h3 class="mb-2">2. 平台管理接口测试 (current/size + records)</h3>
+          <NSpace>
+            <NButton type="primary" :loading="platformLoading" @click="testPlatformApi">测试平台管理接口</NButton>
+            <NButton @click="clearPlatformResult">清空结果</NButton>
+          </NSpace>
+          <div v-if="platformResult" class="mt-2">
+            <NCard size="small" title="平台管理接口响应">
+              <NScrollbar style="max-height: 200px">
+                <pre class="text-sm">{{ JSON.stringify(platformResult, null, 2) }}</pre>
+              </NScrollbar>
+            </NCard>
+          </div>
+        </div>
+
+        <!-- 低代码页面接口测试 -->
+        <div>
+          <h3 class="mb-2">3. 低代码页面接口测试 (page/perPage + options)</h3>
+          <NSpace>
+            <NButton type="primary" :loading="lowcodeLoading" @click="testLowcodeApi">测试低代码页面接口</NButton>
+            <NButton @click="clearLowcodeResult">清空结果</NButton>
+          </NSpace>
+          <div v-if="lowcodeResult" class="mt-2">
+            <NCard size="small" title="低代码页面接口响应">
+              <NScrollbar style="max-height: 200px">
+                <pre class="text-sm">{{ JSON.stringify(lowcodeResult, null, 2) }}</pre>
+              </NScrollbar>
+            </NCard>
+          </div>
+        </div>
+
+        <!-- API配置选择器测试 -->
+        <div>
+          <h3 class="mb-2">4. API配置选择器测试</h3>
+          <NSelect
+            v-model:value="selectedApiId"
+            :placeholder="$t('page.lowcode.apiConfig.selector.selectApiPlaceholder')"
+            :options="apiOptions"
+            filterable
+            clearable
+            style="width: 400px"
+            @update:value="handleApiSelect"
+          />
+          <div v-if="selectedApiConfig" class="mt-2">
+            <NCard size="small" title="选中的API配置">
+              <NDescriptions :column="2" bordered size="small">
+                <NDescriptionsItem label="名称">{{ selectedApiConfig.name }}</NDescriptionsItem>
+                <NDescriptionsItem label="方法">{{ selectedApiConfig.method }}</NDescriptionsItem>
+                <NDescriptionsItem label="路径">{{ selectedApiConfig.fullPath }}</NDescriptionsItem>
+                <NDescriptionsItem label="认证">
+                  {{ selectedApiConfig.hasAuthentication ? '需要' : '不需要' }}
+                </NDescriptionsItem>
+              </NDescriptions>
+            </NCard>
+          </div>
+        </div>
+
+        <!-- amis配置生成测试 -->
+        <div>
+          <h3 class="mb-2">5. amis配置生成测试</h3>
+          <NButton type="primary" :disabled="!selectedApiConfig" @click="generateAmisConfig">生成amis配置</NButton>
+          <div v-if="amisConfig" class="mt-2">
+            <NCard size="small" title="生成的amis配置">
+              <NScrollbar style="max-height: 200px">
+                <pre class="text-sm">{{ JSON.stringify(amisConfig, null, 2) }}</pre>
+              </NScrollbar>
+            </NCard>
+          </div>
+        </div>
+
+        <!-- 错误信息显示 -->
+        <div v-if="errorMessage" class="mt-4">
+          <NAlert type="error" :title="errorMessage" />
+        </div>
+      </NSpace>
+    </NCard>
+  </div>
+</template>
 
 <style scoped>
 pre {

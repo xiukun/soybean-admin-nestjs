@@ -1,9 +1,3 @@
-<template>
-  <div class="lowcode-project-page">
-    <ProjectManagement />
-  </div>
-</template>
-
 <script setup lang="ts">
 import ProjectManagement from './components/ProjectManagement.vue';
 
@@ -12,6 +6,12 @@ defineOptions({
   name: 'LowcodeProject'
 });
 </script>
+
+<template>
+  <div class="lowcode-project-page">
+    <ProjectManagement />
+  </div>
+</template>
 
 <style scoped>
 .lowcode-project-page {

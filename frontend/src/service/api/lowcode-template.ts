@@ -95,12 +95,15 @@ export function fetchPublishTemplate(id: string) {
  * @param id - template id
  * @param data - version data
  */
-export function fetchCreateTemplateVersion(id: string, data: {
-  version: string;
-  content: string;
-  variables: Api.Lowcode.TemplateVariable[];
-  changelog?: string;
-}) {
+export function fetchCreateTemplateVersion(
+  id: string,
+  data: {
+    version: string;
+    content: string;
+    variables: Api.Lowcode.TemplateVariable[];
+    changelog?: string;
+  }
+) {
   return request<Api.Lowcode.CodeTemplate>({
     url: `/templates/${id}/versions`,
     method: 'post',

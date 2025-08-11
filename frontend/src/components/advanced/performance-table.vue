@@ -1,29 +1,7 @@
-<template>
-  <div class="performance-table">
-    <NDataTable
-      ref="tableRef"
-      v-model:checked-row-keys="checkedRowKeys"
-      :columns="columns"
-      :data="visibleData"
-      :loading="loading"
-      :pagination="paginationProps"
-      :row-key="rowKey"
-      :scroll-x="scrollX"
-      :virtual-scroll="virtualScroll"
-      :max-height="maxHeight"
-      @update:page="handlePageChange"
-      @update:page-size="handlePageSizeChange"
-      @update:sorter="handleSorterChange"
-      @update:filters="handleFiltersChange"
-      @update:checked-row-keys="handleSelectionChange"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { NDataTable } from 'naive-ui';
-import { debounce, useMemoryOptimization, useCache } from '@/utils/performance';
+import { debounce, useCache, useMemoryOptimization } from '@/utils/performance';
 
 interface Props {
   columns: any[];
@@ -79,7 +57,7 @@ const visibleData = computed(() => {
   }
 
   const result = props.data;
-  
+
   if (props.enableCache && props.cacheKey) {
     cache.set(props.cacheKey, result);
   }
@@ -89,7 +67,7 @@ const visibleData = computed(() => {
 
 const paginationProps = computed(() => {
   if (!props.pagination) return false;
-  
+
   return {
     ...props.pagination,
     showSizePicker: true,
@@ -144,15 +122,16 @@ const performanceObserver = ref<PerformanceObserver | null>(null);
 
 function startPerformanceMonitoring() {
   if (typeof PerformanceObserver !== 'undefined') {
-    performanceObserver.value = new PerformanceObserver((list) => {
+    performanceObserver.value = new PerformanceObserver(list => {
       const entries = list.getEntries();
-      entries.forEach((entry) => {
-        if (entry.duration > 100) { // Log slow operations
+      entries.forEach(entry => {
+        if (entry.duration > 100) {
+          // Log slow operations
           console.warn(`Slow table operation detected: ${entry.name} took ${entry.duration}ms`);
         }
       });
     });
-    
+
     performanceObserver.value.observe({ entryTypes: ['measure'] });
   }
 }
@@ -175,11 +154,15 @@ onUnmounted(() => {
 });
 
 // Watch for data changes and clear cache if needed
-watch(() => props.data, () => {
-  if (props.enableCache && props.cacheKey) {
-    cache.clear();
-  }
-}, { deep: true });
+watch(
+  () => props.data,
+  () => {
+    if (props.enableCache && props.cacheKey) {
+      cache.clear();
+    }
+  },
+  { deep: true }
+);
 
 // Expose methods
 defineExpose({
@@ -187,7 +170,7 @@ defineExpose({
     checkedRowKeys.value = [];
   },
   selectAll: () => {
-    checkedRowKeys.value = props.data.map(item => 
+    checkedRowKeys.value = props.data.map(item =>
       typeof props.rowKey === 'function' ? props.rowKey(item) : item[props.rowKey as string]
     );
   },
@@ -207,6 +190,28 @@ defineExpose({
   }
 });
 </script>
+
+<template>
+  <div class="performance-table">
+    <NDataTable
+      ref="tableRef"
+      v-model:checked-row-keys="checkedRowKeys"
+      :columns="columns"
+      :data="visibleData"
+      :loading="loading"
+      :pagination="paginationProps"
+      :row-key="rowKey"
+      :scroll-x="scrollX"
+      :virtual-scroll="virtualScroll"
+      :max-height="maxHeight"
+      @update:page="handlePageChange"
+      @update:page-size="handlePageSizeChange"
+      @update:sorter="handleSorterChange"
+      @update:filters="handleFiltersChange"
+      @update:checked-row-keys="handleSelectionChange"
+    />
+  </div>
+</template>
 
 <style scoped>
 .performance-table {
@@ -250,7 +255,7 @@ defineExpose({
   .performance-table :deep(.n-data-table) {
     font-size: 12px;
   }
-  
+
   .performance-table :deep(.n-data-table-th),
   .performance-table :deep(.n-data-table-td) {
     padding: 8px 4px;

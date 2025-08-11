@@ -1,228 +1,3 @@
-<template>
-  <NCard class="project-card" hoverable>
-    <!-- 卡片头部 -->
-    <template #header>
-      <div class="card-header">
-        <div class="project-info">
-          <NText class="project-name" strong>{{ project.name }}</NText>
-          <NText class="project-code" depth="3">{{ project.code }}</NText>
-        </div>
-        <div class="project-status">
-          <NTag :type="statusType" size="small">{{ statusText }}</NTag>
-        </div>
-      </div>
-    </template>
-
-    <!-- 卡片内容 -->
-    <div class="card-content">
-      <!-- 项目描述 -->
-      <div class="project-description mb-3">
-        <NText depth="2">{{ project.description || $t('page.lowcode.project.noDescription') }}</NText>
-      </div>
-
-      <!-- 项目统计 -->
-      <div class="project-stats mb-4">
-        <NGrid :cols="2" :x-gap="8" :y-gap="8">
-          <NGridItem>
-            <div class="stat-item">
-              <NIcon class="stat-icon" color="#2080f0"><icon-mdi-database /></NIcon>
-              <div class="stat-content">
-                <NText class="stat-value">{{ project.entityCount || 0 }}</NText>
-                <NText class="stat-label" depth="3">{{ $t('page.lowcode.project.entities') }}</NText>
-              </div>
-            </div>
-          </NGridItem>
-          <NGridItem>
-            <div class="stat-item">
-              <NIcon class="stat-icon" color="#18a058"><icon-mdi-relation-many-to-many /></NIcon>
-              <div class="stat-content">
-                <NText class="stat-value">{{ project.relationshipCount || 0 }}</NText>
-                <NText class="stat-label" depth="3">{{ $t('page.lowcode.project.relationships') }}</NText>
-              </div>
-            </div>
-          </NGridItem>
-          <NGridItem>
-            <div class="stat-item">
-              <NIcon class="stat-icon" color="#f0a020"><icon-mdi-code-braces /></NIcon>
-              <div class="stat-content">
-                <NText class="stat-value">{{ project.generatedFiles || 0 }}</NText>
-                <NText class="stat-label" depth="3">{{ $t('page.lowcode.project.generatedFiles') }}</NText>
-              </div>
-            </div>
-          </NGridItem>
-          <NGridItem>
-            <div class="stat-item">
-              <NIcon class="stat-icon" color="#d03050"><icon-mdi-clock-outline /></NIcon>
-              <div class="stat-content">
-                <NText class="stat-value">{{ lastUpdated }}</NText>
-                <NText class="stat-label" depth="3">{{ $t('page.lowcode.project.lastUpdated') }}</NText>
-              </div>
-            </div>
-          </NGridItem>
-        </NGrid>
-      </div>
-
-      <!-- 项目技术栈 -->
-      <div class="project-tech mb-4" v-if="project.config?.techStack">
-        <NText class="tech-label" depth="3">{{ $t('page.lowcode.project.techStack') }}:</NText>
-        <NSpace class="tech-tags" size="small">
-          <NTag
-            v-for="tech in project.config.techStack"
-            :key="tech"
-            size="small"
-            type="info"
-          >
-            {{ tech }}
-          </NTag>
-        </NSpace>
-      </div>
-
-      <!-- 部署状态 -->
-      <div class="deployment-status mb-4">
-        <div class="deployment-header mb-2">
-          <NText depth="3">{{ $t('page.lowcode.project.deploymentStatusLabel') }}</NText>
-          <NTag :type="deploymentStatusType" size="small">{{ deploymentStatusText }}</NTag>
-        </div>
-        <div v-if="project.deploymentPort" class="deployment-info">
-          <NText depth="3" class="mr-2">{{ $t('page.lowcode.project.port') }}:</NText>
-          <NText>{{ project.deploymentPort }}</NText>
-        </div>
-        <div v-if="project.lastDeployedAt" class="deployment-info">
-          <NText depth="3" class="mr-2">{{ $t('page.lowcode.project.lastDeployed') }}:</NText>
-          <NText>{{ lastDeployedTime }}</NText>
-        </div>
-      </div>
-
-      <!-- 项目进度 -->
-      <div class="project-progress mb-4">
-        <div class="progress-header mb-2">
-          <NText depth="3">{{ $t('page.lowcode.project.progress') }}</NText>
-          <NText class="progress-value">{{ progressPercentage }}%</NText>
-        </div>
-        <NProgress 
-          :percentage="progressPercentage" 
-          :color="progressColor"
-          :show-indicator="false"
-        />
-      </div>
-    </div>
-
-    <!-- 卡片操作 -->
-    <template #action>
-      <div class="card-actions">
-        <NSpace justify="space-between">
-          <!-- 主要操作 -->
-          <NSpace size="small">
-            <NTooltip>
-              <template #trigger>
-                <NButton 
-                  type="primary" 
-                  size="small" 
-                  @click="$emit('design', project)"
-                >
-                  <template #icon>
-                    <NIcon><icon-mdi-database-edit /></NIcon>
-                  </template>
-                  {{ $t('page.lowcode.project.design') }}
-                </NButton>
-              </template>
-              {{ $t('page.lowcode.project.designEntities') }}
-            </NTooltip>
-            
-            <NTooltip>
-              <template #trigger>
-                <NButton
-                  type="info"
-                  size="small"
-                  @click="$emit('generate', project)"
-                >
-                  <template #icon>
-                    <NIcon><icon-mdi-code-braces /></NIcon>
-                  </template>
-                  {{ $t('page.lowcode.project.generate') }}
-                </NButton>
-              </template>
-              {{ $t('page.lowcode.project.generateCode') }}
-            </NTooltip>
-
-            <!-- 关系管理按钮 -->
-            <NTooltip>
-              <template #trigger>
-                <NButton
-                  type="warning"
-                  size="small"
-                  @click="$emit('relationship', project)"
-                >
-                  <template #icon>
-                    <NIcon><icon-mdi-relation-many-to-many /></NIcon>
-                  </template>
-                  {{ $t('page.lowcode.project.relationship') }}
-                </NButton>
-              </template>
-              {{ $t('page.lowcode.project.viewRelationships') }}
-            </NTooltip>
-
-            <!-- 部署按钮 -->
-            <NTooltip v-if="canDeploy">
-              <template #trigger>
-                <NButton
-                  type="success"
-                  size="small"
-                  :loading="isDeploying"
-                  @click="$emit('deploy', project)"
-                >
-                  <template #icon>
-                    <NIcon><icon-mdi-rocket-launch /></NIcon>
-                  </template>
-                  {{ $t('page.lowcode.project.deploy') }}
-                </NButton>
-              </template>
-              {{ $t('page.lowcode.project.deployProject') }}
-            </NTooltip>
-
-            <!-- 停止部署按钮 -->
-            <NTooltip v-if="canStopDeployment">
-              <template #trigger>
-                <NButton
-                  type="error"
-                  size="small"
-                  @click="$emit('stop-deployment', project)"
-                >
-                  <template #icon>
-                    <NIcon><icon-mdi-stop /></NIcon>
-                  </template>
-                  {{ $t('page.lowcode.project.stopDeployment') }}
-                </NButton>
-              </template>
-              {{ $t('page.lowcode.project.stopProjectDeployment') }}
-            </NTooltip>
-          </NSpace>
-
-          <!-- 更多操作 -->
-          <NDropdown :options="moreActions" @select="handleMoreAction">
-            <NButton size="small" quaternary>
-              <template #icon>
-                <NIcon><icon-mdi-dots-vertical /></NIcon>
-              </template>
-            </NButton>
-          </NDropdown>
-        </NSpace>
-      </div>
-    </template>
-
-    <!-- 项目封面/预览 -->
-    <div v-if="project.preview" class="project-preview">
-      <NImage 
-        :src="project.preview" 
-        :alt="project.name"
-        object-fit="cover"
-        height="120"
-        preview-disabled
-      />
-    </div>
-  </NCard>
-</template>
-
 <script setup lang="ts">
 import { computed, h } from 'vue';
 import { NIcon } from 'naive-ui';
@@ -292,25 +67,24 @@ const lastUpdated = computed(() => {
   const now = new Date();
   const diffTime = Math.abs(now.getTime() - date.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
+
   if (diffDays === 1) {
     return $t('page.lowcode.project.yesterday');
   } else if (diffDays < 7) {
     return $t('page.lowcode.project.daysAgo', { days: diffDays });
-  } else {
-    return date.toLocaleDateString();
   }
+  return date.toLocaleDateString();
 });
 
 const progressPercentage = computed(() => {
   const { entityCount = 0, relationshipCount = 0, generatedFiles = 0 } = props.project;
-  
+
   // 简单的进度计算逻辑
   let progress = 0;
   if (entityCount > 0) progress += 30;
   if (relationshipCount > 0) progress += 20;
   if (generatedFiles > 0) progress += 50;
-  
+
   return Math.min(progress, 100);
 });
 
@@ -353,14 +127,14 @@ const isDeploying = computed(() => {
 });
 
 const canDeploy = computed(() => {
-  return props.project.status === 'active' &&
-         (props.project.deploymentStatus === 'INACTIVE' ||
-          props.project.deploymentStatus === 'FAILED');
+  return (
+    props.project.status === 'active' &&
+    (props.project.deploymentStatus === 'INACTIVE' || props.project.deploymentStatus === 'FAILED')
+  );
 });
 
 const canStopDeployment = computed(() => {
-  return props.project.deploymentStatus === 'DEPLOYING' ||
-         props.project.deploymentStatus === 'DEPLOYED';
+  return props.project.deploymentStatus === 'DEPLOYING' || props.project.deploymentStatus === 'DEPLOYED';
 });
 
 // 更多操作菜单
@@ -432,6 +206,195 @@ const handleMoreAction = (key: string) => {
   }
 };
 </script>
+
+<template>
+  <NCard class="project-card" hoverable>
+    <!-- 卡片头部 -->
+    <template #header>
+      <div class="card-header">
+        <div class="project-info">
+          <NText class="project-name" strong>{{ project.name }}</NText>
+          <NText class="project-code" depth="3">{{ project.code }}</NText>
+        </div>
+        <div class="project-status">
+          <NTag :type="statusType" size="small">{{ statusText }}</NTag>
+        </div>
+      </div>
+    </template>
+
+    <!-- 卡片内容 -->
+    <div class="card-content">
+      <!-- 项目描述 -->
+      <div class="project-description mb-3">
+        <NText depth="2">{{ project.description || $t('page.lowcode.project.noDescription') }}</NText>
+      </div>
+
+      <!-- 项目统计 -->
+      <div class="project-stats mb-4">
+        <NGrid :cols="2" :x-gap="8" :y-gap="8">
+          <NGridItem>
+            <div class="stat-item">
+              <NIcon class="stat-icon" color="#2080f0"><icon-mdi-database /></NIcon>
+              <div class="stat-content">
+                <NText class="stat-value">{{ project.entityCount || 0 }}</NText>
+                <NText class="stat-label" depth="3">{{ $t('page.lowcode.project.entities') }}</NText>
+              </div>
+            </div>
+          </NGridItem>
+          <NGridItem>
+            <div class="stat-item">
+              <NIcon class="stat-icon" color="#18a058"><icon-mdi-relation-many-to-many /></NIcon>
+              <div class="stat-content">
+                <NText class="stat-value">{{ project.relationshipCount || 0 }}</NText>
+                <NText class="stat-label" depth="3">{{ $t('page.lowcode.project.relationships') }}</NText>
+              </div>
+            </div>
+          </NGridItem>
+          <NGridItem>
+            <div class="stat-item">
+              <NIcon class="stat-icon" color="#f0a020"><icon-mdi-code-braces /></NIcon>
+              <div class="stat-content">
+                <NText class="stat-value">{{ project.generatedFiles || 0 }}</NText>
+                <NText class="stat-label" depth="3">{{ $t('page.lowcode.project.generatedFiles') }}</NText>
+              </div>
+            </div>
+          </NGridItem>
+          <NGridItem>
+            <div class="stat-item">
+              <NIcon class="stat-icon" color="#d03050"><icon-mdi-clock-outline /></NIcon>
+              <div class="stat-content">
+                <NText class="stat-value">{{ lastUpdated }}</NText>
+                <NText class="stat-label" depth="3">{{ $t('page.lowcode.project.lastUpdated') }}</NText>
+              </div>
+            </div>
+          </NGridItem>
+        </NGrid>
+      </div>
+
+      <!-- 项目技术栈 -->
+      <div v-if="project.config?.techStack" class="project-tech mb-4">
+        <NText class="tech-label" depth="3">{{ $t('page.lowcode.project.techStack') }}:</NText>
+        <NSpace class="tech-tags" size="small">
+          <NTag v-for="tech in project.config.techStack" :key="tech" size="small" type="info">
+            {{ tech }}
+          </NTag>
+        </NSpace>
+      </div>
+
+      <!-- 部署状态 -->
+      <div class="deployment-status mb-4">
+        <div class="deployment-header mb-2">
+          <NText depth="3">{{ $t('page.lowcode.project.deploymentStatusLabel') }}</NText>
+          <NTag :type="deploymentStatusType" size="small">{{ deploymentStatusText }}</NTag>
+        </div>
+        <div v-if="project.deploymentPort" class="deployment-info">
+          <NText depth="3" class="mr-2">{{ $t('page.lowcode.project.port') }}:</NText>
+          <NText>{{ project.deploymentPort }}</NText>
+        </div>
+        <div v-if="project.lastDeployedAt" class="deployment-info">
+          <NText depth="3" class="mr-2">{{ $t('page.lowcode.project.lastDeployed') }}:</NText>
+          <NText>{{ lastDeployedTime }}</NText>
+        </div>
+      </div>
+
+      <!-- 项目进度 -->
+      <div class="project-progress mb-4">
+        <div class="progress-header mb-2">
+          <NText depth="3">{{ $t('page.lowcode.project.progress') }}</NText>
+          <NText class="progress-value">{{ progressPercentage }}%</NText>
+        </div>
+        <NProgress :percentage="progressPercentage" :color="progressColor" :show-indicator="false" />
+      </div>
+    </div>
+
+    <!-- 卡片操作 -->
+    <template #action>
+      <div class="card-actions">
+        <NSpace justify="space-between">
+          <!-- 主要操作 -->
+          <NSpace size="small">
+            <NTooltip>
+              <template #trigger>
+                <NButton type="primary" size="small" @click="$emit('design', project)">
+                  <template #icon>
+                    <NIcon><icon-mdi-database-edit /></NIcon>
+                  </template>
+                  {{ $t('page.lowcode.project.design') }}
+                </NButton>
+              </template>
+              {{ $t('page.lowcode.project.designEntities') }}
+            </NTooltip>
+
+            <NTooltip>
+              <template #trigger>
+                <NButton type="info" size="small" @click="$emit('generate', project)">
+                  <template #icon>
+                    <NIcon><icon-mdi-code-braces /></NIcon>
+                  </template>
+                  {{ $t('page.lowcode.project.generate') }}
+                </NButton>
+              </template>
+              {{ $t('page.lowcode.project.generateCode') }}
+            </NTooltip>
+
+            <!-- 关系管理按钮 -->
+            <NTooltip>
+              <template #trigger>
+                <NButton type="warning" size="small" @click="$emit('relationship', project)">
+                  <template #icon>
+                    <NIcon><icon-mdi-relation-many-to-many /></NIcon>
+                  </template>
+                  {{ $t('page.lowcode.project.relationship') }}
+                </NButton>
+              </template>
+              {{ $t('page.lowcode.project.viewRelationships') }}
+            </NTooltip>
+
+            <!-- 部署按钮 -->
+            <NTooltip v-if="canDeploy">
+              <template #trigger>
+                <NButton type="success" size="small" :loading="isDeploying" @click="$emit('deploy', project)">
+                  <template #icon>
+                    <NIcon><icon-mdi-rocket-launch /></NIcon>
+                  </template>
+                  {{ $t('page.lowcode.project.deploy') }}
+                </NButton>
+              </template>
+              {{ $t('page.lowcode.project.deployProject') }}
+            </NTooltip>
+
+            <!-- 停止部署按钮 -->
+            <NTooltip v-if="canStopDeployment">
+              <template #trigger>
+                <NButton type="error" size="small" @click="$emit('stop-deployment', project)">
+                  <template #icon>
+                    <NIcon><icon-mdi-stop /></NIcon>
+                  </template>
+                  {{ $t('page.lowcode.project.stopDeployment') }}
+                </NButton>
+              </template>
+              {{ $t('page.lowcode.project.stopProjectDeployment') }}
+            </NTooltip>
+          </NSpace>
+
+          <!-- 更多操作 -->
+          <NDropdown :options="moreActions" @select="handleMoreAction">
+            <NButton size="small" quaternary>
+              <template #icon>
+                <NIcon><icon-mdi-dots-vertical /></NIcon>
+              </template>
+            </NButton>
+          </NDropdown>
+        </NSpace>
+      </div>
+    </template>
+
+    <!-- 项目封面/预览 -->
+    <div v-if="project.preview" class="project-preview">
+      <NImage :src="project.preview" :alt="project.name" object-fit="cover" height="120" preview-disabled />
+    </div>
+  </NCard>
+</template>
 
 <style scoped>
 .project-card {

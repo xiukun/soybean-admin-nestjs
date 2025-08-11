@@ -1,81 +1,12 @@
-<template>
-  <div class="x6-graph-canvas">
-    <!-- 连线提示 -->
-    <div v-if="isConnectMode" class="connect-hint">
-      <n-alert type="info" :show-icon="false">
-        <span v-if="!connectSourceNode">
-          {{ $t('page.lowcode.relationship.selectSourceEntity') }}
-        </span>
-        <span v-else>
-          {{ $t('page.lowcode.relationship.selectTargetEntity', { name: connectSourceNode.getData().name }) }}
-        </span>
-        <div class="mt-2">
-          <n-button size="tiny" @click="$emit('cancel-connect')">
-            {{ $t('page.lowcode.relationship.cancelConnect') }}
-          </n-button>
-        </div>
-      </n-alert>
-    </div>
-
-    <!-- X6画布容器 -->
-    <div 
-      ref="containerRef" 
-      class="graph-container" 
-      :class="{ 'connect-mode': isConnectMode }"
-    ></div>
-
-    <!-- 小地图容器 -->
-    <Transition name="minimap-slide">
-      <div 
-        ref="minimapRef" 
-        class="minimap-container"
-        v-show="showMinimap"
-      >
-        <div class="minimap-header">
-          <span class="minimap-title">导航</span>
-          <n-button 
-            size="tiny" 
-            quaternary 
-            @click="toggleMinimap"
-            class="minimap-toggle"
-            title="隐藏导航地图"
-          >
-            <template #icon>
-              <n-icon><icon-mdi-chevron-left /></n-icon>
-            </template>
-          </n-button>
-        </div>
-        <div ref="minimapContentRef" class="minimap-content"></div>
-      </div>
-    </Transition>
-
-    <!-- 小地图切换按钮 -->
-    <Transition name="toggle-btn-fade">
-      <div class="minimap-toggle-btn" v-show="!showMinimap">
-        <n-button 
-          size="small" 
-          @click="toggleMinimap"
-          title="显示导航地图"
-          type="primary"
-          ghost
-        >
-          <template #icon>
-            <n-icon><icon-mdi-map /></n-icon>
-          </template>
-        </n-button>
-      </div>
-    </Transition>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
-import { Graph, Shape, Node, Edge, Cell } from '@antv/x6';
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { NAlert, NButton, NIcon } from 'naive-ui';
+import type { Edge, Node } from '@antv/x6';
+import { Cell, Graph, Shape } from '@antv/x6';
 import { Scroller } from '@antv/x6-plugin-scroller';
 import { MiniMap } from '@antv/x6-plugin-minimap';
 import { Selection } from '@antv/x6-plugin-selection';
 import { useI18n } from 'vue-i18n';
-import { NAlert, NButton, NIcon } from 'naive-ui';
 import { X6ConnectionManager } from '../modules/X6ConnectionManager';
 
 // 图标导入
@@ -84,7 +15,8 @@ import IconMdiMap from '~icons/mdi/map';
 
 /**
  * X6图形画布组件
- * @description 负责X6图形的初始化、渲染和基本交互
+ *
+ * 负责X6图形的初始化、渲染和基本交互
  */
 
 interface Props {
@@ -128,9 +60,7 @@ let graph: Graph | null = null;
 let connectionManager: X6ConnectionManager | null = null;
 let minimapInstance: MiniMap | null = null;
 
-/**
- * 注册自定义节点
- */
+/** 注册自定义节点 */
 function registerCustomNodes() {
   // 注册实体节点
   Graph.registerNode(
@@ -145,7 +75,7 @@ function registerCustomNodes() {
           stroke: '#1976d2',
           fill: '#ffffff',
           rx: 8,
-          ry: 8,
+          ry: 8
         },
         text: {
           fontSize: 14,
@@ -153,8 +83,8 @@ function registerCustomNodes() {
           fill: '#333333',
           textAnchor: 'middle',
           textVerticalAnchor: 'top',
-          refY: 10,
-        },
+          refY: 10
+        }
       },
       ports: {
         groups: {
@@ -168,10 +98,10 @@ function registerCustomNodes() {
                 strokeWidth: 2,
                 fill: '#fff',
                 style: {
-                  visibility: 'hidden',
-                },
-              },
-            },
+                  visibility: 'hidden'
+                }
+              }
+            }
           },
           right: {
             position: 'right',
@@ -183,10 +113,10 @@ function registerCustomNodes() {
                 strokeWidth: 2,
                 fill: '#fff',
                 style: {
-                  visibility: 'hidden',
-                },
-              },
-            },
+                  visibility: 'hidden'
+                }
+              }
+            }
           },
           bottom: {
             position: 'bottom',
@@ -198,10 +128,10 @@ function registerCustomNodes() {
                 strokeWidth: 2,
                 fill: '#fff',
                 style: {
-                  visibility: 'hidden',
-                },
-              },
-            },
+                  visibility: 'hidden'
+                }
+              }
+            }
           },
           left: {
             position: 'left',
@@ -213,27 +143,25 @@ function registerCustomNodes() {
                 strokeWidth: 2,
                 fill: '#fff',
                 style: {
-                  visibility: 'hidden',
-                },
-              },
-            },
-          },
+                  visibility: 'hidden'
+                }
+              }
+            }
+          }
         },
         items: [
           { group: 'top', id: 'top' },
           { group: 'right', id: 'right' },
           { group: 'bottom', id: 'bottom' },
-          { group: 'left', id: 'left' },
-        ],
-      },
+          { group: 'left', id: 'left' }
+        ]
+      }
     },
     true
   );
 }
 
-/**
- * 初始化X6图形
- */
+/** 初始化X6图形 */
 async function initGraph() {
   if (!containerRef.value) {
     console.warn('容器引用不存在，无法初始化图形');
@@ -248,16 +176,16 @@ async function initGraph() {
     const rect = containerRef.value.getBoundingClientRect();
     const containerWidth = Math.max(rect.width, containerRef.value.clientWidth, 800);
     const containerHeight = Math.max(rect.height, containerRef.value.clientHeight, 600);
-    
+
     // 验证容器尺寸
     if (containerWidth < 100 || containerHeight < 100) {
       console.warn('容器尺寸异常，延迟初始化:', { width: containerWidth, height: containerHeight });
       setTimeout(() => initGraph(), 200);
       return;
     }
-    
+
     console.log('初始化X6图形，容器尺寸:', containerWidth, containerHeight);
-    
+
     // 创建X6图形实例
     graph = new Graph({
       container: containerRef.value,
@@ -269,8 +197,8 @@ async function initGraph() {
         size: 10,
         args: {
           color: '#cccccc',
-          thickness: 1,
-        },
+          thickness: 1
+        }
       },
       connecting: {
         router: 'manhattan',
@@ -301,7 +229,7 @@ async function initGraph() {
           });
         },
         validateConnection({ targetMagnet }) {
-          return !!targetMagnet;
+          return Boolean(targetMagnet);
         }
       },
       highlighting: {
@@ -336,7 +264,7 @@ async function initGraph() {
         modifiers: ['ctrl', 'meta'],
         pageVisible: false,
         pageBreak: false,
-        autoResize: true,
+        autoResize: true
       })
     );
 
@@ -345,7 +273,7 @@ async function initGraph() {
       new Selection({
         enabled: true,
         showNodeSelectionBox: true,
-        showEdgeSelectionBox: true,
+        showEdgeSelectionBox: true
       })
     );
 
@@ -359,7 +287,7 @@ async function initGraph() {
         padding: 10,
         scalable: false,
         minScale: 0.01,
-        maxScale: 16,
+        maxScale: 16
       });
       graph.use(minimapInstance);
     }
@@ -379,9 +307,7 @@ async function initGraph() {
   }
 }
 
-/**
- * 绑定图形事件
- */
+/** 绑定图形事件 */
 function bindGraphEvents() {
   if (!graph) return;
 
@@ -425,36 +351,39 @@ function bindGraphEvents() {
   });
 }
 
-/**
- * 监听连接点显示状态变化
- */
-watch(() => props.showConnectionPoints, (show) => {
-  if (!graph) return;
-  
-  const nodes = graph.getNodes();
-  nodes.forEach(node => {
-    const ports = node.getPorts();
-    ports.forEach(port => {
-      node.setPortProp(port.id!, 'attrs/circle/style/visibility', show ? 'visible' : 'hidden');
-    });
-  });
-});
+/** 监听连接点显示状态变化 */
+watch(
+  () => props.showConnectionPoints,
+  show => {
+    if (!graph) return;
 
-/**
- * 监听网格显示状态变化
- */
-watch(() => props.showGrid, (visible) => {
-  if (!graph) return;
-  if (visible) {
-    graph.drawGrid();
-    graph.showGrid();
-  } else {
-    graph.hideGrid();
+    const nodes = graph.getNodes();
+    nodes.forEach(node => {
+      const ports = node.getPorts();
+      ports.forEach(port => {
+        node.setPortProp(port.id!, 'attrs/circle/style/visibility', show ? 'visible' : 'hidden');
+      });
+    });
   }
-});
+);
+
+/** 监听网格显示状态变化 */
+watch(
+  () => props.showGrid,
+  visible => {
+    if (!graph) return;
+    if (visible) {
+      graph.drawGrid();
+      graph.showGrid();
+    } else {
+      graph.hideGrid();
+    }
+  }
+);
 
 /**
  * 获取图形实例
+ *
  * @returns 图形实例
  */
 function getGraph(): Graph | null {
@@ -463,15 +392,14 @@ function getGraph(): Graph | null {
 
 /**
  * 获取连接管理器实例
+ *
  * @returns 连接管理器实例
  */
 function getConnectionManager(): X6ConnectionManager | null {
   return connectionManager;
 }
 
-/**
- * 切换小地图显示状态
- */
+/** 切换小地图显示状态 */
 function toggleMinimap() {
   showMinimap.value = !showMinimap.value;
 }
@@ -480,7 +408,7 @@ function toggleMinimap() {
 defineExpose({
   getGraph,
   getConnectionManager,
-  toggleMinimap,
+  toggleMinimap
 });
 
 // 生命周期
@@ -500,6 +428,56 @@ onUnmounted(() => {
   connectionManager = null;
 });
 </script>
+
+<template>
+  <div class="x6-graph-canvas">
+    <!-- 连线提示 -->
+    <div v-if="isConnectMode" class="connect-hint">
+      <NAlert type="info" :show-icon="false">
+        <span v-if="!connectSourceNode">
+          {{ $t('page.lowcode.relationship.selectSourceEntity') }}
+        </span>
+        <span v-else>
+          {{ $t('page.lowcode.relationship.selectTargetEntity', { name: connectSourceNode.getData().name }) }}
+        </span>
+        <div class="mt-2">
+          <NButton size="tiny" @click="$emit('cancel-connect')">
+            {{ $t('page.lowcode.relationship.cancelConnect') }}
+          </NButton>
+        </div>
+      </NAlert>
+    </div>
+
+    <!-- X6画布容器 -->
+    <div ref="containerRef" class="graph-container" :class="{ 'connect-mode': isConnectMode }"></div>
+
+    <!-- 小地图容器 -->
+    <Transition name="minimap-slide">
+      <div v-show="showMinimap" ref="minimapRef" class="minimap-container">
+        <div class="minimap-header">
+          <span class="minimap-title">导航</span>
+          <NButton size="tiny" quaternary class="minimap-toggle" title="隐藏导航地图" @click="toggleMinimap">
+            <template #icon>
+              <NIcon><icon-mdi-chevron-left /></NIcon>
+            </template>
+          </NButton>
+        </div>
+        <div ref="minimapContentRef" class="minimap-content"></div>
+      </div>
+    </Transition>
+
+    <!-- 小地图切换按钮 -->
+    <Transition name="toggle-btn-fade">
+      <div v-show="!showMinimap" class="minimap-toggle-btn">
+        <NButton size="small" title="显示导航地图" type="primary" ghost @click="toggleMinimap">
+          <template #icon>
+            <NIcon><icon-mdi-map /></NIcon>
+          </template>
+        </NButton>
+      </div>
+    </Transition>
+  </div>
+</template>
 
 <style scoped>
 .x6-graph-canvas {

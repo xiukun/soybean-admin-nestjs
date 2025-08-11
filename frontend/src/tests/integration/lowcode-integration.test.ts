@@ -1,15 +1,15 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { createPinia } from 'pinia';
 import { NConfigProvider } from 'naive-ui';
-import { 
-  fetchGetProjectList,
-  fetchAddProject,
-  fetchGetEntityList,
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import {
   fetchAddEntity,
   fetchAddField,
+  fetchAddProject,
   fetchAddRelationship,
-  fetchGenerateCode
+  fetchGenerateCode,
+  fetchGetEntityList,
+  fetchGetProjectList
 } from '@/service/api';
 
 // Mock API responses
@@ -20,7 +20,7 @@ vi.mock('@/service/api', () => ({
   fetchAddEntity: vi.fn(),
   fetchAddField: vi.fn(),
   fetchAddRelationship: vi.fn(),
-  fetchGenerateCode: vi.fn(),
+  fetchGenerateCode: vi.fn()
 }));
 
 // Mock components for testing
@@ -169,7 +169,7 @@ describe('Low-code Platform Integration Tests', () => {
 
     it('should create entity with fields', async () => {
       const projectId = 'test-project-id';
-      
+
       // Create entity
       const entityData = {
         projectId,
@@ -221,9 +221,7 @@ describe('Low-code Platform Integration Tests', () => {
       const createdNameField = { id: 'field-1', ...nameField, order: 1 };
       const createdPriceField = { id: 'field-2', ...priceField, order: 2 };
 
-      (fetchAddField as any)
-        .mockResolvedValueOnce(createdNameField)
-        .mockResolvedValueOnce(createdPriceField);
+      (fetchAddField as any).mockResolvedValueOnce(createdNameField).mockResolvedValueOnce(createdPriceField);
 
       const nameFieldResult = await fetchAddField(nameField);
       const priceFieldResult = await fetchAddField(priceField);
@@ -356,7 +354,7 @@ describe('Low-code Platform Integration Tests', () => {
     it('should route requests to correct services', async () => {
       // Test that low-code APIs use the correct service
       const projectData = { name: 'Test Project' };
-      
+
       (fetchAddProject as any).mockResolvedValue({ id: '1', ...projectData });
 
       await fetchAddProject(projectData);
@@ -386,7 +384,7 @@ describe('Low-code Platform Integration Tests', () => {
   describe('Data Flow Integration', () => {
     it('should maintain data consistency across operations', async () => {
       const projectId = 'test-project-id';
-      
+
       // Create project
       const project = {
         id: projectId,

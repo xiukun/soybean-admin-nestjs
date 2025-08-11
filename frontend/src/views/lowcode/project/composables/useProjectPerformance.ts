@@ -1,4 +1,4 @@
-import { ref, computed, onUnmounted } from 'vue';
+import { computed, onUnmounted, ref } from 'vue';
 import { debounce } from 'lodash-es';
 
 export interface Project {
@@ -34,7 +34,7 @@ export function useProjectPerformance() {
   const searchQuery = ref('');
   const statusFilter = ref('');
   const frameworkFilter = ref('');
-  
+
   // 分页状态
   const pagination = ref<PaginationConfig>({
     page: 1,
@@ -56,10 +56,11 @@ export function useProjectPerformance() {
     // 搜索过滤
     if (searchQuery.value) {
       const query = searchQuery.value.toLowerCase();
-      filtered = filtered.filter(project =>
-        project.name.toLowerCase().includes(query) ||
-        project.code.toLowerCase().includes(query) ||
-        project.description?.toLowerCase().includes(query)
+      filtered = filtered.filter(
+        project =>
+          project.name.toLowerCase().includes(query) ||
+          project.code.toLowerCase().includes(query) ||
+          project.description?.toLowerCase().includes(query)
       );
     }
 
@@ -117,7 +118,7 @@ export function useProjectPerformance() {
     statusFilter,
     frameworkFilter,
     pagination,
-    
+
     // 方法
     filterProjects,
     paginateProjects,

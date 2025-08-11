@@ -1,130 +1,6 @@
-<template>
-  <div class="toolbar">
-    <div class="toolbar-section">
-      <n-button-group>
-        <n-button 
-          :type="isConnectMode ? 'primary' : 'default'"
-          @click="$emit('toggle-connect-mode')"
-          :disabled="loading"
-        >
-          <n-icon :component="LinkIcon" />
-          {{ isConnectMode ? '退出连线' : '连线模式' }}
-        </n-button>
-        
-        <n-button @click="$emit('add-entity')" :disabled="loading">
-          <n-icon :component="PlusIcon" />
-          添加实体
-        </n-button>
-        
-        <n-button @click="$emit('delete-selected')" :disabled="!hasSelection || loading">
-          <n-icon :component="DeleteIcon" />
-          删除
-        </n-button>
-      </n-button-group>
-    </div>
-
-    <div class="toolbar-section">
-      <n-button-group>
-        <n-button @click="$emit('auto-layout')" :loading="layoutLoading">
-          <n-icon :component="LayoutIcon" />
-          自动布局
-        </n-button>
-        
-        <n-button @click="$emit('fit-view')">
-          <n-icon :component="FitViewIcon" />
-          适应画布
-        </n-button>
-        
-        <n-button @click="$emit('reset-zoom')">
-          <n-icon :component="ResetZoomIcon" />
-          重置缩放
-        </n-button>
-      </n-button-group>
-    </div>
-
-    <div class="toolbar-section">
-      <n-space align="center">
-        <span class="zoom-label">缩放:</span>
-        <n-button size="small" @click="$emit('zoom-out')" :disabled="zoomLevel <= 0.1">
-          <n-icon :component="ZoomOutIcon" />
-        </n-button>
-        
-        <span class="zoom-value">{{ Math.round(zoomLevel * 100) }}%</span>
-        
-        <n-button size="small" @click="$emit('zoom-in')" :disabled="zoomLevel >= 3">
-          <n-icon :component="ZoomInIcon" />
-        </n-button>
-      </n-space>
-    </div>
-
-    <div class="toolbar-section">
-      <n-dropdown :options="exportOptions" @select="handleExport">
-        <n-button>
-          <n-icon :component="ExportIcon" />
-          导出
-          <n-icon :component="ChevronDownIcon" />
-        </n-button>
-      </n-dropdown>
-    </div>
-
-    <div class="toolbar-section">
-      <n-button-group>
-        <n-button @click="$emit('undo')" :disabled="!canUndo">
-          <n-icon :component="UndoIcon" />
-        </n-button>
-        
-        <n-button @click="$emit('redo')" :disabled="!canRedo">
-          <n-icon :component="RedoIcon" />
-        </n-button>
-      </n-button-group>
-    </div>
-
-    <div class="toolbar-section">
-      <n-button @click="$emit('save')" type="primary" :loading="saveLoading">
-        <n-icon :component="SaveIcon" />
-        保存
-      </n-button>
-    </div>
-
-    <!-- 图例 -->
-    <div class="toolbar-section legend-section">
-      <n-popover trigger="hover" placement="bottom">
-        <template #trigger>
-          <n-button quaternary>
-            <n-icon :component="InfoIcon" />
-            图例
-          </n-button>
-        </template>
-        
-        <div class="legend-content">
-          <div class="legend-item">
-            <div class="legend-node entity-node"></div>
-            <span>实体</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-line one-to-one"></div>
-            <span>一对一关系</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-line one-to-many"></div>
-            <span>一对多关系</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-line many-to-many"></div>
-            <span>多对多关系</span>
-          </div>
-        </div>
-      </n-popover>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { computed, h } from 'vue';
-import { 
-  NButton, NButtonGroup, NIcon, NSpace, NDropdown, NPopover,
-  useMessage 
-} from 'naive-ui';
+import { NButton, NButtonGroup, NDropdown, NIcon, NPopover, NSpace, useMessage } from 'naive-ui';
 import { Icon } from '@iconify/vue';
 
 // 定义图标组件
@@ -213,6 +89,127 @@ function handleExport(key: string) {
   message.info(`正在导出为 ${key.toUpperCase()} 格式...`);
 }
 </script>
+
+<template>
+  <div class="toolbar">
+    <div class="toolbar-section">
+      <NButtonGroup>
+        <NButton
+          :type="isConnectMode ? 'primary' : 'default'"
+          :disabled="loading"
+          @click="$emit('toggle-connect-mode')"
+        >
+          <NIcon :component="LinkIcon" />
+          {{ isConnectMode ? '退出连线' : '连线模式' }}
+        </NButton>
+
+        <NButton :disabled="loading" @click="$emit('add-entity')">
+          <NIcon :component="PlusIcon" />
+          添加实体
+        </NButton>
+
+        <NButton :disabled="!hasSelection || loading" @click="$emit('delete-selected')">
+          <NIcon :component="DeleteIcon" />
+          删除
+        </NButton>
+      </NButtonGroup>
+    </div>
+
+    <div class="toolbar-section">
+      <NButtonGroup>
+        <NButton :loading="layoutLoading" @click="$emit('auto-layout')">
+          <NIcon :component="LayoutIcon" />
+          自动布局
+        </NButton>
+
+        <NButton @click="$emit('fit-view')">
+          <NIcon :component="FitViewIcon" />
+          适应画布
+        </NButton>
+
+        <NButton @click="$emit('reset-zoom')">
+          <NIcon :component="ResetZoomIcon" />
+          重置缩放
+        </NButton>
+      </NButtonGroup>
+    </div>
+
+    <div class="toolbar-section">
+      <NSpace align="center">
+        <span class="zoom-label">缩放:</span>
+        <NButton size="small" :disabled="zoomLevel <= 0.1" @click="$emit('zoom-out')">
+          <NIcon :component="ZoomOutIcon" />
+        </NButton>
+
+        <span class="zoom-value">{{ Math.round(zoomLevel * 100) }}%</span>
+
+        <NButton size="small" :disabled="zoomLevel >= 3" @click="$emit('zoom-in')">
+          <NIcon :component="ZoomInIcon" />
+        </NButton>
+      </NSpace>
+    </div>
+
+    <div class="toolbar-section">
+      <NDropdown :options="exportOptions" @select="handleExport">
+        <NButton>
+          <NIcon :component="ExportIcon" />
+          导出
+          <NIcon :component="ChevronDownIcon" />
+        </NButton>
+      </NDropdown>
+    </div>
+
+    <div class="toolbar-section">
+      <NButtonGroup>
+        <NButton :disabled="!canUndo" @click="$emit('undo')">
+          <NIcon :component="UndoIcon" />
+        </NButton>
+
+        <NButton :disabled="!canRedo" @click="$emit('redo')">
+          <NIcon :component="RedoIcon" />
+        </NButton>
+      </NButtonGroup>
+    </div>
+
+    <div class="toolbar-section">
+      <NButton type="primary" :loading="saveLoading" @click="$emit('save')">
+        <NIcon :component="SaveIcon" />
+        保存
+      </NButton>
+    </div>
+
+    <!-- 图例 -->
+    <div class="toolbar-section legend-section">
+      <NPopover trigger="hover" placement="bottom">
+        <template #trigger>
+          <NButton quaternary>
+            <NIcon :component="InfoIcon" />
+            图例
+          </NButton>
+        </template>
+
+        <div class="legend-content">
+          <div class="legend-item">
+            <div class="legend-node entity-node"></div>
+            <span>实体</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line one-to-one"></div>
+            <span>一对一关系</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line one-to-many"></div>
+            <span>一对多关系</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line many-to-many"></div>
+            <span>多对多关系</span>
+          </div>
+        </div>
+      </NPopover>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .toolbar {
@@ -338,16 +335,16 @@ function handleExport(key: string) {
     padding: 8px 12px;
     gap: 8px;
   }
-  
+
   .toolbar-section {
     gap: 4px;
   }
-  
+
   .zoom-label,
   .zoom-value {
     font-size: 11px;
   }
-  
+
   .legend-section {
     margin-left: 0;
     order: -1;
@@ -362,11 +359,11 @@ function handleExport(key: string) {
     align-items: stretch;
     gap: 8px;
   }
-  
+
   .toolbar-section {
     justify-content: center;
   }
-  
+
   .legend-section {
     order: 0;
   }

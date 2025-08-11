@@ -1,140 +1,17 @@
-<template>
-  <div class="entity-field-manager">
-    <!-- 字段列表 -->
-    <div class="field-list">
-      <div class="field-header">
-        <NText strong>字段列表</NText>
-        <NButton size="small" type="primary" @click="handleAddField">
-          <template #icon>
-            <NIcon><icon-mdi-plus /></NIcon>
-          </template>
-          添加字段
-        </NButton>
-      </div>
-      
-      <div v-if="fields.length === 0" class="empty-state">
-        <NEmpty description="暂无字段" size="small">
-          <template #extra>
-            <NButton size="small" @click="handleAddField">添加第一个字段</NButton>
-          </template>
-        </NEmpty>
-      </div>
-      
-      <div v-else class="fields-container">
-        <div 
-          v-for="(field, index) in fields" 
-          :key="field.id || index"
-          class="field-item"
-          :class="{
-            'primary-key': field.isPrimaryKey,
-            'required': field.isRequired,
-            'unique': field.isUnique
-          }"
-        >
-          <div class="field-content">
-            <div class="field-main">
-              <div class="field-info">
-                <div class="field-name">
-                  <NIcon class="field-icon" :class="getFieldIconClass(field)">
-                    <icon-mdi-key v-if="field.isPrimaryKey" />
-                    <icon-mdi-link v-else-if="field.isForeignKey" />
-                    <icon-mdi-circle-small v-else />
-                  </NIcon>
-                  <span class="name-text">{{ field.name }}</span>
-                  <NText depth="3" class="code-text">({{ field.code }})</NText>
-                </div>
-                <div class="field-type">
-                  <NTag size="small" :type="getFieldTypeColor(field.dataType)">
-                    {{ field.dataType }}
-                  </NTag>
-                  <span v-if="field.length" class="type-length">({{ field.length }})</span>
-                </div>
-              </div>
-              
-              <div class="field-attributes">
-                <NTag v-if="field.isPrimaryKey" size="tiny" type="warning">主键</NTag>
-                <NTag v-if="field.isRequired" size="tiny" type="error">必填</NTag>
-                <NTag v-if="field.isUnique" size="tiny" type="info">唯一</NTag>
-                <NTag v-if="field.isForeignKey" size="tiny" type="primary">外键</NTag>
-              </div>
-            </div>
-            
-            <div class="field-actions">
-              <NButton size="tiny" quaternary @click="handleEditField(field, index)">
-                <template #icon>
-                  <NIcon><icon-mdi-pencil /></NIcon>
-                </template>
-              </NButton>
-              
-              <NButton 
-                size="tiny" 
-                quaternary 
-                @click="handleMoveField(index, 'up')"
-                :disabled="index === 0"
-              >
-                <template #icon>
-                  <NIcon><icon-mdi-arrow-up /></NIcon>
-                </template>
-              </NButton>
-              
-              <NButton 
-                size="tiny" 
-                quaternary 
-                @click="handleMoveField(index, 'down')"
-                :disabled="index === fields.length - 1"
-              >
-                <template #icon>
-                  <NIcon><icon-mdi-arrow-down /></NIcon>
-                </template>
-              </NButton>
-              
-              <NPopconfirm @positive-click="handleDeleteField(index)">
-                <template #trigger>
-                  <NButton size="tiny" quaternary type="error">
-                    <template #icon>
-                      <NIcon><icon-mdi-delete /></NIcon>
-                    </template>
-                  </NButton>
-                </template>
-                确定要删除字段 "{{ field.name }}" 吗？
-              </NPopconfirm>
-            </div>
-          </div>
-          
-          <!-- 字段描述 -->
-          <div v-if="field.description" class="field-description">
-            <NText depth="3" class="text-xs">{{ field.description }}</NText>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- 字段编辑对话框 -->
-    <NModal v-model:show="showFieldModal" preset="dialog" title="编辑字段">
-      <FieldForm 
-        v-if="showFieldModal"
-        :visible="showFieldModal"
-        :field-data="editingField"
-        @update:visible="showFieldModal = $event"
-        @save="handleFieldSave"
-      />
-    </NModal>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useMessage } from 'naive-ui';
 import FieldForm from './FieldForm.vue';
 
 /**
  * 实体字段管理组件
+ *
+ * @fires {Function} update:fields - 字段列表更新事件
+ * @fires {Function} field-add - 字段添加事件
+ * @fires {Function} field-update - 字段更新事件
+ * @fires {Function} field-delete - 字段删除事件
  * @props {string} entityId - 实体ID
  * @props {Array} fields - 字段列表
- * @emits {Function} update:fields - 字段列表更新事件
- * @emits {Function} field-add - 字段添加事件
- * @emits {Function} field-update - 字段更新事件
- * @emits {Function} field-delete - 字段删除事件
  */
 interface Field {
   id?: string;
@@ -178,6 +55,7 @@ const editingIndex = ref(-1);
 
 /**
  * 获取字段图标样式类
+ *
  * @param field - 字段对象
  * @returns 样式类名
  */
@@ -189,29 +67,28 @@ function getFieldIconClass(field: Field) {
 
 /**
  * 获取字段类型颜色
+ *
  * @param dataType - 数据类型
  * @returns 标签类型
  */
 function getFieldTypeColor(dataType: string): 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error' {
   const typeColorMap: Record<string, 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error'> = {
-    'STRING': 'default',
-    'TEXT': 'default',
-    'INTEGER': 'primary',
-    'BIGINT': 'primary',
-    'DECIMAL': 'info',
-    'FLOAT': 'info',
-    'BOOLEAN': 'success',
-    'DATE': 'warning',
-    'DATETIME': 'warning',
-    'TIMESTAMP': 'warning',
-    'JSON': 'error'
+    STRING: 'default',
+    TEXT: 'default',
+    INTEGER: 'primary',
+    BIGINT: 'primary',
+    DECIMAL: 'info',
+    FLOAT: 'info',
+    BOOLEAN: 'success',
+    DATE: 'warning',
+    DATETIME: 'warning',
+    TIMESTAMP: 'warning',
+    JSON: 'error'
   };
   return typeColorMap[dataType] || 'default';
 }
 
-/**
- * 添加字段
- */
+/** 添加字段 */
 function handleAddField() {
   editingField.value = {
     entityId: props.entityId,
@@ -228,6 +105,7 @@ function handleAddField() {
 
 /**
  * 编辑字段
+ *
  * @param field - 字段对象
  * @param index - 字段索引
  */
@@ -239,6 +117,7 @@ function handleEditField(field: Field, index: number) {
 
 /**
  * 字段保存
+ *
  * @param fieldData - 字段数据
  */
 function handleFieldSave(fieldData: any) {
@@ -246,7 +125,7 @@ function handleFieldSave(fieldData: any) {
     ...fieldData,
     entityId: props.entityId
   };
-  
+
   if (editingIndex.value === -1) {
     // 新增字段
     const newFields = [...props.fields, field];
@@ -261,15 +140,13 @@ function handleFieldSave(fieldData: any) {
     emit('field-update', field, editingIndex.value);
     message.success('字段更新成功');
   }
-  
+
   showFieldModal.value = false;
   editingField.value = null;
   editingIndex.value = -1;
 }
 
-/**
- * 取消字段编辑
- */
+/** 取消字段编辑 */
 function handleFieldCancel() {
   showFieldModal.value = false;
   editingField.value = null;
@@ -278,6 +155,7 @@ function handleFieldCancel() {
 
 /**
  * 删除字段
+ *
  * @param index - 字段索引
  */
 function handleDeleteField(index: number) {
@@ -289,19 +167,139 @@ function handleDeleteField(index: number) {
 
 /**
  * 移动字段位置
+ *
  * @param index - 当前索引
  * @param direction - 移动方向
  */
 function handleMoveField(index: number, direction: 'up' | 'down') {
   const newFields = [...props.fields];
   const targetIndex = direction === 'up' ? index - 1 : index + 1;
-  
+
   if (targetIndex >= 0 && targetIndex < newFields.length) {
     [newFields[index], newFields[targetIndex]] = [newFields[targetIndex], newFields[index]];
     emit('update:fields', newFields);
   }
 }
 </script>
+
+<template>
+  <div class="entity-field-manager">
+    <!-- 字段列表 -->
+    <div class="field-list">
+      <div class="field-header">
+        <NText strong>字段列表</NText>
+        <NButton size="small" type="primary" @click="handleAddField">
+          <template #icon>
+            <NIcon><icon-mdi-plus /></NIcon>
+          </template>
+          添加字段
+        </NButton>
+      </div>
+
+      <div v-if="fields.length === 0" class="empty-state">
+        <NEmpty description="暂无字段" size="small">
+          <template #extra>
+            <NButton size="small" @click="handleAddField">添加第一个字段</NButton>
+          </template>
+        </NEmpty>
+      </div>
+
+      <div v-else class="fields-container">
+        <div
+          v-for="(field, index) in fields"
+          :key="field.id || index"
+          class="field-item"
+          :class="{
+            'primary-key': field.isPrimaryKey,
+            required: field.isRequired,
+            unique: field.isUnique
+          }"
+        >
+          <div class="field-content">
+            <div class="field-main">
+              <div class="field-info">
+                <div class="field-name">
+                  <NIcon class="field-icon" :class="getFieldIconClass(field)">
+                    <icon-mdi-key v-if="field.isPrimaryKey" />
+                    <icon-mdi-link v-else-if="field.isForeignKey" />
+                    <icon-mdi-circle-small v-else />
+                  </NIcon>
+                  <span class="name-text">{{ field.name }}</span>
+                  <NText depth="3" class="code-text">({{ field.code }})</NText>
+                </div>
+                <div class="field-type">
+                  <NTag size="small" :type="getFieldTypeColor(field.dataType)">
+                    {{ field.dataType }}
+                  </NTag>
+                  <span v-if="field.length" class="type-length">({{ field.length }})</span>
+                </div>
+              </div>
+
+              <div class="field-attributes">
+                <NTag v-if="field.isPrimaryKey" size="tiny" type="warning">主键</NTag>
+                <NTag v-if="field.isRequired" size="tiny" type="error">必填</NTag>
+                <NTag v-if="field.isUnique" size="tiny" type="info">唯一</NTag>
+                <NTag v-if="field.isForeignKey" size="tiny" type="primary">外键</NTag>
+              </div>
+            </div>
+
+            <div class="field-actions">
+              <NButton size="tiny" quaternary @click="handleEditField(field, index)">
+                <template #icon>
+                  <NIcon><icon-mdi-pencil /></NIcon>
+                </template>
+              </NButton>
+
+              <NButton size="tiny" quaternary :disabled="index === 0" @click="handleMoveField(index, 'up')">
+                <template #icon>
+                  <NIcon><icon-mdi-arrow-up /></NIcon>
+                </template>
+              </NButton>
+
+              <NButton
+                size="tiny"
+                quaternary
+                :disabled="index === fields.length - 1"
+                @click="handleMoveField(index, 'down')"
+              >
+                <template #icon>
+                  <NIcon><icon-mdi-arrow-down /></NIcon>
+                </template>
+              </NButton>
+
+              <NPopconfirm @positive-click="handleDeleteField(index)">
+                <template #trigger>
+                  <NButton size="tiny" quaternary type="error">
+                    <template #icon>
+                      <NIcon><icon-mdi-delete /></NIcon>
+                    </template>
+                  </NButton>
+                </template>
+                确定要删除字段 "{{ field.name }}" 吗？
+              </NPopconfirm>
+            </div>
+          </div>
+
+          <!-- 字段描述 -->
+          <div v-if="field.description" class="field-description">
+            <NText depth="3" class="text-xs">{{ field.description }}</NText>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 字段编辑对话框 -->
+    <NModal v-model:show="showFieldModal" preset="dialog" title="编辑字段">
+      <FieldForm
+        v-if="showFieldModal"
+        :visible="showFieldModal"
+        :field-data="editingField"
+        @update:visible="showFieldModal = $event"
+        @save="handleFieldSave"
+      />
+    </NModal>
+  </div>
+</template>
 
 <style scoped>
 .entity-field-manager {

@@ -1,82 +1,10 @@
-<template>
-  <NDrawer v-model:show="drawerVisible" display-directive="show" :width="640">
-    <NDrawerContent :title="title" :native-scrollbar="false" closable>
-      <NForm ref="formRef" :model="formModel" :rules="rules" label-placement="left" :label-width="100">
-        <NFormItem label="字段名称" path="name">
-          <NInput v-model:value="formModel.name" placeholder="请输入字段名称" />
-        </NFormItem>
-        <NFormItem label="字段代码" path="code">
-          <NInput v-model:value="formModel.code" placeholder="请输入字段代码" />
-        </NFormItem>
-        <NFormItem label="数据类型" path="dataType">
-          <NSelect
-            v-model:value="formModel.dataType"
-            placeholder="请选择数据类型"
-            :options="fieldTypeOptions"
-            @update:value="handleTypeChange"
-          />
-        </NFormItem>
-        <NFormItem v-if="showLengthField" label="字段长度" path="length">
-          <NInputNumber
-            v-model:value="formModel.length"
-            placeholder="请输入字段长度"
-            :min="1"
-            :max="65535"
-            style="width: 100%"
-          />
-        </NFormItem>
-        <NFormItem v-if="showPrecisionFields" label="精度" path="precision">
-          <NInputNumber
-            v-model:value="formModel.precision"
-            placeholder="请输入精度"
-            :min="1"
-            :max="65"
-            style="width: 100%"
-          />
-        </NFormItem>
-        <NFormItem label="描述" path="description">
-          <NInput
-            v-model:value="formModel.description"
-            placeholder="请输入字段描述"
-            type="textarea"
-            :rows="3"
-          />
-        </NFormItem>
-        <NFormItem label="属性">
-          <NSpace vertical>
-            <NCheckbox v-model:checked="formModel.required">
-              必填
-            </NCheckbox>
-            <NCheckbox v-model:checked="formModel.unique">
-              唯一
-            </NCheckbox>
-          </NSpace>
-        </NFormItem>
-        <NFormItem label="默认值" path="defaultValue">
-          <NInput
-            v-model:value="formModel.defaultValue"
-            placeholder="请输入默认值"
-          />
-        </NFormItem>
-        <!-- 显示顺序由系统自动管理，不需要用户输入 -->
-      </NForm>
-      <template #footer>
-        <NSpace :size="16">
-          <NButton @click="closeDrawer">{{ $t('common.cancel') }}</NButton>
-          <NButton type="primary" @click="handleSubmit">{{ $t('common.confirm') }}</NButton>
-        </NSpace>
-      </template>
-    </NDrawerContent>
-  </NDrawer>
-</template>
-
 <script setup lang="ts">
 import { computed, reactive, watch } from 'vue';
 import type { FormInst, FormRules } from 'naive-ui';
 import { fetchAddField, fetchUpdateField } from '@/service/api';
-import { $t } from '@/locales';
+import { useFormRules, useNaiveForm } from '@/hooks/common/form';
 import { createRequiredFormRule } from '@/utils/form/rule';
-import { useNaiveForm, useFormRules } from '@/hooks/common/form';
+import { $t } from '@/locales';
 
 export interface Props {
   /** the type of operation */
@@ -240,7 +168,7 @@ function handleTypeChange() {
 
 async function handleSubmit() {
   await validate();
-  
+
   // Clean form data for API submission
   function getCleanFormData(includeEntityId = true) {
     const data: any = {
@@ -283,7 +211,7 @@ async function handleSubmit() {
   };
 
   await handlers[props.operateType]();
-  
+
   window.$message?.success($t('common.updateSuccess'));
   closeDrawer();
   emit('submitted');
@@ -309,5 +237,65 @@ watch(visible, () => {
   }
 });
 </script>
+
+<template>
+  <NDrawer v-model:show="drawerVisible" display-directive="show" :width="640">
+    <NDrawerContent :title="title" :native-scrollbar="false" closable>
+      <NForm ref="formRef" :model="formModel" :rules="rules" label-placement="left" :label-width="100">
+        <NFormItem label="字段名称" path="name">
+          <NInput v-model:value="formModel.name" placeholder="请输入字段名称" />
+        </NFormItem>
+        <NFormItem label="字段代码" path="code">
+          <NInput v-model:value="formModel.code" placeholder="请输入字段代码" />
+        </NFormItem>
+        <NFormItem label="数据类型" path="dataType">
+          <NSelect
+            v-model:value="formModel.dataType"
+            placeholder="请选择数据类型"
+            :options="fieldTypeOptions"
+            @update:value="handleTypeChange"
+          />
+        </NFormItem>
+        <NFormItem v-if="showLengthField" label="字段长度" path="length">
+          <NInputNumber
+            v-model:value="formModel.length"
+            placeholder="请输入字段长度"
+            :min="1"
+            :max="65535"
+            style="width: 100%"
+          />
+        </NFormItem>
+        <NFormItem v-if="showPrecisionFields" label="精度" path="precision">
+          <NInputNumber
+            v-model:value="formModel.precision"
+            placeholder="请输入精度"
+            :min="1"
+            :max="65"
+            style="width: 100%"
+          />
+        </NFormItem>
+        <NFormItem label="描述" path="description">
+          <NInput v-model:value="formModel.description" placeholder="请输入字段描述" type="textarea" :rows="3" />
+        </NFormItem>
+        <NFormItem label="属性">
+          <NSpace vertical>
+            <NCheckbox v-model:checked="formModel.required">必填</NCheckbox>
+            <NCheckbox v-model:checked="formModel.unique">唯一</NCheckbox>
+          </NSpace>
+        </NFormItem>
+        <NFormItem label="默认值" path="defaultValue">
+          <NInput v-model:value="formModel.defaultValue" placeholder="请输入默认值" />
+        </NFormItem>
+        <!-- 显示顺序由系统自动管理，不需要用户输入 -->
+      </NForm>
+      <template #footer>
+        <NSpace :size="16">
+          <NButton @click="closeDrawer">{{ $t('common.cancel') }}</NButton>
+          <NButton type="primary" @click="handleSubmit">{{ $t('common.confirm') }}</NButton>
+        </NSpace>
+      </template>
+    </NDrawerContent>
+  </NDrawer>
+</template>
 
 <style scoped></style>

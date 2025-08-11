@@ -1,105 +1,9 @@
-<template>
-  <div class="project-selector">
-    <NSpace align="center" :size="12">
-      <NIcon size="18" class="text-primary">
-        <icon-mdi-folder-outline />
-      </NIcon>
-      <NText strong>{{ $t('common.project') }}:</NText>
-      <NSelect
-        v-model:value="selectedProjectId"
-        :placeholder="$t('common.selectProject')"
-        :options="projectOptions"
-        :loading="loading"
-        :disabled="disabled"
-        style="min-width: 200px"
-        clearable
-        filterable
-        @update:value="handleProjectChange"
-      >
-        <template #empty>
-          <NEmpty :description="$t('common.noProjects')" size="small">
-            <template #extra>
-              <NButton size="small" @click="handleCreateProject">
-                {{ $t('common.createProject') }}
-              </NButton>
-            </template>
-          </NEmpty>
-        </template>
-      </NSelect>
-      
-      <!-- Project Info -->
-      <template v-if="currentProject">
-        <NDivider vertical />
-        <NSpace align="center" :size="8">
-          <NTag :type="getProjectStatusType(currentProject.status)" size="small">
-            {{ $t(`common.projectStatus.${currentProject.status.toLowerCase()}`) }}
-          </NTag>
-          <NTooltip>
-            <template #trigger>
-              <NIcon size="16" class="text-gray-400 cursor-help">
-                <icon-mdi-information-outline />
-              </NIcon>
-            </template>
-            <div class="max-w-300px">
-              <div><strong>{{ $t('common.projectName') }}:</strong> {{ currentProject.name }}</div>
-              <div><strong>{{ $t('common.projectCode') }}:</strong> {{ currentProject.code }}</div>
-              <div v-if="currentProject.description">
-                <strong>{{ $t('common.description') }}:</strong> {{ currentProject.description }}
-              </div>
-              <div><strong>{{ $t('common.createdAt') }}:</strong> {{ formatDate(currentProject.createdAt) }}</div>
-            </div>
-          </NTooltip>
-        </NSpace>
-      </template>
-      
-      <!-- Quick Actions -->
-      <template v-if="showQuickActions && currentProject">
-        <NDivider vertical />
-        <NSpace :size="4">
-          <NTooltip>
-            <template #trigger>
-              <NButton size="small" quaternary circle @click="handleRefreshProject">
-                <template #icon>
-                  <NIcon><icon-mdi-refresh /></NIcon>
-                </template>
-              </NButton>
-            </template>
-            {{ $t('common.refresh') }}
-          </NTooltip>
-          
-          <NTooltip>
-            <template #trigger>
-              <NButton size="small" quaternary circle @click="handleProjectSettings">
-                <template #icon>
-                  <NIcon><icon-mdi-cog /></NIcon>
-                </template>
-              </NButton>
-            </template>
-            {{ $t('common.projectSettings') }}
-          </NTooltip>
-          
-          <NTooltip>
-            <template #trigger>
-              <NButton size="small" quaternary circle @click="handleProjectStats">
-                <template #icon>
-                  <NIcon><icon-mdi-chart-line /></NIcon>
-                </template>
-              </NButton>
-            </template>
-            {{ $t('common.projectStats') }}
-          </NTooltip>
-        </NSpace>
-      </template>
-    </NSpace>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useLowcodeStore } from '@/store/modules/lowcode';
-import { $t } from '@/locales';
 import { formatDate } from '@/utils/common';
+import { $t } from '@/locales';
 
 interface Props {
   disabled?: boolean;
@@ -117,7 +21,7 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   showQuickActions: true,
-  autoLoad: true,
+  autoLoad: true
 });
 
 const emit = defineEmits<Emits>();
@@ -140,7 +44,7 @@ const selectedProjectId = computed({
 const currentProject = computed(() => lowcodeStore.currentProject);
 const loading = computed(() => lowcodeStore.loading.projects);
 
-const projectOptions = computed(() => 
+const projectOptions = computed(() =>
   lowcodeStore.activeProjects.map(project => ({
     label: project.name,
     value: project.id,
@@ -181,12 +85,12 @@ function handleCreateProject() {
 
 async function handleRefreshProject() {
   if (!currentProject.value) return;
-  
+
   try {
     await Promise.all([
       lowcodeStore.loadProjectEntities(currentProject.value.id),
       lowcodeStore.loadProjectTemplates(currentProject.value.id),
-      lowcodeStore.loadGenerationHistory(currentProject.value.id),
+      lowcodeStore.loadGenerationHistory(currentProject.value.id)
     ]);
     window.$message?.success($t('common.refreshed'));
   } catch (error) {
@@ -197,7 +101,7 @@ async function handleRefreshProject() {
 
 function handleProjectSettings() {
   if (!currentProject.value) return;
-  
+
   emit('settings', currentProject.value.id);
   // Navigate to project settings
   router.push(`/lowcode/project?id=${currentProject.value.id}&action=edit`);
@@ -205,7 +109,7 @@ function handleProjectSettings() {
 
 function handleProjectStats() {
   if (!currentProject.value) return;
-  
+
   emit('stats', currentProject.value.id);
   // Navigate to project statistics
   router.push(`/lowcode/project/stats?id=${currentProject.value.id}`);
@@ -216,7 +120,7 @@ onMounted(async () => {
   if (props.autoLoad) {
     try {
       await lowcodeStore.loadProjects();
-      
+
       // Try to restore from localStorage
       const savedProjectId = lowcodeStore.initializeFromStorage();
       if (savedProjectId && lowcodeStore.projects.some(p => p.id === savedProjectId)) {
@@ -229,12 +133,121 @@ onMounted(async () => {
 });
 
 // Watch for external project changes
-watch(() => lowcodeStore.currentProjectId, (newProjectId, oldProjectId) => {
-  if (newProjectId !== oldProjectId) {
-    emit('change', newProjectId || null);
+watch(
+  () => lowcodeStore.currentProjectId,
+  (newProjectId, oldProjectId) => {
+    if (newProjectId !== oldProjectId) {
+      emit('change', newProjectId || null);
+    }
   }
-});
+);
 </script>
+
+<template>
+  <div class="project-selector">
+    <NSpace align="center" :size="12">
+      <NIcon size="18" class="text-primary">
+        <icon-mdi-folder-outline />
+      </NIcon>
+      <NText strong>{{ $t('common.project') }}:</NText>
+      <NSelect
+        v-model:value="selectedProjectId"
+        :placeholder="$t('common.selectProject')"
+        :options="projectOptions"
+        :loading="loading"
+        :disabled="disabled"
+        style="min-width: 200px"
+        clearable
+        filterable
+        @update:value="handleProjectChange"
+      >
+        <template #empty>
+          <NEmpty :description="$t('common.noProjects')" size="small">
+            <template #extra>
+              <NButton size="small" @click="handleCreateProject">
+                {{ $t('common.createProject') }}
+              </NButton>
+            </template>
+          </NEmpty>
+        </template>
+      </NSelect>
+
+      <!-- Project Info -->
+      <template v-if="currentProject">
+        <NDivider vertical />
+        <NSpace align="center" :size="8">
+          <NTag :type="getProjectStatusType(currentProject.status)" size="small">
+            {{ $t(`common.projectStatus.${currentProject.status.toLowerCase()}`) }}
+          </NTag>
+          <NTooltip>
+            <template #trigger>
+              <NIcon size="16" class="cursor-help text-gray-400">
+                <icon-mdi-information-outline />
+              </NIcon>
+            </template>
+            <div class="max-w-300px">
+              <div>
+                <strong>{{ $t('common.projectName') }}:</strong>
+                {{ currentProject.name }}
+              </div>
+              <div>
+                <strong>{{ $t('common.projectCode') }}:</strong>
+                {{ currentProject.code }}
+              </div>
+              <div v-if="currentProject.description">
+                <strong>{{ $t('common.description') }}:</strong>
+                {{ currentProject.description }}
+              </div>
+              <div>
+                <strong>{{ $t('common.createdAt') }}:</strong>
+                {{ formatDate(currentProject.createdAt) }}
+              </div>
+            </div>
+          </NTooltip>
+        </NSpace>
+      </template>
+
+      <!-- Quick Actions -->
+      <template v-if="showQuickActions && currentProject">
+        <NDivider vertical />
+        <NSpace :size="4">
+          <NTooltip>
+            <template #trigger>
+              <NButton size="small" quaternary circle @click="handleRefreshProject">
+                <template #icon>
+                  <NIcon><icon-mdi-refresh /></NIcon>
+                </template>
+              </NButton>
+            </template>
+            {{ $t('common.refresh') }}
+          </NTooltip>
+
+          <NTooltip>
+            <template #trigger>
+              <NButton size="small" quaternary circle @click="handleProjectSettings">
+                <template #icon>
+                  <NIcon><icon-mdi-cog /></NIcon>
+                </template>
+              </NButton>
+            </template>
+            {{ $t('common.projectSettings') }}
+          </NTooltip>
+
+          <NTooltip>
+            <template #trigger>
+              <NButton size="small" quaternary circle @click="handleProjectStats">
+                <template #icon>
+                  <NIcon><icon-mdi-chart-line /></NIcon>
+                </template>
+              </NButton>
+            </template>
+            {{ $t('common.projectStats') }}
+          </NTooltip>
+        </NSpace>
+      </template>
+    </NSpace>
+  </div>
+</template>
 
 <style scoped>
 .project-selector {

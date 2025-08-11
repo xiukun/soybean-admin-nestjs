@@ -1,79 +1,7 @@
-<template>
-  <div class="project-management-safe">
-    <n-card title="项目管理" :bordered="false">
-      <template #header-extra>
-        <n-space>
-          <n-button type="primary" @click="handleCreate">
-            <template #icon>
-              <n-icon :component="AddIcon" />
-            </template>
-            创建项目
-          </n-button>
-          <n-button @click="handleRefresh">
-            <template #icon>
-              <n-icon :component="RefreshIcon" />
-            </template>
-            刷新
-          </n-button>
-        </n-space>
-      </template>
-
-      <!-- 搜索和过滤 -->
-      <n-space class="mb-4" justify="space-between">
-        <n-input
-          v-model:value="searchValue"
-          placeholder="搜索项目名称或代码"
-          clearable
-          style="width: 300px"
-        >
-          <template #prefix>
-            <n-icon :component="SearchIcon" />
-          </template>
-        </n-input>
-        
-        <n-space>
-          <n-select
-            v-model:value="statusFilterValue"
-            placeholder="状态筛选"
-            clearable
-            style="width: 120px"
-            :options="statusOptions"
-          />
-          <n-select
-            v-model:value="frameworkFilterValue"
-            placeholder="框架筛选"
-            clearable
-            style="width: 120px"
-            :options="frameworkOptions"
-          />
-        </n-space>
-      </n-space>
-
-      <!-- 项目列表 -->
-      <n-data-table
-        :columns="columns"
-        :data="filteredData"
-        :loading="isLoading"
-        :pagination="paginationProps"
-        :row-key="(row) => row.id"
-      />
-    </n-card>
-  </div>
-</template>
-
 <script setup lang="ts">
 // @ts-nocheck
-import { ref, computed, onMounted } from 'vue';
-import {
-  NCard,
-  NButton,
-  NSpace,
-  NInput,
-  NSelect,
-  NDataTable,
-  NIcon,
-  useMessage
-} from 'naive-ui';
+import { computed, onMounted, ref } from 'vue';
+import { NButton, NCard, NDataTable, NIcon, NInput, NSelect, NSpace, useMessage } from 'naive-ui';
 import { Add as AddIcon, Refresh as RefreshIcon, Search as SearchIcon } from '@vicons/ionicons5';
 
 // 响应式数据
@@ -109,7 +37,7 @@ const columns = [
     title: '操作',
     key: 'actions',
     width: 200,
-    render: (row) => {
+    render: row => {
       return '操作按钮';
     }
   }
@@ -118,22 +46,19 @@ const columns = [
 // 计算属性
 const filteredData = computed(() => {
   let data = projectData.value;
-  
+
   if (searchValue.value) {
-    data = data.filter(item => 
-      item.name?.includes(searchValue.value) || 
-      item.code?.includes(searchValue.value)
-    );
+    data = data.filter(item => item.name?.includes(searchValue.value) || item.code?.includes(searchValue.value));
   }
-  
+
   if (statusFilterValue.value) {
     data = data.filter(item => item.status === statusFilterValue.value);
   }
-  
+
   if (frameworkFilterValue.value) {
     data = data.filter(item => item.framework === frameworkFilterValue.value);
   }
-  
+
   return data;
 });
 
@@ -191,6 +116,64 @@ onMounted(() => {
   loadData();
 });
 </script>
+
+<template>
+  <div class="project-management-safe">
+    <NCard title="项目管理" :bordered="false">
+      <template #header-extra>
+        <NSpace>
+          <NButton type="primary" @click="handleCreate">
+            <template #icon>
+              <NIcon :component="AddIcon" />
+            </template>
+            创建项目
+          </NButton>
+          <NButton @click="handleRefresh">
+            <template #icon>
+              <NIcon :component="RefreshIcon" />
+            </template>
+            刷新
+          </NButton>
+        </NSpace>
+      </template>
+
+      <!-- 搜索和过滤 -->
+      <NSpace class="mb-4" justify="space-between">
+        <NInput v-model:value="searchValue" placeholder="搜索项目名称或代码" clearable style="width: 300px">
+          <template #prefix>
+            <NIcon :component="SearchIcon" />
+          </template>
+        </NInput>
+
+        <NSpace>
+          <NSelect
+            v-model:value="statusFilterValue"
+            placeholder="状态筛选"
+            clearable
+            style="width: 120px"
+            :options="statusOptions"
+          />
+          <NSelect
+            v-model:value="frameworkFilterValue"
+            placeholder="框架筛选"
+            clearable
+            style="width: 120px"
+            :options="frameworkOptions"
+          />
+        </NSpace>
+      </NSpace>
+
+      <!-- 项目列表 -->
+      <NDataTable
+        :columns="columns"
+        :data="filteredData"
+        :loading="isLoading"
+        :pagination="paginationProps"
+        :row-key="row => row.id"
+      />
+    </NCard>
+  </div>
+</template>
 
 <style scoped>
 .project-management-safe {

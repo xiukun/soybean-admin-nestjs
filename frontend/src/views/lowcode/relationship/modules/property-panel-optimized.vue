@@ -1,228 +1,24 @@
-<template>
-  <div class="property-panel" :class="{ 'panel-visible': visible }">
-    <div class="panel-header">
-      <h3 class="panel-title">
-        <n-icon :component="selectedType === 'node' ? DatabaseIcon : LinkIcon" />
-        {{ selectedType === 'node' ? '实体属性' : '关系属性' }}
-      </h3>
-      <n-button quaternary size="small" @click="$emit('close')">
-        <n-icon :component="CloseIcon" />
-      </n-button>
-    </div>
-
-    <div class="panel-content" v-if="selectedItem">
-      <!-- 实体属性面板 -->
-      <div v-if="selectedType === 'node'" class="entity-properties">
-        <n-form :model="entityForm" label-placement="top" size="small">
-          <n-form-item label="实体名称">
-            <n-input 
-              v-model:value="entityForm.name" 
-              placeholder="请输入实体名称"
-              @blur="debouncedUpdateEntityProperty('name', entityForm.name)"
-            />
-          </n-form-item>
-          
-          <n-form-item label="显示名称">
-            <n-input 
-              v-model:value="entityForm.displayName" 
-              placeholder="请输入显示名称"
-              @blur="debouncedUpdateEntityProperty('displayName', entityForm.displayName)"
-            />
-          </n-form-item>
-          
-          <n-form-item label="描述">
-            <n-input 
-              v-model:value="entityForm.description" 
-              type="textarea" 
-              placeholder="请输入实体描述"
-              :rows="3"
-              @blur="debouncedUpdateEntityProperty('description', entityForm.description)"
-            />
-          </n-form-item>
-          
-          <n-form-item label="颜色">
-            <n-color-picker 
-              v-model:value="entityForm.color" 
-              :show-alpha="false"
-              @update:value="debouncedUpdateEntityProperty('color', entityForm.color)"
-            />
-          </n-form-item>
-          
-          <n-form-item label="位置">
-            <n-space>
-              <n-input-number 
-                v-model:value="entityForm.x" 
-                placeholder="X坐标"
-                size="small"
-                style="width: 80px"
-                @blur="debouncedUpdateEntityPosition"
-              />
-              <n-input-number 
-                v-model:value="entityForm.y" 
-                placeholder="Y坐标"
-                size="small"
-                style="width: 80px"
-                @blur="debouncedUpdateEntityPosition"
-              />
-            </n-space>
-          </n-form-item>
-        </n-form>
-
-        <!-- 字段列表 - 虚拟滚动优化 -->
-        <div class="fields-section">
-          <div class="section-header">
-            <h4>字段列表 ({{ entityForm.fields.length }})</h4>
-            <n-button size="small" type="primary" @click="addField">
-              <n-icon :component="PlusIcon" />
-              添加字段
-            </n-button>
-          </div>
-          
-          <div class="fields-list" v-if="entityForm.fields.length > 0">
-            <!-- 使用虚拟滚动处理大量字段 -->
-            <n-virtual-list
-              v-if="entityForm.fields.length > 20"
-              :items="entityForm.fields"
-              :item-size="60"
-              :max-height="300"
-            >
-              <template #default="{ item, index }">
-                <FieldItem 
-                  :field="item" 
-                  :index="index"
-                  @edit="editField"
-                  @remove="removeField"
-                />
-              </template>
-            </n-virtual-list>
-            
-            <!-- 少量字段直接渲染 -->
-            <template v-else>
-              <FieldItem 
-                v-for="(field, index) in entityForm.fields" 
-                :key="field.id"
-                :field="field" 
-                :index="index"
-                @edit="editField"
-                @remove="removeField"
-              />
-            </template>
-          </div>
-          
-          <div v-else class="empty-fields">
-            <n-empty description="暂无字段" size="small" />
-          </div>
-        </div>
-      </div>
-
-      <!-- 关系属性面板 -->
-      <div v-else-if="selectedType === 'edge'" class="relationship-properties">
-        <n-form :model="relationshipForm" label-placement="top" size="small">
-          <n-form-item label="关系名称">
-            <n-input 
-              v-model:value="relationshipForm.name" 
-              placeholder="请输入关系名称"
-              @blur="debouncedUpdateRelationshipProperty('name', relationshipForm.name)"
-            />
-          </n-form-item>
-          
-          <n-form-item label="关系类型">
-            <n-select 
-              v-model:value="relationshipForm.type" 
-              :options="relationshipTypes"
-              @update:value="debouncedUpdateRelationshipProperty('type', relationshipForm.type)"
-            />
-          </n-form-item>
-          
-          <n-form-item label="描述">
-            <n-input 
-              v-model:value="relationshipForm.description" 
-              type="textarea" 
-              placeholder="请输入关系描述"
-              :rows="3"
-              @blur="debouncedUpdateRelationshipProperty('description', relationshipForm.description)"
-            />
-          </n-form-item>
-          
-          <n-form-item label="源实体">
-            <n-input :value="relationshipForm.sourceEntity" readonly />
-          </n-form-item>
-          
-          <n-form-item label="目标实体">
-            <n-input :value="relationshipForm.targetEntity" readonly />
-          </n-form-item>
-          
-          <n-form-item label="线条样式">
-            <n-space>
-              <n-select 
-                v-model:value="relationshipForm.lineStyle" 
-                :options="lineStyles"
-                style="width: 100px"
-                @update:value="debouncedUpdateRelationshipStyle"
-              />
-              <n-color-picker 
-                v-model:value="relationshipForm.lineColor" 
-                :show-alpha="false"
-                @update:value="debouncedUpdateRelationshipStyle"
-              />
-            </n-space>
-          </n-form-item>
-        </n-form>
-      </div>
-    </div>
-
-    <!-- 字段编辑对话框 -->
-    <n-modal v-model:show="fieldModalVisible" preset="dialog" title="编辑字段">
-      <n-form :model="fieldForm" label-placement="left" label-width="80px">
-        <n-form-item label="字段名称" required>
-          <n-input v-model:value="fieldForm.name" placeholder="请输入字段名称" />
-        </n-form-item>
-        
-        <n-form-item label="字段类型" required>
-          <n-select v-model:value="fieldForm.type" :options="fieldTypes" />
-        </n-form-item>
-        
-        <n-form-item label="字段长度">
-          <n-input-number v-model:value="fieldForm.length" :min="1" />
-        </n-form-item>
-        
-        <n-form-item label="默认值">
-          <n-input v-model:value="fieldForm.defaultValue" placeholder="请输入默认值" />
-        </n-form-item>
-        
-        <n-form-item label="注释">
-          <n-input v-model:value="fieldForm.comment" placeholder="请输入字段注释" />
-        </n-form-item>
-        
-        <n-form-item>
-          <n-space>
-            <n-checkbox v-model:checked="fieldForm.isPrimaryKey">主键</n-checkbox>
-            <n-checkbox v-model:checked="fieldForm.isRequired">必填</n-checkbox>
-            <n-checkbox v-model:checked="fieldForm.isUnique">唯一</n-checkbox>
-            <n-checkbox v-model:checked="fieldForm.isIndex">索引</n-checkbox>
-          </n-space>
-        </n-form-item>
-      </n-form>
-      
-      <template #action>
-        <n-space>
-          <n-button @click="fieldModalVisible = false">取消</n-button>
-          <n-button type="primary" @click="saveField" :loading="saveFieldLoading">保存</n-button>
-        </n-space>
-      </template>
-    </n-modal>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, reactive, watch, computed, defineComponent, h } from 'vue';
-import { 
-  NButton, NIcon, NForm, NFormItem, NInput, NInputNumber, 
-  NSelect, NColorPicker, NSpace, NTag, NModal, NCheckbox,
-  NVirtualList, NEmpty, useMessage 
+import { computed, defineComponent, h, reactive, ref, watch } from 'vue';
+import {
+  NButton,
+  NCheckbox,
+  NColorPicker,
+  NEmpty,
+  NForm,
+  NFormItem,
+  NIcon,
+  NInput,
+  NInputNumber,
+  NModal,
+  NSelect,
+  NSpace,
+  NTag,
+  NVirtualList,
+  useMessage
 } from 'naive-ui';
-import { Icon } from '@iconify/vue';
 import { debounce } from 'lodash-es';
+import { Icon } from '@iconify/vue';
 
 // 定义图标组件
 const DatabaseIcon = () => h(Icon, { icon: 'mdi:database' });
@@ -242,28 +38,37 @@ const FieldItem = defineComponent({
   },
   emits: ['edit', 'remove'],
   setup(props, { emit }) {
-    return () => h('div', { class: 'field-item' }, [
-      h(NSpace, { align: 'center', justify: 'space-between' }, [
-        h('div', { class: 'field-info' }, [
-          h('div', { class: 'field-name' }, props.field.name),
-          h('div', { class: 'field-type' }, props.field.type)
-        ]),
-        h(NSpace, {}, [
-          props.field.isPrimaryKey && h(NTag, { type: 'warning', size: 'small' }, '主键'),
-          props.field.isRequired && h(NTag, { type: 'error', size: 'small' }, '必填'),
-          h(NButton, { 
-            size: 'small', 
-            quaternary: true, 
-            onClick: () => emit('edit', props.field, props.index) 
-          }, [h(NIcon, { component: EditIcon })]),
-          h(NButton, { 
-            size: 'small', 
-            quaternary: true, 
-            onClick: () => emit('remove', props.index) 
-          }, [h(NIcon, { component: DeleteIcon })])
+    return () =>
+      h('div', { class: 'field-item' }, [
+        h(NSpace, { align: 'center', justify: 'space-between' }, [
+          h('div', { class: 'field-info' }, [
+            h('div', { class: 'field-name' }, props.field.name),
+            h('div', { class: 'field-type' }, props.field.type)
+          ]),
+          h(NSpace, {}, [
+            props.field.isPrimaryKey && h(NTag, { type: 'warning', size: 'small' }, '主键'),
+            props.field.isRequired && h(NTag, { type: 'error', size: 'small' }, '必填'),
+            h(
+              NButton,
+              {
+                size: 'small',
+                quaternary: true,
+                onClick: () => emit('edit', props.field, props.index)
+              },
+              [h(NIcon, { component: EditIcon })]
+            ),
+            h(
+              NButton,
+              {
+                size: 'small',
+                quaternary: true,
+                onClick: () => emit('remove', props.index)
+              },
+              [h(NIcon, { component: DeleteIcon })]
+            )
+          ])
         ])
-      ])
-    ]);
+      ]);
   }
 });
 
@@ -366,29 +171,33 @@ const fieldTypes = [
 ];
 
 // 监听选中项变化 - 优化深度监听
-watch(() => props.selectedItem, (newItem) => {
-  if (newItem && props.selectedType === 'node') {
-    Object.assign(entityForm, {
-      name: newItem.name || '',
-      displayName: newItem.displayName || '',
-      description: newItem.description || '',
-      color: newItem.color || '#1890ff',
-      x: newItem.x || 0,
-      y: newItem.y || 0,
-      fields: newItem.fields || []
-    });
-  } else if (newItem && props.selectedType === 'edge') {
-    Object.assign(relationshipForm, {
-      name: newItem.name || '',
-      type: newItem.type || 'one-to-many',
-      description: newItem.description || '',
-      sourceEntity: newItem.sourceEntity || '',
-      targetEntity: newItem.targetEntity || '',
-      lineStyle: newItem.lineStyle || 'solid',
-      lineColor: newItem.lineColor || '#666666'
-    });
-  }
-}, { immediate: true, deep: false });
+watch(
+  () => props.selectedItem,
+  newItem => {
+    if (newItem && props.selectedType === 'node') {
+      Object.assign(entityForm, {
+        name: newItem.name || '',
+        displayName: newItem.displayName || '',
+        description: newItem.description || '',
+        color: newItem.color || '#1890ff',
+        x: newItem.x || 0,
+        y: newItem.y || 0,
+        fields: newItem.fields || []
+      });
+    } else if (newItem && props.selectedType === 'edge') {
+      Object.assign(relationshipForm, {
+        name: newItem.name || '',
+        type: newItem.type || 'one-to-many',
+        description: newItem.description || '',
+        sourceEntity: newItem.sourceEntity || '',
+        targetEntity: newItem.targetEntity || '',
+        lineStyle: newItem.lineStyle || 'solid',
+        lineColor: newItem.lineColor || '#666666'
+      });
+    }
+  },
+  { immediate: true, deep: false }
+);
 
 // 更新实体属性
 function updateEntityProperty(property: string, value: any) {
@@ -482,6 +291,217 @@ async function saveField() {
   }
 }
 </script>
+
+<template>
+  <div class="property-panel" :class="{ 'panel-visible': visible }">
+    <div class="panel-header">
+      <h3 class="panel-title">
+        <NIcon :component="selectedType === 'node' ? DatabaseIcon : LinkIcon" />
+        {{ selectedType === 'node' ? '实体属性' : '关系属性' }}
+      </h3>
+      <NButton quaternary size="small" @click="$emit('close')">
+        <NIcon :component="CloseIcon" />
+      </NButton>
+    </div>
+
+    <div v-if="selectedItem" class="panel-content">
+      <!-- 实体属性面板 -->
+      <div v-if="selectedType === 'node'" class="entity-properties">
+        <NForm :model="entityForm" label-placement="top" size="small">
+          <NFormItem label="实体名称">
+            <NInput
+              v-model:value="entityForm.name"
+              placeholder="请输入实体名称"
+              @blur="debouncedUpdateEntityProperty('name', entityForm.name)"
+            />
+          </NFormItem>
+
+          <NFormItem label="显示名称">
+            <NInput
+              v-model:value="entityForm.displayName"
+              placeholder="请输入显示名称"
+              @blur="debouncedUpdateEntityProperty('displayName', entityForm.displayName)"
+            />
+          </NFormItem>
+
+          <NFormItem label="描述">
+            <NInput
+              v-model:value="entityForm.description"
+              type="textarea"
+              placeholder="请输入实体描述"
+              :rows="3"
+              @blur="debouncedUpdateEntityProperty('description', entityForm.description)"
+            />
+          </NFormItem>
+
+          <NFormItem label="颜色">
+            <NColorPicker
+              v-model:value="entityForm.color"
+              :show-alpha="false"
+              @update:value="debouncedUpdateEntityProperty('color', entityForm.color)"
+            />
+          </NFormItem>
+
+          <NFormItem label="位置">
+            <NSpace>
+              <NInputNumber
+                v-model:value="entityForm.x"
+                placeholder="X坐标"
+                size="small"
+                style="width: 80px"
+                @blur="debouncedUpdateEntityPosition"
+              />
+              <NInputNumber
+                v-model:value="entityForm.y"
+                placeholder="Y坐标"
+                size="small"
+                style="width: 80px"
+                @blur="debouncedUpdateEntityPosition"
+              />
+            </NSpace>
+          </NFormItem>
+        </NForm>
+
+        <!-- 字段列表 - 虚拟滚动优化 -->
+        <div class="fields-section">
+          <div class="section-header">
+            <h4>字段列表 ({{ entityForm.fields.length }})</h4>
+            <NButton size="small" type="primary" @click="addField">
+              <NIcon :component="PlusIcon" />
+              添加字段
+            </NButton>
+          </div>
+
+          <div v-if="entityForm.fields.length > 0" class="fields-list">
+            <!-- 使用虚拟滚动处理大量字段 -->
+            <NVirtualList
+              v-if="entityForm.fields.length > 20"
+              :items="entityForm.fields"
+              :item-size="60"
+              :max-height="300"
+            >
+              <template #default="{ item, index }">
+                <FieldItem :field="item" :index="index" @edit="editField" @remove="removeField" />
+              </template>
+            </NVirtualList>
+
+            <!-- 少量字段直接渲染 -->
+            <template v-else>
+              <FieldItem
+                v-for="(field, index) in entityForm.fields"
+                :key="field.id"
+                :field="field"
+                :index="index"
+                @edit="editField"
+                @remove="removeField"
+              />
+            </template>
+          </div>
+
+          <div v-else class="empty-fields">
+            <NEmpty description="暂无字段" size="small" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 关系属性面板 -->
+      <div v-else-if="selectedType === 'edge'" class="relationship-properties">
+        <NForm :model="relationshipForm" label-placement="top" size="small">
+          <NFormItem label="关系名称">
+            <NInput
+              v-model:value="relationshipForm.name"
+              placeholder="请输入关系名称"
+              @blur="debouncedUpdateRelationshipProperty('name', relationshipForm.name)"
+            />
+          </NFormItem>
+
+          <NFormItem label="关系类型">
+            <NSelect
+              v-model:value="relationshipForm.type"
+              :options="relationshipTypes"
+              @update:value="debouncedUpdateRelationshipProperty('type', relationshipForm.type)"
+            />
+          </NFormItem>
+
+          <NFormItem label="描述">
+            <NInput
+              v-model:value="relationshipForm.description"
+              type="textarea"
+              placeholder="请输入关系描述"
+              :rows="3"
+              @blur="debouncedUpdateRelationshipProperty('description', relationshipForm.description)"
+            />
+          </NFormItem>
+
+          <NFormItem label="源实体">
+            <NInput :value="relationshipForm.sourceEntity" readonly />
+          </NFormItem>
+
+          <NFormItem label="目标实体">
+            <NInput :value="relationshipForm.targetEntity" readonly />
+          </NFormItem>
+
+          <NFormItem label="线条样式">
+            <NSpace>
+              <NSelect
+                v-model:value="relationshipForm.lineStyle"
+                :options="lineStyles"
+                style="width: 100px"
+                @update:value="debouncedUpdateRelationshipStyle"
+              />
+              <NColorPicker
+                v-model:value="relationshipForm.lineColor"
+                :show-alpha="false"
+                @update:value="debouncedUpdateRelationshipStyle"
+              />
+            </NSpace>
+          </NFormItem>
+        </NForm>
+      </div>
+    </div>
+
+    <!-- 字段编辑对话框 -->
+    <NModal v-model:show="fieldModalVisible" preset="dialog" title="编辑字段">
+      <NForm :model="fieldForm" label-placement="left" label-width="80px">
+        <NFormItem label="字段名称" required>
+          <NInput v-model:value="fieldForm.name" placeholder="请输入字段名称" />
+        </NFormItem>
+
+        <NFormItem label="字段类型" required>
+          <NSelect v-model:value="fieldForm.type" :options="fieldTypes" />
+        </NFormItem>
+
+        <NFormItem label="字段长度">
+          <NInputNumber v-model:value="fieldForm.length" :min="1" />
+        </NFormItem>
+
+        <NFormItem label="默认值">
+          <NInput v-model:value="fieldForm.defaultValue" placeholder="请输入默认值" />
+        </NFormItem>
+
+        <NFormItem label="注释">
+          <NInput v-model:value="fieldForm.comment" placeholder="请输入字段注释" />
+        </NFormItem>
+
+        <NFormItem>
+          <NSpace>
+            <NCheckbox v-model:checked="fieldForm.isPrimaryKey">主键</NCheckbox>
+            <NCheckbox v-model:checked="fieldForm.isRequired">必填</NCheckbox>
+            <NCheckbox v-model:checked="fieldForm.isUnique">唯一</NCheckbox>
+            <NCheckbox v-model:checked="fieldForm.isIndex">索引</NCheckbox>
+          </NSpace>
+        </NFormItem>
+      </NForm>
+
+      <template #action>
+        <NSpace>
+          <NButton @click="fieldModalVisible = false">取消</NButton>
+          <NButton type="primary" :loading="saveFieldLoading" @click="saveField">保存</NButton>
+        </NSpace>
+      </template>
+    </NModal>
+  </div>
+</template>
 
 <style scoped>
 .property-panel {

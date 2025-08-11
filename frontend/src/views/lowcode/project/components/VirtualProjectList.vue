@@ -1,36 +1,6 @@
-<template>
-  <div class="virtual-project-list" ref="containerRef">
-    <div class="virtual-list-container" :style="{ height: `${totalHeight}px` }">
-      <div
-        class="virtual-list-content"
-        :style="{ transform: `translateY(${offsetY}px)` }"
-      >
-        <div
-          v-for="item in visibleItems"
-          :key="item.data.id"
-          class="virtual-list-item"
-          :style="{ height: `${itemHeight}px` }"
-        >
-          <ProjectCard
-            :project="item.data"
-            @edit="$emit('edit', item.data)"
-            @delete="$emit('delete', item.data)"
-            @configure="$emit('configure', item.data)"
-            @design="$emit('design', item.data)"
-            @generate="$emit('generate', item.data)"
-            @view="$emit('view', item.data)"
-            @deploy="$emit('deploy', item.data)"
-            @stop-deployment="$emit('stop-deployment', item.data)"
-          />
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 // @ts-nocheck
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import ProjectCard from '../modules/project-card.vue';
 import type { Project } from '../composables/useProjectPerformance';
 
@@ -66,11 +36,8 @@ const scrollTop = ref(0);
 // 计算可见区域
 const visibleRange = computed(() => {
   const start = Math.floor(scrollTop.value / props.itemHeight);
-  const end = Math.min(
-    start + Math.ceil(props.containerHeight / props.itemHeight),
-    props.items.length
-  );
-  
+  const end = Math.min(start + Math.ceil(props.containerHeight / props.itemHeight), props.items.length);
+
   return {
     start: Math.max(0, start - props.overscan),
     end: Math.min(props.items.length, end + props.overscan)
@@ -110,6 +77,33 @@ onUnmounted(() => {
   }
 });
 </script>
+
+<template>
+  <div ref="containerRef" class="virtual-project-list">
+    <div class="virtual-list-container" :style="{ height: `${totalHeight}px` }">
+      <div class="virtual-list-content" :style="{ transform: `translateY(${offsetY}px)` }">
+        <div
+          v-for="item in visibleItems"
+          :key="item.data.id"
+          class="virtual-list-item"
+          :style="{ height: `${itemHeight}px` }"
+        >
+          <ProjectCard
+            :project="item.data"
+            @edit="$emit('edit', item.data)"
+            @delete="$emit('delete', item.data)"
+            @configure="$emit('configure', item.data)"
+            @design="$emit('design', item.data)"
+            @generate="$emit('generate', item.data)"
+            @view="$emit('view', item.data)"
+            @deploy="$emit('deploy', item.data)"
+            @stop-deployment="$emit('stop-deployment', item.data)"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .virtual-project-list {

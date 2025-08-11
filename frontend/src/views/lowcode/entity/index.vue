@@ -1,234 +1,17 @@
-<template>
-  <div class="entity-management">
-    <!-- Header with Project Selector and View Switcher -->
-    <div class="header-section">
-      <div class="header-info">
-        <NText tag="h1" class="text-2xl font-bold">{{ $t('page.lowcode.entity.management') }}</NText>
-        <NText depth="3">{{ $t('page.lowcode.entity.managementDesc') }}</NText>
-      </div>
-      
-      <div class="header-controls">
-        <NSelect
-          v-if="!props.projectId"
-          v-model:value="selectedProjectId"
-          :options="projectOptions"
-          placeholder="请选择项目"
-          style="width: 300px"
-          :loading="projectLoading"
-          clearable
-          @update:value="handleProjectChange"
-        />
-      </div>
-    </div>
-
-    <!-- View Switcher Toolbar -->
-    <div class="toolbar-section">
-      <div class="view-switcher">
-        <NButtonGroup>
-          <NButton 
-            :type="currentView === 'designer' ? 'primary' : 'default'"
-            @click="switchView('designer')"
-          >
-            <template #icon>
-              <NIcon><icon-mdi-vector-polyline /></NIcon>
-            </template>
-            {{ $t('page.lowcode.entity.designerView') }}
-          </NButton>
-          <NButton 
-            :type="currentView === 'list' ? 'primary' : 'default'"
-            @click="switchView('list')"
-          >
-            <template #icon>
-              <NIcon><icon-mdi-table /></NIcon>
-            </template>
-            {{ $t('page.lowcode.entity.listView') }}
-          </NButton>
-        </NButtonGroup>
-      </div>
-      
-      <div class="toolbar-actions">
-        <NButton :disabled="!currentProjectId" @click="handleRefreshEntities">
-          <template #icon>
-            <NIcon><icon-mdi-refresh /></NIcon>
-          </template>
-          {{ $t('common.refresh') }}
-        </NButton>
-        <NButton type="primary" :disabled="!currentProjectId" @click="handleCreateEntity">
-          <template #icon>
-            <NIcon><icon-mdi-plus /></NIcon>
-          </template>
-          {{ $t('page.lowcode.entity.create') }}
-        </NButton>
-        <NButton :disabled="!currentProjectId" @click="handleImportEntities">
-          <template #icon>
-            <NIcon><icon-mdi-import /></NIcon>
-          </template>
-          {{ $t('page.lowcode.entity.import') }}
-        </NButton>
-      </div>
-    </div>
-
-    <!-- Main Content Area -->
-    <div class="main-content">
-      <!-- Entity Designer View -->
-      <X6EntityDesigner 
-        v-if="currentView === 'designer'"
-        :project-id="currentProjectId"
-        :entities="entities"
-        @entity-select="handleEntitySelect"
-        @entity-create="handleCreateEntity"
-        @entity-update="handleEntityUpdate"
-        @entity-delete="handleEntityDelete"
-      />
-      
-      <!-- Entity List View -->
-      <div v-else-if="currentView === 'list'" class="entity-list-view">
-        <!-- Filters and Search -->
-        <NCard class="mb-4">
-          <NSpace justify="space-between" align="center">
-            <NSpace>
-              <NInput
-                v-model:value="searchQuery"
-                :placeholder="$t('page.lowcode.entity.searchPlaceholder')"
-                style="width: 300px"
-                clearable
-                @input="handleSearch"
-              >
-                <template #prefix>
-                  <NIcon><icon-mdi-magnify /></NIcon>
-                </template>
-              </NInput>
-              <NSelect
-                v-model:value="categoryFilter"
-                :placeholder="$t('page.lowcode.entity.filterByCategory')"
-                :options="categoryOptions"
-                style="width: 150px"
-                clearable
-                @update:value="handleFilterChange"
-              />
-            </NSpace>
-          </NSpace>
-        </NCard>
-
-        <!-- Entity Table -->
-        <NDataTable
-          :columns="columns"
-          :data="filteredEntities"
-          :pagination="pagination"
-          :loading="loading"
-          size="small"
-          striped
-          @update:page="handlePageChange"
-          @update:page-size="handlePageSizeChange"
-        />
-      </div>
-    </div>
-
-    <!-- Entity Form Modal -->
-    <NModal v-model:show="showEntityModal" preset="card" style="width: 800px">
-      <template #header>
-        {{ editingEntity ? $t('page.lowcode.entity.edit') : $t('page.lowcode.entity.create') }}
-      </template>
-
-      <NForm ref="entityFormRef" :model="entityForm" :rules="entityRules" label-placement="left" :label-width="120">
-        <NGrid :cols="2" :x-gap="16">
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.entity.name')" path="name">
-              <NInput v-model:value="entityForm.name" @input="handleNameChange" />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.entity.code')" path="code">
-              <NInput v-model:value="entityForm.code" />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.entity.tableName')" path="tableName">
-              <NInput v-model:value="entityForm.tableName" />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.entity.category')" path="category">
-              <NSelect v-model:value="entityForm.category" :options="categoryOptions" />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem :span="2">
-            <NFormItem :label="$t('page.lowcode.entity.description')" path="description">
-              <NInput v-model:value="entityForm.description" type="textarea" :rows="3" />
-            </NFormItem>
-          </NGridItem>
-        </NGrid>
-
-        <!-- 通用字段配置 -->
-        <NDivider title-placement="left">
-          <NText>通用字段配置</NText>
-        </NDivider>
-        
-        <NGrid :cols="1" :y-gap="16">
-          <NGridItem>
-            <NFormItem>
-              <NCheckbox v-model:checked="entityForm.commonFieldOptions.enabled">
-                自动添加通用字段（id、createdBy、createdAt、updatedBy、updatedAt）
-              </NCheckbox>
-            </NFormItem>
-          </NGridItem>
-          
-          <NGridItem v-if="entityForm.commonFieldOptions.enabled">
-            <NFormItem>
-              <NCheckbox v-model:checked="entityForm.commonFieldOptions.autoCreateTable">
-                自动创建数据库表
-              </NCheckbox>
-            </NFormItem>
-          </NGridItem>
-          
-          <NGridItem v-if="entityForm.commonFieldOptions.enabled">
-            <NCard size="small" title="通用字段预览">
-              <NSpace vertical>
-                <div class="flex items-center gap-8px">
-                  <NTag type="info" size="small">UUID</NTag>
-                  <NText>id - 主键标识符</NText>
-                </div>
-                <div class="flex items-center gap-8px">
-                  <NTag type="success" size="small">STRING</NTag>
-                  <NText>createdBy - 创建者用户ID</NText>
-                </div>
-                <div class="flex items-center gap-8px">
-                  <NTag type="warning" size="small">DATETIME</NTag>
-                  <NText>createdAt - 创建时间</NText>
-                </div>
-                <div class="flex items-center gap-8px">
-                  <NTag type="success" size="small">STRING</NTag>
-                  <NText>updatedBy - 更新者用户ID</NText>
-                </div>
-                <div class="flex items-center gap-8px">
-                  <NTag type="warning" size="small">DATETIME</NTag>
-                  <NText>updatedAt - 更新时间</NText>
-                </div>
-              </NSpace>
-            </NCard>
-          </NGridItem>
-        </NGrid>
-      </NForm>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="showEntityModal = false">取消</NButton>
-          <NButton type="primary" @click="handleSaveEntity">保存</NButton>
-        </NSpace>
-      </template>
-    </NModal>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, h, watch } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import type { FormInst, FormRules, DataTableColumns } from 'naive-ui';
-import { $t } from '@/locales';
+import { computed, h, onMounted, reactive, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import type { DataTableColumns, FormInst, FormRules } from 'naive-ui';
+import {
+  fetchAddEntity,
+  fetchDeleteEntity,
+  fetchGetAllEntities,
+  fetchUpdateEntity
+} from '@/service/api/lowcode-entity';
+import { fetchGetAllProjects } from '@/service/api/lowcode-project';
 import { createRequiredFormRule } from '@/utils/form/rule';
 import { formatDate } from '@/utils/common';
-import { fetchGetAllEntities, fetchAddEntity, fetchUpdateEntity, fetchDeleteEntity } from '@/service/api/lowcode-entity';
-import { fetchGetAllProjects } from '@/service/api/lowcode-project';
+import { $t } from '@/locales';
 import X6EntityDesigner from './components/X6EntityDesigner.vue';
 
 // 图标导入
@@ -306,10 +89,11 @@ const filteredEntities = computed(() => {
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
-    filtered = filtered.filter(entity =>
-      entity.name.toLowerCase().includes(query) ||
-      entity.code.toLowerCase().includes(query) ||
-      entity.tableName.toLowerCase().includes(query)
+    filtered = filtered.filter(
+      entity =>
+        entity.name.toLowerCase().includes(query) ||
+        entity.code.toLowerCase().includes(query) ||
+        entity.tableName.toLowerCase().includes(query)
     );
   }
 
@@ -346,7 +130,7 @@ const columns: DataTableColumns<Entity> = [
     title: $t('common.status'),
     key: 'status',
     width: 100,
-    render: (row) => {
+    render: row => {
       const statusText = row.status === 'ACTIVE' ? '活跃' : row.status === 'INACTIVE' ? '非活跃' : '草稿';
       return h('NTag', { type: getStatusType(row.status) }, { default: () => statusText });
     }
@@ -356,15 +140,16 @@ const columns: DataTableColumns<Entity> = [
     title: $t('page.lowcode.entity.createdAt'),
     key: 'createdAt',
     width: 150,
-    render: (row) => formatDate(row.createdAt)
+    render: row => formatDate(row.createdAt)
   },
   {
     title: $t('common.operate'),
     key: 'actions',
     width: 200,
     fixed: 'right',
-    render: (row) => [
-      h('NButton',
+    render: row => [
+      h(
+        'NButton',
         {
           size: 'small',
           type: 'primary',
@@ -373,7 +158,8 @@ const columns: DataTableColumns<Entity> = [
         },
         { default: () => $t('page.lowcode.entity.designFields') }
       ),
-      h('NButton',
+      h(
+        'NButton',
         {
           size: 'small',
           onClick: () => handleEditEntity(row),
@@ -381,7 +167,8 @@ const columns: DataTableColumns<Entity> = [
         },
         { default: () => $t('common.edit') }
       ),
-      h('NButton',
+      h(
+        'NButton',
         {
           size: 'small',
           type: 'error',
@@ -397,6 +184,7 @@ const columns: DataTableColumns<Entity> = [
 
 /**
  * 切换视图模式
+ *
  * @param view - 视图类型
  */
 function switchView(view: 'list' | 'designer') {
@@ -405,6 +193,7 @@ function switchView(view: 'list' | 'designer') {
 
 /**
  * 处理实体选择事件
+ *
  * @param entity - 选中的实体
  */
 function handleEntitySelect(entity: Entity | null) {
@@ -414,6 +203,7 @@ function handleEntitySelect(entity: Entity | null) {
 
 /**
  * 处理实体更新事件
+ *
  * @param entity - 更新的实体
  */
 function handleEntityUpdate(entity: Entity) {
@@ -426,6 +216,7 @@ function handleEntityUpdate(entity: Entity) {
 
 /**
  * 处理实体删除事件
+ *
  * @param entityId - 删除的实体ID
  */
 function handleEntityDelete(entityId: string) {
@@ -605,14 +396,15 @@ function handleProjectChange(projectId: string | null) {
 
 /**
  * 刷新实体数据
- * @description 手动刷新当前项目的实体列表和关系数据
+ *
+ * 手动刷新当前项目的实体列表和关系数据
  */
 async function handleRefreshEntities() {
   if (!currentProjectId.value) {
     window.$message?.warning('请先选择一个项目');
     return;
   }
-  
+
   try {
     loading.value = true;
     await loadEntities();
@@ -643,13 +435,13 @@ async function loadEntities() {
         const spacing = 300; // 实体间距
         const offsetX = 100; // 起始偏移
         const offsetY = 100;
-        
+
         // 确保所有数值属性都是number类型，避免undefined
-        const x: number = typeof entity.x === 'number' && !isNaN(entity.x) ? entity.x : (offsetX + col * spacing);
-        const y: number = typeof entity.y === 'number' && !isNaN(entity.y) ? entity.y : (offsetY + row * spacing);
+        const x: number = typeof entity.x === 'number' && !isNaN(entity.x) ? entity.x : offsetX + col * spacing;
+        const y: number = typeof entity.y === 'number' && !isNaN(entity.y) ? entity.y : offsetY + row * spacing;
         const width: number = typeof entity.width === 'number' && !isNaN(entity.width) ? entity.width : 200;
         const height: number = typeof entity.height === 'number' && !isNaN(entity.height) ? entity.height : 120;
-        
+
         // 构建完整的Entity对象，确保所有必需属性都存在且类型正确
         const processedEntity: Entity = {
           id: entity.id,
@@ -670,7 +462,7 @@ async function loadEntities() {
           height,
           color: entity.color || '#1976d2'
         };
-        
+
         return processedEntity;
       });
       pagination.value.itemCount = entities.value.length;
@@ -687,19 +479,21 @@ async function loadEntities() {
 }
 
 // Watch for route changes
-watch(() => route.query.projectId, (newProjectId) => {
-  if (newProjectId && typeof newProjectId === 'string') {
-    selectedProjectId.value = newProjectId;
-    loadEntities();
-  }
-}, { immediate: true });
-
-
+watch(
+  () => route.query.projectId,
+  newProjectId => {
+    if (newProjectId && typeof newProjectId === 'string') {
+      selectedProjectId.value = newProjectId;
+      loadEntities();
+    }
+  },
+  { immediate: true }
+);
 
 // Lifecycle
 onMounted(async () => {
   await loadProjects();
-  
+
   // 如果URL中有projectId参数，设置为默认值并加载实体
   const urlProjectId = route.query.projectId as string;
   if (urlProjectId && !props.projectId) {
@@ -711,6 +505,220 @@ onMounted(async () => {
   }
 });
 </script>
+
+<template>
+  <div class="entity-management">
+    <!-- Header with Project Selector and View Switcher -->
+    <div class="header-section">
+      <div class="header-info">
+        <NText tag="h1" class="text-2xl font-bold">{{ $t('page.lowcode.entity.management') }}</NText>
+        <NText depth="3">{{ $t('page.lowcode.entity.managementDesc') }}</NText>
+      </div>
+
+      <div class="header-controls">
+        <NSelect
+          v-if="!props.projectId"
+          v-model:value="selectedProjectId"
+          :options="projectOptions"
+          placeholder="请选择项目"
+          style="width: 300px"
+          :loading="projectLoading"
+          clearable
+          @update:value="handleProjectChange"
+        />
+      </div>
+    </div>
+
+    <!-- View Switcher Toolbar -->
+    <div class="toolbar-section">
+      <div class="view-switcher">
+        <NButtonGroup>
+          <NButton :type="currentView === 'designer' ? 'primary' : 'default'" @click="switchView('designer')">
+            <template #icon>
+              <NIcon><icon-mdi-vector-polyline /></NIcon>
+            </template>
+            {{ $t('page.lowcode.entity.designerView') }}
+          </NButton>
+          <NButton :type="currentView === 'list' ? 'primary' : 'default'" @click="switchView('list')">
+            <template #icon>
+              <NIcon><icon-mdi-table /></NIcon>
+            </template>
+            {{ $t('page.lowcode.entity.listView') }}
+          </NButton>
+        </NButtonGroup>
+      </div>
+
+      <div class="toolbar-actions">
+        <NButton :disabled="!currentProjectId" @click="handleRefreshEntities">
+          <template #icon>
+            <NIcon><icon-mdi-refresh /></NIcon>
+          </template>
+          {{ $t('common.refresh') }}
+        </NButton>
+        <NButton type="primary" :disabled="!currentProjectId" @click="handleCreateEntity">
+          <template #icon>
+            <NIcon><icon-mdi-plus /></NIcon>
+          </template>
+          {{ $t('page.lowcode.entity.create') }}
+        </NButton>
+        <NButton :disabled="!currentProjectId" @click="handleImportEntities">
+          <template #icon>
+            <NIcon><icon-mdi-import /></NIcon>
+          </template>
+          {{ $t('page.lowcode.entity.import') }}
+        </NButton>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <!-- Entity Designer View -->
+      <X6EntityDesigner
+        v-if="currentView === 'designer'"
+        :project-id="currentProjectId"
+        :entities="entities"
+        @entity-select="handleEntitySelect"
+        @entity-create="handleCreateEntity"
+        @entity-update="handleEntityUpdate"
+        @entity-delete="handleEntityDelete"
+      />
+
+      <!-- Entity List View -->
+      <div v-else-if="currentView === 'list'" class="entity-list-view">
+        <!-- Filters and Search -->
+        <NCard class="mb-4">
+          <NSpace justify="space-between" align="center">
+            <NSpace>
+              <NInput
+                v-model:value="searchQuery"
+                :placeholder="$t('page.lowcode.entity.searchPlaceholder')"
+                style="width: 300px"
+                clearable
+                @input="handleSearch"
+              >
+                <template #prefix>
+                  <NIcon><icon-mdi-magnify /></NIcon>
+                </template>
+              </NInput>
+              <NSelect
+                v-model:value="categoryFilter"
+                :placeholder="$t('page.lowcode.entity.filterByCategory')"
+                :options="categoryOptions"
+                style="width: 150px"
+                clearable
+                @update:value="handleFilterChange"
+              />
+            </NSpace>
+          </NSpace>
+        </NCard>
+
+        <!-- Entity Table -->
+        <NDataTable
+          :columns="columns"
+          :data="filteredEntities"
+          :pagination="pagination"
+          :loading="loading"
+          size="small"
+          striped
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+        />
+      </div>
+    </div>
+
+    <!-- Entity Form Modal -->
+    <NModal v-model:show="showEntityModal" preset="card" style="width: 800px">
+      <template #header>
+        {{ editingEntity ? $t('page.lowcode.entity.edit') : $t('page.lowcode.entity.create') }}
+      </template>
+
+      <NForm ref="entityFormRef" :model="entityForm" :rules="entityRules" label-placement="left" :label-width="120">
+        <NGrid :cols="2" :x-gap="16">
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.entity.name')" path="name">
+              <NInput v-model:value="entityForm.name" @input="handleNameChange" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.entity.code')" path="code">
+              <NInput v-model:value="entityForm.code" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.entity.tableName')" path="tableName">
+              <NInput v-model:value="entityForm.tableName" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.entity.category')" path="category">
+              <NSelect v-model:value="entityForm.category" :options="categoryOptions" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem :span="2">
+            <NFormItem :label="$t('page.lowcode.entity.description')" path="description">
+              <NInput v-model:value="entityForm.description" type="textarea" :rows="3" />
+            </NFormItem>
+          </NGridItem>
+        </NGrid>
+
+        <!-- 通用字段配置 -->
+        <NDivider title-placement="left">
+          <NText>通用字段配置</NText>
+        </NDivider>
+
+        <NGrid :cols="1" :y-gap="16">
+          <NGridItem>
+            <NFormItem>
+              <NCheckbox v-model:checked="entityForm.commonFieldOptions.enabled">
+                自动添加通用字段（id、createdBy、createdAt、updatedBy、updatedAt）
+              </NCheckbox>
+            </NFormItem>
+          </NGridItem>
+
+          <NGridItem v-if="entityForm.commonFieldOptions.enabled">
+            <NFormItem>
+              <NCheckbox v-model:checked="entityForm.commonFieldOptions.autoCreateTable">自动创建数据库表</NCheckbox>
+            </NFormItem>
+          </NGridItem>
+
+          <NGridItem v-if="entityForm.commonFieldOptions.enabled">
+            <NCard size="small" title="通用字段预览">
+              <NSpace vertical>
+                <div class="flex items-center gap-8px">
+                  <NTag type="info" size="small">UUID</NTag>
+                  <NText>id - 主键标识符</NText>
+                </div>
+                <div class="flex items-center gap-8px">
+                  <NTag type="success" size="small">STRING</NTag>
+                  <NText>createdBy - 创建者用户ID</NText>
+                </div>
+                <div class="flex items-center gap-8px">
+                  <NTag type="warning" size="small">DATETIME</NTag>
+                  <NText>createdAt - 创建时间</NText>
+                </div>
+                <div class="flex items-center gap-8px">
+                  <NTag type="success" size="small">STRING</NTag>
+                  <NText>updatedBy - 更新者用户ID</NText>
+                </div>
+                <div class="flex items-center gap-8px">
+                  <NTag type="warning" size="small">DATETIME</NTag>
+                  <NText>updatedAt - 更新时间</NText>
+                </div>
+              </NSpace>
+            </NCard>
+          </NGridItem>
+        </NGrid>
+      </NForm>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="showEntityModal = false">取消</NButton>
+          <NButton type="primary" @click="handleSaveEntity">保存</NButton>
+        </NSpace>
+      </template>
+    </NModal>
+  </div>
+</template>
 
 <style scoped>
 .entity-management {

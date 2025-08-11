@@ -508,8 +508,6 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       INACTIVE: 'Inactive'
     },
     form: {
-
-      
       sourceEntity: {
         placeholder: 'Please select source entity',
         required: 'Please select source entity'

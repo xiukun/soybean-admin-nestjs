@@ -8,7 +8,7 @@ export const PERFORMANCE_CONFIG = {
       NODES: 50,
       EDGES: 100
     },
-    
+
     // 渲染优化配置
     RENDER: {
       // 启用GPU加速
@@ -22,7 +22,7 @@ export const PERFORMANCE_CONFIG = {
       // 最小移动距离
       minMovement: 0.5
     },
-    
+
     // 事件处理优化
     EVENTS: {
       // 防抖延迟（毫秒）
@@ -33,7 +33,7 @@ export const PERFORMANCE_CONFIG = {
       DRAG_DEBOUNCE_DELAY: 50
     }
   },
-  
+
   // 历史记录配置
   HISTORY: {
     // 最大历史记录数量
@@ -41,7 +41,7 @@ export const PERFORMANCE_CONFIG = {
     // 保存防抖延迟
     SAVE_DEBOUNCE_DELAY: 500
   },
-  
+
   // 属性面板配置
   PROPERTY_PANEL: {
     // 字段虚拟滚动阈值
@@ -49,7 +49,7 @@ export const PERFORMANCE_CONFIG = {
     // 更新防抖延迟
     UPDATE_DEBOUNCE_DELAY: 300
   },
-  
+
   // 数据加载配置
   DATA_LOADING: {
     // 批量更新阈值
@@ -59,7 +59,7 @@ export const PERFORMANCE_CONFIG = {
     // 请求超时时间
     REQUEST_TIMEOUT: 10000
   },
-  
+
   // 内存管理配置
   MEMORY: {
     // 自动清理间隔（毫秒）
@@ -73,54 +73,54 @@ export const PERFORMANCE_CONFIG = {
 export class PerformanceMonitor {
   private static instance: PerformanceMonitor;
   private metrics: Map<string, number[]> = new Map();
-  
+
   static getInstance(): PerformanceMonitor {
     if (!PerformanceMonitor.instance) {
       PerformanceMonitor.instance = new PerformanceMonitor();
     }
     return PerformanceMonitor.instance;
   }
-  
+
   // 记录性能指标
   recordMetric(name: string, value: number): void {
     if (!this.metrics.has(name)) {
       this.metrics.set(name, []);
     }
-    
+
     const values = this.metrics.get(name)!;
     values.push(value);
-    
+
     // 限制记录数量
     if (values.length > 100) {
       values.shift();
     }
   }
-  
+
   // 获取平均值
   getAverage(name: string): number {
     const values = this.metrics.get(name);
     if (!values || values.length === 0) return 0;
-    
+
     return values.reduce((sum, val) => sum + val, 0) / values.length;
   }
-  
+
   // 获取最大值
   getMax(name: string): number {
     const values = this.metrics.get(name);
     if (!values || values.length === 0) return 0;
-    
+
     return Math.max(...values);
   }
-  
+
   // 清理指标
   clearMetrics(): void {
     this.metrics.clear();
   }
-  
+
   // 获取所有指标
   getAllMetrics(): Record<string, { avg: number; max: number; count: number }> {
     const result: Record<string, { avg: number; max: number; count: number }> = {};
-    
+
     for (const [name, values] of this.metrics.entries()) {
       result[name] = {
         avg: this.getAverage(name),
@@ -128,7 +128,7 @@ export class PerformanceMonitor {
         count: values.length
       };
     }
-    
+
     return result;
   }
 }
@@ -140,27 +140,27 @@ export const PerformanceUtils = {
     const start = performance.now();
     const result = fn();
     const end = performance.now();
-    
+
     if (metricName) {
       PerformanceMonitor.getInstance().recordMetric(metricName, end - start);
     }
-    
+
     return result;
   },
-  
+
   // 异步函数执行时间测量
   measureTimeAsync: async <T>(fn: () => Promise<T>, metricName?: string): Promise<T> => {
     const start = performance.now();
     const result = await fn();
     const end = performance.now();
-    
+
     if (metricName) {
       PerformanceMonitor.getInstance().recordMetric(metricName, end - start);
     }
-    
+
     return result;
   },
-  
+
   // 内存使用情况检查
   checkMemoryUsage: (): MemoryInfo | null => {
     if ('memory' in performance) {
@@ -168,7 +168,7 @@ export const PerformanceUtils = {
     }
     return null;
   },
-  
+
   // 批量处理数据
   batchProcess: <T, R>(
     items: T[],
@@ -176,28 +176,22 @@ export const PerformanceUtils = {
     batchSize: number = PERFORMANCE_CONFIG.DATA_LOADING.BATCH_UPDATE_THRESHOLD
   ): R[] => {
     const results: R[] = [];
-    
+
     for (let i = 0; i < items.length; i += batchSize) {
       const batch = items.slice(i, i + batchSize);
       const batchResults = batch.map(processor);
       results.push(...batchResults);
-      
+
       // 让出控制权，避免阻塞UI
       if (i + batchSize < items.length) {
         return new Promise(resolve => {
           setTimeout(() => {
-            resolve(results.concat(
-              PerformanceUtils.batchProcess(
-                items.slice(i + batchSize),
-                processor,
-                batchSize
-              )
-            ));
+            resolve(results.concat(PerformanceUtils.batchProcess(items.slice(i + batchSize), processor, batchSize)));
           }, 0);
         }) as any;
       }
     }
-    
+
     return results;
   }
 };

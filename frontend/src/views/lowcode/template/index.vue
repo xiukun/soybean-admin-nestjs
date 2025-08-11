@@ -1,72 +1,14 @@
-<template>
-  <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
-    <!-- 项目选择器 -->
-    <NCard v-if="!props.projectId" :title="$t('page.lowcode.template.selectProject')" :bordered="false" size="small" class="card-wrapper">
-      <NSpace align="center">
-        <span>{{ $t('page.lowcode.template.currentProject') }}:</span>
-        <NSelect
-          v-model:value="selectedProjectId"
-          :placeholder="$t('page.lowcode.template.form.project.placeholder')"
-          :options="projectOptions"
-          :loading="projectLoading"
-          style="width: 300px"
-          clearable
-          @update:value="handleProjectChange"
-        />
-      </NSpace>
-    </NCard>
-
-    <TemplateSearch v-model:model="searchParams" @reset="resetSearchParams" @search="getDataByPage" />
-    <NCard :title="$t('page.lowcode.template.title')" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
-      <template #header-extra>
-        <TableHeaderOperation
-          v-model:columns="columnChecks"
-          :disabled-delete="checkedRowKeys.length === 0"
-          :loading="loading"
-          @add="handleAdd"
-          @delete="handleBatchDelete"
-          @refresh="getData"
-        />
-      </template>
-      <NDataTable
-        v-model:checked-row-keys="checkedRowKeys"
-        :columns="columns"
-        :data="data"
-        size="small"
-        :flex-height="!appStore.isMobile"
-        :scroll-x="962"
-        :loading="loading"
-        remote
-        :row-key="row => row.id"
-        :pagination="mobilePagination"
-        class="sm:h-full"
-      />
-    </NCard>
-    <TemplateOperateDrawer
-      v-model:visible="drawerVisible"
-      :operate-type="operateType"
-      :row-data="editingData"
-      :project-id="projectId"
-      @submitted="getDataByPage"
-    />
-    <TemplatePreview
-      v-model:visible="previewVisible"
-      :template-data="previewData"
-    />
-  </div>
-</template>
-
 <script setup lang="tsx">
-import { computed, ref, watch, onMounted } from 'vue';
-import { NButton, NPopconfirm, NSpace, NTag, NSelect } from 'naive-ui';
-import { fetchDeleteTemplate, fetchGetTemplateList, fetchPublishTemplate, fetchGetAllProjects } from '@/service/api';
-import { $t } from '@/locales';
+import { computed, onMounted, ref, watch } from 'vue';
+import { NButton, NPopconfirm, NSelect, NSpace, NTag } from 'naive-ui';
+import { fetchDeleteTemplate, fetchGetAllProjects, fetchGetTemplateList, fetchPublishTemplate } from '@/service/api';
 import { useAppStore } from '@/store/modules/app';
 import { useTable, useTableOperate } from '@/hooks/common/table';
+import { $t } from '@/locales';
+import TableHeaderOperation from '@/components/advanced/table-header-operation.vue';
 import TemplateOperateDrawer from './modules/template-operate-drawer.vue';
 import TemplatePreview from './modules/template-preview.vue';
 import TemplateSearch from './modules/template-search.vue';
-import TableHeaderOperation from '@/components/advanced/table-header-operation.vue';
 
 const appStore = useAppStore();
 
@@ -152,7 +94,7 @@ const {
       title: $t('page.lowcode.template.framework'),
       align: 'center',
       width: 100,
-      render: row => row.framework ? <NTag type="warning">{row.framework}</NTag> : '-'
+      render: row => (row.framework ? <NTag type="warning">{row.framework}</NTag> : '-')
     },
     {
       key: 'tags',
@@ -162,7 +104,9 @@ const {
       render: row => (
         <NSpace>
           {row.tags?.slice(0, 3).map((tag: string) => (
-            <NTag key={tag} size="small" type="default">{tag}</NTag>
+            <NTag key={tag} size="small" type="default">
+              {tag}
+            </NTag>
           ))}
           {row.tags?.length > 3 && <span>...</span>}
         </NSpace>
@@ -179,7 +123,7 @@ const {
           PUBLISHED: 'success',
           DEPRECATED: 'error'
         };
-        
+
         const label = $t(`page.lowcode.template.status.${row.status}`);
         return <NTag type={tagMap[row.status]}>{label}</NTag>;
       }
@@ -196,11 +140,7 @@ const {
       title: $t('page.lowcode.template.isPublic'),
       align: 'center',
       width: 80,
-      render: row => (
-        <NTag type={row.isPublic ? 'success' : 'default'}>
-          {row.isPublic ? '是' : '否'}
-        </NTag>
-      )
+      render: row => <NTag type={row.isPublic ? 'success' : 'default'}>{row.isPublic ? '是' : '否'}</NTag>
     },
     {
       key: 'description',
@@ -252,15 +192,8 @@ const {
   ]
 });
 
-const {
-  drawerVisible,
-  operateType,
-  editingData,
-  handleAdd,
-  handleEdit,
-  checkedRowKeys,
-  onBatchDeleted
-} = useTableOperate(data as any, getData);
+const { drawerVisible, operateType, editingData, handleAdd, handleEdit, checkedRowKeys, onBatchDeleted } =
+  useTableOperate(data as any, getData);
 
 // 预览相关状态
 const previewVisible = ref(false);
@@ -324,11 +257,81 @@ onMounted(() => {
 });
 
 // Watch for projectId changes
-watch(() => currentProjectId.value, (newProjectId) => {
-  if (newProjectId) {
-    getData();
-  }
-}, { immediate: true });
+watch(
+  () => currentProjectId.value,
+  newProjectId => {
+    if (newProjectId) {
+      getData();
+    }
+  },
+  { immediate: true }
+);
 </script>
+
+<template>
+  <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
+    <!-- 项目选择器 -->
+    <NCard
+      v-if="!props.projectId"
+      :title="$t('page.lowcode.template.selectProject')"
+      :bordered="false"
+      size="small"
+      class="card-wrapper"
+    >
+      <NSpace align="center">
+        <span>{{ $t('page.lowcode.template.currentProject') }}:</span>
+        <NSelect
+          v-model:value="selectedProjectId"
+          :placeholder="$t('page.lowcode.template.form.project.placeholder')"
+          :options="projectOptions"
+          :loading="projectLoading"
+          style="width: 300px"
+          clearable
+          @update:value="handleProjectChange"
+        />
+      </NSpace>
+    </NCard>
+
+    <TemplateSearch v-model:model="searchParams" @reset="resetSearchParams" @search="getDataByPage" />
+    <NCard
+      :title="$t('page.lowcode.template.title')"
+      :bordered="false"
+      size="small"
+      class="sm:flex-1-hidden card-wrapper"
+    >
+      <template #header-extra>
+        <TableHeaderOperation
+          v-model:columns="columnChecks"
+          :disabled-delete="checkedRowKeys.length === 0"
+          :loading="loading"
+          @add="handleAdd"
+          @delete="handleBatchDelete"
+          @refresh="getData"
+        />
+      </template>
+      <NDataTable
+        v-model:checked-row-keys="checkedRowKeys"
+        :columns="columns"
+        :data="data"
+        size="small"
+        :flex-height="!appStore.isMobile"
+        :scroll-x="962"
+        :loading="loading"
+        remote
+        :row-key="row => row.id"
+        :pagination="mobilePagination"
+        class="sm:h-full"
+      />
+    </NCard>
+    <TemplateOperateDrawer
+      v-model:visible="drawerVisible"
+      :operate-type="operateType"
+      :row-data="editingData"
+      :project-id="projectId"
+      @submitted="getDataByPage"
+    />
+    <TemplatePreview v-model:visible="previewVisible" :template-data="previewData" />
+  </div>
+</template>
 
 <style scoped></style>

@@ -1,1 +1,1 @@
-    type MenuType = 'directory' | 'menu' | 'lowcode';
+type MenuType = 'directory' | 'menu' | 'lowcode';

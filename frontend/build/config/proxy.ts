@@ -40,7 +40,8 @@ function createProxyItem(item: App.Service.ServiceConfigItem, enableLog: boolean
         // Set CORS headers
         proxyRes.headers['Access-Control-Allow-Origin'] = '*';
         proxyRes.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH';
-        proxyRes.headers['Access-Control-Allow-Headers'] = 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,x-request-id,Page-Auth';
+        proxyRes.headers['Access-Control-Allow-Headers'] =
+          'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,x-request-id,Page-Auth';
         proxyRes.headers['Access-Control-Allow-Credentials'] = 'true';
         proxyRes.headers['Access-Control-Max-Age'] = '86400';
       });
@@ -51,12 +52,12 @@ function createProxyItem(item: App.Service.ServiceConfigItem, enableLog: boolean
           res.writeHead(200, {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
-            'Access-Control-Allow-Headers': 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,x-request-id,Page-Auth',
+            'Access-Control-Allow-Headers':
+              'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,x-request-id,Page-Auth',
             'Access-Control-Allow-Credentials': 'true',
             'Access-Control-Max-Age': '86400'
           });
           res.end();
-          return;
         }
       });
 

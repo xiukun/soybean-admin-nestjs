@@ -1,104 +1,7 @@
-<template>
-  <div class="api-config-selector">
-    <NCard :title="$t('page.lowcode.apiConfig.selector.title')" :bordered="false" size="small">
-      <template #header-extra>
-        <NSpace>
-          <NSelect
-            v-model:value="selectedProjectId"
-            :placeholder="$t('page.lowcode.project.form.name.placeholder')"
-            :options="projectOptions"
-            style="width: 200px"
-            @update:value="handleProjectChange"
-          />
-          <NButton type="primary" @click="refreshApiConfigs">
-            <template #icon>
-              <SvgIcon icon="ic:round-refresh" />
-            </template>
-            {{ $t('common.refresh') }}
-          </NButton>
-        </NSpace>
-      </template>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- 平台管理格式预览 -->
-        <div>
-          <h3 class="text-lg font-semibold mb-3">{{ $t('page.lowcode.apiConfig.selector.platformFormat') }}</h3>
-          <NCard size="small" class="h-400px">
-            <NScrollbar>
-              <pre class="text-sm">{{ JSON.stringify(platformFormatData, null, 2) }}</pre>
-            </NScrollbar>
-          </NCard>
-        </div>
-        
-        <!-- 低代码格式预览 -->
-        <div>
-          <h3 class="text-lg font-semibold mb-3">{{ $t('page.lowcode.apiConfig.selector.lowcodeFormat') }}</h3>
-          <NCard size="small" class="h-400px">
-            <NScrollbar>
-              <pre class="text-sm">{{ JSON.stringify(lowcodeFormatData, null, 2) }}</pre>
-            </NScrollbar>
-          </NCard>
-        </div>
-      </div>
-      
-      <!-- API配置选择器 -->
-      <div class="mt-6">
-        <h3 class="text-lg font-semibold mb-3">{{ $t('page.lowcode.apiConfig.selector.selectApi') }}</h3>
-        <NSelect
-          v-model:value="selectedApiId"
-          :placeholder="$t('page.lowcode.apiConfig.selector.selectApiPlaceholder')"
-          :options="apiOptions"
-          filterable
-          clearable
-          @update:value="handleApiSelect"
-        />
-        
-        <!-- 选中的API详情 -->
-        <div v-if="selectedApiConfig" class="mt-4">
-          <NCard :title="$t('page.lowcode.apiConfig.selector.selectedApi')" size="small">
-            <NDescriptions :column="2" bordered>
-              <NDescriptionsItem :label="$t('page.lowcode.apiConfig.name')">
-                {{ selectedApiConfig.name }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="$t('page.lowcode.apiConfig.method')">
-                <NTag :type="getMethodTagType(selectedApiConfig.method)">
-                  {{ selectedApiConfig.method }}
-                </NTag>
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="$t('page.lowcode.apiConfig.path')">
-                <code>{{ selectedApiConfig.fullPath }}</code>
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="$t('page.lowcode.apiConfig.authRequired')">
-                <NTag :type="selectedApiConfig.hasAuthentication ? 'error' : 'success'">
-                  {{ selectedApiConfig.hasAuthentication ? $t('common.yesOrNo.yes') : $t('common.yesOrNo.no') }}
-                </NTag>
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="$t('page.lowcode.apiConfig.description')" :span="2">
-                {{ selectedApiConfig.description || '-' }}
-              </NDescriptionsItem>
-            </NDescriptions>
-            
-            <!-- 生成的amis配置 -->
-            <div class="mt-4">
-              <h4 class="font-medium mb-2">{{ $t('page.lowcode.apiConfig.selector.amisConfig') }}</h4>
-              <NCard size="small">
-                <NScrollbar style="max-height: 200px">
-                  <pre class="text-sm">{{ JSON.stringify(generateAmisConfig(), null, 2) }}</pre>
-                </NScrollbar>
-              </NCard>
-            </div>
-          </NCard>
-        </div>
-      </div>
-    </NCard>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { NCard, NSelect, NButton, NSpace, NScrollbar, NDescriptions, NDescriptionsItem, NTag } from 'naive-ui';
-import { fetchGetApiConfigList, fetchGetApiConfigListForLowcode } from '@/service/api';
-import { fetchGetAllProjects } from '@/service/api';
+import { computed, onMounted, ref } from 'vue';
+import { NButton, NCard, NDescriptions, NDescriptionsItem, NScrollbar, NSelect, NSpace, NTag } from 'naive-ui';
+import { fetchGetAllProjects, fetchGetApiConfigList, fetchGetApiConfigListForLowcode } from '@/service/api';
 import { $t } from '@/locales';
 import SvgIcon from '@/components/custom/svg-icon.vue';
 
@@ -141,9 +44,9 @@ function getMethodTagType(method: string): 'info' | 'success' | 'warning' | 'err
 
 function generateAmisConfig() {
   if (!selectedApiConfig.value) return {};
-  
+
   const config = selectedApiConfig.value;
-  
+
   // 根据HTTP方法生成不同的amis配置
   if (config.method === 'GET') {
     return {
@@ -166,28 +69,27 @@ function generateAmisConfig() {
         ]
       }
     };
-  } else {
-    return {
-      type: 'form',
-      api: {
-        method: config.method,
-        url: config.fullPath,
-        ...(config.hasAuthentication && {
-          headers: {
-            Authorization: '${token}'
-          }
-        })
-      },
-      body: [
-        {
-          type: 'input-text',
-          name: 'name',
-          label: '名称',
-          required: true
-        }
-      ]
-    };
   }
+  return {
+    type: 'form',
+    api: {
+      method: config.method,
+      url: config.fullPath,
+      ...(config.hasAuthentication && {
+        headers: {
+          Authorization: '${token}'
+        }
+      })
+    },
+    body: [
+      {
+        type: 'input-text',
+        name: 'name',
+        label: '名称',
+        required: true
+      }
+    ]
+  };
 }
 
 async function loadProjects() {
@@ -248,14 +150,14 @@ async function loadProjects() {
 
 async function handleProjectChange(projectId: string) {
   if (!projectId) return;
-  
+
   try {
     // 同时获取两种格式的数据
     const [platformResponse, lowcodeResponse] = await Promise.all([
       fetchGetApiConfigList(projectId, { current: 1, size: 10 }),
       fetchGetApiConfigListForLowcode(projectId, { page: 1, perPage: 10 })
     ]);
-    
+
     platformFormatData.value = platformResponse.data;
     lowcodeFormatData.value = lowcodeResponse.data;
   } catch (error) {
@@ -277,6 +179,102 @@ onMounted(() => {
   loadProjects();
 });
 </script>
+
+<template>
+  <div class="api-config-selector">
+    <NCard :title="$t('page.lowcode.apiConfig.selector.title')" :bordered="false" size="small">
+      <template #header-extra>
+        <NSpace>
+          <NSelect
+            v-model:value="selectedProjectId"
+            :placeholder="$t('page.lowcode.project.form.name.placeholder')"
+            :options="projectOptions"
+            style="width: 200px"
+            @update:value="handleProjectChange"
+          />
+          <NButton type="primary" @click="refreshApiConfigs">
+            <template #icon>
+              <SvgIcon icon="ic:round-refresh" />
+            </template>
+            {{ $t('common.refresh') }}
+          </NButton>
+        </NSpace>
+      </template>
+
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <!-- 平台管理格式预览 -->
+        <div>
+          <h3 class="mb-3 text-lg font-semibold">{{ $t('page.lowcode.apiConfig.selector.platformFormat') }}</h3>
+          <NCard size="small" class="h-400px">
+            <NScrollbar>
+              <pre class="text-sm">{{ JSON.stringify(platformFormatData, null, 2) }}</pre>
+            </NScrollbar>
+          </NCard>
+        </div>
+
+        <!-- 低代码格式预览 -->
+        <div>
+          <h3 class="mb-3 text-lg font-semibold">{{ $t('page.lowcode.apiConfig.selector.lowcodeFormat') }}</h3>
+          <NCard size="small" class="h-400px">
+            <NScrollbar>
+              <pre class="text-sm">{{ JSON.stringify(lowcodeFormatData, null, 2) }}</pre>
+            </NScrollbar>
+          </NCard>
+        </div>
+      </div>
+
+      <!-- API配置选择器 -->
+      <div class="mt-6">
+        <h3 class="mb-3 text-lg font-semibold">{{ $t('page.lowcode.apiConfig.selector.selectApi') }}</h3>
+        <NSelect
+          v-model:value="selectedApiId"
+          :placeholder="$t('page.lowcode.apiConfig.selector.selectApiPlaceholder')"
+          :options="apiOptions"
+          filterable
+          clearable
+          @update:value="handleApiSelect"
+        />
+
+        <!-- 选中的API详情 -->
+        <div v-if="selectedApiConfig" class="mt-4">
+          <NCard :title="$t('page.lowcode.apiConfig.selector.selectedApi')" size="small">
+            <NDescriptions :column="2" bordered>
+              <NDescriptionsItem :label="$t('page.lowcode.apiConfig.name')">
+                {{ selectedApiConfig.name }}
+              </NDescriptionsItem>
+              <NDescriptionsItem :label="$t('page.lowcode.apiConfig.method')">
+                <NTag :type="getMethodTagType(selectedApiConfig.method)">
+                  {{ selectedApiConfig.method }}
+                </NTag>
+              </NDescriptionsItem>
+              <NDescriptionsItem :label="$t('page.lowcode.apiConfig.path')">
+                <code>{{ selectedApiConfig.fullPath }}</code>
+              </NDescriptionsItem>
+              <NDescriptionsItem :label="$t('page.lowcode.apiConfig.authRequired')">
+                <NTag :type="selectedApiConfig.hasAuthentication ? 'error' : 'success'">
+                  {{ selectedApiConfig.hasAuthentication ? $t('common.yesOrNo.yes') : $t('common.yesOrNo.no') }}
+                </NTag>
+              </NDescriptionsItem>
+              <NDescriptionsItem :label="$t('page.lowcode.apiConfig.description')" :span="2">
+                {{ selectedApiConfig.description || '-' }}
+              </NDescriptionsItem>
+            </NDescriptions>
+
+            <!-- 生成的amis配置 -->
+            <div class="mt-4">
+              <h4 class="mb-2 font-medium">{{ $t('page.lowcode.apiConfig.selector.amisConfig') }}</h4>
+              <NCard size="small">
+                <NScrollbar style="max-height: 200px">
+                  <pre class="text-sm">{{ JSON.stringify(generateAmisConfig(), null, 2) }}</pre>
+                </NScrollbar>
+              </NCard>
+            </div>
+          </NCard>
+        </div>
+      </div>
+    </NCard>
+  </div>
+</template>
 
 <style scoped>
 .api-config-selector {

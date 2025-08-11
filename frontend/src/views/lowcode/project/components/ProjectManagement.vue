@@ -1,65 +1,8 @@
-<template>
-  <div class="project-management">
-    <!-- 搜索和过滤区域 -->
-    <div class="search-filter-section mb-4">
-      <NSpace>
-        <NInput
-          v-model:value="searchQuery"
-          placeholder="搜索项目名称、代码或描述"
-          style="width: 300px"
-          @input="handleSearch"
-        >
-          <template #prefix>
-            <NIcon :component="SearchOutlined" />
-          </template>
-        </NInput>
-        
-        <NSelect
-          v-model:value="statusFilter"
-          placeholder="按状态筛选"
-          :options="statusOptions"
-          style="width: 150px"
-          clearable
-          @update:value="handleFilterChange"
-        />
-        
-        <NSelect
-          v-model:value="frameworkFilter"
-          placeholder="按框架筛选"
-          :options="frameworkOptions"
-          style="width: 150px"
-          clearable
-          @update:value="handleFilterChange"
-        />
-        
-        <NButton @click="handleRefresh">
-          <template #icon>
-            <NIcon :component="ReloadOutlined" />
-          </template>
-          刷新
-        </NButton>
-      </NSpace>
-    </div>
-
-    <!-- 项目列表 -->
-    <div class="project-list">
-      <NDataTable
-        :columns="columns"
-        :data="paginatedProjects"
-        :pagination="paginationConfig"
-        :loading="loading"
-        @update:page="handlePageChange"
-        @update:page-size="handlePageSizeChange"
-      />
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 // @ts-nocheck
-import { ref, computed, onMounted } from 'vue';
-import { NSpace, NInput, NSelect, NButton, NIcon, NDataTable, NTag } from 'naive-ui';
-import { SearchOutlined, ReloadOutlined } from '@vicons/antd';
+import { computed, onMounted, ref } from 'vue';
+import { NButton, NDataTable, NIcon, NInput, NSelect, NSpace, NTag } from 'naive-ui';
+import { ReloadOutlined, SearchOutlined } from '@vicons/antd';
 import { useProjectPerformance } from '../composables/useProjectPerformance';
 import type { Project } from '../composables/useProjectPerformance';
 
@@ -175,7 +118,7 @@ const handleRefresh = async () => {
     // 这里应该调用实际的API
     // const response = await fetchProjects();
     // projects.value = response.data;
-    
+
     // 模拟数据
     projects.value = [
       {
@@ -192,7 +135,7 @@ const handleRefresh = async () => {
         updatedAt: '2024-01-01T00:00:00Z'
       }
     ];
-    
+
     pagination.value.itemCount = projects.value.length;
   } catch (error) {
     console.error('加载项目失败:', error);
@@ -206,6 +149,63 @@ onMounted(() => {
   handleRefresh();
 });
 </script>
+
+<template>
+  <div class="project-management">
+    <!-- 搜索和过滤区域 -->
+    <div class="search-filter-section mb-4">
+      <NSpace>
+        <NInput
+          v-model:value="searchQuery"
+          placeholder="搜索项目名称、代码或描述"
+          style="width: 300px"
+          @input="handleSearch"
+        >
+          <template #prefix>
+            <NIcon :component="SearchOutlined" />
+          </template>
+        </NInput>
+
+        <NSelect
+          v-model:value="statusFilter"
+          placeholder="按状态筛选"
+          :options="statusOptions"
+          style="width: 150px"
+          clearable
+          @update:value="handleFilterChange"
+        />
+
+        <NSelect
+          v-model:value="frameworkFilter"
+          placeholder="按框架筛选"
+          :options="frameworkOptions"
+          style="width: 150px"
+          clearable
+          @update:value="handleFilterChange"
+        />
+
+        <NButton @click="handleRefresh">
+          <template #icon>
+            <NIcon :component="ReloadOutlined" />
+          </template>
+          刷新
+        </NButton>
+      </NSpace>
+    </div>
+
+    <!-- 项目列表 -->
+    <div class="project-list">
+      <NDataTable
+        :columns="columns"
+        :data="paginatedProjects"
+        :pagination="paginationConfig"
+        :loading="loading"
+        @update:page="handlePageChange"
+        @update:page-size="handlePageSizeChange"
+      />
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .project-management {

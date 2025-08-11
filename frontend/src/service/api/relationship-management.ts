@@ -42,9 +42,7 @@ export interface OptimizationReport {
   };
 }
 
-/**
- * 获取关系推荐
- */
+/** 获取关系推荐 */
 export function fetchRelationshipRecommendations(projectId: string) {
   return request<RelationshipRecommendation[]>({
     url: `/api/relationships/recommendations/${projectId}`,
@@ -52,9 +50,7 @@ export function fetchRelationshipRecommendations(projectId: string) {
   });
 }
 
-/**
- * 验证关系推荐
- */
+/** 验证关系推荐 */
 export function validateRelationshipRecommendation(recommendation: RelationshipRecommendation) {
   return request<{
     isValid: boolean;
@@ -67,9 +63,7 @@ export function validateRelationshipRecommendation(recommendation: RelationshipR
   });
 }
 
-/**
- * 批量创建推荐的关系
- */
+/** 批量创建推荐的关系 */
 export function createRecommendedRelationships(
   recommendations: RelationshipRecommendation[],
   options: {
@@ -91,9 +85,7 @@ export function createRecommendedRelationships(
   });
 }
 
-/**
- * 获取项目关系分析报告
- */
+/** 获取项目关系分析报告 */
 export function fetchRelationshipOptimizationReport(projectId: string) {
   return request<OptimizationReport>({
     url: `/api/relationships/optimization-report/${projectId}`,
@@ -101,9 +93,7 @@ export function fetchRelationshipOptimizationReport(projectId: string) {
   });
 }
 
-/**
- * 获取项目关系指标
- */
+/** 获取项目关系指标 */
 export function fetchRelationshipMetrics(projectId: string) {
   return request<RelationshipMetrics>({
     url: `/api/relationships/metrics/${projectId}`,
@@ -111,9 +101,7 @@ export function fetchRelationshipMetrics(projectId: string) {
   });
 }
 
-/**
- * 获取关系图数据
- */
+/** 获取关系图数据 */
 export function fetchRelationshipGraph(projectId: string) {
   return request<{
     nodes: Array<{
@@ -137,13 +125,8 @@ export function fetchRelationshipGraph(projectId: string) {
   });
 }
 
-/**
- * 保存关系图布局
- */
-export function saveRelationshipGraphLayout(
-  projectId: string,
-  layout: Record<string, { x: number; y: number }>
-) {
+/** 保存关系图布局 */
+export function saveRelationshipGraphLayout(projectId: string, layout: Record<string, { x: number; y: number }>) {
   return request({
     url: `/api/relationships/graph/${projectId}/layout`,
     method: 'post',
@@ -151,9 +134,7 @@ export function saveRelationshipGraphLayout(
   });
 }
 
-/**
- * 导出关系模式
- */
+/** 导出关系模式 */
 export function exportRelationshipSchema(projectId: string, format: 'json' | 'sql' | 'prisma' = 'json') {
   return request<string>({
     url: `/api/relationships/export/${projectId}`,
@@ -162,9 +143,7 @@ export function exportRelationshipSchema(projectId: string, format: 'json' | 'sq
   });
 }
 
-/**
- * 导入关系模式
- */
+/** 导入关系模式 */
 export function importRelationshipSchema(projectId: string, schema: string, format: 'json' | 'sql' = 'json') {
   return request<{
     imported: number;

@@ -144,8 +144,7 @@ export function fetchGenerateEntityTable(id: string) {
 }
 
 /**
-/**
- * validate entity
+ * /** validate entity
  *
  * @param data - entity data
  */
@@ -217,20 +216,20 @@ export function fetchValidateEntityFields(id: string) {
   });
 }
 
-/**
- * 获取通用字段定义
- */
+/** 获取通用字段定义 */
 export function fetchGetCommonFieldDefinitions() {
-  return request<Array<{
-    name: string;
-    code: string;
-    description: string;
-    dataType: string;
-    required: boolean;
-    unique: boolean;
-    defaultValue?: any;
-    displayOrder: number;
-  }>>({
+  return request<
+    Array<{
+      name: string;
+      code: string;
+      description: string;
+      dataType: string;
+      required: boolean;
+      unique: boolean;
+      defaultValue?: any;
+      displayOrder: number;
+    }>
+  >({
     url: '/entities/common-fields',
     method: 'get'
   });
@@ -274,15 +273,19 @@ export function fetchGetDatabaseSchema(id: string) {
 
 /**
  * 保存实体设计器布局位置
+ *
  * @param entityId - 实体ID
  * @param position - 位置信息
  */
-export function saveEntityPosition(entityId: string, position: {
-  x: number;
-  y: number;
-  width?: number;
-  height?: number;
-}) {
+export function saveEntityPosition(
+  entityId: string,
+  position: {
+    x: number;
+    y: number;
+    width?: number;
+    height?: number;
+  }
+) {
   return request({
     url: `/entities/${entityId}/position`,
     method: 'put',
@@ -292,16 +295,20 @@ export function saveEntityPosition(entityId: string, position: {
 
 /**
  * 批量保存实体位置
+ *
  * @param projectId - 项目ID
  * @param positions - 位置信息列表
  */
-export function batchSaveEntityPositions(projectId: string, positions: Array<{
-  entityId: string;
-  x: number;
-  y: number;
-  width?: number;
-  height?: number;
-}>) {
+export function batchSaveEntityPositions(
+  projectId: string,
+  positions: Array<{
+    entityId: string;
+    x: number;
+    y: number;
+    width?: number;
+    height?: number;
+  }>
+) {
   return request({
     url: `/entities/project/${projectId}/positions`,
     method: 'put',
@@ -311,20 +318,23 @@ export function batchSaveEntityPositions(projectId: string, positions: Array<{
 
 /**
  * 获取项目的实体关系
+ *
  * @param projectId - 项目ID
  */
 export function fetchEntityRelationships(projectId: string) {
-  return request<Array<{
-    id: string;
-    name: string;
-    sourceEntityId: string;
-    targetEntityId: string;
-    type: 'ONE_TO_ONE' | 'ONE_TO_MANY' | 'MANY_TO_ONE' | 'MANY_TO_MANY';
-    description?: string;
-    foreignKeyField?: string;
-    onDelete?: 'CASCADE' | 'RESTRICT' | 'SET_NULL' | 'NO_ACTION';
-    onUpdate?: 'CASCADE' | 'RESTRICT' | 'SET_NULL' | 'NO_ACTION';
-  }>>({
+  return request<
+    Array<{
+      id: string;
+      name: string;
+      sourceEntityId: string;
+      targetEntityId: string;
+      type: 'ONE_TO_ONE' | 'ONE_TO_MANY' | 'MANY_TO_ONE' | 'MANY_TO_MANY';
+      description?: string;
+      foreignKeyField?: string;
+      onDelete?: 'CASCADE' | 'RESTRICT' | 'SET_NULL' | 'NO_ACTION';
+      onUpdate?: 'CASCADE' | 'RESTRICT' | 'SET_NULL' | 'NO_ACTION';
+    }>
+  >({
     url: `/relationships/project/${projectId}`,
     method: 'get'
   });
@@ -332,6 +342,7 @@ export function fetchEntityRelationships(projectId: string) {
 
 /**
  * 创建实体关系
+ *
  * @param data - 关系数据
  */
 export function createEntityRelationship(data: {
@@ -363,17 +374,21 @@ export function createEntityRelationship(data: {
 
 /**
  * 更新实体关系
+ *
  * @param relationshipId - 关系ID
  * @param data - 更新数据
  */
-export function updateEntityRelationship(relationshipId: string, data: Partial<{
-  name: string;
-  type: 'ONE_TO_ONE' | 'ONE_TO_MANY' | 'MANY_TO_ONE' | 'MANY_TO_MANY';
-  description?: string;
-  foreignKeyField?: string;
-  onDelete?: 'CASCADE' | 'RESTRICT' | 'SET_NULL' | 'NO_ACTION';
-  onUpdate?: 'CASCADE' | 'RESTRICT' | 'SET_NULL' | 'NO_ACTION';
-}>) {
+export function updateEntityRelationship(
+  relationshipId: string,
+  data: Partial<{
+    name: string;
+    type: 'ONE_TO_ONE' | 'ONE_TO_MANY' | 'MANY_TO_ONE' | 'MANY_TO_MANY';
+    description?: string;
+    foreignKeyField?: string;
+    onDelete?: 'CASCADE' | 'RESTRICT' | 'SET_NULL' | 'NO_ACTION';
+    onUpdate?: 'CASCADE' | 'RESTRICT' | 'SET_NULL' | 'NO_ACTION';
+  }>
+) {
   return request({
     url: `/relationships/${relationshipId}`,
     method: 'put',
@@ -383,6 +398,7 @@ export function updateEntityRelationship(relationshipId: string, data: Partial<{
 
 /**
  * 删除实体关系
+ *
  * @param relationshipId - 关系ID
  */
 export function deleteEntityRelationship(relationshipId: string) {

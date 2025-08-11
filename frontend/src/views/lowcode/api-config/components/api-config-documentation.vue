@@ -1,184 +1,20 @@
-<template>
-  <div class="api-config-documentation">
-    <NCard :title="$t('page.lowcode.apiConfig.documentation.title')" :bordered="false" size="small">
-      <template #header-extra>
-        <NSpace>
-          <NButton type="primary" @click="generateDocumentation" :loading="generateLoading">
-            <template #icon>
-              <SvgIcon icon="ic:round-description" />
-            </template>
-            {{ $t('page.lowcode.apiConfig.documentation.generate') }}
-          </NButton>
-          <NButton @click="exportSwagger" :disabled="!hasDocumentation" :loading="exportLoading">
-            <template #icon>
-              <SvgIcon icon="ic:round-download" />
-            </template>
-            {{ $t('page.lowcode.apiConfig.documentation.exportSwagger') }}
-          </NButton>
-        </NSpace>
-      </template>
-
-      <NSpace vertical :size="16">
-        <!-- 项目选择 -->
-        <div>
-          <h3 class="text-lg font-semibold mb-3">{{ $t('page.lowcode.apiConfig.documentation.selectProject') }}</h3>
-          <NSpace>
-            <NSelect
-              v-model:value="selectedProjectId"
-              :placeholder="$t('page.lowcode.project.form.name.placeholder')"
-              :options="projectOptions"
-              style="width: 200px"
-              @update:value="handleProjectChange"
-            />
-            <NCheckbox v-model:checked="includeInactive">
-              {{ $t('page.lowcode.apiConfig.documentation.includeInactive') }}
-            </NCheckbox>
-          </NSpace>
-        </div>
-
-        <!-- 文档配置 -->
-        <div>
-          <h3 class="text-lg font-semibold mb-3">{{ $t('page.lowcode.apiConfig.documentation.config') }}</h3>
-          <NCard size="small">
-            <NSpace vertical :size="12">
-              <NFormItem :label="$t('page.lowcode.apiConfig.documentation.docTitle')">
-                <NInput v-model:value="docConfig.title" :placeholder="$t('page.lowcode.apiConfig.documentation.titlePlaceholder')" />
-              </NFormItem>
-              <NFormItem :label="$t('page.lowcode.apiConfig.documentation.docVersion')">
-                <NInput v-model:value="docConfig.version" :placeholder="$t('page.lowcode.apiConfig.documentation.versionPlaceholder')" />
-              </NFormItem>
-              <NFormItem :label="$t('page.lowcode.apiConfig.documentation.docDescription')">
-                <NInput
-                  v-model:value="docConfig.description"
-                  type="textarea"
-                  :placeholder="$t('page.lowcode.apiConfig.documentation.descriptionPlaceholder')"
-                  :rows="3"
-                />
-              </NFormItem>
-              <NFormItem :label="$t('page.lowcode.apiConfig.documentation.docBaseUrl')">
-                <NInput v-model:value="docConfig.baseUrl" :placeholder="$t('page.lowcode.apiConfig.documentation.baseUrlPlaceholder')" />
-              </NFormItem>
-            </NSpace>
-          </NCard>
-        </div>
-
-        <!-- API统计 -->
-        <div v-if="apiStats">
-          <h3 class="text-lg font-semibold mb-3">{{ $t('page.lowcode.apiConfig.documentation.statistics') }}</h3>
-          <NCard size="small">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div class="text-center">
-                <div class="text-2xl font-bold text-blue-500">{{ apiStats.total }}</div>
-                <div class="text-sm text-gray-500">{{ $t('page.lowcode.apiConfig.documentation.totalApis') }}</div>
-              </div>
-              <div class="text-center">
-                <div class="text-2xl font-bold text-green-500">{{ apiStats.active }}</div>
-                <div class="text-sm text-gray-500">{{ $t('page.lowcode.apiConfig.documentation.activeApis') }}</div>
-              </div>
-              <div class="text-center">
-                <div class="text-2xl font-bold text-orange-500">{{ apiStats.inactive }}</div>
-                <div class="text-sm text-gray-500">{{ $t('page.lowcode.apiConfig.documentation.inactiveApis') }}</div>
-              </div>
-              <div class="text-center">
-                <div class="text-2xl font-bold text-purple-500">{{ apiStats.methods.length }}</div>
-                <div class="text-sm text-gray-500">{{ $t('page.lowcode.apiConfig.documentation.methods') }}</div>
-              </div>
-            </div>
-            <div class="mt-4">
-              <h4 class="font-medium mb-2">{{ $t('page.lowcode.apiConfig.documentation.methodDistribution') }}</h4>
-              <NSpace>
-                <NTag v-for="method in apiStats.methods" :key="method.name" :type="getMethodTagType(method.name)">
-                  {{ method.name }} ({{ method.count }})
-                </NTag>
-              </NSpace>
-            </div>
-          </NCard>
-        </div>
-
-        <!-- 生成的文档预览 -->
-        <div v-if="generatedDoc">
-          <h3 class="text-lg font-semibold mb-3">{{ $t('page.lowcode.apiConfig.documentation.preview') }}</h3>
-          <NCard size="small">
-            <NTabs type="line">
-              <NTabPane name="swagger" :tab="$t('page.lowcode.apiConfig.documentation.swaggerFormat')">
-                <NScrollbar style="max-height: 500px">
-                  <pre class="text-sm">{{ JSON.stringify(generatedDoc.swagger, null, 2) }}</pre>
-                </NScrollbar>
-              </NTabPane>
-              <NTabPane name="markdown" :tab="$t('page.lowcode.apiConfig.documentation.markdownFormat')">
-                <NScrollbar style="max-height: 500px">
-                  <div class="markdown-content" v-html="generatedDoc.markdown"></div>
-                </NScrollbar>
-              </NTabPane>
-              <NTabPane name="html" :tab="$t('page.lowcode.apiConfig.documentation.htmlFormat')">
-                <NScrollbar style="max-height: 500px">
-                  <iframe
-                    :srcdoc="generatedDoc.html"
-                    style="width: 100%; height: 400px; border: 1px solid #e0e0e0; border-radius: 4px"
-                  ></iframe>
-                </NScrollbar>
-              </NTabPane>
-            </NTabs>
-          </NCard>
-        </div>
-
-        <!-- 导出选项 -->
-        <div v-if="hasDocumentation">
-          <h3 class="text-lg font-semibold mb-3">{{ $t('page.lowcode.apiConfig.documentation.export') }}</h3>
-          <NCard size="small">
-            <NSpace>
-              <NButton @click="exportFormat('swagger')" :loading="exportLoading">
-                <template #icon>
-                  <SvgIcon icon="ic:round-code" />
-                </template>
-                {{ $t('page.lowcode.apiConfig.documentation.exportSwagger') }}
-              </NButton>
-              <NButton @click="exportFormat('markdown')" :loading="exportLoading">
-                <template #icon>
-                  <SvgIcon icon="ic:round-description" />
-                </template>
-                {{ $t('page.lowcode.apiConfig.documentation.exportMarkdown') }}
-              </NButton>
-              <NButton @click="exportFormat('html')" :loading="exportLoading">
-                <template #icon>
-                  <SvgIcon icon="ic:round-web" />
-                </template>
-                {{ $t('page.lowcode.apiConfig.documentation.exportHtml') }}
-              </NButton>
-              <NButton @click="exportFormat('postman')" :loading="exportLoading">
-                <template #icon>
-                  <SvgIcon icon="ic:round-api" />
-                </template>
-                {{ $t('page.lowcode.apiConfig.documentation.exportPostman') }}
-              </NButton>
-              <NButton @click="exportFormat('openapi')" :loading="exportLoading">
-                <template #icon>
-                  <SvgIcon icon="ic:round-code" />
-                </template>
-                {{ $t('page.lowcode.apiConfig.documentation.exportOpenAPI') }}
-              </NButton>
-              <NButton @click="exportFormat('insomnia')" :loading="exportLoading">
-                <template #icon>
-                  <SvgIcon icon="ic:round-http" />
-                </template>
-                {{ $t('page.lowcode.apiConfig.documentation.exportInsomnia') }}
-              </NButton>
-            </NSpace>
-          </NCard>
-        </div>
-      </NSpace>
-    </NCard>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import {
-  NCard, NSpace, NButton, NSelect, NCheckbox, NFormItem, NInput,
-  NTag, NTabs, NTabPane, NScrollbar
+  NButton,
+  NCard,
+  NCheckbox,
+  NFormItem,
+  NInput,
+  NScrollbar,
+  NSelect,
+  NSpace,
+  NTabPane,
+  NTabs,
+  NTag
 } from 'naive-ui';
-import { $t } from '@/locales';
 import { fetchGetAllProjects, fetchGetApiConfigListForLowcode } from '@/service/api';
+import { $t } from '@/locales';
 import SvgIcon from '@/components/custom/svg-icon.vue';
 
 defineOptions({
@@ -214,7 +50,7 @@ const generateLoading = ref(false);
 const exportLoading = ref(false);
 
 // 计算属性
-const hasDocumentation = computed(() => !!generatedDoc.value);
+const hasDocumentation = computed(() => Boolean(generatedDoc.value));
 
 // 方法
 function getMethodTagType(method: string): 'info' | 'success' | 'warning' | 'error' {
@@ -289,7 +125,7 @@ async function loadProjects() {
 
 async function handleProjectChange(projectId: string) {
   if (!projectId) return;
-  
+
   try {
     const response = await fetchGetApiConfigListForLowcode(projectId, { page: 1, perPage: 1000 });
     if (response.data?.data?.options) {
@@ -305,14 +141,14 @@ function calculateStats() {
   const total = apiConfigs.value.length;
   const active = apiConfigs.value.filter(api => api.status === 'ACTIVE').length;
   const inactive = total - active;
-  
+
   const methodCounts: Record<string, number> = {};
   apiConfigs.value.forEach(api => {
     methodCounts[api.method] = (methodCounts[api.method] || 0) + 1;
   });
-  
+
   const methods = Object.entries(methodCounts).map(([name, count]) => ({ name, count }));
-  
+
   apiStats.value = { total, active, inactive, methods };
 }
 
@@ -321,30 +157,30 @@ async function generateDocumentation() {
     window.$message?.warning($t('page.lowcode.apiConfig.documentation.selectProjectFirst'));
     return;
   }
-  
+
   try {
     generateLoading.value = true;
-    
+
     // 过滤API配置
-    const filteredApis = includeInactive.value 
-      ? apiConfigs.value 
+    const filteredApis = includeInactive.value
+      ? apiConfigs.value
       : apiConfigs.value.filter(api => api.status === 'ACTIVE');
-    
+
     // 生成Swagger文档
     const swaggerDoc = generateSwaggerDoc(filteredApis);
-    
+
     // 生成Markdown文档
     const markdownDoc = generateMarkdownDoc(filteredApis);
-    
+
     // 生成HTML文档
     const htmlDoc = generateHtmlDoc(filteredApis);
-    
+
     generatedDoc.value = {
       swagger: swaggerDoc,
       markdown: markdownDoc,
       html: htmlDoc
     };
-    
+
     window.$message?.success($t('page.lowcode.apiConfig.documentation.generateSuccess'));
   } catch (error) {
     console.error('Failed to generate documentation:', error);
@@ -370,15 +206,15 @@ function generateSwaggerDoc(apis: any[]) {
     ],
     paths: {} as any
   };
-  
+
   apis.forEach(api => {
     const path = api.path;
     const method = api.method.toLowerCase();
-    
+
     if (!swagger.paths[path]) {
       swagger.paths[path] = {};
     }
-    
+
     const operation: any = {
       summary: api.name,
       description: api.description || '',
@@ -481,7 +317,7 @@ function generateSwaggerDoc(apis: any[]) {
 
     swagger.paths[path][method] = operation;
   });
-  
+
   if (apis.some(api => api.hasAuthentication)) {
     swagger.components = {
       securitySchemes: {
@@ -493,7 +329,7 @@ function generateSwaggerDoc(apis: any[]) {
       }
     };
   }
-  
+
   return swagger;
 }
 
@@ -612,7 +448,7 @@ function generateHtmlDoc(apis: any[]) {
       <p><strong>Base URL:</strong> ${docConfig.value.baseUrl}</p>
       <h2>API Endpoints</h2>
   `;
-  
+
   apis.forEach(api => {
     html += `
       <div class="endpoint">
@@ -624,12 +460,12 @@ function generateHtmlDoc(apis: any[]) {
       </div>
     `;
   });
-  
+
   html += `
     </body>
     </html>
   `;
-  
+
   return html;
 }
 
@@ -681,7 +517,7 @@ async function exportFormat(format: 'swagger' | 'markdown' | 'html' | 'postman' 
       default:
         return;
     }
-    
+
     const blob = new Blob([content], { type: mimeType });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -691,8 +527,10 @@ async function exportFormat(format: 'swagger' | 'markdown' | 'html' | 'postman' 
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-    
-    window.$message?.success($t('page.lowcode.apiConfig.documentation.exportSuccess', { format: format.toUpperCase() }));
+
+    window.$message?.success(
+      $t('page.lowcode.apiConfig.documentation.exportSuccess', { format: format.toUpperCase() })
+    );
   } catch (error) {
     console.error('Failed to export documentation:', error);
     window.$message?.error($t('page.lowcode.apiConfig.documentation.exportFailed'));
@@ -710,11 +548,11 @@ function generatePostmanCollection() {
     },
     item: [] as any[]
   };
-  
-  const filteredApis = includeInactive.value 
-    ? apiConfigs.value 
+
+  const filteredApis = includeInactive.value
+    ? apiConfigs.value
     : apiConfigs.value.filter(api => api.status === 'ACTIVE');
-  
+
   filteredApis.forEach(api => {
     const item = {
       name: api.name,
@@ -728,7 +566,7 @@ function generatePostmanCollection() {
         }
       }
     };
-    
+
     if (api.hasAuthentication) {
       item.request.header.push({
         key: 'Authorization',
@@ -736,10 +574,10 @@ function generatePostmanCollection() {
         type: 'text'
       });
     }
-    
+
     collection.item.push(item);
   });
-  
+
   return collection;
 }
 
@@ -803,7 +641,7 @@ function generateInsomniaCollection() {
     __export_source: 'lowcode-platform',
     resources: [
       {
-        _id: 'wrk_' + Date.now(),
+        _id: `wrk_${Date.now()}`,
         _type: 'workspace',
         name: docConfig.value.title,
         description: docConfig.value.description,
@@ -817,7 +655,7 @@ function generateInsomniaCollection() {
     : apiConfigs.value.filter(api => api.status === 'ACTIVE');
 
   filteredApis.forEach((api, index) => {
-    const requestId = 'req_' + Date.now() + '_' + index;
+    const requestId = `req_${Date.now()}_${index}`;
 
     const request = {
       _id: requestId,
@@ -850,6 +688,188 @@ onMounted(() => {
   loadProjects();
 });
 </script>
+
+<template>
+  <div class="api-config-documentation">
+    <NCard :title="$t('page.lowcode.apiConfig.documentation.title')" :bordered="false" size="small">
+      <template #header-extra>
+        <NSpace>
+          <NButton type="primary" :loading="generateLoading" @click="generateDocumentation">
+            <template #icon>
+              <SvgIcon icon="ic:round-description" />
+            </template>
+            {{ $t('page.lowcode.apiConfig.documentation.generate') }}
+          </NButton>
+          <NButton :disabled="!hasDocumentation" :loading="exportLoading" @click="exportSwagger">
+            <template #icon>
+              <SvgIcon icon="ic:round-download" />
+            </template>
+            {{ $t('page.lowcode.apiConfig.documentation.exportSwagger') }}
+          </NButton>
+        </NSpace>
+      </template>
+
+      <NSpace vertical :size="16">
+        <!-- 项目选择 -->
+        <div>
+          <h3 class="mb-3 text-lg font-semibold">{{ $t('page.lowcode.apiConfig.documentation.selectProject') }}</h3>
+          <NSpace>
+            <NSelect
+              v-model:value="selectedProjectId"
+              :placeholder="$t('page.lowcode.project.form.name.placeholder')"
+              :options="projectOptions"
+              style="width: 200px"
+              @update:value="handleProjectChange"
+            />
+            <NCheckbox v-model:checked="includeInactive">
+              {{ $t('page.lowcode.apiConfig.documentation.includeInactive') }}
+            </NCheckbox>
+          </NSpace>
+        </div>
+
+        <!-- 文档配置 -->
+        <div>
+          <h3 class="mb-3 text-lg font-semibold">{{ $t('page.lowcode.apiConfig.documentation.config') }}</h3>
+          <NCard size="small">
+            <NSpace vertical :size="12">
+              <NFormItem :label="$t('page.lowcode.apiConfig.documentation.docTitle')">
+                <NInput
+                  v-model:value="docConfig.title"
+                  :placeholder="$t('page.lowcode.apiConfig.documentation.titlePlaceholder')"
+                />
+              </NFormItem>
+              <NFormItem :label="$t('page.lowcode.apiConfig.documentation.docVersion')">
+                <NInput
+                  v-model:value="docConfig.version"
+                  :placeholder="$t('page.lowcode.apiConfig.documentation.versionPlaceholder')"
+                />
+              </NFormItem>
+              <NFormItem :label="$t('page.lowcode.apiConfig.documentation.docDescription')">
+                <NInput
+                  v-model:value="docConfig.description"
+                  type="textarea"
+                  :placeholder="$t('page.lowcode.apiConfig.documentation.descriptionPlaceholder')"
+                  :rows="3"
+                />
+              </NFormItem>
+              <NFormItem :label="$t('page.lowcode.apiConfig.documentation.docBaseUrl')">
+                <NInput
+                  v-model:value="docConfig.baseUrl"
+                  :placeholder="$t('page.lowcode.apiConfig.documentation.baseUrlPlaceholder')"
+                />
+              </NFormItem>
+            </NSpace>
+          </NCard>
+        </div>
+
+        <!-- API统计 -->
+        <div v-if="apiStats">
+          <h3 class="mb-3 text-lg font-semibold">{{ $t('page.lowcode.apiConfig.documentation.statistics') }}</h3>
+          <NCard size="small">
+            <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+              <div class="text-center">
+                <div class="text-2xl text-blue-500 font-bold">{{ apiStats.total }}</div>
+                <div class="text-sm text-gray-500">{{ $t('page.lowcode.apiConfig.documentation.totalApis') }}</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl text-green-500 font-bold">{{ apiStats.active }}</div>
+                <div class="text-sm text-gray-500">{{ $t('page.lowcode.apiConfig.documentation.activeApis') }}</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl text-orange-500 font-bold">{{ apiStats.inactive }}</div>
+                <div class="text-sm text-gray-500">{{ $t('page.lowcode.apiConfig.documentation.inactiveApis') }}</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl text-purple-500 font-bold">{{ apiStats.methods.length }}</div>
+                <div class="text-sm text-gray-500">{{ $t('page.lowcode.apiConfig.documentation.methods') }}</div>
+              </div>
+            </div>
+            <div class="mt-4">
+              <h4 class="mb-2 font-medium">{{ $t('page.lowcode.apiConfig.documentation.methodDistribution') }}</h4>
+              <NSpace>
+                <NTag v-for="method in apiStats.methods" :key="method.name" :type="getMethodTagType(method.name)">
+                  {{ method.name }} ({{ method.count }})
+                </NTag>
+              </NSpace>
+            </div>
+          </NCard>
+        </div>
+
+        <!-- 生成的文档预览 -->
+        <div v-if="generatedDoc">
+          <h3 class="mb-3 text-lg font-semibold">{{ $t('page.lowcode.apiConfig.documentation.preview') }}</h3>
+          <NCard size="small">
+            <NTabs type="line">
+              <NTabPane name="swagger" :tab="$t('page.lowcode.apiConfig.documentation.swaggerFormat')">
+                <NScrollbar style="max-height: 500px">
+                  <pre class="text-sm">{{ JSON.stringify(generatedDoc.swagger, null, 2) }}</pre>
+                </NScrollbar>
+              </NTabPane>
+              <NTabPane name="markdown" :tab="$t('page.lowcode.apiConfig.documentation.markdownFormat')">
+                <NScrollbar style="max-height: 500px">
+                  <div class="markdown-content" v-html="generatedDoc.markdown"></div>
+                </NScrollbar>
+              </NTabPane>
+              <NTabPane name="html" :tab="$t('page.lowcode.apiConfig.documentation.htmlFormat')">
+                <NScrollbar style="max-height: 500px">
+                  <iframe
+                    :srcdoc="generatedDoc.html"
+                    style="width: 100%; height: 400px; border: 1px solid #e0e0e0; border-radius: 4px"
+                  ></iframe>
+                </NScrollbar>
+              </NTabPane>
+            </NTabs>
+          </NCard>
+        </div>
+
+        <!-- 导出选项 -->
+        <div v-if="hasDocumentation">
+          <h3 class="mb-3 text-lg font-semibold">{{ $t('page.lowcode.apiConfig.documentation.export') }}</h3>
+          <NCard size="small">
+            <NSpace>
+              <NButton :loading="exportLoading" @click="exportFormat('swagger')">
+                <template #icon>
+                  <SvgIcon icon="ic:round-code" />
+                </template>
+                {{ $t('page.lowcode.apiConfig.documentation.exportSwagger') }}
+              </NButton>
+              <NButton :loading="exportLoading" @click="exportFormat('markdown')">
+                <template #icon>
+                  <SvgIcon icon="ic:round-description" />
+                </template>
+                {{ $t('page.lowcode.apiConfig.documentation.exportMarkdown') }}
+              </NButton>
+              <NButton :loading="exportLoading" @click="exportFormat('html')">
+                <template #icon>
+                  <SvgIcon icon="ic:round-web" />
+                </template>
+                {{ $t('page.lowcode.apiConfig.documentation.exportHtml') }}
+              </NButton>
+              <NButton :loading="exportLoading" @click="exportFormat('postman')">
+                <template #icon>
+                  <SvgIcon icon="ic:round-api" />
+                </template>
+                {{ $t('page.lowcode.apiConfig.documentation.exportPostman') }}
+              </NButton>
+              <NButton :loading="exportLoading" @click="exportFormat('openapi')">
+                <template #icon>
+                  <SvgIcon icon="ic:round-code" />
+                </template>
+                {{ $t('page.lowcode.apiConfig.documentation.exportOpenAPI') }}
+              </NButton>
+              <NButton :loading="exportLoading" @click="exportFormat('insomnia')">
+                <template #icon>
+                  <SvgIcon icon="ic:round-http" />
+                </template>
+                {{ $t('page.lowcode.apiConfig.documentation.exportInsomnia') }}
+              </NButton>
+            </NSpace>
+          </NCard>
+        </div>
+      </NSpace>
+    </NCard>
+  </div>
+</template>
 
 <style scoped>
 pre {

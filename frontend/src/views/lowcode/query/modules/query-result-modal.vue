@@ -1,69 +1,3 @@
-<template>
-  <NModal v-model:show="modalVisible" preset="card" :title="title" class="w-1200px">
-    <div class="h-500px">
-      <NTabs v-model:value="activeTab" type="line" animated>
-        <NTabPane name="result" :tab="$t('page.lowcode.query.result')">
-          <div v-if="loading" class="flex-center h-200px">
-            <NSpin size="medium" />
-          </div>
-          <div v-else-if="error" class="flex-center h-200px">
-            <NResult status="error" :title="$t('page.lowcode.query.executeError')" :description="error" />
-          </div>
-          <div v-else-if="resultData && resultData.length > 0" class="h-full">
-            <NDataTable
-              :columns="resultColumns"
-              :data="resultData"
-              :pagination="pagination"
-              :scroll-x="scrollX"
-              size="small"
-              class="h-full"
-            />
-          </div>
-          <div v-else class="flex-center h-200px">
-            <NEmpty :description="$t('page.lowcode.query.noData')" />
-          </div>
-        </NTabPane>
-        <NTabPane name="info" :tab="$t('page.lowcode.query.info')">
-          <NDescriptions :column="2" label-placement="left">
-            <NDescriptionsItem :label="$t('page.lowcode.query.executeTime')">
-              {{ executeTime }}ms
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="$t('page.lowcode.query.rowCount')">
-              {{ rowCount }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="$t('page.lowcode.query.columnCount')">
-              {{ columnCount }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="'查询名称'">
-              {{ props.queryName || '-' }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="'数据状态'">
-              <NTag v-if="error" type="error">执行失败</NTag>
-              <NTag v-else-if="loading" type="warning">执行中</NTag>
-              <NTag v-else-if="rowCount > 0" type="success">成功</NTag>
-              <NTag v-else type="info">无数据</NTag>
-            </NDescriptionsItem>
-            <NDescriptionsItem v-if="error" :label="'错误信息'" :span="2">
-              <NText type="error">{{ error }}</NText>
-            </NDescriptionsItem>
-          </NDescriptions>
-        </NTabPane>
-      </NTabs>
-    </div>
-    <template #footer>
-      <NSpace justify="end">
-        <NButton @click="closeModal">{{ $t('common.close') }}</NButton>
-        <NButton type="primary" @click="exportData">
-          <template #icon>
-            <icon-ic-round-download class="text-icon" />
-          </template>
-          {{ $t('common.export') }}
-        </NButton>
-      </NSpace>
-    </template>
-  </NModal>
-</template>
-
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import type { DataTableColumns } from 'naive-ui';
@@ -248,5 +182,69 @@ watch(visible, newVal => {
 //   });
 // }, { deep: true });
 </script>
+
+<template>
+  <NModal v-model:show="modalVisible" preset="card" :title="title" class="w-1200px">
+    <div class="h-500px">
+      <NTabs v-model:value="activeTab" type="line" animated>
+        <NTabPane name="result" :tab="$t('page.lowcode.query.result')">
+          <div v-if="loading" class="h-200px flex-center">
+            <NSpin size="medium" />
+          </div>
+          <div v-else-if="error" class="h-200px flex-center">
+            <NResult status="error" :title="$t('page.lowcode.query.executeError')" :description="error" />
+          </div>
+          <div v-else-if="resultData && resultData.length > 0" class="h-full">
+            <NDataTable
+              :columns="resultColumns"
+              :data="resultData"
+              :pagination="pagination"
+              :scroll-x="scrollX"
+              size="small"
+              class="h-full"
+            />
+          </div>
+          <div v-else class="h-200px flex-center">
+            <NEmpty :description="$t('page.lowcode.query.noData')" />
+          </div>
+        </NTabPane>
+        <NTabPane name="info" :tab="$t('page.lowcode.query.info')">
+          <NDescriptions :column="2" label-placement="left">
+            <NDescriptionsItem :label="$t('page.lowcode.query.executeTime')">{{ executeTime }}ms</NDescriptionsItem>
+            <NDescriptionsItem :label="$t('page.lowcode.query.rowCount')">
+              {{ rowCount }}
+            </NDescriptionsItem>
+            <NDescriptionsItem :label="$t('page.lowcode.query.columnCount')">
+              {{ columnCount }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="查询名称">
+              {{ props.queryName || '-' }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="数据状态">
+              <NTag v-if="error" type="error">执行失败</NTag>
+              <NTag v-else-if="loading" type="warning">执行中</NTag>
+              <NTag v-else-if="rowCount > 0" type="success">成功</NTag>
+              <NTag v-else type="info">无数据</NTag>
+            </NDescriptionsItem>
+            <NDescriptionsItem v-if="error" label="错误信息" :span="2">
+              <NText type="error">{{ error }}</NText>
+            </NDescriptionsItem>
+          </NDescriptions>
+        </NTabPane>
+      </NTabs>
+    </div>
+    <template #footer>
+      <NSpace justify="end">
+        <NButton @click="closeModal">{{ $t('common.close') }}</NButton>
+        <NButton type="primary" @click="exportData">
+          <template #icon>
+            <icon-ic-round-download class="text-icon" />
+          </template>
+          {{ $t('common.export') }}
+        </NButton>
+      </NSpace>
+    </template>
+  </NModal>
+</template>
 
 <style scoped></style>

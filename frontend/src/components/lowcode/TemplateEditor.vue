@@ -1,241 +1,5 @@
-<template>
-  <div class="template-editor h-full">
-    <NSplit direction="horizontal" :default-size="0.3" :min="0.2" :max="0.5">
-      <template #1>
-        <!-- Template List -->
-        <div class="h-full flex flex-col">
-          <div class="p-4 border-b">
-            <NSpace justify="space-between" align="center">
-              <NText strong>{{ $t('page.lowcode.template.templates') }}</NText>
-              <NButton size="small" type="primary" @click="handleCreateTemplate">
-                <template #icon>
-                  <NIcon><icon-mdi-plus /></NIcon>
-                </template>
-                {{ $t('common.create') }}
-              </NButton>
-            </NSpace>
-          </div>
-          
-          <div class="flex-1 overflow-auto">
-            <NList hoverable clickable>
-              <NListItem 
-                v-for="template in templates" 
-                :key="template.id"
-                :class="{ 'bg-primary-50': selectedTemplate?.id === template.id }"
-                @click="handleSelectTemplate(template)"
-              >
-                <template #prefix>
-                  <NIcon size="20" :color="getLanguageColor(template.language)">
-                    <component :is="getLanguageIcon(template.language)" />
-                  </NIcon>
-                </template>
-                
-                <NThing>
-                  <template #header>
-                    <NSpace align="center">
-                      <span>{{ template.name }}</span>
-                      <NTag size="small" :type="getStatusType(template.status)">
-                        {{ template.status }}
-                      </NTag>
-                    </NSpace>
-                  </template>
-                  <template #description>
-                    <NSpace>
-                      <NText depth="3">{{ template.language }}</NText>
-                      <NText depth="3">{{ template.framework }}</NText>
-                      <NText depth="3">v{{ template.version }}</NText>
-                    </NSpace>
-                  </template>
-                </NThing>
-                
-                <template #suffix>
-                  <NDropdown :options="getTemplateActions(template)" @select="handleTemplateAction">
-                    <NButton size="small" quaternary circle>
-                      <template #icon>
-                        <NIcon><icon-mdi-dots-vertical /></NIcon>
-                      </template>
-                    </NButton>
-                  </NDropdown>
-                </template>
-              </NListItem>
-            </NList>
-          </div>
-        </div>
-      </template>
-
-      <template #2>
-        <!-- Template Editor -->
-        <div v-if="selectedTemplate" class="h-full flex flex-col">
-          <div class="p-4 border-b">
-            <NSpace justify="space-between" align="center">
-              <NSpace align="center">
-                <NText strong>{{ selectedTemplate.name }}</NText>
-                <NTag :type="getStatusType(selectedTemplate.status)">
-                  {{ selectedTemplate.status }}
-                </NTag>
-              </NSpace>
-              <NSpace>
-                <NButton size="small" @click="handlePreviewTemplate">
-                  <template #icon>
-                    <NIcon><icon-mdi-eye /></NIcon>
-                  </template>
-                  {{ $t('common.preview') }}
-                </NButton>
-                <NButton size="small" type="primary" @click="handleSaveTemplate">
-                  <template #icon>
-                    <NIcon><icon-mdi-content-save /></NIcon>
-                  </template>
-                  {{ $t('page.lowcode.common.actions.save') }}
-                </NButton>
-              </NSpace>
-            </NSpace>
-          </div>
-
-          <div class="flex-1 overflow-hidden">
-            <NTabs type="line" animated class="h-full">
-              <NTabPane name="basic" :tab="$t('page.lowcode.template.basicInfo')">
-                <div class="p-4">
-                  <NForm :model="templateForm" label-placement="left" :label-width="120">
-                    <NFormItem :label="$t('page.lowcode.template.name')">
-                      <NInput v-model:value="templateForm.name" />
-                    </NFormItem>
-                    <NFormItem :label="$t('page.lowcode.template.code')">
-                      <NInput v-model:value="templateForm.code" />
-                    </NFormItem>
-                    <NFormItem :label="$t('page.lowcode.template.description')">
-                      <NInput v-model:value="templateForm.description" type="textarea" :rows="3" />
-                    </NFormItem>
-                    <NFormItem :label="$t('page.lowcode.template.language')">
-                      <NSelect v-model:value="templateForm.language" :options="languageOptions" />
-                    </NFormItem>
-                    <NFormItem :label="$t('page.lowcode.template.framework')">
-                      <NSelect v-model:value="templateForm.framework" :options="frameworkOptions" />
-                    </NFormItem>
-                    <NFormItem :label="$t('page.lowcode.template.category')">
-                      <NSelect v-model:value="templateForm.category" :options="categoryOptions" />
-                    </NFormItem>
-                    <NFormItem :label="$t('page.lowcode.template.tags')">
-                      <NSelect 
-                        v-model:value="templateForm.tags" 
-                        multiple 
-                        tag 
-                        :placeholder="$t('page.lowcode.template.tagsPlaceholder')"
-                      />
-                    </NFormItem>
-                  </NForm>
-                </div>
-              </NTabPane>
-
-              <NTabPane name="content" :tab="$t('page.lowcode.template.content')">
-                <div class="h-full flex flex-col">
-                  <div class="p-2 border-b">
-                    <NSpace>
-                      <NSelect 
-                        v-model:value="editorLanguage" 
-                        size="small" 
-                        style="width: 120px"
-                        :options="editorLanguageOptions"
-                      />
-                      <NButton size="small" @click="handleFormatCode">
-                        <template #icon>
-                          <NIcon><icon-mdi-code-braces /></NIcon>
-                        </template>
-                        {{ $t('page.lowcode.template.format') }}
-                      </NButton>
-                      <NButton size="small" @click="handleInsertVariable">
-                        <template #icon>
-                          <NIcon><icon-mdi-variable /></NIcon>
-                        </template>
-                        {{ $t('page.lowcode.template.insertVariable') }}
-                      </NButton>
-                    </NSpace>
-                  </div>
-                  <div class="flex-1">
-                    <NCode 
-                      v-model:code="templateForm.content"
-                      :language="editorLanguage"
-                      :theme="isDark ? 'dark' : 'light'"
-                      show-line-numbers
-                      word-wrap
-                    />
-                  </div>
-                </div>
-              </NTabPane>
-
-              <NTabPane name="variables" :tab="$t('page.lowcode.template.variables')">
-                <div class="p-4">
-                  <div class="mb-4">
-                    <NButton @click="handleAddVariable">
-                      <template #icon>
-                        <NIcon><icon-mdi-plus /></NIcon>
-                      </template>
-                      {{ $t('page.lowcode.template.addVariable') }}
-                    </NButton>
-                  </div>
-                  
-                  <NDataTable 
-                    :columns="variableColumns"
-                    :data="templateForm.variables"
-                    :pagination="false"
-                    size="small"
-                  />
-                </div>
-              </NTabPane>
-
-              <NTabPane name="preview" :tab="$t('common.preview')">
-                <div class="p-4">
-                  <div v-if="previewContent" class="h-full">
-                    <NCode :code="previewContent" :language="templateForm.language.toLowerCase()" />
-                  </div>
-                  <NEmpty v-else :description="$t('page.lowcode.template.noPreview')" />
-                </div>
-              </NTabPane>
-            </NTabs>
-          </div>
-        </div>
-
-        <div v-else class="h-full flex items-center justify-center">
-          <NEmpty :description="$t('page.lowcode.template.selectTemplate')" />
-        </div>
-      </template>
-    </NSplit>
-
-    <!-- Variable Editor Modal -->
-    <NModal v-model:show="showVariableModal" preset="card" style="width: 600px">
-      <template #header>
-        {{ editingVariable ? $t('page.lowcode.template.editVariable') : $t('page.lowcode.template.addVariable') }}
-      </template>
-      
-      <NForm :model="variableForm" label-placement="left" :label-width="100">
-        <NFormItem :label="$t('page.lowcode.template.variableName')" required>
-          <NInput v-model:value="variableForm.name" />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.template.variableType')" required>
-          <NSelect v-model:value="variableForm.type" :options="variableTypeOptions" />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.template.required')">
-          <NSwitch v-model:value="variableForm.required" />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.template.defaultValue')">
-          <NInput v-model:value="variableForm.defaultValue" />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.template.description')">
-          <NInput v-model:value="variableForm.description" type="textarea" :rows="3" />
-        </NFormItem>
-      </NForm>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="showVariableModal = false">{{ $t('common.cancel') }}</NButton>
-          <NButton type="primary" @click="handleSaveVariable">{{ $t('page.lowcode.common.actions.save') }}</NButton>
-        </NSpace>
-      </template>
-    </NModal>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { useThemeStore } from '@/store/modules/theme';
 import { $t } from '@/locales';
 
@@ -353,10 +117,14 @@ const variableTypeOptions = [
 const variableColumns = [
   { title: $t('page.lowcode.template.variableName'), key: 'name' },
   { title: $t('page.lowcode.template.variableType'), key: 'type' },
-  { title: $t('page.lowcode.template.required'), key: 'required', render: (row: TemplateVariable) => row.required ? 'Yes' : 'No' },
+  {
+    title: $t('page.lowcode.template.required'),
+    key: 'required',
+    render: (row: TemplateVariable) => (row.required ? 'Yes' : 'No')
+  },
   { title: $t('page.lowcode.template.defaultValue'), key: 'defaultValue' },
-  { 
-    title: $t('common.actions'), 
+  {
+    title: $t('common.actions'),
     key: 'actions',
     render: (row: TemplateVariable, index: number) => [
       h('NButton', { size: 'small', onClick: () => handleEditVariable(row, index) }, 'Edit'),
@@ -544,12 +312,251 @@ function handleSaveVariable() {
 }
 
 // Watch for language changes
-watch(() => templateForm.language, (newLanguage) => {
-  if (newLanguage) {
-    editorLanguage.value = newLanguage.toLowerCase();
+watch(
+  () => templateForm.language,
+  newLanguage => {
+    if (newLanguage) {
+      editorLanguage.value = newLanguage.toLowerCase();
+    }
   }
-});
+);
 </script>
+
+<template>
+  <div class="template-editor h-full">
+    <NSplit direction="horizontal" :default-size="0.3" :min="0.2" :max="0.5">
+      <template #1>
+        <!-- Template List -->
+        <div class="h-full flex flex-col">
+          <div class="border-b p-4">
+            <NSpace justify="space-between" align="center">
+              <NText strong>{{ $t('page.lowcode.template.templates') }}</NText>
+              <NButton size="small" type="primary" @click="handleCreateTemplate">
+                <template #icon>
+                  <NIcon><icon-mdi-plus /></NIcon>
+                </template>
+                {{ $t('common.create') }}
+              </NButton>
+            </NSpace>
+          </div>
+
+          <div class="flex-1 overflow-auto">
+            <NList hoverable clickable>
+              <NListItem
+                v-for="template in templates"
+                :key="template.id"
+                :class="{ 'bg-primary-50': selectedTemplate?.id === template.id }"
+                @click="handleSelectTemplate(template)"
+              >
+                <template #prefix>
+                  <NIcon size="20" :color="getLanguageColor(template.language)">
+                    <component :is="getLanguageIcon(template.language)" />
+                  </NIcon>
+                </template>
+
+                <NThing>
+                  <template #header>
+                    <NSpace align="center">
+                      <span>{{ template.name }}</span>
+                      <NTag size="small" :type="getStatusType(template.status)">
+                        {{ template.status }}
+                      </NTag>
+                    </NSpace>
+                  </template>
+                  <template #description>
+                    <NSpace>
+                      <NText depth="3">{{ template.language }}</NText>
+                      <NText depth="3">{{ template.framework }}</NText>
+                      <NText depth="3">v{{ template.version }}</NText>
+                    </NSpace>
+                  </template>
+                </NThing>
+
+                <template #suffix>
+                  <NDropdown :options="getTemplateActions(template)" @select="handleTemplateAction">
+                    <NButton size="small" quaternary circle>
+                      <template #icon>
+                        <NIcon><icon-mdi-dots-vertical /></NIcon>
+                      </template>
+                    </NButton>
+                  </NDropdown>
+                </template>
+              </NListItem>
+            </NList>
+          </div>
+        </div>
+      </template>
+
+      <template #2>
+        <!-- Template Editor -->
+        <div v-if="selectedTemplate" class="h-full flex flex-col">
+          <div class="border-b p-4">
+            <NSpace justify="space-between" align="center">
+              <NSpace align="center">
+                <NText strong>{{ selectedTemplate.name }}</NText>
+                <NTag :type="getStatusType(selectedTemplate.status)">
+                  {{ selectedTemplate.status }}
+                </NTag>
+              </NSpace>
+              <NSpace>
+                <NButton size="small" @click="handlePreviewTemplate">
+                  <template #icon>
+                    <NIcon><icon-mdi-eye /></NIcon>
+                  </template>
+                  {{ $t('common.preview') }}
+                </NButton>
+                <NButton size="small" type="primary" @click="handleSaveTemplate">
+                  <template #icon>
+                    <NIcon><icon-mdi-content-save /></NIcon>
+                  </template>
+                  {{ $t('page.lowcode.common.actions.save') }}
+                </NButton>
+              </NSpace>
+            </NSpace>
+          </div>
+
+          <div class="flex-1 overflow-hidden">
+            <NTabs type="line" animated class="h-full">
+              <NTabPane name="basic" :tab="$t('page.lowcode.template.basicInfo')">
+                <div class="p-4">
+                  <NForm :model="templateForm" label-placement="left" :label-width="120">
+                    <NFormItem :label="$t('page.lowcode.template.name')">
+                      <NInput v-model:value="templateForm.name" />
+                    </NFormItem>
+                    <NFormItem :label="$t('page.lowcode.template.code')">
+                      <NInput v-model:value="templateForm.code" />
+                    </NFormItem>
+                    <NFormItem :label="$t('page.lowcode.template.description')">
+                      <NInput v-model:value="templateForm.description" type="textarea" :rows="3" />
+                    </NFormItem>
+                    <NFormItem :label="$t('page.lowcode.template.language')">
+                      <NSelect v-model:value="templateForm.language" :options="languageOptions" />
+                    </NFormItem>
+                    <NFormItem :label="$t('page.lowcode.template.framework')">
+                      <NSelect v-model:value="templateForm.framework" :options="frameworkOptions" />
+                    </NFormItem>
+                    <NFormItem :label="$t('page.lowcode.template.category')">
+                      <NSelect v-model:value="templateForm.category" :options="categoryOptions" />
+                    </NFormItem>
+                    <NFormItem :label="$t('page.lowcode.template.tags')">
+                      <NSelect
+                        v-model:value="templateForm.tags"
+                        multiple
+                        tag
+                        :placeholder="$t('page.lowcode.template.tagsPlaceholder')"
+                      />
+                    </NFormItem>
+                  </NForm>
+                </div>
+              </NTabPane>
+
+              <NTabPane name="content" :tab="$t('page.lowcode.template.content')">
+                <div class="h-full flex flex-col">
+                  <div class="border-b p-2">
+                    <NSpace>
+                      <NSelect
+                        v-model:value="editorLanguage"
+                        size="small"
+                        style="width: 120px"
+                        :options="editorLanguageOptions"
+                      />
+                      <NButton size="small" @click="handleFormatCode">
+                        <template #icon>
+                          <NIcon><icon-mdi-code-braces /></NIcon>
+                        </template>
+                        {{ $t('page.lowcode.template.format') }}
+                      </NButton>
+                      <NButton size="small" @click="handleInsertVariable">
+                        <template #icon>
+                          <NIcon><icon-mdi-variable /></NIcon>
+                        </template>
+                        {{ $t('page.lowcode.template.insertVariable') }}
+                      </NButton>
+                    </NSpace>
+                  </div>
+                  <div class="flex-1">
+                    <NCode
+                      v-model:code="templateForm.content"
+                      :language="editorLanguage"
+                      :theme="isDark ? 'dark' : 'light'"
+                      show-line-numbers
+                      word-wrap
+                    />
+                  </div>
+                </div>
+              </NTabPane>
+
+              <NTabPane name="variables" :tab="$t('page.lowcode.template.variables')">
+                <div class="p-4">
+                  <div class="mb-4">
+                    <NButton @click="handleAddVariable">
+                      <template #icon>
+                        <NIcon><icon-mdi-plus /></NIcon>
+                      </template>
+                      {{ $t('page.lowcode.template.addVariable') }}
+                    </NButton>
+                  </div>
+
+                  <NDataTable
+                    :columns="variableColumns"
+                    :data="templateForm.variables"
+                    :pagination="false"
+                    size="small"
+                  />
+                </div>
+              </NTabPane>
+
+              <NTabPane name="preview" :tab="$t('common.preview')">
+                <div class="p-4">
+                  <div v-if="previewContent" class="h-full">
+                    <NCode :code="previewContent" :language="templateForm.language.toLowerCase()" />
+                  </div>
+                  <NEmpty v-else :description="$t('page.lowcode.template.noPreview')" />
+                </div>
+              </NTabPane>
+            </NTabs>
+          </div>
+        </div>
+
+        <div v-else class="h-full flex items-center justify-center">
+          <NEmpty :description="$t('page.lowcode.template.selectTemplate')" />
+        </div>
+      </template>
+    </NSplit>
+
+    <!-- Variable Editor Modal -->
+    <NModal v-model:show="showVariableModal" preset="card" style="width: 600px">
+      <template #header>
+        {{ editingVariable ? $t('page.lowcode.template.editVariable') : $t('page.lowcode.template.addVariable') }}
+      </template>
+
+      <NForm :model="variableForm" label-placement="left" :label-width="100">
+        <NFormItem :label="$t('page.lowcode.template.variableName')" required>
+          <NInput v-model:value="variableForm.name" />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.template.variableType')" required>
+          <NSelect v-model:value="variableForm.type" :options="variableTypeOptions" />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.template.required')">
+          <NSwitch v-model:value="variableForm.required" />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.template.defaultValue')">
+          <NInput v-model:value="variableForm.defaultValue" />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.template.description')">
+          <NInput v-model:value="variableForm.description" type="textarea" :rows="3" />
+        </NFormItem>
+      </NForm>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="showVariableModal = false">{{ $t('common.cancel') }}</NButton>
+          <NButton type="primary" @click="handleSaveVariable">{{ $t('page.lowcode.common.actions.save') }}</NButton>
+        </NSpace>
+      </template>
+    </NModal>
+  </div>
+</template>
 
 <style scoped>
 .template-editor {

@@ -1,382 +1,22 @@
-<template>
-  <div class="enhanced-project-management">
-    <!-- Header -->
-    <div class="mb-6">
-      <NSpace justify="space-between" align="center">
-        <div>
-          <NText tag="h1" class="text-2xl font-bold">{{ $t('page.lowcode.project.management') }}</NText>
-          <NText depth="3">{{ $t('page.lowcode.project.managementDesc') }}</NText>
-        </div>
-        <NSpace>
-          <NButton type="primary" @click="handleCreateProject">
-            <template #icon>
-              <NIcon><icon-mdi-plus /></NIcon>
-            </template>
-            {{ $t('page.lowcode.project.create') }}
-          </NButton>
-          <NButton @click="handleImportProject">
-            <template #icon>
-              <NIcon><icon-mdi-import /></NIcon>
-            </template>
-            {{ $t('page.lowcode.project.import') }}
-          </NButton>
-        </NSpace>
-      </NSpace>
-    </div>
-
-    <!-- Filters and Search -->
-    <NCard class="mb-4">
-      <NSpace justify="space-between" align="center">
-        <NSpace>
-          <NInput
-            v-model:value="searchQuery"
-            :placeholder="$t('page.lowcode.project.searchPlaceholder')"
-            style="width: 300px"
-            clearable
-            @input="handleSearch"
-          >
-            <template #prefix>
-              <NIcon><icon-mdi-magnify /></NIcon>
-            </template>
-          </NInput>
-          <NSelect
-            v-model:value="statusFilter"
-            :placeholder="$t('page.lowcode.project.filterByStatus')"
-            :options="statusOptions"
-            style="width: 150px"
-            clearable
-            @update:value="handleFilterChange"
-          />
-          <NSelect
-            v-model:value="frameworkFilter"
-            :placeholder="$t('page.lowcode.project.filterByFramework')"
-            :options="frameworkOptions"
-            style="width: 150px"
-            clearable
-            @update:value="handleFilterChange"
-          />
-        </NSpace>
-        <NSpace>
-          <NSelect
-            v-model:value="viewMode"
-            :options="viewModeOptions"
-            style="width: 120px"
-          />
-          <NButton @click="handleRefresh">
-            <template #icon>
-              <NIcon><icon-mdi-refresh /></NIcon>
-            </template>
-          </NButton>
-        </NSpace>
-      </NSpace>
-    </NCard>
-
-    <!-- Project List -->
-    <div v-if="viewMode === 'grid'">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
-        <ProjectCard
-          v-for="project in paginatedProjects"
-          :key="project.id"
-          :project="project"
-          @edit="handleEditProject"
-          @delete="handleDeleteProject"
-          @configure="handleConfigureProject"
-          @design="handleDesignProject"
-          @generate="handleGenerateProject"
-          @view="handleViewProject"
-          @deploy="handleDeployProject"
-          @stop-deployment="handleStopDeployment"
-          @relationship="handleRelationshipManagement"
-        />
-      </div>
-
-      <!-- Grid Pagination -->
-      <div class="flex justify-center">
-        <NPagination
-          v-model:page="pagination.page"
-          v-model:page-size="pagination.pageSize"
-          :item-count="pagination.itemCount"
-          :page-sizes="pagination.pageSizes"
-          show-size-picker
-          show-quick-jumper
-          :page-slot="7"
-          @update:page="handlePageChange"
-          @update:page-size="handlePageSizeChange"
-        >
-          <template #prefix="{ itemCount }">
-            <span class="text-sm text-gray-500">
-              {{ $t('common.total') }} {{ itemCount }} {{ $t('common.items') }}
-            </span>
-          </template>
-        </NPagination>
-      </div>
-    </div>
-
-    <!-- Table View -->
-    <NDataTable
-      v-else
-      :columns="tableColumns"
-      :data="filteredProjects"
-      :pagination="pagination"
-      :loading="loading"
-      size="small"
-      striped
-      @update:page="handlePageChange"
-      @update:page-size="handlePageSizeChange"
-    />
-
-    <!-- Project Form Modal -->
-    <NModal v-model:show="showProjectModal" preset="card" style="width: 800px">
-      <template #header>
-        {{ editingProject ? $t('page.lowcode.project.edit') : $t('page.lowcode.project.create') }}
-      </template>
-
-      <NForm ref="projectFormRef" :model="projectForm" :rules="projectRules" label-placement="left" :label-width="120">
-        <NGrid :cols="2" :x-gap="16">
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.project.name')" path="name">
-              <NInput v-model:value="projectForm.name" @input="handleNameChange" />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.project.code')" path="code">
-              <NInput v-model:value="projectForm.code" />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem :span="2">
-            <NFormItem :label="$t('page.lowcode.project.description')" path="description">
-              <NInput v-model:value="projectForm.description" type="textarea" :rows="3" />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.project.framework')" path="framework">
-              <NSelect v-model:value="projectForm.framework" :options="frameworkOptions" />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.project.architecture')" path="architecture">
-              <NSelect v-model:value="projectForm.architecture" :options="architectureOptions" />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.project.language')" path="language">
-              <NSelect v-model:value="projectForm.language" :options="languageOptions" />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.project.database')" path="database">
-              <NSelect v-model:value="projectForm.database" :options="databaseOptions" />
-            </NFormItem>
-          </NGridItem>
-        </NGrid>
-
-        <!-- Advanced Configuration -->
-        <NCollapse>
-          <NCollapseItem :title="$t('page.lowcode.project.advancedConfig')" name="advanced">
-            <NGrid :cols="2" :x-gap="16">
-              <NGridItem>
-                <NFormItem :label="$t('page.lowcode.project.packageName')">
-                  <NInput v-model:value="projectForm.packageName" />
-                </NFormItem>
-              </NGridItem>
-              <NGridItem>
-                <NFormItem :label="$t('page.lowcode.project.basePackage')">
-                  <NInput v-model:value="projectForm.basePackage" />
-                </NFormItem>
-              </NGridItem>
-              <NGridItem>
-                <NFormItem :label="$t('page.lowcode.project.author')">
-                  <NInput v-model:value="projectForm.author" />
-                </NFormItem>
-              </NGridItem>
-              <NGridItem>
-                <NFormItem :label="$t('page.lowcode.project.version')">
-                  <NInput v-model:value="projectForm.version" />
-                </NFormItem>
-              </NGridItem>
-              <NGridItem :span="2">
-                <NFormItem :label="$t('page.lowcode.project.outputPath')">
-                  <NInputGroup>
-                    <NInput v-model:value="projectForm.outputPath" />
-                    <NButton @click="handleBrowseOutputPath">
-                      <template #icon>
-                        <NIcon><icon-mdi-folder-open /></NIcon>
-                      </template>
-                    </NButton>
-                  </NInputGroup>
-                </NFormItem>
-              </NGridItem>
-            </NGrid>
-          </NCollapseItem>
-        </NCollapse>
-      </NForm>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="showProjectModal = false">{{ $t('common.cancel') }}</NButton>
-          <NButton type="primary" @click="handleSaveProject">{{ $t('common.save') }}</NButton>
-        </NSpace>
-      </template>
-    </NModal>
-
-    <!-- Import Modal -->
-    <NModal v-model:show="showImportModal" preset="card" style="width: 600px">
-      <template #header>
-        {{ $t('page.lowcode.project.import') }}
-      </template>
-
-      <NTabs type="line">
-        <NTabPane name="json" :tab="$t('page.lowcode.project.importFromJson')">
-          <NInput
-            v-model:value="importJson"
-            type="textarea"
-            :rows="10"
-            :placeholder="$t('page.lowcode.project.importJsonPlaceholder')"
-          />
-        </NTabPane>
-        <NTabPane name="git" :tab="$t('page.lowcode.project.importFromGit')">
-          <NSpace vertical>
-            <NFormItem :label="$t('page.lowcode.project.gitUrl')">
-              <NInput v-model:value="gitUrl" :placeholder="$t('page.lowcode.project.gitUrlPlaceholder')" />
-            </NFormItem>
-            <NFormItem :label="$t('page.lowcode.project.branch')">
-              <NInput v-model:value="gitBranch" :placeholder="$t('page.lowcode.project.branchPlaceholder')" />
-            </NFormItem>
-          </NSpace>
-        </NTabPane>
-        <NTabPane name="file" :tab="$t('page.lowcode.project.importFromFile')">
-          <NUpload
-            :file-list="importFileList"
-            :max="1"
-            accept=".json,.zip"
-            @change="handleFileUpload"
-          >
-            <NUploadDragger>
-              <div style="margin-bottom: 12px">
-                <NIcon size="48" :depth="3">
-                  <icon-mdi-file-upload />
-                </NIcon>
-              </div>
-              <NText style="font-size: 16px">
-                {{ $t('page.lowcode.project.uploadFile') }}
-              </NText>
-              <NP depth="3" style="margin: 8px 0 0 0">
-                {{ $t('page.lowcode.project.supportedFormats') }}
-              </NP>
-            </NUploadDragger>
-          </NUpload>
-        </NTabPane>
-      </NTabs>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="showImportModal = false">{{ $t('common.cancel') }}</NButton>
-          <NButton type="primary" @click="handleImport">{{ $t('common.import') }}</NButton>
-        </NSpace>
-      </template>
-    </NModal>
-
-    <!-- Deploy Configuration Modal -->
-    <NModal v-model:show="showDeployModal" preset="card" style="width: 500px">
-      <template #header>
-        <NSpace align="center">
-          <NIcon size="20" color="#18a058">
-            <icon-mdi-rocket-launch />
-          </NIcon>
-          部署项目: {{ deployingProject?.name }}
-        </NSpace>
-      </template>
-
-      <NForm :model="deployForm" label-placement="left" label-width="100px">
-        <NFormItem label="部署端口" path="port">
-          <NInputNumber
-            v-model:value="deployForm.port"
-            :min="1024"
-            :max="65535"
-            placeholder="请输入端口号"
-            style="width: 100%"
-          />
-          <template #feedback>
-            <NText depth="3" style="font-size: 12px">
-              建议使用 9522-9600 范围内的端口
-            </NText>
-          </template>
-        </NFormItem>
-
-        <NFormItem label="自动重启">
-          <NSwitch v-model:value="deployForm.config.autoRestart" />
-          <template #feedback>
-            <NText depth="3" style="font-size: 12px">
-              启用后，服务异常退出时会自动重启
-            </NText>
-          </template>
-        </NFormItem>
-
-        <NFormItem label="运行环境" path="config.environment">
-          <NSelect
-            v-model:value="deployForm.config.environment"
-            :options="[
-              { label: '开发环境', value: 'development' },
-              { label: '测试环境', value: 'testing' },
-              { label: '生产环境', value: 'production' }
-            ]"
-            placeholder="选择运行环境"
-          />
-        </NFormItem>
-
-        <NFormItem label="部署信息">
-          <NAlert type="info" style="margin-bottom: 12px">
-            <template #icon>
-              <NIcon><icon-mdi-information /></NIcon>
-            </template>
-            部署将会：
-            <ul style="margin: 8px 0 0 20px; padding: 0;">
-              <li>生成项目代码</li>
-              <li>更新 amis-lowcode-backend 配置</li>
-              <li>启动服务在指定端口</li>
-            </ul>
-          </NAlert>
-        </NFormItem>
-      </NForm>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="showDeployModal = false">取消</NButton>
-          <NButton
-            type="primary"
-            :loading="deployingProjects.has(deployingProject?.id || '')"
-            @click="confirmDeploy"
-          >
-            <template #icon>
-              <NIcon><icon-mdi-rocket-launch /></NIcon>
-            </template>
-            开始部署
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
-  </div>
-</template>
-
 <script setup lang="ts">
 // @ts-nocheck
-import { ref, reactive, computed, onMounted, h, onUnmounted } from 'vue';
+import { computed, h, onMounted, onUnmounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import type { FormInst, FormRules, DataTableColumns, UploadFileInfo } from 'naive-ui';
-import { $t } from '@/locales';
-import { createRequiredFormRule } from '@/utils/form/rule';
-import { formatDate } from '@/utils/common';
-import { useLowcodeStore } from '@/store/modules/lowcode';
-import ProjectCard from './modules/project-card.vue';
+import type { DataTableColumns, FormInst, FormRules, UploadFileInfo } from 'naive-ui';
 import {
-  fetchGetAllProjects,
   fetchAddProject,
-  fetchUpdateProject,
+  fetchArchiveProject,
   fetchDeleteProject,
   fetchDuplicateProject,
-  fetchArchiveProject,
-  fetchExportProject
+  fetchExportProject,
+  fetchGetAllProjects,
+  fetchUpdateProject
 } from '@/service/api/lowcode-project';
+import { useLowcodeStore } from '@/store/modules/lowcode';
+import { createRequiredFormRule } from '@/utils/form/rule';
+import { formatDate } from '@/utils/common';
+import { $t } from '@/locales';
+import ProjectCard from './modules/project-card.vue';
 
 interface Project {
   id: string;
@@ -473,10 +113,11 @@ const filteredProjects = computed(() => {
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
-    filtered = filtered.filter(project =>
-      project.name.toLowerCase().includes(query) ||
-      project.code.toLowerCase().includes(query) ||
-      project.description?.toLowerCase().includes(query)
+    filtered = filtered.filter(
+      project =>
+        project.name.toLowerCase().includes(query) ||
+        project.code.toLowerCase().includes(query) ||
+        project.description?.toLowerCase().includes(query)
     );
   }
 
@@ -566,15 +207,13 @@ const tableColumns: DataTableColumns<Project> = [
     title: $t('common.status'),
     key: 'status',
     width: 100,
-    render: (row) => h('NTag', { type: getStatusType(row.status) },
-      $t(`page.lowcode.project.status.${row.status}`)
-    )
+    render: row => h('NTag', { type: getStatusType(row.status) }, $t(`page.lowcode.project.status.${row.status}`))
   },
   {
     title: $t('page.lowcode.project.framework'),
     key: 'framework',
     width: 120,
-    render: (row) => row.config?.framework || '-'
+    render: row => row.config?.framework || '-'
   },
   { title: $t('page.lowcode.project.entities'), key: 'entityCount', width: 80, align: 'center' },
   { title: $t('page.lowcode.project.templates'), key: 'templateCount', width: 80, align: 'center' },
@@ -583,37 +222,41 @@ const tableColumns: DataTableColumns<Project> = [
     title: $t('page.lowcode.project.createdAt'),
     key: 'createdAt',
     width: 150,
-    render: (row) => formatDate(row.createdAt)
+    render: row => formatDate(row.createdAt)
   },
   {
     title: $t('common.actions'),
     key: 'actions',
     width: 200,
     fixed: 'right',
-    render: (row) => h('NSpace', { size: 'small' }, [
-      h('NButton',
-        {
-          size: 'small',
-          type: 'primary',
-          onClick: () => handleOpenProject(row)
-        },
-        $t('common.open')
-      ),
-      h('NDropdown',
-        {
-          trigger: 'click',
-          options: getActionOptions(row),
-          onSelect: (key: string) => handleActionSelect(key, row)
-        },
-        h('NButton',
+    render: row =>
+      h('NSpace', { size: 'small' }, [
+        h(
+          'NButton',
           {
             size: 'small',
-            quaternary: true
+            type: 'primary',
+            onClick: () => handleOpenProject(row)
           },
-          h('NIcon', { size: 16 }, h('icon-mdi-dots-vertical'))
+          $t('common.open')
+        ),
+        h(
+          'NDropdown',
+          {
+            trigger: 'click',
+            options: getActionOptions(row),
+            onSelect: (key: string) => handleActionSelect(key, row)
+          },
+          h(
+            'NButton',
+            {
+              size: 'small',
+              quaternary: true
+            },
+            h('NIcon', { size: 16 }, h('icon-mdi-dots-vertical'))
+          )
         )
-      )
-    ])
+      ])
   }
 ];
 
@@ -704,7 +347,7 @@ async function confirmDeploy() {
     const response = await fetch(`/api/v1/projects/${deployingProject.value.id}/deploy`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         port: deployForm.port,
@@ -744,7 +387,7 @@ async function handleStopDeployment(project: Project) {
     const response = await fetch(`/api/v1/projects/${project.id}/stop-deployment`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       }
     });
 
@@ -823,7 +466,7 @@ function handleSearch() {
   if (searchDebounceTimer.value) {
     clearTimeout(searchDebounceTimer.value);
   }
-  
+
   searchDebounceTimer.value = setTimeout(() => {
     // 重置到第一页
     pagination.value.page = 1;
@@ -1100,6 +743,347 @@ onMounted(() => {
   loadProjects();
 });
 </script>
+
+<template>
+  <div class="enhanced-project-management">
+    <!-- Header -->
+    <div class="mb-6">
+      <NSpace justify="space-between" align="center">
+        <div>
+          <NText tag="h1" class="text-2xl font-bold">{{ $t('page.lowcode.project.management') }}</NText>
+          <NText depth="3">{{ $t('page.lowcode.project.managementDesc') }}</NText>
+        </div>
+        <NSpace>
+          <NButton type="primary" @click="handleCreateProject">
+            <template #icon>
+              <NIcon><icon-mdi-plus /></NIcon>
+            </template>
+            {{ $t('page.lowcode.project.create') }}
+          </NButton>
+          <NButton @click="handleImportProject">
+            <template #icon>
+              <NIcon><icon-mdi-import /></NIcon>
+            </template>
+            {{ $t('page.lowcode.project.import') }}
+          </NButton>
+        </NSpace>
+      </NSpace>
+    </div>
+
+    <!-- Filters and Search -->
+    <NCard class="mb-4">
+      <NSpace justify="space-between" align="center">
+        <NSpace>
+          <NInput
+            v-model:value="searchQuery"
+            :placeholder="$t('page.lowcode.project.searchPlaceholder')"
+            style="width: 300px"
+            clearable
+            @input="handleSearch"
+          >
+            <template #prefix>
+              <NIcon><icon-mdi-magnify /></NIcon>
+            </template>
+          </NInput>
+          <NSelect
+            v-model:value="statusFilter"
+            :placeholder="$t('page.lowcode.project.filterByStatus')"
+            :options="statusOptions"
+            style="width: 150px"
+            clearable
+            @update:value="handleFilterChange"
+          />
+          <NSelect
+            v-model:value="frameworkFilter"
+            :placeholder="$t('page.lowcode.project.filterByFramework')"
+            :options="frameworkOptions"
+            style="width: 150px"
+            clearable
+            @update:value="handleFilterChange"
+          />
+        </NSpace>
+        <NSpace>
+          <NSelect v-model:value="viewMode" :options="viewModeOptions" style="width: 120px" />
+          <NButton @click="handleRefresh">
+            <template #icon>
+              <NIcon><icon-mdi-refresh /></NIcon>
+            </template>
+          </NButton>
+        </NSpace>
+      </NSpace>
+    </NCard>
+
+    <!-- Project List -->
+    <div v-if="viewMode === 'grid'">
+      <div class="grid grid-cols-1 mb-6 gap-4 lg:grid-cols-3 md:grid-cols-2 xl:grid-cols-4">
+        <ProjectCard
+          v-for="project in paginatedProjects"
+          :key="project.id"
+          :project="project"
+          @edit="handleEditProject"
+          @delete="handleDeleteProject"
+          @configure="handleConfigureProject"
+          @design="handleDesignProject"
+          @generate="handleGenerateProject"
+          @view="handleViewProject"
+          @deploy="handleDeployProject"
+          @stop-deployment="handleStopDeployment"
+          @relationship="handleRelationshipManagement"
+        />
+      </div>
+
+      <!-- Grid Pagination -->
+      <div class="flex justify-center">
+        <NPagination
+          v-model:page="pagination.page"
+          v-model:page-size="pagination.pageSize"
+          :item-count="pagination.itemCount"
+          :page-sizes="pagination.pageSizes"
+          show-size-picker
+          show-quick-jumper
+          :page-slot="7"
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+        >
+          <template #prefix="{ itemCount }">
+            <span class="text-sm text-gray-500">{{ $t('common.total') }} {{ itemCount }} {{ $t('common.items') }}</span>
+          </template>
+        </NPagination>
+      </div>
+    </div>
+
+    <!-- Table View -->
+    <NDataTable
+      v-else
+      :columns="tableColumns"
+      :data="filteredProjects"
+      :pagination="pagination"
+      :loading="loading"
+      size="small"
+      striped
+      @update:page="handlePageChange"
+      @update:page-size="handlePageSizeChange"
+    />
+
+    <!-- Project Form Modal -->
+    <NModal v-model:show="showProjectModal" preset="card" style="width: 800px">
+      <template #header>
+        {{ editingProject ? $t('page.lowcode.project.edit') : $t('page.lowcode.project.create') }}
+      </template>
+
+      <NForm ref="projectFormRef" :model="projectForm" :rules="projectRules" label-placement="left" :label-width="120">
+        <NGrid :cols="2" :x-gap="16">
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.project.name')" path="name">
+              <NInput v-model:value="projectForm.name" @input="handleNameChange" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.project.code')" path="code">
+              <NInput v-model:value="projectForm.code" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem :span="2">
+            <NFormItem :label="$t('page.lowcode.project.description')" path="description">
+              <NInput v-model:value="projectForm.description" type="textarea" :rows="3" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.project.framework')" path="framework">
+              <NSelect v-model:value="projectForm.framework" :options="frameworkOptions" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.project.architecture')" path="architecture">
+              <NSelect v-model:value="projectForm.architecture" :options="architectureOptions" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.project.language')" path="language">
+              <NSelect v-model:value="projectForm.language" :options="languageOptions" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.project.database')" path="database">
+              <NSelect v-model:value="projectForm.database" :options="databaseOptions" />
+            </NFormItem>
+          </NGridItem>
+        </NGrid>
+
+        <!-- Advanced Configuration -->
+        <NCollapse>
+          <NCollapseItem :title="$t('page.lowcode.project.advancedConfig')" name="advanced">
+            <NGrid :cols="2" :x-gap="16">
+              <NGridItem>
+                <NFormItem :label="$t('page.lowcode.project.packageName')">
+                  <NInput v-model:value="projectForm.packageName" />
+                </NFormItem>
+              </NGridItem>
+              <NGridItem>
+                <NFormItem :label="$t('page.lowcode.project.basePackage')">
+                  <NInput v-model:value="projectForm.basePackage" />
+                </NFormItem>
+              </NGridItem>
+              <NGridItem>
+                <NFormItem :label="$t('page.lowcode.project.author')">
+                  <NInput v-model:value="projectForm.author" />
+                </NFormItem>
+              </NGridItem>
+              <NGridItem>
+                <NFormItem :label="$t('page.lowcode.project.version')">
+                  <NInput v-model:value="projectForm.version" />
+                </NFormItem>
+              </NGridItem>
+              <NGridItem :span="2">
+                <NFormItem :label="$t('page.lowcode.project.outputPath')">
+                  <NInputGroup>
+                    <NInput v-model:value="projectForm.outputPath" />
+                    <NButton @click="handleBrowseOutputPath">
+                      <template #icon>
+                        <NIcon><icon-mdi-folder-open /></NIcon>
+                      </template>
+                    </NButton>
+                  </NInputGroup>
+                </NFormItem>
+              </NGridItem>
+            </NGrid>
+          </NCollapseItem>
+        </NCollapse>
+      </NForm>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="showProjectModal = false">{{ $t('common.cancel') }}</NButton>
+          <NButton type="primary" @click="handleSaveProject">{{ $t('common.save') }}</NButton>
+        </NSpace>
+      </template>
+    </NModal>
+
+    <!-- Import Modal -->
+    <NModal v-model:show="showImportModal" preset="card" style="width: 600px">
+      <template #header>
+        {{ $t('page.lowcode.project.import') }}
+      </template>
+
+      <NTabs type="line">
+        <NTabPane name="json" :tab="$t('page.lowcode.project.importFromJson')">
+          <NInput
+            v-model:value="importJson"
+            type="textarea"
+            :rows="10"
+            :placeholder="$t('page.lowcode.project.importJsonPlaceholder')"
+          />
+        </NTabPane>
+        <NTabPane name="git" :tab="$t('page.lowcode.project.importFromGit')">
+          <NSpace vertical>
+            <NFormItem :label="$t('page.lowcode.project.gitUrl')">
+              <NInput v-model:value="gitUrl" :placeholder="$t('page.lowcode.project.gitUrlPlaceholder')" />
+            </NFormItem>
+            <NFormItem :label="$t('page.lowcode.project.branch')">
+              <NInput v-model:value="gitBranch" :placeholder="$t('page.lowcode.project.branchPlaceholder')" />
+            </NFormItem>
+          </NSpace>
+        </NTabPane>
+        <NTabPane name="file" :tab="$t('page.lowcode.project.importFromFile')">
+          <NUpload :file-list="importFileList" :max="1" accept=".json,.zip" @change="handleFileUpload">
+            <NUploadDragger>
+              <div style="margin-bottom: 12px">
+                <NIcon size="48" :depth="3">
+                  <icon-mdi-file-upload />
+                </NIcon>
+              </div>
+              <NText style="font-size: 16px">
+                {{ $t('page.lowcode.project.uploadFile') }}
+              </NText>
+              <NP depth="3" style="margin: 8px 0 0 0">
+                {{ $t('page.lowcode.project.supportedFormats') }}
+              </NP>
+            </NUploadDragger>
+          </NUpload>
+        </NTabPane>
+      </NTabs>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="showImportModal = false">{{ $t('common.cancel') }}</NButton>
+          <NButton type="primary" @click="handleImport">{{ $t('common.import') }}</NButton>
+        </NSpace>
+      </template>
+    </NModal>
+
+    <!-- Deploy Configuration Modal -->
+    <NModal v-model:show="showDeployModal" preset="card" style="width: 500px">
+      <template #header>
+        <NSpace align="center">
+          <NIcon size="20" color="#18a058">
+            <icon-mdi-rocket-launch />
+          </NIcon>
+          部署项目: {{ deployingProject?.name }}
+        </NSpace>
+      </template>
+
+      <NForm :model="deployForm" label-placement="left" label-width="100px">
+        <NFormItem label="部署端口" path="port">
+          <NInputNumber
+            v-model:value="deployForm.port"
+            :min="1024"
+            :max="65535"
+            placeholder="请输入端口号"
+            style="width: 100%"
+          />
+          <template #feedback>
+            <NText depth="3" style="font-size: 12px">建议使用 9522-9600 范围内的端口</NText>
+          </template>
+        </NFormItem>
+
+        <NFormItem label="自动重启">
+          <NSwitch v-model:value="deployForm.config.autoRestart" />
+          <template #feedback>
+            <NText depth="3" style="font-size: 12px">启用后，服务异常退出时会自动重启</NText>
+          </template>
+        </NFormItem>
+
+        <NFormItem label="运行环境" path="config.environment">
+          <NSelect
+            v-model:value="deployForm.config.environment"
+            :options="[
+              { label: '开发环境', value: 'development' },
+              { label: '测试环境', value: 'testing' },
+              { label: '生产环境', value: 'production' }
+            ]"
+            placeholder="选择运行环境"
+          />
+        </NFormItem>
+
+        <NFormItem label="部署信息">
+          <NAlert type="info" style="margin-bottom: 12px">
+            <template #icon>
+              <NIcon><icon-mdi-information /></NIcon>
+            </template>
+            部署将会：
+            <ul style="margin: 8px 0 0 20px; padding: 0">
+              <li>生成项目代码</li>
+              <li>更新 amis-lowcode-backend 配置</li>
+              <li>启动服务在指定端口</li>
+            </ul>
+          </NAlert>
+        </NFormItem>
+      </NForm>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="showDeployModal = false">取消</NButton>
+          <NButton type="primary" :loading="deployingProjects.has(deployingProject?.id || '')" @click="confirmDeploy">
+            <template #icon>
+              <NIcon><icon-mdi-rocket-launch /></NIcon>
+            </template>
+            开始部署
+          </NButton>
+        </NSpace>
+      </template>
+    </NModal>
+  </div>
+</template>
 
 <style scoped>
 .enhanced-project-management {

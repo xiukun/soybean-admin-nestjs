@@ -1,15 +1,13 @@
 import type { Entity, EntityRelationship, LayoutConfig, Point } from '../types';
 
-/**
- * 布局持久化服务
- * 负责保存和恢复实体设计器的布局状态
- */
+/** 布局持久化服务 负责保存和恢复实体设计器的布局状态 */
 export class LayoutPersistenceService {
   private readonly STORAGE_KEY_PREFIX = 'entity-designer-layout';
   private readonly API_BASE_URL = '/proxy-lowcodeService/entity-layouts';
 
   /**
    * 保存布局到本地存储
+   *
    * @param projectId - 项目ID
    * @param layoutData - 布局数据
    */
@@ -29,6 +27,7 @@ export class LayoutPersistenceService {
 
   /**
    * 从本地存储加载布局
+   *
    * @param projectId - 项目ID
    * @returns 布局数据或null
    */
@@ -49,6 +48,7 @@ export class LayoutPersistenceService {
 
   /**
    * 保存布局到服务器
+   *
    * @param projectId - 项目ID
    * @param layoutData - 布局数据
    * @returns Promise<boolean> 是否成功
@@ -58,7 +58,7 @@ export class LayoutPersistenceService {
       const response = await fetch(`${this.API_BASE_URL}/${projectId}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           projectId,
@@ -72,10 +72,9 @@ export class LayoutPersistenceService {
       if (response.ok) {
         console.log('布局已保存到服务器');
         return true;
-      } else {
-        console.error('保存布局到服务器失败:', response.statusText);
-        return false;
       }
+      console.error('保存布局到服务器失败:', response.statusText);
+      return false;
     } catch (error) {
       console.error('保存布局到服务器失败:', error);
       return false;
@@ -84,13 +83,14 @@ export class LayoutPersistenceService {
 
   /**
    * 从服务器加载布局
+   *
    * @param projectId - 项目ID
    * @returns Promise<LayoutState | null> 布局数据或null
    */
   async loadLayoutFromServer(projectId: string): Promise<LayoutState | null> {
     try {
       const response = await fetch(`${this.API_BASE_URL}/${projectId}`);
-      
+
       if (response.ok) {
         // 检查响应内容类型
         const contentType = response.headers.get('content-type');
@@ -98,17 +98,16 @@ export class LayoutPersistenceService {
           console.warn('服务器返回的不是JSON格式数据，可能是HTML错误页面');
           return null;
         }
-        
+
         const result = await response.json();
         console.log('从服务器加载布局成功');
         return result.data?.layoutData || null;
       } else if (response.status === 404) {
         console.log('服务器上没有找到布局数据');
         return null;
-      } else {
-        console.error('从服务器加载布局失败:', response.statusText);
-        return null;
       }
+      console.error('从服务器加载布局失败:', response.statusText);
+      return null;
     } catch (error) {
       // 特别处理JSON解析错误
       if (error instanceof SyntaxError && error.message.includes('Unexpected token')) {
@@ -122,6 +121,7 @@ export class LayoutPersistenceService {
 
   /**
    * 保存布局（优先服务器，失败时保存到本地）
+   *
    * @param projectId - 项目ID
    * @param entities - 实体数组
    * @param relationships - 关系数组
@@ -164,39 +164,41 @@ export class LayoutPersistenceService {
 
     // 先尝试保存到服务器
     const serverSuccess = await this.saveLayoutToServer(projectId, layoutData);
-    
+
     // 无论服务器是否成功，都保存到本地作为备份
     this.saveLayoutToLocal(projectId, layoutData);
-    
+
     return serverSuccess;
   }
 
   /**
    * 加载布局（优先服务器，失败时从本地加载）
+   *
    * @param projectId - 项目ID
    * @returns Promise<LayoutState | null> 布局数据或null
    */
   async loadLayout(projectId: string): Promise<LayoutState | null> {
     // 先尝试从服务器加载
     let layoutData = await this.loadLayoutFromServer(projectId);
-    
+
     // 如果服务器加载失败，尝试从本地加载
     if (!layoutData) {
       layoutData = this.loadLayoutFromLocal(projectId);
     }
-    
+
     return layoutData;
   }
 
   /**
    * 应用布局到实体数组
+   *
    * @param entities - 实体数组
    * @param layoutData - 布局数据
    * @returns 更新后的实体数组
    */
   applyLayoutToEntities(entities: Entity[], layoutData: LayoutState): Entity[] {
     const layoutMap = new Map(layoutData.entities.map(item => [item.id, item]));
-    
+
     return entities.map(entity => {
       const layout = layoutMap.get(entity.id);
       if (layout) {
@@ -215,13 +217,14 @@ export class LayoutPersistenceService {
 
   /**
    * 应用布局到关系数组
+   *
    * @param relationships - 关系数组
    * @param layoutData - 布局数据
    * @returns 更新后的关系数组
    */
   applyLayoutToRelationships(relationships: EntityRelationship[], layoutData: LayoutState): EntityRelationship[] {
     const layoutMap = new Map(layoutData.relationships.map(item => [item.id, item]));
-    
+
     return relationships.map(relationship => {
       const layout = layoutMap.get(relationship.id);
       if (layout) {
@@ -241,6 +244,7 @@ export class LayoutPersistenceService {
 
   /**
    * 清除本地布局数据
+   *
    * @param projectId - 项目ID
    */
   clearLocalLayout(projectId: string): void {
@@ -255,6 +259,7 @@ export class LayoutPersistenceService {
 
   /**
    * 删除服务器布局数据
+   *
    * @param projectId - 项目ID
    * @returns Promise<boolean> 是否成功
    */
@@ -267,10 +272,9 @@ export class LayoutPersistenceService {
       if (response.ok) {
         console.log('已删除服务器布局数据');
         return true;
-      } else {
-        console.error('删除服务器布局数据失败:', response.statusText);
-        return false;
       }
+      console.error('删除服务器布局数据失败:', response.statusText);
+      return false;
     } catch (error) {
       console.error('删除服务器布局数据失败:', error);
       return false;
@@ -279,20 +283,20 @@ export class LayoutPersistenceService {
 
   /**
    * 获取布局历史版本列表
+   *
    * @param projectId - 项目ID
    * @returns Promise<LayoutVersion[]> 版本列表
    */
   async getLayoutVersions(projectId: string): Promise<LayoutVersion[]> {
     try {
       const response = await fetch(`${this.API_BASE_URL}/${projectId}/versions`);
-      
+
       if (response.ok) {
         const result = await response.json();
         return result.data || [];
-      } else {
-        console.error('获取布局版本失败:', response.statusText);
-        return [];
       }
+      console.error('获取布局版本失败:', response.statusText);
+      return [];
     } catch (error) {
       console.error('获取布局版本失败:', error);
       return [];
@@ -301,6 +305,7 @@ export class LayoutPersistenceService {
 
   /**
    * 恢复到指定版本
+   *
    * @param projectId - 项目ID
    * @param version - 版本号
    * @returns Promise<LayoutState | null> 布局数据或null
@@ -308,15 +313,14 @@ export class LayoutPersistenceService {
   async restoreToVersion(projectId: string, version: number): Promise<LayoutState | null> {
     try {
       const response = await fetch(`${this.API_BASE_URL}/${projectId}/versions/${version}`);
-      
+
       if (response.ok) {
         const result = await response.json();
         console.log(`已恢复到版本 ${version}`);
         return result.data?.layoutData || null;
-      } else {
-        console.error('恢复版本失败:', response.statusText);
-        return null;
       }
+      console.error('恢复版本失败:', response.statusText);
+      return null;
     } catch (error) {
       console.error('恢复版本失败:', error);
       return null;

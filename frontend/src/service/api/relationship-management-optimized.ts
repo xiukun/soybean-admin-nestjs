@@ -45,9 +45,7 @@ export interface OptimizationReport {
   };
 }
 
-/**
- * 获取关系推荐 - 智能分析功能
- */
+/** 获取关系推荐 - 智能分析功能 */
 export function fetchRelationshipRecommendations(projectId: string) {
   return request<RelationshipRecommendation[]>({
     url: `/api/relationships/recommendations/${projectId}`,
@@ -55,9 +53,7 @@ export function fetchRelationshipRecommendations(projectId: string) {
   });
 }
 
-/**
- * 获取项目关系分析报告 - 智能分析功能
- */
+/** 获取项目关系分析报告 - 智能分析功能 */
 export function fetchRelationshipOptimizationReport(projectId: string) {
   return request<OptimizationReport>({
     url: `/api/relationships/optimization-report/${projectId}`,
@@ -65,9 +61,7 @@ export function fetchRelationshipOptimizationReport(projectId: string) {
   });
 }
 
-/**
- * 获取项目关系指标 - 智能分析功能
- */
+/** 获取项目关系指标 - 智能分析功能 */
 export function fetchRelationshipMetrics(projectId: string) {
   return request<RelationshipMetrics>({
     url: `/api/relationships/metrics/${projectId}`,

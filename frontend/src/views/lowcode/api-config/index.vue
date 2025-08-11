@@ -1,223 +1,26 @@
-<template>
-  <div class="api-config-container">
-    <!-- 项目选择 -->
-    <NCard v-if="!currentProjectId" :title="$t('page.lowcode.apiConfig.selectProject')" :bordered="false" size="small">
-      <NSpace>
-        <NSelect
-          v-model:value="selectedProjectId"
-          :placeholder="$t('page.lowcode.project.form.name.placeholder')"
-          :options="projectOptions"
-          style="width: 300px"
-          @update:value="handleProjectSelect"
-        />
-        <NButton type="primary" :disabled="!selectedProjectId" @click="confirmProjectSelection">
-          {{ $t('common.confirm') }}
-        </NButton>
-      </NSpace>
-    </NCard>
-
-    <div v-if="currentProjectId">
-      <!-- 项目信息显示 -->
-      <NCard size="small" class="mb-4">
-        <template #header>
-          <NSpace align="center">
-            <span>{{ $t('page.lowcode.apiConfig.currentProject') }}: {{ currentProjectName }}</span>
-            <NButton size="small" @click="changeProject">
-              {{ $t('page.lowcode.apiConfig.changeProject') }}
-            </NButton>
-          </NSpace>
-        </template>
-      </NCard>
-
-      <NTabs v-model:value="activeTab" type="line">
-        <NTabPane name="management" :tab="$t('page.lowcode.apiConfig.tabs.management')">
-        <div class="flex-col-stretch gap-16px">
-          <!-- 搜索和操作栏 -->
-          <NCard size="small" :bordered="false">
-            <div class="search-toolbar">
-              <div class="search-section">
-                <ApiConfigSearch v-model:model="searchParams" @reset="resetSearchParams" @search="handleSearch" />
-              </div>
-              <div class="action-section">
-                <NSpace>
-                  <NButton @click="handleQuickExport" :loading="exportLoading" size="small">
-                    <template #icon>
-                      <SvgIcon icon="ic:round-download" />
-                    </template>
-                    {{ $t('page.lowcode.apiConfig.quickExport') }}
-                  </NButton>
-                  <NButton @click="showAdvancedSearch = !showAdvancedSearch" size="small">
-                    <template #icon>
-                      <SvgIcon icon="ic:round-search" />
-                    </template>
-                    {{ $t('page.lowcode.apiConfig.advancedSearch') }}
-                  </NButton>
-                </NSpace>
-              </div>
-            </div>
-
-            <!-- 高级搜索面板 -->
-            <NCollapse v-if="showAdvancedSearch" class="mb-4">
-              <NCollapseItem :title="$t('page.lowcode.apiConfig.advancedSearchOptions')" name="advanced">
-                <NGrid :cols="4" :x-gap="16" :y-gap="16">
-                  <NGridItem>
-                    <NFormItem :label="$t('page.lowcode.apiConfig.method')">
-                      <NSelect
-                        v-model:value="advancedSearchParams.method"
-                        :placeholder="$t('page.lowcode.apiConfig.selectMethod')"
-                        :options="methodOptions"
-                        clearable
-                      />
-                    </NFormItem>
-                  </NGridItem>
-                  <NGridItem>
-                    <NFormItem :label="$t('common.status')">
-                      <NSelect
-                        v-model:value="advancedSearchParams.status"
-                        :placeholder="$t('page.lowcode.apiConfig.selectStatus')"
-                        :options="statusOptions"
-                        clearable
-                      />
-                    </NFormItem>
-                  </NGridItem>
-                  <NGridItem>
-                    <NFormItem :label="$t('page.lowcode.apiConfig.authRequired')">
-                      <NSelect
-                        v-model:value="advancedSearchParams.hasAuthentication"
-                        :placeholder="$t('page.lowcode.apiConfig.selectAuth')"
-                        :options="authOptions"
-                        clearable
-                      />
-                    </NFormItem>
-                  </NGridItem>
-                  <NGridItem>
-                    <NFormItem :label="$t('page.lowcode.apiConfig.dateRange')">
-                      <NDatePicker
-                        v-model:value="advancedSearchParams.dateRange"
-                        type="daterange"
-                        clearable
-                        start-placeholder="开始日期"
-                        end-placeholder="结束日期"
-                      />
-                    </NFormItem>
-                  </NGridItem>
-                </NGrid>
-                <NSpace class="mt-4">
-                  <NButton type="primary" @click="handleAdvancedSearch">
-                    {{ $t('common.search') }}
-                  </NButton>
-                  <NButton @click="resetAdvancedSearch">
-                    {{ $t('common.reset') }}
-                  </NButton>
-                </NSpace>
-              </NCollapseItem>
-            </NCollapse>
-          </NCard>
-
-          <NCard :title="$t('page.lowcode.apiConfig.title')" :bordered="false" size="small" class="table-card">
-            <template #header-extra>
-              <NSpace>
-                <!-- 统计信息 -->
-                <NStatistic
-                  :label="$t('page.lowcode.apiConfig.totalCount')"
-                  :value="mobilePagination ? mobilePagination.itemCount : 0"
-                  class="mr-4"
-                />
-                <NStatistic
-                  :label="$t('page.lowcode.apiConfig.selectedCount')"
-                  :value="checkedRowKeys.length"
-                  class="mr-4"
-                />
-                <TableHeaderOperation
-                  v-model:columns="columnChecks"
-                  :disabled-delete="checkedRowKeys.length === 0"
-                  :loading="loading"
-                  @add="handleAdd"
-                  @delete="handleBatchDelete"
-                  @refresh="getData"
-                />
-              </NSpace>
-            </template>
-            <div class="table-container">
-              <NDataTable
-                v-model:checked-row-keys="checkedRowKeys"
-                :columns="columns"
-                :data="data"
-                size="small"
-                :scroll-x="1200"
-                :loading="loading"
-                remote
-                :row-key="row => row.id"
-                :pagination="mobilePagination"
-                :max-height="600"
-                class="api-config-table"
-              />
-            </div>
-          </NCard>
-        </div>
-      </NTabPane>
-
-      <NTabPane name="selector" :tab="$t('page.lowcode.apiConfig.tabs.selector')">
-        <ApiConfigSelector :project-id="currentProjectId" />
-      </NTabPane>
-
-      <NTabPane name="batchOperations" :tab="$t('page.lowcode.apiConfig.tabs.batchOperations')">
-        <ApiConfigBatchOperations
-          :project-id="currentProjectId"
-          :selected-items="checkedRowKeys"
-          @refresh="getDataByPage"
-          @selection-change="handleSelectionChange"
-        />
-      </NTabPane>
-
-      <NTabPane name="onlineTest" :tab="$t('page.lowcode.apiConfig.tabs.onlineTest')">
-        <ApiConfigOnlineTest :project-id="currentProjectId" />
-      </NTabPane>
-
-      <NTabPane name="versionManagement" :tab="$t('page.lowcode.apiConfig.tabs.versionManagement')">
-        <ApiConfigVersionManagement :project-id="currentProjectId" />
-      </NTabPane>
-
-      <NTabPane name="documentation" :tab="$t('page.lowcode.apiConfig.tabs.documentation')">
-        <ApiConfigDocumentation :project-id="currentProjectId" />
-      </NTabPane>
-    </NTabs>
-    </div>
-
-    <ApiConfigOperateDrawer
-      v-model:visible="drawerVisible"
-      :operate-type="operateType"
-      :row-data="editingData"
-      :project-id="currentProjectId"
-      @submitted="getDataByPage"
-    />
-
-
-  </div>
-</template>
-
 <script setup lang="tsx">
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import {
   NButton,
-  NPopconfirm,
-  NTag,
-  NTabs,
-  NTabPane,
   NCollapse,
   NCollapseItem,
+  NDatePicker,
+  NFormItem,
   NGrid,
   NGridItem,
-  NFormItem,
+  NPopconfirm,
   NSelect,
-  NDatePicker,
-  NStatistic
+  NStatistic,
+  NTabPane,
+  NTabs,
+  NTag
 } from 'naive-ui';
-import SvgIcon from '@/components/custom/svg-icon.vue';
 import { useBoolean } from '@sa/hooks';
-import { fetchDeleteApiConfig, fetchGetApiConfigList, fetchTestApiConfig, fetchGetAllProjects } from '@/service/api';
-import { $t } from '@/locales';
+import { fetchDeleteApiConfig, fetchGetAllProjects, fetchGetApiConfigList, fetchTestApiConfig } from '@/service/api';
 import { useTable } from '@/hooks/common/table';
+import SvgIcon from '@/components/custom/svg-icon.vue';
+import { $t } from '@/locales';
+import TableHeaderOperation from '@/components/advanced/table-header-operation.vue';
 import ApiConfigOperateDrawer from './modules/api-config-operate-drawer.vue';
 import ApiConfigSearch from './modules/api-config-search.vue';
 import ApiConfigSelector from './components/api-config-selector.vue';
@@ -225,7 +28,6 @@ import ApiConfigBatchOperations from './components/api-config-batch-operations.v
 import ApiConfigOnlineTest from './components/api-config-online-test.vue';
 import ApiConfigVersionManagement from './components/api-config-version-management.vue';
 import ApiConfigDocumentation from './components/api-config-documentation.vue';
-import TableHeaderOperation from '@/components/advanced/table-header-operation.vue';
 
 const props = defineProps<{
   projectId?: string;
@@ -334,117 +136,118 @@ const {
     size: 10,
     projectId: props.projectId
   },
-  columns: () => [
-    {
-      type: 'selection',
-      align: 'center',
-      width: 48
-    },
-    {
-      key: 'name',
-      title: $t('page.lowcode.apiConfig.name'),
-      align: 'center',
-      minWidth: 120
-    },
-    {
-      key: 'path',
-      title: $t('page.lowcode.apiConfig.path'),
-      align: 'center',
-      minWidth: 200,
-      render: (row: any) => <code>{row.path}</code>
-    },
-    {
-      key: 'method',
-      title: $t('page.lowcode.apiConfig.method'),
-      align: 'center',
-      width: 80,
-      render: (row: any) => {
-        const methodMap: Record<Api.Lowcode.HttpMethod, NaiveUI.ThemeColor> = {
-          GET: 'info',
-          POST: 'success',
-          PUT: 'warning',
-          DELETE: 'error'
-        };
-        return <NTag type={methodMap[row.method as Api.Lowcode.HttpMethod]}>{row.method}</NTag>;
-      }
-    },
-    {
-      key: 'entityId',
-      title: $t('page.lowcode.apiConfig.entity'),
-      align: 'center',
-      width: 120,
-      render: (row: any) => row.entityId ? <NTag type="info">关联实体</NTag> : '-'
-    },
-    {
-      key: 'hasAuthentication',
-      title: $t('page.lowcode.apiConfig.authRequired'),
-      align: 'center',
-      width: 80,
-      render: (row: any) => (
-        <NTag type={row.hasAuthentication ? 'error' : 'success'}>
-          {row.hasAuthentication ? $t('common.yesOrNo.yes') : $t('common.yesOrNo.no')}
-        </NTag>
-      )
-    },
-    {
-      key: 'status',
-      title: $t('common.status'),
-      align: 'center',
-      width: 100,
-      render: (row: any) => {
-        const tagMap: Record<Api.Lowcode.ApiConfigStatus, NaiveUI.ThemeColor> = {
-          ACTIVE: 'success',
-          INACTIVE: 'warning'
-        };
+  columns: () =>
+    [
+      {
+        type: 'selection',
+        align: 'center',
+        width: 48
+      },
+      {
+        key: 'name',
+        title: $t('page.lowcode.apiConfig.name'),
+        align: 'center',
+        minWidth: 120
+      },
+      {
+        key: 'path',
+        title: $t('page.lowcode.apiConfig.path'),
+        align: 'center',
+        minWidth: 200,
+        render: (row: any) => <code>{row.path}</code>
+      },
+      {
+        key: 'method',
+        title: $t('page.lowcode.apiConfig.method'),
+        align: 'center',
+        width: 80,
+        render: (row: any) => {
+          const methodMap: Record<Api.Lowcode.HttpMethod, NaiveUI.ThemeColor> = {
+            GET: 'info',
+            POST: 'success',
+            PUT: 'warning',
+            DELETE: 'error'
+          };
+          return <NTag type={methodMap[row.method as Api.Lowcode.HttpMethod]}>{row.method}</NTag>;
+        }
+      },
+      {
+        key: 'entityId',
+        title: $t('page.lowcode.apiConfig.entity'),
+        align: 'center',
+        width: 120,
+        render: (row: any) => (row.entityId ? <NTag type="info">关联实体</NTag> : '-')
+      },
+      {
+        key: 'hasAuthentication',
+        title: $t('page.lowcode.apiConfig.authRequired'),
+        align: 'center',
+        width: 80,
+        render: (row: any) => (
+          <NTag type={row.hasAuthentication ? 'error' : 'success'}>
+            {row.hasAuthentication ? $t('common.yesOrNo.yes') : $t('common.yesOrNo.no')}
+          </NTag>
+        )
+      },
+      {
+        key: 'status',
+        title: $t('common.status'),
+        align: 'center',
+        width: 100,
+        render: (row: any) => {
+          const tagMap: Record<Api.Lowcode.ApiConfigStatus, NaiveUI.ThemeColor> = {
+            ACTIVE: 'success',
+            INACTIVE: 'warning'
+          };
 
-        const label = $t(`page.lowcode.entity.status.${row.status}` as any);
-        return <NTag type={tagMap[row.status as Api.Lowcode.ApiConfigStatus]}>{label}</NTag>;
+          const label = $t(`page.lowcode.entity.status.${row.status}` as any);
+          return <NTag type={tagMap[row.status as Api.Lowcode.ApiConfigStatus]}>{label}</NTag>;
+        }
+      },
+      {
+        key: 'description',
+        title: $t('page.lowcode.apiConfig.description'),
+        align: 'center',
+        minWidth: 150,
+        ellipsis: {
+          tooltip: true
+        }
+      },
+      {
+        key: 'createdAt',
+        title: $t('common.createdAt'),
+        align: 'center',
+        width: 180,
+        render: (row: any) => new Date(row.createdAt).toLocaleString()
+      },
+      {
+        key: 'operate',
+        title: $t('common.operate'),
+        align: 'center',
+        width: 180,
+        render: (row: any) => (
+          <div class="flex-center gap-8px">
+            <NButton type="primary" ghost size="small" onClick={() => handleTest(row.id)}>
+              {$t('page.lowcode.apiConfig.test')}
+            </NButton>
+            <NButton type="primary" ghost size="small" onClick={() => handleEdit(row.id)}>
+              {$t('common.edit')}
+            </NButton>
+            <NPopconfirm
+              onPositiveClick={() => handleDelete(row.id)}
+              v-slots={{
+                default: () => $t('common.confirmDelete'),
+                trigger: () => (
+                  <NButton type="error" ghost size="small">
+                    {$t('common.delete')}
+                  </NButton>
+                )
+              }}
+            />
+          </div>
+        )
       }
-    },
-    {
-      key: 'description',
-      title: $t('page.lowcode.apiConfig.description'),
-      align: 'center',
-      minWidth: 150,
-      ellipsis: {
-        tooltip: true
-      }
-    },
-    {
-      key: 'createdAt',
-      title: $t('common.createdAt'),
-      align: 'center',
-      width: 180,
-      render: (row: any) => new Date(row.createdAt).toLocaleString()
-    },
-    {
-      key: 'operate',
-      title: $t('common.operate'),
-      align: 'center',
-      width: 180,
-      render: (row: any) => (
-        <div class="flex-center gap-8px">
-          <NButton type="primary" ghost size="small" onClick={() => handleTest(row.id)}>
-            {$t('page.lowcode.apiConfig.test')}
-          </NButton>
-          <NButton type="primary" ghost size="small" onClick={() => handleEdit(row.id)}>
-            {$t('common.edit')}
-          </NButton>
-          <NPopconfirm
-            onPositiveClick={() => handleDelete(row.id)}
-            v-slots={{
-              default: () => $t('common.confirmDelete'),
-              trigger: () => (
-                <NButton type="error" ghost size="small">
-                  {$t('common.delete')}
-                </NButton>
-              )
-            }}
-          />
-        </div>
-      )
-    }
-  ] as any
+    ] as any
 });
 
 // 创建自定义的表格操作逻辑
@@ -720,13 +523,11 @@ async function handleQuickExport() {
     const headers = Object.keys(exportData[0] || {});
     const csvContent = [
       headers.join(','),
-      ...exportData.map(row =>
-        headers.map(header => `"${(row as any)[header] || ''}"`).join(',')
-      )
+      ...exportData.map(row => headers.map(header => `"${(row as any)[header] || ''}"`).join(','))
     ].join('\n');
 
     // 创建下载链接
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
@@ -767,13 +568,213 @@ async function handleTest(id: string) {
 }
 
 // Watch for projectId changes
-watch(() => props.projectId, () => {
-  if (props.projectId) {
-    searchParams.projectId = props.projectId;
-    getDataByPage();
-  }
-}, { immediate: true });
+watch(
+  () => props.projectId,
+  () => {
+    if (props.projectId) {
+      searchParams.projectId = props.projectId;
+      getDataByPage();
+    }
+  },
+  { immediate: true }
+);
 </script>
+
+<template>
+  <div class="api-config-container">
+    <!-- 项目选择 -->
+    <NCard v-if="!currentProjectId" :title="$t('page.lowcode.apiConfig.selectProject')" :bordered="false" size="small">
+      <NSpace>
+        <NSelect
+          v-model:value="selectedProjectId"
+          :placeholder="$t('page.lowcode.project.form.name.placeholder')"
+          :options="projectOptions"
+          style="width: 300px"
+          @update:value="handleProjectSelect"
+        />
+        <NButton type="primary" :disabled="!selectedProjectId" @click="confirmProjectSelection">
+          {{ $t('common.confirm') }}
+        </NButton>
+      </NSpace>
+    </NCard>
+
+    <div v-if="currentProjectId">
+      <!-- 项目信息显示 -->
+      <NCard size="small" class="mb-4">
+        <template #header>
+          <NSpace align="center">
+            <span>{{ $t('page.lowcode.apiConfig.currentProject') }}: {{ currentProjectName }}</span>
+            <NButton size="small" @click="changeProject">
+              {{ $t('page.lowcode.apiConfig.changeProject') }}
+            </NButton>
+          </NSpace>
+        </template>
+      </NCard>
+
+      <NTabs v-model:value="activeTab" type="line">
+        <NTabPane name="management" :tab="$t('page.lowcode.apiConfig.tabs.management')">
+          <div class="flex-col-stretch gap-16px">
+            <!-- 搜索和操作栏 -->
+            <NCard size="small" :bordered="false">
+              <div class="search-toolbar">
+                <div class="search-section">
+                  <ApiConfigSearch v-model:model="searchParams" @reset="resetSearchParams" @search="handleSearch" />
+                </div>
+                <div class="action-section">
+                  <NSpace>
+                    <NButton :loading="exportLoading" size="small" @click="handleQuickExport">
+                      <template #icon>
+                        <SvgIcon icon="ic:round-download" />
+                      </template>
+                      {{ $t('page.lowcode.apiConfig.quickExport') }}
+                    </NButton>
+                    <NButton size="small" @click="showAdvancedSearch = !showAdvancedSearch">
+                      <template #icon>
+                        <SvgIcon icon="ic:round-search" />
+                      </template>
+                      {{ $t('page.lowcode.apiConfig.advancedSearch') }}
+                    </NButton>
+                  </NSpace>
+                </div>
+              </div>
+
+              <!-- 高级搜索面板 -->
+              <NCollapse v-if="showAdvancedSearch" class="mb-4">
+                <NCollapseItem :title="$t('page.lowcode.apiConfig.advancedSearchOptions')" name="advanced">
+                  <NGrid :cols="4" :x-gap="16" :y-gap="16">
+                    <NGridItem>
+                      <NFormItem :label="$t('page.lowcode.apiConfig.method')">
+                        <NSelect
+                          v-model:value="advancedSearchParams.method"
+                          :placeholder="$t('page.lowcode.apiConfig.selectMethod')"
+                          :options="methodOptions"
+                          clearable
+                        />
+                      </NFormItem>
+                    </NGridItem>
+                    <NGridItem>
+                      <NFormItem :label="$t('common.status')">
+                        <NSelect
+                          v-model:value="advancedSearchParams.status"
+                          :placeholder="$t('page.lowcode.apiConfig.selectStatus')"
+                          :options="statusOptions"
+                          clearable
+                        />
+                      </NFormItem>
+                    </NGridItem>
+                    <NGridItem>
+                      <NFormItem :label="$t('page.lowcode.apiConfig.authRequired')">
+                        <NSelect
+                          v-model:value="advancedSearchParams.hasAuthentication"
+                          :placeholder="$t('page.lowcode.apiConfig.selectAuth')"
+                          :options="authOptions"
+                          clearable
+                        />
+                      </NFormItem>
+                    </NGridItem>
+                    <NGridItem>
+                      <NFormItem :label="$t('page.lowcode.apiConfig.dateRange')">
+                        <NDatePicker
+                          v-model:value="advancedSearchParams.dateRange"
+                          type="daterange"
+                          clearable
+                          start-placeholder="开始日期"
+                          end-placeholder="结束日期"
+                        />
+                      </NFormItem>
+                    </NGridItem>
+                  </NGrid>
+                  <NSpace class="mt-4">
+                    <NButton type="primary" @click="handleAdvancedSearch">
+                      {{ $t('common.search') }}
+                    </NButton>
+                    <NButton @click="resetAdvancedSearch">
+                      {{ $t('common.reset') }}
+                    </NButton>
+                  </NSpace>
+                </NCollapseItem>
+              </NCollapse>
+            </NCard>
+
+            <NCard :title="$t('page.lowcode.apiConfig.title')" :bordered="false" size="small" class="table-card">
+              <template #header-extra>
+                <NSpace>
+                  <!-- 统计信息 -->
+                  <NStatistic
+                    :label="$t('page.lowcode.apiConfig.totalCount')"
+                    :value="mobilePagination ? mobilePagination.itemCount : 0"
+                    class="mr-4"
+                  />
+                  <NStatistic
+                    :label="$t('page.lowcode.apiConfig.selectedCount')"
+                    :value="checkedRowKeys.length"
+                    class="mr-4"
+                  />
+                  <TableHeaderOperation
+                    v-model:columns="columnChecks"
+                    :disabled-delete="checkedRowKeys.length === 0"
+                    :loading="loading"
+                    @add="handleAdd"
+                    @delete="handleBatchDelete"
+                    @refresh="getData"
+                  />
+                </NSpace>
+              </template>
+              <div class="table-container">
+                <NDataTable
+                  v-model:checked-row-keys="checkedRowKeys"
+                  :columns="columns"
+                  :data="data"
+                  size="small"
+                  :scroll-x="1200"
+                  :loading="loading"
+                  remote
+                  :row-key="row => row.id"
+                  :pagination="mobilePagination"
+                  :max-height="600"
+                  class="api-config-table"
+                />
+              </div>
+            </NCard>
+          </div>
+        </NTabPane>
+
+        <NTabPane name="selector" :tab="$t('page.lowcode.apiConfig.tabs.selector')">
+          <ApiConfigSelector :project-id="currentProjectId" />
+        </NTabPane>
+
+        <NTabPane name="batchOperations" :tab="$t('page.lowcode.apiConfig.tabs.batchOperations')">
+          <ApiConfigBatchOperations
+            :project-id="currentProjectId"
+            :selected-items="checkedRowKeys"
+            @refresh="getDataByPage"
+            @selection-change="handleSelectionChange"
+          />
+        </NTabPane>
+
+        <NTabPane name="onlineTest" :tab="$t('page.lowcode.apiConfig.tabs.onlineTest')">
+          <ApiConfigOnlineTest :project-id="currentProjectId" />
+        </NTabPane>
+
+        <NTabPane name="versionManagement" :tab="$t('page.lowcode.apiConfig.tabs.versionManagement')">
+          <ApiConfigVersionManagement :project-id="currentProjectId" />
+        </NTabPane>
+
+        <NTabPane name="documentation" :tab="$t('page.lowcode.apiConfig.tabs.documentation')">
+          <ApiConfigDocumentation :project-id="currentProjectId" />
+        </NTabPane>
+      </NTabs>
+    </div>
+
+    <ApiConfigOperateDrawer
+      v-model:visible="drawerVisible"
+      :operate-type="operateType"
+      :row-data="editingData"
+      :project-id="currentProjectId"
+      @submitted="getDataByPage"
+    />
+  </div>
+</template>
 
 <style scoped>
 /* 主容器样式 */
@@ -930,8 +931,6 @@ watch(() => props.projectId, () => {
   justify-content: center;
   z-index: 10;
 }
-
-
 
 /* 高级搜索动画 */
 .n-collapse :deep(.n-collapse-item__content-wrapper) {

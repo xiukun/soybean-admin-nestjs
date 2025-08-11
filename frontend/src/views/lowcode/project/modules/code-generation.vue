@@ -1,204 +1,8 @@
-<template>
-  <div class="code-generation">
-    <!-- 生成配置 -->
-    <NCard :title="$t('page.lowcode.codeGeneration.configuration')" class="mb-4">
-      <NForm ref="formRef" :model="generationForm" :rules="rules" label-placement="left" :label-width="120">
-        <NGrid :cols="2" :x-gap="16">
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.codeGeneration.selectEntities')" path="entityIds">
-              <NSelect
-                v-model:value="generationForm.entityIds"
-                :options="entityOptions"
-                multiple
-                :placeholder="$t('page.lowcode.codeGeneration.selectEntitiesPlaceholder')"
-              />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.codeGeneration.selectTemplates')" path="templateIds">
-              <NSelect
-                v-model:value="generationForm.templateIds"
-                :options="templateOptions"
-                multiple
-                :placeholder="$t('page.lowcode.codeGeneration.selectTemplatesPlaceholder')"
-              />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.codeGeneration.outputPath')" path="outputPath">
-              <NInputGroup>
-                <NInput v-model:value="generationForm.outputPath" />
-                <NButton @click="handleBrowseOutputPath">
-                  <template #icon>
-                    <NIcon><icon-mdi-folder-open /></NIcon>
-                  </template>
-                </NButton>
-              </NInputGroup>
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.codeGeneration.architecture')" path="architecture">
-              <NSelect v-model:value="generationForm.architecture" :options="architectureOptions" />
-            </NFormItem>
-          </NGridItem>
-        </NGrid>
-
-        <!-- 生成选项 -->
-        <NCollapse>
-          <NCollapseItem :title="$t('page.lowcode.codeGeneration.advancedOptions')" name="advanced">
-            <NGrid :cols="2" :x-gap="16">
-              <NGridItem>
-                <NFormItem :label="$t('page.lowcode.codeGeneration.overwriteExisting')">
-                  <NSwitch v-model:value="generationForm.options.overwriteExisting" />
-                </NFormItem>
-              </NGridItem>
-              <NGridItem>
-                <NFormItem :label="$t('page.lowcode.codeGeneration.generateTests')">
-                  <NSwitch v-model:value="generationForm.options.generateTests" />
-                </NFormItem>
-              </NGridItem>
-              <NGridItem>
-                <NFormItem :label="$t('page.lowcode.codeGeneration.generateDocs')">
-                  <NSwitch v-model:value="generationForm.options.generateDocs" />
-                </NFormItem>
-              </NGridItem>
-              <NGridItem>
-                <NFormItem :label="$t('page.lowcode.codeGeneration.enableLinting')">
-                  <NSwitch v-model:value="generationForm.options.enableLinting" />
-                </NFormItem>
-              </NGridItem>
-            </NGrid>
-          </NCollapseItem>
-        </NCollapse>
-
-        <div class="mt-4">
-          <NSpace>
-            <NButton type="primary" :loading="generating" @click="handleGenerate">
-              <template #icon>
-                <NIcon><icon-mdi-play /></NIcon>
-              </template>
-              {{ $t('page.lowcode.codeGeneration.generate') }}
-            </NButton>
-            <NButton @click="handlePreview">
-              <template #icon>
-                <NIcon><icon-mdi-eye /></NIcon>
-              </template>
-              {{ $t('page.lowcode.codeGeneration.preview') }}
-            </NButton>
-            <NButton @click="handleReset">
-              <template #icon>
-                <NIcon><icon-mdi-refresh /></NIcon>
-              </template>
-              {{ $t('common.reset') }}
-            </NButton>
-          </NSpace>
-        </div>
-      </NForm>
-    </NCard>
-
-    <!-- 生成进度 -->
-    <NCard v-if="generationProgress" :title="$t('page.lowcode.codeGeneration.progress')" class="mb-4">
-      <div class="space-y-4">
-        <div>
-          <NText strong>{{ $t('page.lowcode.codeGeneration.status') }}: </NText>
-          <NTag :type="getStatusType(generationProgress.status)">
-            {{ $t(`page.lowcode.codeGeneration.status.${generationProgress.status.toLowerCase()}`) }}
-          </NTag>
-        </div>
-        
-        <div>
-          <NText strong>{{ $t('page.lowcode.codeGeneration.progress') }}: </NText>
-          <NProgress
-            type="line"
-            :percentage="generationProgress.percentage"
-            :status="generationProgress.status === 'FAILED' ? 'error' : undefined"
-          />
-        </div>
-
-        <div>
-          <NText strong>{{ $t('page.lowcode.codeGeneration.currentTask') }}: </NText>
-          <NText>{{ generationProgress.currentTask }}</NText>
-        </div>
-
-        <div>
-          <NText strong>{{ $t('page.lowcode.codeGeneration.filesGenerated') }}: </NText>
-          <NText>{{ generationProgress.filesGenerated }} / {{ generationProgress.totalFiles }}</NText>
-        </div>
-
-        <div v-if="generationProgress.logs.length > 0">
-          <NText strong>{{ $t('page.lowcode.codeGeneration.logs') }}:</NText>
-          <div class="mt-2 max-h-200px overflow-auto border border-gray-200 rounded p-2">
-            <div v-for="(log, index) in generationProgress.logs" :key="index" class="text-sm">
-              <NTag :type="getLogTagType(log.level)" size="tiny" class="mr-2">{{ log.level }}</NTag>
-              <NText depth="3">{{ log.timestamp }}</NText>
-              <NText class="ml-2">{{ log.message }}</NText>
-            </div>
-          </div>
-        </div>
-      </div>
-    </NCard>
-
-    <!-- 生成结果 -->
-    <NCard v-if="generationResult" :title="$t('page.lowcode.codeGeneration.result')" class="mb-4">
-      <div class="space-y-4">
-        <div>
-          <NText strong>{{ $t('page.lowcode.codeGeneration.totalFiles') }}: </NText>
-          <NText>{{ generationResult.files.length }}</NText>
-        </div>
-
-        <div>
-          <NText strong>{{ $t('page.lowcode.codeGeneration.outputPath') }}: </NText>
-          <NText code>{{ generationResult.outputPath }}</NText>
-        </div>
-
-        <div>
-          <NText strong>{{ $t('page.lowcode.codeGeneration.duration') }}: </NText>
-          <NText>{{ generationResult.duration }}ms</NText>
-        </div>
-
-        <!-- 文件列表 -->
-        <div>
-          <NText strong>{{ $t('page.lowcode.codeGeneration.fileList') }}:</NText>
-          <NDataTable
-            :columns="fileColumns"
-            :data="generationResult.files"
-            size="small"
-            max-height="300"
-            class="mt-2"
-          />
-        </div>
-
-        <div class="mt-4">
-          <NSpace>
-            <NButton type="primary" @click="handleDownload">
-              <template #icon>
-                <NIcon><icon-mdi-download /></NIcon>
-              </template>
-              {{ $t('page.lowcode.codeGeneration.download') }}
-            </NButton>
-            <NButton @click="handleOpenInExplorer">
-              <template #icon>
-                <NIcon><icon-mdi-folder-open /></NIcon>
-              </template>
-              {{ $t('page.lowcode.codeGeneration.openInExplorer') }}
-            </NButton>
-          </NSpace>
-        </div>
-      </div>
-    </NCard>
-
-    <!-- 生成历史 -->
-    <NCard :title="$t('page.lowcode.codeGeneration.history')">
-      <GenerationHistory :project-id="projectId" />
-    </NCard>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, h } from 'vue';
-import type { FormInst, FormRules, DataTableColumns } from 'naive-ui';
-import { $t } from '@/locales';
+import { computed, h, onMounted, reactive, ref } from 'vue';
+import type { DataTableColumns, FormInst, FormRules } from 'naive-ui';
 import { createRequiredFormRule } from '@/utils/form/rule';
+import { $t } from '@/locales';
 import GenerationHistory from '@/components/lowcode/GenerationHistory.vue';
 
 interface Props {
@@ -318,7 +122,7 @@ function handleBrowseOutputPath() {
 
 async function handleGenerate() {
   await formRef.value?.validate();
-  
+
   try {
     generating.value = true;
     generationProgress.value = {
@@ -345,7 +149,7 @@ async function handleGenerate() {
 
     for (let i = 0; i < tasks.length; i++) {
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       generationProgress.value.currentTask = tasks[i];
       generationProgress.value.percentage = Math.round(((i + 1) / tasks.length) * 100);
       generationProgress.value.filesGenerated = i + 1;
@@ -357,7 +161,7 @@ async function handleGenerate() {
     }
 
     generationProgress.value.status = 'SUCCESS';
-    
+
     // Mock generation result
     generationResult.value = {
       outputPath: generationForm.outputPath,
@@ -430,6 +234,202 @@ onMounted(() => {
   loadOptions();
 });
 </script>
+
+<template>
+  <div class="code-generation">
+    <!-- 生成配置 -->
+    <NCard :title="$t('page.lowcode.codeGeneration.configuration')" class="mb-4">
+      <NForm ref="formRef" :model="generationForm" :rules="rules" label-placement="left" :label-width="120">
+        <NGrid :cols="2" :x-gap="16">
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.codeGeneration.selectEntities')" path="entityIds">
+              <NSelect
+                v-model:value="generationForm.entityIds"
+                :options="entityOptions"
+                multiple
+                :placeholder="$t('page.lowcode.codeGeneration.selectEntitiesPlaceholder')"
+              />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.codeGeneration.selectTemplates')" path="templateIds">
+              <NSelect
+                v-model:value="generationForm.templateIds"
+                :options="templateOptions"
+                multiple
+                :placeholder="$t('page.lowcode.codeGeneration.selectTemplatesPlaceholder')"
+              />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.codeGeneration.outputPath')" path="outputPath">
+              <NInputGroup>
+                <NInput v-model:value="generationForm.outputPath" />
+                <NButton @click="handleBrowseOutputPath">
+                  <template #icon>
+                    <NIcon><icon-mdi-folder-open /></NIcon>
+                  </template>
+                </NButton>
+              </NInputGroup>
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.codeGeneration.architecture')" path="architecture">
+              <NSelect v-model:value="generationForm.architecture" :options="architectureOptions" />
+            </NFormItem>
+          </NGridItem>
+        </NGrid>
+
+        <!-- 生成选项 -->
+        <NCollapse>
+          <NCollapseItem :title="$t('page.lowcode.codeGeneration.advancedOptions')" name="advanced">
+            <NGrid :cols="2" :x-gap="16">
+              <NGridItem>
+                <NFormItem :label="$t('page.lowcode.codeGeneration.overwriteExisting')">
+                  <NSwitch v-model:value="generationForm.options.overwriteExisting" />
+                </NFormItem>
+              </NGridItem>
+              <NGridItem>
+                <NFormItem :label="$t('page.lowcode.codeGeneration.generateTests')">
+                  <NSwitch v-model:value="generationForm.options.generateTests" />
+                </NFormItem>
+              </NGridItem>
+              <NGridItem>
+                <NFormItem :label="$t('page.lowcode.codeGeneration.generateDocs')">
+                  <NSwitch v-model:value="generationForm.options.generateDocs" />
+                </NFormItem>
+              </NGridItem>
+              <NGridItem>
+                <NFormItem :label="$t('page.lowcode.codeGeneration.enableLinting')">
+                  <NSwitch v-model:value="generationForm.options.enableLinting" />
+                </NFormItem>
+              </NGridItem>
+            </NGrid>
+          </NCollapseItem>
+        </NCollapse>
+
+        <div class="mt-4">
+          <NSpace>
+            <NButton type="primary" :loading="generating" @click="handleGenerate">
+              <template #icon>
+                <NIcon><icon-mdi-play /></NIcon>
+              </template>
+              {{ $t('page.lowcode.codeGeneration.generate') }}
+            </NButton>
+            <NButton @click="handlePreview">
+              <template #icon>
+                <NIcon><icon-mdi-eye /></NIcon>
+              </template>
+              {{ $t('page.lowcode.codeGeneration.preview') }}
+            </NButton>
+            <NButton @click="handleReset">
+              <template #icon>
+                <NIcon><icon-mdi-refresh /></NIcon>
+              </template>
+              {{ $t('common.reset') }}
+            </NButton>
+          </NSpace>
+        </div>
+      </NForm>
+    </NCard>
+
+    <!-- 生成进度 -->
+    <NCard v-if="generationProgress" :title="$t('page.lowcode.codeGeneration.progress')" class="mb-4">
+      <div class="space-y-4">
+        <div>
+          <NText strong>{{ $t('page.lowcode.codeGeneration.status') }}:</NText>
+          <NTag :type="getStatusType(generationProgress.status)">
+            {{ $t(`page.lowcode.codeGeneration.status.${generationProgress.status.toLowerCase()}`) }}
+          </NTag>
+        </div>
+
+        <div>
+          <NText strong>{{ $t('page.lowcode.codeGeneration.progress') }}:</NText>
+          <NProgress
+            type="line"
+            :percentage="generationProgress.percentage"
+            :status="generationProgress.status === 'FAILED' ? 'error' : undefined"
+          />
+        </div>
+
+        <div>
+          <NText strong>{{ $t('page.lowcode.codeGeneration.currentTask') }}:</NText>
+          <NText>{{ generationProgress.currentTask }}</NText>
+        </div>
+
+        <div>
+          <NText strong>{{ $t('page.lowcode.codeGeneration.filesGenerated') }}:</NText>
+          <NText>{{ generationProgress.filesGenerated }} / {{ generationProgress.totalFiles }}</NText>
+        </div>
+
+        <div v-if="generationProgress.logs.length > 0">
+          <NText strong>{{ $t('page.lowcode.codeGeneration.logs') }}:</NText>
+          <div class="mt-2 max-h-200px overflow-auto border border-gray-200 rounded p-2">
+            <div v-for="(log, index) in generationProgress.logs" :key="index" class="text-sm">
+              <NTag :type="getLogTagType(log.level)" size="tiny" class="mr-2">{{ log.level }}</NTag>
+              <NText depth="3">{{ log.timestamp }}</NText>
+              <NText class="ml-2">{{ log.message }}</NText>
+            </div>
+          </div>
+        </div>
+      </div>
+    </NCard>
+
+    <!-- 生成结果 -->
+    <NCard v-if="generationResult" :title="$t('page.lowcode.codeGeneration.result')" class="mb-4">
+      <div class="space-y-4">
+        <div>
+          <NText strong>{{ $t('page.lowcode.codeGeneration.totalFiles') }}:</NText>
+          <NText>{{ generationResult.files.length }}</NText>
+        </div>
+
+        <div>
+          <NText strong>{{ $t('page.lowcode.codeGeneration.outputPath') }}:</NText>
+          <NText code>{{ generationResult.outputPath }}</NText>
+        </div>
+
+        <div>
+          <NText strong>{{ $t('page.lowcode.codeGeneration.duration') }}:</NText>
+          <NText>{{ generationResult.duration }}ms</NText>
+        </div>
+
+        <!-- 文件列表 -->
+        <div>
+          <NText strong>{{ $t('page.lowcode.codeGeneration.fileList') }}:</NText>
+          <NDataTable
+            :columns="fileColumns"
+            :data="generationResult.files"
+            size="small"
+            max-height="300"
+            class="mt-2"
+          />
+        </div>
+
+        <div class="mt-4">
+          <NSpace>
+            <NButton type="primary" @click="handleDownload">
+              <template #icon>
+                <NIcon><icon-mdi-download /></NIcon>
+              </template>
+              {{ $t('page.lowcode.codeGeneration.download') }}
+            </NButton>
+            <NButton @click="handleOpenInExplorer">
+              <template #icon>
+                <NIcon><icon-mdi-folder-open /></NIcon>
+              </template>
+              {{ $t('page.lowcode.codeGeneration.openInExplorer') }}
+            </NButton>
+          </NSpace>
+        </div>
+      </div>
+    </NCard>
+
+    <!-- 生成历史 -->
+    <NCard :title="$t('page.lowcode.codeGeneration.history')">
+      <GenerationHistory :project-id="projectId" />
+    </NCard>
+  </div>
+</template>
 
 <style scoped>
 .code-generation {

@@ -9,7 +9,7 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
     recentProjects: '最近项目',
     viewAll: '查看全部',
     quickActions: '快速操作',
-    documentation: '文档',
+    documentation: '文档'
   },
   project: {
     title: '项目管理',
@@ -117,36 +117,36 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       inactive: '非活跃',
       archived: '已归档'
     },
-  apiTest: {
-    title: 'API测试',
-    project: '项目',
-    apiConfig: 'API配置',
-    environment: '环境',
-    history: '测试历史',
-    batchTest: '批量测试',
-    method: '请求方法',
-    url: '请求URL',
-    headers: '请求头',
-    params: '查询参数',
-    body: '请求体',
-    response: '响应结果',
-    test: '测试',
-    reset: '重置',
-    saveAsTemplate: '保存为模板',
-    testSuccess: '测试成功',
-    testFailed: '测试失败',
-    form: {
-      project: {
-        placeholder: '请选择项目'
-      },
-      apiConfig: {
-        placeholder: '请选择API配置'
-      },
-      environment: {
-        placeholder: '请选择环境'
+    apiTest: {
+      title: 'API测试',
+      project: '项目',
+      apiConfig: 'API配置',
+      environment: '环境',
+      history: '测试历史',
+      batchTest: '批量测试',
+      method: '请求方法',
+      url: '请求URL',
+      headers: '请求头',
+      params: '查询参数',
+      body: '请求体',
+      response: '响应结果',
+      test: '测试',
+      reset: '重置',
+      saveAsTemplate: '保存为模板',
+      testSuccess: '测试成功',
+      testFailed: '测试失败',
+      form: {
+        project: {
+          placeholder: '请选择项目'
+        },
+        apiConfig: {
+          placeholder: '请选择API配置'
+        },
+        environment: {
+          placeholder: '请选择环境'
+        }
       }
-    }
-  },
+    },
     deploymentStatus: {
       inactive: '未部署',
       deploying: '部署中',
@@ -289,7 +289,7 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       core: '核心',
       business: '业务',
       system: '系统',
-      config: '配置',
+      config: '配置'
     },
     designer: {
       title: '实体设计器',
@@ -323,10 +323,10 @@ const lowcode: App.I18n.Schema['page']['lowcode'] = {
       deleteConfirm: '确定要删除这个实体吗？',
       generateCodeTip: '代码生成功能开发中...',
       addField: '添加字段',
-       noFields: '暂无字段'
-     },
-     lookup: '查找',
-     log: '日志',
+      noFields: '暂无字段'
+    },
+    lookup: '查找',
+    log: '日志',
     dataTypes: {
       STRING: '字符串',
       INTEGER: '整数',

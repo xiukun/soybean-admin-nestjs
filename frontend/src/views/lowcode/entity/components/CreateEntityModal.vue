@@ -1,127 +1,20 @@
-<template>
-  <NModal v-model:show="visible" preset="dialog" title="创建实体" style="width: 700px">
-    <NForm ref="formRef" :model="formData" :rules="rules" label-placement="left" label-width="120px">
-      <!-- 基本信息 -->
-      <NDivider title-placement="left">基本信息</NDivider>
-      
-      <NFormItem label="实体名称" path="name">
-        <NInput v-model:value="formData.name" placeholder="请输入实体名称" @input="handleNameChange" />
-      </NFormItem>
-      
-      <NFormItem label="实体代码" path="code">
-        <NInput v-model:value="formData.code" placeholder="请输入实体代码" @input="handleCodeChange" />
-      </NFormItem>
-      
-      <NFormItem label="表名" path="tableName">
-        <NInput v-model:value="formData.tableName" placeholder="请输入表名" />
-      </NFormItem>
-      
-      <NFormItem label="分类" path="category">
-        <NSelect 
-          v-model:value="formData.category" 
-          :options="categoryOptions" 
-          placeholder="请选择分类"
-        />
-      </NFormItem>
-      
-      <NFormItem label="描述" path="description">
-        <NInput 
-          v-model:value="formData.description" 
-          type="textarea" 
-          placeholder="请输入实体描述"
-          :rows="3"
-        />
-      </NFormItem>
-      
-      <!-- 通用字段配置 -->
-      <NDivider title-placement="left">通用字段配置</NDivider>
-      
-      <NFormItem label="通用字段">
-        <NSpace vertical>
-          <NCheckbox v-model:checked="formData.commonFieldOptions.enableCommonFields">
-            自动添加通用字段
-          </NCheckbox>
-          <NCheckbox v-model:checked="formData.commonFieldOptions.autoCreateTable">
-            自动创建数据库表
-          </NCheckbox>
-        </NSpace>
-      </NFormItem>
-      
-      <!-- 通用字段预览 -->
-      <NFormItem v-if="formData.commonFieldOptions.enableCommonFields" label="通用字段预览">
-        <NCard size="small">
-          <div class="common-fields-preview">
-            <div class="field-item" v-for="field in commonFields" :key="field.code">
-              <div class="field-info">
-                <span class="field-name">{{ field.name }}</span>
-                <NTag size="small" :type="getFieldTypeColor(field.type)">{{ field.type }}</NTag>
-              </div>
-              <div class="field-description">{{ field.description }}</div>
-            </div>
-          </div>
-        </NCard>
-      </NFormItem>
-      
-      <!-- 初始字段 -->
-      <NDivider title-placement="left">初始字段</NDivider>
-      
-      <NFormItem label="字段列表">
-        <div class="initial-fields">
-          <div class="fields-header">
-            <span>字段列表</span>
-            <NButton size="small" type="primary" @click="handleAddField">
-              <template #icon>
-                <NIcon><icon-mdi-plus /></NIcon>
-              </template>
-              添加字段
-            </NButton>
-          </div>
-          
-          <div v-if="formData.initialFields.length === 0" class="no-fields">
-            <NEmpty description="暂无字段" size="small" />
-          </div>
-          
-          <div v-else class="fields-list">
-            <div 
-              v-for="(field, index) in formData.initialFields" 
-              :key="index" 
-              class="field-row"
-            >
-              <NInput v-model:value="field.name" placeholder="字段名称" style="width: 120px" />
-              <NInput v-model:value="field.code" placeholder="字段代码" style="width: 120px" />
-              <NSelect 
-                v-model:value="field.dataType" 
-                :options="dataTypeOptions" 
-                placeholder="类型" 
-                style="width: 100px"
-              />
-              <NCheckbox v-model:checked="field.isRequired" size="small">必填</NCheckbox>
-              <NButton size="small" quaternary type="error" @click="handleRemoveField(index)">
-                <template #icon>
-                  <NIcon><icon-mdi-delete /></NIcon>
-                </template>
-              </NButton>
-            </div>
-          </div>
-        </div>
-      </NFormItem>
-    </NForm>
-    
-    <template #action>
-      <NSpace>
-        <NButton @click="handleCancel">取消</NButton>
-        <NButton type="primary" @click="handleCreate" :loading="creating">创建</NButton>
-      </NSpace>
-    </template>
-  </NModal>
-</template>
-
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { reactive, ref } from 'vue';
 import type { FormInst, FormRules } from 'naive-ui';
 import {
-  NModal, NForm, NFormItem, NInput, NSelect, NCheckbox, NButton, NIcon, NSpace,
-  NDivider, NCard, NTag, NEmpty
+  NButton,
+  NCard,
+  NCheckbox,
+  NDivider,
+  NEmpty,
+  NForm,
+  NFormItem,
+  NIcon,
+  NInput,
+  NModal,
+  NSelect,
+  NSpace,
+  NTag
 } from 'naive-ui';
 // Entity type definition moved inline
 interface Entity {
@@ -143,9 +36,7 @@ interface Entity {
   color?: string;
 }
 
-/**
- * 初始字段接口
- */
+/** 初始字段接口 */
 interface InitialField {
   name: string;
   code: string;
@@ -153,9 +44,7 @@ interface InitialField {
   isRequired: boolean;
 }
 
-/**
- * 表单数据接口
- */
+/** 表单数据接口 */
 interface FormData {
   name: string;
   code: string;
@@ -254,27 +143,23 @@ const rules: FormRules = {
   }
 };
 
-/**
- * 获取字段类型颜色
- */
+/** 获取字段类型颜色 */
 function getFieldTypeColor(dataType: string): 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error' {
   const colorMap: Record<string, 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error'> = {
-    'STRING': 'default',
-    'INTEGER': 'primary',
-    'BIGINT': 'info',
-    'DECIMAL': 'warning',
-    'BOOLEAN': 'success',
-    'DATE': 'error',
-    'DATETIME': 'error',
-    'TEXT': 'default',
-    'JSON': 'info'
+    STRING: 'default',
+    INTEGER: 'primary',
+    BIGINT: 'info',
+    DECIMAL: 'warning',
+    BOOLEAN: 'success',
+    DATE: 'error',
+    DATETIME: 'error',
+    TEXT: 'default',
+    JSON: 'info'
   };
   return colorMap[dataType] || 'default';
 }
 
-/**
- * 处理名称变化，自动生成代码和表名
- */
+/** 处理名称变化，自动生成代码和表名 */
 function handleNameChange(value: string) {
   if (!formData.code) {
     formData.code = value.toLowerCase().replace(/\s+/g, '_');
@@ -284,18 +169,14 @@ function handleNameChange(value: string) {
   }
 }
 
-/**
- * 处理代码变化，自动生成表名
- */
+/** 处理代码变化，自动生成表名 */
 function handleCodeChange(value: string) {
   if (!formData.tableName) {
     formData.tableName = value.toLowerCase();
   }
 }
 
-/**
- * 添加字段
- */
+/** 添加字段 */
 function handleAddField() {
   formData.initialFields.push({
     name: '',
@@ -305,16 +186,12 @@ function handleAddField() {
   });
 }
 
-/**
- * 移除字段
- */
+/** 移除字段 */
 function handleRemoveField(index: number) {
   formData.initialFields.splice(index, 1);
 }
 
-/**
- * 重置表单
- */
+/** 重置表单 */
 function resetForm() {
   Object.assign(formData, {
     name: '',
@@ -330,24 +207,20 @@ function resetForm() {
   });
 }
 
-/**
- * 处理取消
- */
+/** 处理取消 */
 function handleCancel() {
   emit('update:visible', false);
   resetForm();
 }
 
-/**
- * 处理创建
- */
+/** 处理创建 */
 async function handleCreate() {
   if (!formRef.value) return;
-  
+
   try {
     await formRef.value.validate();
     creating.value = true;
-    
+
     const newEntity: Entity = {
       id: `entity_${Date.now()}`,
       projectId: props.projectId,
@@ -357,13 +230,14 @@ async function handleCreate() {
       category: formData.category,
       description: formData.description,
       status: 'DRAFT',
-      fieldCount: formData.initialFields.length + (formData.commonFieldOptions.enableCommonFields ? commonFields.length : 0)
+      fieldCount:
+        formData.initialFields.length + (formData.commonFieldOptions.enableCommonFields ? commonFields.length : 0)
     };
-    
+
     emit('create', newEntity);
     emit('update:visible', false);
     resetForm();
-    
+
     window.$message?.success('实体创建成功');
   } catch (error) {
     console.error('表单验证失败:', error);
@@ -372,6 +246,107 @@ async function handleCreate() {
   }
 }
 </script>
+
+<template>
+  <NModal v-model:show="visible" preset="dialog" title="创建实体" style="width: 700px">
+    <NForm ref="formRef" :model="formData" :rules="rules" label-placement="left" label-width="120px">
+      <!-- 基本信息 -->
+      <NDivider title-placement="left">基本信息</NDivider>
+
+      <NFormItem label="实体名称" path="name">
+        <NInput v-model:value="formData.name" placeholder="请输入实体名称" @input="handleNameChange" />
+      </NFormItem>
+
+      <NFormItem label="实体代码" path="code">
+        <NInput v-model:value="formData.code" placeholder="请输入实体代码" @input="handleCodeChange" />
+      </NFormItem>
+
+      <NFormItem label="表名" path="tableName">
+        <NInput v-model:value="formData.tableName" placeholder="请输入表名" />
+      </NFormItem>
+
+      <NFormItem label="分类" path="category">
+        <NSelect v-model:value="formData.category" :options="categoryOptions" placeholder="请选择分类" />
+      </NFormItem>
+
+      <NFormItem label="描述" path="description">
+        <NInput v-model:value="formData.description" type="textarea" placeholder="请输入实体描述" :rows="3" />
+      </NFormItem>
+
+      <!-- 通用字段配置 -->
+      <NDivider title-placement="left">通用字段配置</NDivider>
+
+      <NFormItem label="通用字段">
+        <NSpace vertical>
+          <NCheckbox v-model:checked="formData.commonFieldOptions.enableCommonFields">自动添加通用字段</NCheckbox>
+          <NCheckbox v-model:checked="formData.commonFieldOptions.autoCreateTable">自动创建数据库表</NCheckbox>
+        </NSpace>
+      </NFormItem>
+
+      <!-- 通用字段预览 -->
+      <NFormItem v-if="formData.commonFieldOptions.enableCommonFields" label="通用字段预览">
+        <NCard size="small">
+          <div class="common-fields-preview">
+            <div v-for="field in commonFields" :key="field.code" class="field-item">
+              <div class="field-info">
+                <span class="field-name">{{ field.name }}</span>
+                <NTag size="small" :type="getFieldTypeColor(field.type)">{{ field.type }}</NTag>
+              </div>
+              <div class="field-description">{{ field.description }}</div>
+            </div>
+          </div>
+        </NCard>
+      </NFormItem>
+
+      <!-- 初始字段 -->
+      <NDivider title-placement="left">初始字段</NDivider>
+
+      <NFormItem label="字段列表">
+        <div class="initial-fields">
+          <div class="fields-header">
+            <span>字段列表</span>
+            <NButton size="small" type="primary" @click="handleAddField">
+              <template #icon>
+                <NIcon><icon-mdi-plus /></NIcon>
+              </template>
+              添加字段
+            </NButton>
+          </div>
+
+          <div v-if="formData.initialFields.length === 0" class="no-fields">
+            <NEmpty description="暂无字段" size="small" />
+          </div>
+
+          <div v-else class="fields-list">
+            <div v-for="(field, index) in formData.initialFields" :key="index" class="field-row">
+              <NInput v-model:value="field.name" placeholder="字段名称" style="width: 120px" />
+              <NInput v-model:value="field.code" placeholder="字段代码" style="width: 120px" />
+              <NSelect
+                v-model:value="field.dataType"
+                :options="dataTypeOptions"
+                placeholder="类型"
+                style="width: 100px"
+              />
+              <NCheckbox v-model:checked="field.isRequired" size="small">必填</NCheckbox>
+              <NButton size="small" quaternary type="error" @click="handleRemoveField(index)">
+                <template #icon>
+                  <NIcon><icon-mdi-delete /></NIcon>
+                </template>
+              </NButton>
+            </div>
+          </div>
+        </div>
+      </NFormItem>
+    </NForm>
+
+    <template #action>
+      <NSpace>
+        <NButton @click="handleCancel">取消</NButton>
+        <NButton type="primary" :loading="creating" @click="handleCreate">创建</NButton>
+      </NSpace>
+    </template>
+  </NModal>
+</template>
 
 <style scoped>
 .common-fields-preview {

@@ -11,13 +11,11 @@ export function fetchGetProjectList(params?: Api.Lowcode.ProjectSearchParams) {
   return request<Api.Lowcode.ProjectList>({
     url: '/projects/paginated',
     method: 'get',
-    params,
+    params
   });
 }
 
-/**
- * get all projects
- */
+/** get all projects */
 export function fetchGetAllProjects() {
   return request<Api.Lowcode.Project[]>({
     url: '/projects',
@@ -102,9 +100,7 @@ export function fetchDeleteProject(id: string) {
   });
 }
 
-/**
- * get project statistics
- */
+/** get project statistics */
 export function fetchGetProjectStats() {
   return request<Api.Lowcode.ProjectStats>({
     url: '/projects/stats',

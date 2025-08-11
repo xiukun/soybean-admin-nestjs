@@ -1,15 +1,9 @@
 import { request } from '../request';
 
-/**
- * 低代码页面相关API
- */
+/** 低代码页面相关API */
 
 /** 获取低代码页面列表 */
-export function fetchGetLowcodePages(params: {
-  current?: number;
-  size?: number;
-  search?: string;
-}) {
+export function fetchGetLowcodePages(params: { current?: number; size?: number; search?: string }) {
   return request<Api.Lowcode.PageListResponse>({
     url: '/lowcode/pages',
     method: 'get',

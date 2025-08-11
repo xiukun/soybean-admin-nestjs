@@ -1,104 +1,8 @@
-<template>
-  <div class="template-management">
-    <!-- 操作栏 -->
-    <div class="mb-4">
-      <NSpace justify="space-between" align="center">
-        <NSpace>
-          <NInput
-            v-model:value="searchQuery"
-            :placeholder="$t('page.lowcode.template.searchPlaceholder')"
-            style="width: 300px"
-            clearable
-          >
-            <template #prefix>
-              <NIcon><icon-mdi-magnify /></NIcon>
-            </template>
-          </NInput>
-          <NSelect
-            v-model:value="categoryFilter"
-            :placeholder="$t('page.lowcode.template.filterByCategory')"
-            :options="categoryOptions"
-            style="width: 150px"
-            clearable
-          />
-          <NSelect
-            v-model:value="languageFilter"
-            :placeholder="$t('page.lowcode.template.filterByLanguage')"
-            :options="languageOptions"
-            style="width: 150px"
-            clearable
-          />
-        </NSpace>
-        <NSpace>
-          <NButton type="primary" @click="handleCreateTemplate">
-            <template #icon>
-              <NIcon><icon-mdi-plus /></NIcon>
-            </template>
-            {{ $t('page.lowcode.template.create') }}
-          </NButton>
-          <NButton @click="handleImportTemplates">
-            <template #icon>
-              <NIcon><icon-mdi-import /></NIcon>
-            </template>
-            {{ $t('page.lowcode.template.import') }}
-          </NButton>
-        </NSpace>
-      </NSpace>
-    </div>
-
-    <!-- 模板列表 -->
-    <NDataTable
-      :columns="columns"
-      :data="filteredTemplates"
-      :pagination="pagination"
-      :loading="loading"
-      size="small"
-      striped
-      @update:page="handlePageChange"
-      @update:page-size="handlePageSizeChange"
-    />
-
-    <!-- 模板预览模态框 -->
-    <NModal v-model:show="showPreviewModal" preset="card" style="width: 1000px; height: 80vh">
-      <template #header>
-        {{ $t('page.lowcode.template.preview') }} - {{ previewTemplate?.name }}
-      </template>
-      
-      <div class="h-full flex flex-col">
-        <div class="mb-4">
-          <NSpace>
-            <NTag type="info">{{ previewTemplate?.language }}</NTag>
-            <NTag type="success">{{ previewTemplate?.category }}</NTag>
-            <NTag>{{ previewTemplate?.framework }}</NTag>
-          </NSpace>
-        </div>
-        
-        <div class="flex-1 border border-gray-200 rounded">
-          <NInput
-            v-model:value="previewContent"
-            type="textarea"
-            :rows="20"
-            readonly
-            class="h-full"
-          />
-        </div>
-      </div>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="showPreviewModal = false">{{ $t('common.close') }}</NButton>
-          <NButton type="primary" @click="handleUseTemplate">{{ $t('page.lowcode.template.use') }}</NButton>
-        </NSpace>
-      </template>
-    </NModal>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, onMounted, h } from 'vue';
+import { computed, h, onMounted, ref } from 'vue';
 import type { DataTableColumns } from 'naive-ui';
-import { $t } from '@/locales';
 import { formatDate } from '@/utils/common';
+import { $t } from '@/locales';
 // import MonacoEditor from '@/components/common/monaco-editor.vue';
 
 interface Props {
@@ -158,10 +62,11 @@ const filteredTemplates = computed(() => {
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
-    filtered = filtered.filter(template => 
-      template.name.toLowerCase().includes(query) ||
-      template.code.toLowerCase().includes(query) ||
-      template.description?.toLowerCase().includes(query)
+    filtered = filtered.filter(
+      template =>
+        template.name.toLowerCase().includes(query) ||
+        template.code.toLowerCase().includes(query) ||
+        template.description?.toLowerCase().includes(query)
     );
   }
 
@@ -204,9 +109,8 @@ const columns: DataTableColumns<Template> = [
     title: $t('page.lowcode.template.status'),
     key: 'status',
     width: 100,
-    render: (row) => h('NTag', { type: getStatusType(row.status) }, 
-      $t(`page.lowcode.template.status.${row.status.toLowerCase()}`)
-    )
+    render: row =>
+      h('NTag', { type: getStatusType(row.status) }, $t(`page.lowcode.template.status.${row.status.toLowerCase()}`))
   },
   { title: $t('page.lowcode.template.usageCount'), key: 'usageCount', width: 80, align: 'center' },
   { title: $t('page.lowcode.template.version'), key: 'version', width: 80 },
@@ -214,36 +118,39 @@ const columns: DataTableColumns<Template> = [
     title: $t('page.lowcode.template.createdAt'),
     key: 'createdAt',
     width: 150,
-    render: (row) => formatDate(row.createdAt)
+    render: row => formatDate(row.createdAt)
   },
   {
     title: $t('common.actions'),
     key: 'actions',
     width: 200,
     fixed: 'right',
-    render: (row) => [
-      h('NButton', 
-        { 
-          size: 'small', 
+    render: row => [
+      h(
+        'NButton',
+        {
+          size: 'small',
           onClick: () => handlePreviewTemplate(row),
           style: { marginRight: '8px' }
-        }, 
+        },
         $t('page.lowcode.template.preview')
       ),
-      h('NButton', 
-        { 
-          size: 'small', 
+      h(
+        'NButton',
+        {
+          size: 'small',
           onClick: () => handleEditTemplate(row),
           style: { marginRight: '8px' }
-        }, 
+        },
         $t('common.edit')
       ),
-      h('NButton', 
-        { 
-          size: 'small', 
+      h(
+        'NButton',
+        {
+          size: 'small',
           type: 'error',
           onClick: () => handleDeleteTemplate(row)
-        }, 
+        },
         $t('common.delete')
       )
     ]
@@ -319,7 +226,7 @@ function handleImportTemplates() {
 async function loadTemplates() {
   try {
     loading.value = true;
-    
+
     // Mock data
     const mockTemplates: Template[] = [
       {
@@ -376,7 +283,7 @@ export class {{entityName}}Controller {
         updatedAt: new Date().toISOString()
       }
     ];
-    
+
     templates.value = mockTemplates;
     pagination.value.itemCount = mockTemplates.length;
   } catch (error) {
@@ -392,6 +299,94 @@ onMounted(() => {
   loadTemplates();
 });
 </script>
+
+<template>
+  <div class="template-management">
+    <!-- 操作栏 -->
+    <div class="mb-4">
+      <NSpace justify="space-between" align="center">
+        <NSpace>
+          <NInput
+            v-model:value="searchQuery"
+            :placeholder="$t('page.lowcode.template.searchPlaceholder')"
+            style="width: 300px"
+            clearable
+          >
+            <template #prefix>
+              <NIcon><icon-mdi-magnify /></NIcon>
+            </template>
+          </NInput>
+          <NSelect
+            v-model:value="categoryFilter"
+            :placeholder="$t('page.lowcode.template.filterByCategory')"
+            :options="categoryOptions"
+            style="width: 150px"
+            clearable
+          />
+          <NSelect
+            v-model:value="languageFilter"
+            :placeholder="$t('page.lowcode.template.filterByLanguage')"
+            :options="languageOptions"
+            style="width: 150px"
+            clearable
+          />
+        </NSpace>
+        <NSpace>
+          <NButton type="primary" @click="handleCreateTemplate">
+            <template #icon>
+              <NIcon><icon-mdi-plus /></NIcon>
+            </template>
+            {{ $t('page.lowcode.template.create') }}
+          </NButton>
+          <NButton @click="handleImportTemplates">
+            <template #icon>
+              <NIcon><icon-mdi-import /></NIcon>
+            </template>
+            {{ $t('page.lowcode.template.import') }}
+          </NButton>
+        </NSpace>
+      </NSpace>
+    </div>
+
+    <!-- 模板列表 -->
+    <NDataTable
+      :columns="columns"
+      :data="filteredTemplates"
+      :pagination="pagination"
+      :loading="loading"
+      size="small"
+      striped
+      @update:page="handlePageChange"
+      @update:page-size="handlePageSizeChange"
+    />
+
+    <!-- 模板预览模态框 -->
+    <NModal v-model:show="showPreviewModal" preset="card" style="width: 1000px; height: 80vh">
+      <template #header>{{ $t('page.lowcode.template.preview') }} - {{ previewTemplate?.name }}</template>
+
+      <div class="h-full flex flex-col">
+        <div class="mb-4">
+          <NSpace>
+            <NTag type="info">{{ previewTemplate?.language }}</NTag>
+            <NTag type="success">{{ previewTemplate?.category }}</NTag>
+            <NTag>{{ previewTemplate?.framework }}</NTag>
+          </NSpace>
+        </div>
+
+        <div class="flex-1 border border-gray-200 rounded">
+          <NInput v-model:value="previewContent" type="textarea" :rows="20" readonly class="h-full" />
+        </div>
+      </div>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="showPreviewModal = false">{{ $t('common.close') }}</NButton>
+          <NButton type="primary" @click="handleUseTemplate">{{ $t('page.lowcode.template.use') }}</NButton>
+        </NSpace>
+      </template>
+    </NModal>
+  </div>
+</template>
 
 <style scoped>
 .template-management {

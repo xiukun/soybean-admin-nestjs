@@ -1,30 +1,8 @@
-<template>
-  <div class="visual-relationship-designer">
-    <!-- 使用X6关系图设计器组件 -->
-    <div v-if="projectId && !error">
-      <X6RelationshipDesigner 
-        :project-id="projectId" 
-        @relationship-updated="$emit('relationshipUpdated')"
-        @error="handleError"
-      />
-    </div>
-    <div v-else-if="error" class="flex flex-col items-center justify-center h-full">
-      <n-alert type="error" :title="t('page.lowcode.common.messages.error')" class="mb-4">
-        {{ errorMessage }}
-      </n-alert>
-      <n-button @click="retryLoading">{{ t('page.lowcode.common.actions.retry') }}</n-button>
-    </div>
-    <div v-else class="flex items-center justify-center h-full text-gray-500">
-      {{ t('page.lowcode.template.selectProject') }}
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue';
+import { nextTick, ref, watch } from 'vue';
 import { NAlert, NButton } from 'naive-ui';
-import X6RelationshipDesigner from './x6-relationship-designer.vue';
 import { useI18n } from 'vue-i18n';
+import X6RelationshipDesigner from './x6-relationship-designer.vue';
 
 interface Props {
   projectId: string;
@@ -53,15 +31,41 @@ function retryLoading() {
 }
 
 // 监听projectId变化，确保组件正确重新渲染
-watch(() => props.projectId, async (newProjectId) => {
-  if (newProjectId) {
-    error.value = false;
-    errorMessage.value = '';
-    await nextTick();
-    console.log('Visual designer projectId changed:', newProjectId);
-  }
-}, { immediate: true });
+watch(
+  () => props.projectId,
+  async newProjectId => {
+    if (newProjectId) {
+      error.value = false;
+      errorMessage.value = '';
+      await nextTick();
+      console.log('Visual designer projectId changed:', newProjectId);
+    }
+  },
+  { immediate: true }
+);
 </script>
+
+<template>
+  <div class="visual-relationship-designer">
+    <!-- 使用X6关系图设计器组件 -->
+    <div v-if="projectId && !error">
+      <X6RelationshipDesigner
+        :project-id="projectId"
+        @relationship-updated="$emit('relationshipUpdated')"
+        @error="handleError"
+      />
+    </div>
+    <div v-else-if="error" class="h-full flex flex-col items-center justify-center">
+      <NAlert type="error" :title="t('page.lowcode.common.messages.error')" class="mb-4">
+        {{ errorMessage }}
+      </NAlert>
+      <NButton @click="retryLoading">{{ t('page.lowcode.common.actions.retry') }}</NButton>
+    </div>
+    <div v-else class="h-full flex items-center justify-center text-gray-500">
+      {{ t('page.lowcode.template.selectProject') }}
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .visual-relationship-designer {

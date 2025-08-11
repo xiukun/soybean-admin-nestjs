@@ -1,226 +1,13 @@
-<template>
-  <div class="x6-entity-designer">
-    <!-- Designer Toolbar -->
-    <div class="designer-toolbar">
-      <div class="toolbar-left">
-        <NSpace>
-          <!-- Mode Controls -->
-          <NButtonGroup>
-            <NButton 
-              size="small" 
-              :type="currentMode === 'select' ? 'primary' : 'default'"
-              @click="setMode('select')"
-            >
-              <template #icon>
-                <NIcon><icon-mdi-cursor-default /></NIcon>
-              </template>
-              选择
-            </NButton>
-            <NButton 
-              size="small" 
-              :type="currentMode === 'connect' ? 'primary' : 'default'"
-              @click="setMode('connect')"
-            >
-              <template #icon>
-                <NIcon><icon-mdi-vector-line /></NIcon>
-              </template>
-              连接
-            </NButton>
-          </NButtonGroup>
-          
-          <NDivider vertical />
-          
-          <!-- Layout Controls -->
-          <NButtonGroup>
-            <NButton 
-              size="small" 
-              :type="layoutType === 'force' ? 'primary' : 'default'"
-              @click="applyLayout('force')"
-            >
-              <template #icon>
-                <NIcon><icon-mdi-vector-arrange-above /></NIcon>
-              </template>
-              力导向
-            </NButton>
-            <NButton 
-              size="small" 
-              :type="layoutType === 'grid' ? 'primary' : 'default'"
-              @click="applyLayout('grid')"
-            >
-              <template #icon>
-                <NIcon><icon-mdi-grid /></NIcon>
-              </template>
-              网格
-            </NButton>
-            <NButton 
-              size="small" 
-              :type="layoutType === 'hierarchy' ? 'primary' : 'default'"
-              @click="applyLayout('hierarchy')"
-            >
-              <template #icon>
-                <NIcon><icon-mdi-file-tree /></NIcon>
-              </template>
-              层次
-            </NButton>
-            <NButton 
-              size="small" 
-              :type="layoutType === 'circular' ? 'primary' : 'default'"
-              @click="applyLayout('circular')"
-            >
-              <template #icon>
-                <NIcon><icon-mdi-circle-outline /></NIcon>
-              </template>
-              圆形
-            </NButton>
-          </NButtonGroup>
-          
-          <NDivider vertical />
-          
-          <!-- View Controls -->
-          <NButtonGroup>
-            <NButton size="small" @click="zoomIn">
-              <template #icon>
-                <NIcon><icon-mdi-magnify-plus /></NIcon>
-              </template>
-            </NButton>
-            <NButton size="small" @click="zoomOut">
-              <template #icon>
-                <NIcon><icon-mdi-magnify-minus /></NIcon>
-              </template>
-            </NButton>
-            <NButton size="small" @click="fitView">
-              <template #icon>
-                <NIcon><icon-mdi-fit-to-page /></NIcon>
-              </template>
-              适应画布
-            </NButton>
-            <NButton size="small" @click="centerView">
-              <template #icon>
-                <NIcon><icon-mdi-crosshairs-gps /></NIcon>
-              </template>
-              居中
-            </NButton>
-            <NButton size="small" @click="resetView">
-              <template #icon>
-                <NIcon><icon-mdi-backup-restore /></NIcon>
-              </template>
-              重置视图
-            </NButton>
-          </NButtonGroup>
-          
-          <NDivider vertical />
-          
-          <!-- Display Options -->
-          <NSpace>
-            <NCheckbox v-model:checked="showGrid" @update:checked="toggleGrid">
-              显示网格
-            </NCheckbox>
-            <NCheckbox v-model:checked="showConnectionPoints" @update:checked="toggleConnectionPoints">
-              显示连接点
-            </NCheckbox>
-            <NCheckbox v-model:checked="showRelationshipLabels">
-              显示关系标签
-            </NCheckbox>
-          </NSpace>
-        </NSpace>
-      </div>
-      
-      <div class="toolbar-right">
-        <NSpace>
-          <NButton size="small" @click="saveLayout" :loading="saving">
-            <template #icon>
-              <NIcon><icon-mdi-content-save /></NIcon>
-            </template>
-            保存布局
-          </NButton>
-        </NSpace>
-      </div>
-    </div>
-
-    <!-- X6 Graph Canvas -->
-    <div class="designer-canvas">
-      <X6GraphCanvas
-        ref="graphCanvasRef"
-        :is-connect-mode="currentMode === 'connect'"
-        :connect-source-node="connectSourceNode"
-        :show-grid="showGrid"
-        :snap-to-grid="snapToGrid"
-        :show-connection-points="showConnectionPoints"
-        @graph-ready="handleGraphReady"
-        @node-selected="handleNodeSelected"
-        @edge-selected="handleEdgeSelected"
-        @selection-cleared="handleSelectionCleared"
-        @node-clicked="handleNodeClicked"
-        @cancel-connect="handleCancelConnect"
-        @create-relationship="handleCreateRelationship"
-      />
-      
-      <!-- Loading Overlay -->
-      <div v-if="loading" class="loading-overlay">
-        <NSpin size="large">
-          <template #description>
-            正在{{ layouting ? '布局' : '加载' }}实体设计器...
-          </template>
-        </NSpin>
-      </div>
-      
-      <!-- Empty State -->
-      <div v-if="!loading && entities.length === 0" class="empty-state">
-        <div class="empty-content">
-          <NIcon size="64" class="text-gray-400">
-            <icon-mdi-vector-polyline />
-          </NIcon>
-          <NText class="text-lg font-medium mt-4">暂无实体</NText>
-          <NText class="text-gray-500 mt-2">请先创建实体，然后在此设计实体关系</NText>
-          <NButton type="primary" class="mt-4" @click="$emit('entity-create')">
-            <template #icon>
-              <NIcon><icon-mdi-plus /></NIcon>
-            </template>
-            创建实体
-          </NButton>
-        </div>
-      </div>
-    </div>
-
-    <!-- Property Panel - 使用 Teleport 传送到 body -->
-    <Teleport to="body">
-      <div v-if="selectedEntity" class="property-panel-overlay">
-        <div class="property-panel-container">
-          <EntityPropertyPanel
-            :entity="selectedEntity"
-            @update="handleEntityUpdate"
-            @close="handleClosePropertyPanel"
-            @fields-update="handleFieldsUpdate"
-            @field-add="handleFieldAdd"
-            @field-update="handleFieldUpdate"
-            @field-delete="handleFieldDelete"
-          />
-        </div>
-      </div>
-    </Teleport>
-    
-    <!-- 创建关系弹窗 -->
-    <CreateRelationshipModal
-      v-model:visible="showCreateRelationshipModal"
-      :source-entity="connectingSourceEntity"
-      :target-entity="connectingTargetEntity"
-      :loading="loadingRelationships"
-      @confirm="handleCreateRelationshipConfirm"
-      @cancel="handleCreateRelationshipCancel"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, watch, onUnmounted, Teleport } from 'vue';
-import { Graph, Node, Edge } from '@antv/x6';
-import { NButton, NSpace, NText, NSpin, NIcon, NButtonGroup, NDivider, NCheckbox, useMessage } from 'naive-ui';
-import EntityPropertyPanel from './EntityPropertyPanel.vue';
+import { Teleport, computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { NButton, NButtonGroup, NCheckbox, NDivider, NIcon, NSpace, NSpin, NText, useMessage } from 'naive-ui';
+import type { Edge, Graph, Node } from '@antv/x6';
 import X6GraphCanvas from '../../relationship/components/X6GraphCanvas.vue';
-import CreateRelationshipModal from './CreateRelationshipModal.vue';
 import type { Entity, EntityRelationship, LayoutConfig } from '../types';
 import { layoutPersistenceService } from '../services/LayoutPersistenceService';
 import { useRelationshipManager } from '../hooks/useRelationshipManager';
+import EntityPropertyPanel from './EntityPropertyPanel.vue';
+import CreateRelationshipModal from './CreateRelationshipModal.vue';
 
 // 图标导入
 import IconMdiVectorArrangeAbove from '~icons/mdi/vector-arrange-above';
@@ -240,7 +27,8 @@ import IconMdiBackupRestore from '~icons/mdi/backup-restore';
 
 /**
  * 基于X6的实体设计器组件
- * @description 使用X6图形库渲染实体和关系，提供更好的交互体验和一致的坐标系统
+ *
+ * 使用X6图形库渲染实体和关系，提供更好的交互体验和一致的坐标系统
  */
 
 interface Props {
@@ -320,9 +108,7 @@ const selectedEntity = computed(() => {
   return props.entities.find(e => e.id === data.id) || null;
 });
 
-/**
- * 设置当前模式
- */
+/** 设置当前模式 */
 function setMode(mode: 'select' | 'connect') {
   currentMode.value = mode;
   if (mode === 'select') {
@@ -333,34 +119,30 @@ function setMode(mode: 'select' | 'connect') {
   }
 }
 
-/**
- * 处理图形准备就绪
- */
+/** 处理图形准备就绪 */
 function handleGraphReady(graphInstance: Graph) {
   graph = graphInstance;
-  
+
   // 添加所有实体到图形中
   props.entities.forEach(entity => {
     addEntityToGraph(entity);
   });
-  
+
   // 添加所有关系到图形中
   relationships.value.forEach(relationship => {
     addRelationshipToGraph(relationship);
   });
-  
+
   // 应用默认布局
   nextTick(() => {
     applyLayout(layoutType.value);
   });
 }
 
-/**
- * 添加实体到图形
- */
+/** 添加实体到图形 */
 function addEntityToGraph(entity: Entity) {
   if (!graph) return;
-  
+
   // 检查节点是否已存在
   const existingCell = graph.getCellById(entity.id);
   if (existingCell && existingCell.isNode()) {
@@ -369,7 +151,7 @@ function addEntityToGraph(entity: Entity) {
     existingNode.setData(entity);
     return;
   }
-  
+
   const node = graph.addNode({
     id: entity.id,
     shape: 'entity-node',
@@ -394,25 +176,23 @@ function addEntityToGraph(entity: Entity) {
       ]
     }
   });
-  
+
   // 更新连接点显示状态
   updateNodeConnectionPoints(node);
 }
 
-/**
- * 添加关系到图形
- */
+/** 添加关系到图形 */
 function addRelationshipToGraph(relationship: EntityRelationship) {
   if (!graph) return;
-  
+
   const sourceNode = graph.getCellById(relationship.sourceEntityId);
   const targetNode = graph.getCellById(relationship.targetEntityId);
-  
+
   if (!sourceNode || !targetNode) {
     console.warn('无法找到关系的源节点或目标节点:', relationship);
     return;
   }
-  
+
   // 检查边是否已存在
   const existingCell = graph.getCellById(relationship.id);
   if (existingCell && existingCell.isEdge()) {
@@ -421,7 +201,7 @@ function addRelationshipToGraph(relationship: EntityRelationship) {
     existingEdge.setData(relationship);
     return;
   }
-  
+
   const edge = graph.addEdge({
     id: relationship.id,
     source: { cell: sourceNode.id, port: 'right' },
@@ -441,32 +221,28 @@ function addRelationshipToGraph(relationship: EntityRelationship) {
   });
 }
 
-/**
- * 更新节点连接点显示
- */
+/** 更新节点连接点显示 */
 function updateNodeConnectionPoints(node: Node) {
   if (!node) return;
-  
+
   const ports = node.getPorts();
   const visibility = showConnectionPoints.value ? 'visible' : 'hidden';
-  
+
   ports.forEach(port => {
     node.setPortProp(port.id!, 'attrs/circle/style/visibility', visibility);
   });
 }
 
-/**
- * 应用布局算法
- */
+/** 应用布局算法 */
 async function applyLayout(type: 'force' | 'grid' | 'hierarchy' | 'circular') {
   if (!graph || props.entities.length === 0) return;
-  
+
   layouting.value = true;
   layoutType.value = type;
-  
+
   try {
     const nodes = graph.getNodes();
-    
+
     switch (type) {
       case 'grid':
         applyGridLayout(nodes);
@@ -481,12 +257,11 @@ async function applyLayout(type: 'force' | 'grid' | 'hierarchy' | 'circular') {
         applyCircularLayout(nodes);
         break;
     }
-    
+
     // 适应视图
     setTimeout(() => {
       fitView();
     }, 100);
-    
   } catch (error) {
     console.error('布局应用失败:', error);
     message.error('布局应用失败');
@@ -495,17 +270,15 @@ async function applyLayout(type: 'force' | 'grid' | 'hierarchy' | 'circular') {
   }
 }
 
-/**
- * 网格布局
- */
+/** 网格布局 */
 function applyGridLayout(nodes: Node[]) {
   const cols = Math.ceil(Math.sqrt(nodes.length));
   const spacing = 250;
-  
+
   nodes.forEach((node, index) => {
     const row = Math.floor(index / cols);
     const col = index % cols;
-    
+
     node.setPosition({
       x: col * spacing + 100,
       y: row * spacing + 100
@@ -513,35 +286,31 @@ function applyGridLayout(nodes: Node[]) {
   });
 }
 
-/**
- * 力导向布局
- */
+/** 力导向布局 */
 async function applyForceLayout(nodes: Node[]) {
   // 简化的力导向布局实现
   const centerX = 400;
   const centerY = 300;
   const radius = 200;
-  
+
   nodes.forEach((node, index) => {
     const angle = (index / nodes.length) * 2 * Math.PI;
     const x = centerX + Math.cos(angle) * radius;
     const y = centerY + Math.sin(angle) * radius;
-    
+
     node.setPosition({ x, y });
   });
 }
 
-/**
- * 层次布局
- */
+/** 层次布局 */
 function applyHierarchyLayout(nodes: Node[]) {
   const levels = Math.ceil(nodes.length / 3);
   const spacing = 250;
-  
+
   nodes.forEach((node, index) => {
     const level = Math.floor(index / 3);
     const position = index % 3;
-    
+
     node.setPosition({
       x: position * spacing + 100,
       y: level * spacing + 100
@@ -549,26 +318,22 @@ function applyHierarchyLayout(nodes: Node[]) {
   });
 }
 
-/**
- * 圆形布局
- */
+/** 圆形布局 */
 function applyCircularLayout(nodes: Node[]) {
   const centerX = 400;
   const centerY = 300;
   const radius = 200;
-  
+
   nodes.forEach((node, index) => {
     const angle = (index / nodes.length) * 2 * Math.PI;
     const x = centerX + Math.cos(angle) * radius;
     const y = centerY + Math.sin(angle) * radius;
-    
+
     node.setPosition({ x, y });
   });
 }
 
-/**
- * 视图控制函数
- */
+/** 视图控制函数 */
 function zoomIn() {
   if (graph) {
     graph.zoom(0.1);
@@ -587,18 +352,14 @@ function fitView() {
   }
 }
 
-/**
- * 居中视图
- */
+/** 居中视图 */
 function centerView() {
   if (graph) {
     graph.centerContent();
   }
 }
 
-/**
- * 重置视图
- */
+/** 重置视图 */
 function resetView() {
   if (graph) {
     graph.zoomTo(1);
@@ -606,33 +367,27 @@ function resetView() {
   }
 }
 
-/**
- * 切换网格显示
- */
+/** 切换网格显示 */
 function toggleGrid() {
   // 网格显示状态已通过 v-model 绑定到 X6GraphCanvas
 }
 
-/**
- * 切换连接点显示
- */
+/** 切换连接点显示 */
 function toggleConnectionPoints() {
   if (!graph) return;
-  
+
   const nodes = graph.getNodes();
   nodes.forEach(node => {
     updateNodeConnectionPoints(node);
   });
 }
 
-/**
- * 事件处理函数
- */
+/** 事件处理函数 */
 function handleNodeSelected(node: Node) {
   selectedNode.value = node;
   selectedEdge.value = null;
   selectedRelationship.value = null;
-  
+
   const data = node.getData();
   const entity = props.entities.find(e => e.id === data.id);
   if (entity) {
@@ -643,7 +398,7 @@ function handleNodeSelected(node: Node) {
 function handleEdgeSelected(edge: Edge) {
   selectedEdge.value = edge;
   selectedNode.value = null;
-  
+
   const data = edge.getData();
   const relationship = relationships.value.find(r => r.id === data.id);
   if (relationship) {
@@ -672,12 +427,12 @@ function handleNodeClicked(node: Node) {
       // 选择目标节点
       const data = node.getData();
       connectingTargetEntity.value = props.entities.find(e => e.id === data.id) || null;
-      
+
       if (connectSourceNode.value.id === node.id) {
         message.warning('不能连接到自身');
         return;
       }
-      
+
       // 显示创建关系弹窗
       showCreateRelationshipModal.value = true;
     }
@@ -695,39 +450,37 @@ function handleCreateRelationship(sourceNode: Node, targetNode: Node) {
   // 这个事件由 X6GraphCanvas 触发，但我们使用自己的逻辑
 }
 
-/**
- * 关系管理函数
- */
+/** 关系管理函数 */
 async function handleCreateRelationshipConfirm(relationshipData: Partial<EntityRelationship>) {
   try {
     if (!relationshipData.name || !relationshipData.sourceEntityId || !relationshipData.targetEntityId) {
       message.error('关系数据不完整，请检查表单');
       return;
     }
-    
+
     const completeData = {
       ...relationshipData,
       projectId: props.projectId || ''
     };
-    
+
     await createRelationship(completeData);
     message.success(`成功创建关系: ${relationshipData.name}`);
-    
+
     // 添加关系到图形
-    const newRelationship = relationships.value.find(r => 
-      r.sourceEntityId === relationshipData.sourceEntityId && 
-      r.targetEntityId === relationshipData.targetEntityId &&
-      r.name === relationshipData.name
+    const newRelationship = relationships.value.find(
+      r =>
+        r.sourceEntityId === relationshipData.sourceEntityId &&
+        r.targetEntityId === relationshipData.targetEntityId &&
+        r.name === relationshipData.name
     );
-    
+
     if (newRelationship) {
       addRelationshipToGraph(newRelationship);
     }
-    
+
     // 关闭弹窗并重置状态
     showCreateRelationshipModal.value = false;
     handleCancelConnect();
-    
   } catch (error: any) {
     console.error('创建关系失败:', error);
     message.error(`创建关系失败: ${error?.message || '未知错误'}`);
@@ -740,9 +493,7 @@ function handleCreateRelationshipCancel() {
   message.info('已取消创建关系');
 }
 
-/**
- * 属性面板处理函数
- */
+/** 属性面板处理函数 */
 function handleEntityUpdate(entity: Entity) {
   // 更新图形中的节点
   if (graph) {
@@ -759,7 +510,7 @@ function handleEntityUpdate(entity: Entity) {
       }
     }
   }
-  
+
   emit('entity-update', entity);
 }
 
@@ -773,7 +524,7 @@ function handleRelationshipUpdate(relationship: EntityRelationship) {
       edge.setLabels([{ attrs: { text: { text: relationship.name } } }]);
     }
   }
-  
+
   emit('relationship-update', relationship);
 }
 
@@ -785,9 +536,7 @@ function handleClosePropertyPanel() {
   emit('relationship-select', null);
 }
 
-/**
- * 字段管理事件处理函数
- */
+/** 字段管理事件处理函数 */
 function handleFieldsUpdate(fields: any[]) {
   // 字段列表更新，可以在这里处理相关逻辑
   console.log('Fields updated:', fields);
@@ -808,12 +557,10 @@ function handleFieldDelete(index: number) {
   console.log('Field deleted at index:', index);
 }
 
-/**
- * 保存布局
- */
+/** 保存布局 */
 async function saveLayout() {
   if (!graph || !props.projectId) return;
-  
+
   saving.value = true;
   try {
     // 收集所有节点的位置信息
@@ -822,7 +569,7 @@ async function saveLayout() {
       const data = node.getData();
       const position = node.getPosition();
       const size = node.getSize();
-      
+
       return {
         ...data,
         x: position.x,
@@ -831,7 +578,7 @@ async function saveLayout() {
         height: size.height
       };
     });
-    
+
     // 保存到持久化服务
     await layoutPersistenceService.saveLayout(
       props.projectId,
@@ -844,7 +591,7 @@ async function saveLayout() {
         zoom: graph.zoom()
       }
     );
-    
+
     message.success('布局保存成功');
   } catch (error) {
     console.error('保存布局失败:', error);
@@ -855,78 +602,90 @@ async function saveLayout() {
 }
 
 // 监听实体变化
-watch(() => props.entities, (newEntities) => {
-  if (!graph) return;
-  
-  // 添加新实体
-  newEntities.forEach(entity => {
-    const existingNode = graph!.getCellById(entity.id);
-    if (!existingNode) {
-      addEntityToGraph(entity);
-    }
-  });
-  
-  // 移除不存在的实体
-  const entityIds = new Set(newEntities.map(e => e.id));
-  const nodes = graph!.getNodes();
-  nodes.forEach(node => {
-    const data = node.getData();
-    if (!entityIds.has(data.id)) {
-      graph!.removeCell(node);
-    }
-  });
-}, { deep: true });
+watch(
+  () => props.entities,
+  newEntities => {
+    if (!graph) return;
+
+    // 添加新实体
+    newEntities.forEach(entity => {
+      const existingNode = graph!.getCellById(entity.id);
+      if (!existingNode) {
+        addEntityToGraph(entity);
+      }
+    });
+
+    // 移除不存在的实体
+    const entityIds = new Set(newEntities.map(e => e.id));
+    const nodes = graph!.getNodes();
+    nodes.forEach(node => {
+      const data = node.getData();
+      if (!entityIds.has(data.id)) {
+        graph!.removeCell(node);
+      }
+    });
+  },
+  { deep: true }
+);
 
 // 监听关系变化
-watch(() => relationships.value, (newRelationships) => {
-  if (!graph) return;
-  
-  // 添加新关系
-  newRelationships.forEach(relationship => {
-    const existingEdge = graph!.getCellById(relationship.id);
-    if (!existingEdge) {
-      addRelationshipToGraph(relationship);
-    }
-  });
-  
-  // 移除不存在的关系
-  const relationshipIds = new Set(newRelationships.map(r => r.id));
-  const edges = graph!.getEdges();
-  edges.forEach(edge => {
-    const data = edge.getData();
-    if (data && !relationshipIds.has(data.id)) {
-      graph!.removeCell(edge);
-    }
-  });
-  }, { deep: true });
+watch(
+  () => relationships.value,
+  newRelationships => {
+    if (!graph) return;
+
+    // 添加新关系
+    newRelationships.forEach(relationship => {
+      const existingEdge = graph!.getCellById(relationship.id);
+      if (!existingEdge) {
+        addRelationshipToGraph(relationship);
+      }
+    });
+
+    // 移除不存在的关系
+    const relationshipIds = new Set(newRelationships.map(r => r.id));
+    const edges = graph!.getEdges();
+    edges.forEach(edge => {
+      const data = edge.getData();
+      if (data && !relationshipIds.has(data.id)) {
+        graph!.removeCell(edge);
+      }
+    });
+  },
+  { deep: true }
+);
 
 // 监听项目ID变化
-watch(() => props.projectId, async (newProjectId, oldProjectId) => {
-  if (newProjectId && newProjectId !== oldProjectId) {
-    // 项目切换时重新加载关系数据
-    await loadRelationshipsData();
-    
-    // 清空当前图形
-    if (graph) {
-      graph.clearCells();
-      
-      // 重新添加实体
-      props.entities.forEach(entity => {
-        addEntityToGraph(entity);
-      });
-      
-      // 重新添加关系
-      relationships.value.forEach(relationship => {
-        addRelationshipToGraph(relationship);
-      });
-      
-      // 重新应用布局
-      nextTick(() => {
-        applyLayout(layoutType.value);
-      });
+watch(
+  () => props.projectId,
+  async (newProjectId, oldProjectId) => {
+    if (newProjectId && newProjectId !== oldProjectId) {
+      // 项目切换时重新加载关系数据
+      await loadRelationshipsData();
+
+      // 清空当前图形
+      if (graph) {
+        graph.clearCells();
+
+        // 重新添加实体
+        props.entities.forEach(entity => {
+          addEntityToGraph(entity);
+        });
+
+        // 重新添加关系
+        relationships.value.forEach(relationship => {
+          addRelationshipToGraph(relationship);
+        });
+
+        // 重新应用布局
+        nextTick(() => {
+          applyLayout(layoutType.value);
+        });
+      }
     }
-  }
-}, { immediate: false });
+  },
+  { immediate: false }
+);
 
 // 组件挂载时初始化
 onMounted(async () => {
@@ -944,6 +703,197 @@ onUnmounted(() => {
   }
 });
 </script>
+
+<template>
+  <div class="x6-entity-designer">
+    <!-- Designer Toolbar -->
+    <div class="designer-toolbar">
+      <div class="toolbar-left">
+        <NSpace>
+          <!-- Mode Controls -->
+          <NButtonGroup>
+            <NButton size="small" :type="currentMode === 'select' ? 'primary' : 'default'" @click="setMode('select')">
+              <template #icon>
+                <NIcon><icon-mdi-cursor-default /></NIcon>
+              </template>
+              选择
+            </NButton>
+            <NButton size="small" :type="currentMode === 'connect' ? 'primary' : 'default'" @click="setMode('connect')">
+              <template #icon>
+                <NIcon><icon-mdi-vector-line /></NIcon>
+              </template>
+              连接
+            </NButton>
+          </NButtonGroup>
+
+          <NDivider vertical />
+
+          <!-- Layout Controls -->
+          <NButtonGroup>
+            <NButton size="small" :type="layoutType === 'force' ? 'primary' : 'default'" @click="applyLayout('force')">
+              <template #icon>
+                <NIcon><icon-mdi-vector-arrange-above /></NIcon>
+              </template>
+              力导向
+            </NButton>
+            <NButton size="small" :type="layoutType === 'grid' ? 'primary' : 'default'" @click="applyLayout('grid')">
+              <template #icon>
+                <NIcon><icon-mdi-grid /></NIcon>
+              </template>
+              网格
+            </NButton>
+            <NButton
+              size="small"
+              :type="layoutType === 'hierarchy' ? 'primary' : 'default'"
+              @click="applyLayout('hierarchy')"
+            >
+              <template #icon>
+                <NIcon><icon-mdi-file-tree /></NIcon>
+              </template>
+              层次
+            </NButton>
+            <NButton
+              size="small"
+              :type="layoutType === 'circular' ? 'primary' : 'default'"
+              @click="applyLayout('circular')"
+            >
+              <template #icon>
+                <NIcon><icon-mdi-circle-outline /></NIcon>
+              </template>
+              圆形
+            </NButton>
+          </NButtonGroup>
+
+          <NDivider vertical />
+
+          <!-- View Controls -->
+          <NButtonGroup>
+            <NButton size="small" @click="zoomIn">
+              <template #icon>
+                <NIcon><icon-mdi-magnify-plus /></NIcon>
+              </template>
+            </NButton>
+            <NButton size="small" @click="zoomOut">
+              <template #icon>
+                <NIcon><icon-mdi-magnify-minus /></NIcon>
+              </template>
+            </NButton>
+            <NButton size="small" @click="fitView">
+              <template #icon>
+                <NIcon><icon-mdi-fit-to-page /></NIcon>
+              </template>
+              适应画布
+            </NButton>
+            <NButton size="small" @click="centerView">
+              <template #icon>
+                <NIcon><icon-mdi-crosshairs-gps /></NIcon>
+              </template>
+              居中
+            </NButton>
+            <NButton size="small" @click="resetView">
+              <template #icon>
+                <NIcon><icon-mdi-backup-restore /></NIcon>
+              </template>
+              重置视图
+            </NButton>
+          </NButtonGroup>
+
+          <NDivider vertical />
+
+          <!-- Display Options -->
+          <NSpace>
+            <NCheckbox v-model:checked="showGrid" @update:checked="toggleGrid">显示网格</NCheckbox>
+            <NCheckbox v-model:checked="showConnectionPoints" @update:checked="toggleConnectionPoints">
+              显示连接点
+            </NCheckbox>
+            <NCheckbox v-model:checked="showRelationshipLabels">显示关系标签</NCheckbox>
+          </NSpace>
+        </NSpace>
+      </div>
+
+      <div class="toolbar-right">
+        <NSpace>
+          <NButton size="small" :loading="saving" @click="saveLayout">
+            <template #icon>
+              <NIcon><icon-mdi-content-save /></NIcon>
+            </template>
+            保存布局
+          </NButton>
+        </NSpace>
+      </div>
+    </div>
+
+    <!-- X6 Graph Canvas -->
+    <div class="designer-canvas">
+      <X6GraphCanvas
+        ref="graphCanvasRef"
+        :is-connect-mode="currentMode === 'connect'"
+        :connect-source-node="connectSourceNode"
+        :show-grid="showGrid"
+        :snap-to-grid="snapToGrid"
+        :show-connection-points="showConnectionPoints"
+        @graph-ready="handleGraphReady"
+        @node-selected="handleNodeSelected"
+        @edge-selected="handleEdgeSelected"
+        @selection-cleared="handleSelectionCleared"
+        @node-clicked="handleNodeClicked"
+        @cancel-connect="handleCancelConnect"
+        @create-relationship="handleCreateRelationship"
+      />
+
+      <!-- Loading Overlay -->
+      <div v-if="loading" class="loading-overlay">
+        <NSpin size="large">
+          <template #description>正在{{ layouting ? '布局' : '加载' }}实体设计器...</template>
+        </NSpin>
+      </div>
+
+      <!-- Empty State -->
+      <div v-if="!loading && entities.length === 0" class="empty-state">
+        <div class="empty-content">
+          <NIcon size="64" class="text-gray-400">
+            <icon-mdi-vector-polyline />
+          </NIcon>
+          <NText class="mt-4 text-lg font-medium">暂无实体</NText>
+          <NText class="mt-2 text-gray-500">请先创建实体，然后在此设计实体关系</NText>
+          <NButton type="primary" class="mt-4" @click="$emit('entity-create')">
+            <template #icon>
+              <NIcon><icon-mdi-plus /></NIcon>
+            </template>
+            创建实体
+          </NButton>
+        </div>
+      </div>
+    </div>
+
+    <!-- Property Panel - 使用 Teleport 传送到 body -->
+    <Teleport to="body">
+      <div v-if="selectedEntity" class="property-panel-overlay">
+        <div class="property-panel-container">
+          <EntityPropertyPanel
+            :entity="selectedEntity"
+            @update="handleEntityUpdate"
+            @close="handleClosePropertyPanel"
+            @fields-update="handleFieldsUpdate"
+            @field-add="handleFieldAdd"
+            @field-update="handleFieldUpdate"
+            @field-delete="handleFieldDelete"
+          />
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- 创建关系弹窗 -->
+    <CreateRelationshipModal
+      v-model:visible="showCreateRelationshipModal"
+      :source-entity="connectingSourceEntity"
+      :target-entity="connectingTargetEntity"
+      :loading="loadingRelationships"
+      @confirm="handleCreateRelationshipConfirm"
+      @cancel="handleCreateRelationshipCancel"
+    />
+  </div>
+</template>
 
 <style scoped>
 .x6-entity-designer {

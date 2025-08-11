@@ -1,374 +1,17 @@
-<template>
-  <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
-    <!-- Global Project Selector -->
-    <NCard :bordered="false" size="small" class="card-wrapper">
-      <ProjectSelector
-        :show-quick-actions="true"
-        @change="handleGlobalProjectChange"
-        @create="handleCreateProject"
-        @settings="handleProjectSettings"
-        @stats="handleProjectStats"
-      />
-    </NCard>
-
-    <!-- Main Generation Form -->
-    <NCard :title="$t('page.lowcode.codeGeneration.title')" :bordered="false" size="small" class="card-wrapper">
-      <template #header-extra>
-        <NSpace>
-          <NButton size="small" @click="handleLoadTemplate">
-            <template #icon>
-              <NIcon><icon-mdi-upload /></NIcon>
-            </template>
-            {{ $t('page.lowcode.codeGeneration.loadTemplate') }}
-          </NButton>
-          <NButton size="small" @click="handleSaveTemplate">
-            <template #icon>
-              <NIcon><icon-mdi-download /></NIcon>
-            </template>
-            {{ $t('page.lowcode.codeGeneration.saveTemplate') }}
-          </NButton>
-        </NSpace>
-      </template>
-
-      <NSplit direction="horizontal" :default-size="0.6" :min="0.3" :max="0.8">
-        <template #1>
-          <!-- Generation Configuration -->
-          <div class="pr-4">
-            <NForm ref="formRef" :model="generationForm" :rules="rules" label-placement="left" :label-width="120">
-              <NFormItem :label="$t('page.lowcode.codeGeneration.template')" path="templateIds">
-                <NSelect
-                  v-model:value="generationForm.templateIds"
-                  :placeholder="$t('page.lowcode.codeGeneration.form.template.placeholder')"
-                  :options="templateOptions"
-                  :loading="templateLoading"
-                  multiple
-                  clearable
-                  filterable
-                  @update:value="handleTemplateChange"
-                />
-              </NFormItem>
-
-
-              <NFormItem :label="$t('page.lowcode.codeGeneration.entities')" path="entityIds">
-                <NSelect
-                  v-model:value="generationForm.entityIds"
-                  :placeholder="$t('page.lowcode.codeGeneration.form.entities.placeholder')"
-                  :options="entityOptions"
-                  :loading="entityLoading"
-                  multiple
-                  clearable
-                  filterable
-                  @update:value="handleEntityChange"
-                />
-              </NFormItem>
-
-              <NFormItem :label="$t('page.lowcode.codeGeneration.targetProject')" path="targetProject">
-                <NSelect
-                  v-model:value="generationForm.targetProject"
-                  :placeholder="$t('page.lowcode.codeGeneration.form.targetProject.placeholder')"
-                  :options="targetProjectOptions"
-                  :loading="targetProjectLoading"
-                  clearable
-                  filterable
-                  @update:value="handleTargetProjectChange"
-                />
-              </NFormItem>
-
-              <NFormItem :label="$t('page.lowcode.codeGeneration.outputPath')" path="outputPath">
-                <NInputGroup>
-                  <NInput
-                    v-model:value="generationForm.outputPath"
-                    :placeholder="$t('page.lowcode.codeGeneration.form.outputPath.placeholder')"
-                    readonly
-                  />
-                  <NButton @click="handleBrowseOutputPath">
-                    <template #icon>
-                      <NIcon><icon-mdi-folder-open /></NIcon>
-                    </template>
-                  </NButton>
-                </NInputGroup>
-              </NFormItem>
-
-              <NDivider title-placement="left">
-                <NSpace align="center">
-                  <span>{{ $t('page.lowcode.codeGeneration.templateVariables') }}</span>
-                  <NButton
-                    v-if="templateVariables.length > 0"
-                    size="tiny"
-                    @click="handleAutoFillVariables"
-                  >
-                    {{ $t('page.lowcode.codeGeneration.autoFill') }}
-                  </NButton>
-                </NSpace>
-              </NDivider>
-
-              <div v-if="templateVariables.length > 0" class="space-y-4">
-                <NFormItem
-                  v-for="variable in templateVariables"
-                  :key="variable.name"
-                  :label="variable.name"
-                  :path="`variables.${variable.name}`"
-                >
-                  <template #label>
-                    <NSpace align="center">
-                      <span>{{ variable.name }}</span>
-                      <NTooltip v-if="variable.description">
-                        <template #trigger>
-                          <NIcon size="14" class="text-gray-400">
-                            <icon-ic-round-help />
-                          </NIcon>
-                        </template>
-                        {{ variable.description }}
-                      </NTooltip>
-                      <NTag v-if="variable.required" type="error" size="small">Required</NTag>
-                      <NTag v-if="variable.type" type="info" size="small">{{ variable.type }}</NTag>
-                    </NSpace>
-                  </template>
-
-                  <NInput
-                    v-if="variable.type === 'string'"
-                    v-model:value="generationForm.variables[variable.name]"
-                    :placeholder="variable.defaultValue || `Enter ${variable.name}`"
-                    @input="handleVariableChange"
-                  />
-                  <NInputNumber
-                    v-else-if="variable.type === 'number'"
-                    v-model:value="generationForm.variables[variable.name]"
-                    :placeholder="variable.defaultValue || `Enter ${variable.name}`"
-                    style="width: 100%"
-                    @update:value="handleVariableChange"
-                  />
-                  <NSwitch
-                    v-else-if="variable.type === 'boolean'"
-                    v-model:value="generationForm.variables[variable.name]"
-                    @update:value="handleVariableChange"
-                  />
-                  <NSelect
-                    v-else-if="variable.type === 'array'"
-                    v-model:value="generationForm.variables[variable.name]"
-                    :options="variable.options?.map(opt => ({ label: opt, value: opt }))"
-                    :placeholder="variable.defaultValue || `Select ${variable.name}`"
-                    multiple
-                    tag
-                    @update:value="handleVariableChange"
-                  />
-                  <NInput
-                    v-else
-                    v-model:value="generationForm.variables[variable.name]"
-                    :placeholder="variable.defaultValue || `Enter ${variable.name}`"
-                    type="textarea"
-                    :rows="3"
-                    @input="handleVariableChange"
-                  />
-                </NFormItem>
-              </div>
-              <NEmpty v-else :description="$t('page.lowcode.codeGeneration.noVariables')" />
-
-              <NDivider title-placement="left">{{ $t('page.lowcode.codeGeneration.options') }}</NDivider>
-
-              <NGrid :cols="2" :x-gap="16">
-                <NGridItem>
-                  <NFormItem :label="$t('page.lowcode.codeGeneration.overwriteExisting')" path="overwriteExisting">
-                    <NSwitch v-model:value="generationForm.overwriteExisting" />
-                  </NFormItem>
-                </NGridItem>
-                <NGridItem>
-                  <NFormItem :label="$t('page.lowcode.codeGeneration.createDirectories')" path="createDirectories">
-                    <NSwitch v-model:value="generationForm.createDirectories" />
-                  </NFormItem>
-                </NGridItem>
-                <NGridItem>
-                  <NFormItem :label="$t('page.lowcode.codeGeneration.format')" path="format">
-                    <NSwitch v-model:value="generationForm.format" />
-                  </NFormItem>
-                </NGridItem>
-                <NGridItem>
-                  <NFormItem :label="$t('page.lowcode.codeGeneration.dryRun')" path="dryRun">
-                    <NSwitch v-model:value="generationForm.dryRun" />
-                  </NFormItem>
-                </NGridItem>
-              </NGrid>
-
-              <NDivider title-placement="left">{{ $t('page.lowcode.codeGeneration.gitIntegration') }}</NDivider>
-
-              <NGrid :cols="2" :x-gap="16">
-                <NGridItem>
-                  <NFormItem :label="$t('page.lowcode.codeGeneration.gitEnabled')" path="gitEnabled">
-                    <NSwitch v-model:value="generationForm.gitEnabled" @update:value="handleGitEnabledChange" />
-                  </NFormItem>
-                </NGridItem>
-                <NGridItem>
-                  <NFormItem
-                    v-if="generationForm.gitEnabled"
-                    :label="$t('page.lowcode.codeGeneration.gitAutoCommit')"
-                    path="gitAutoCommit"
-                  >
-                    <NSwitch v-model:value="generationForm.gitAutoCommit" />
-                  </NFormItem>
-                </NGridItem>
-                <NGridItem>
-                  <NFormItem
-                    v-if="generationForm.gitEnabled && generationForm.gitAutoCommit"
-                    :label="$t('page.lowcode.codeGeneration.gitCreateBranch')"
-                    path="gitCreateBranch"
-                  >
-                    <NSwitch v-model:value="generationForm.gitCreateBranch" />
-                  </NFormItem>
-                </NGridItem>
-                <NGridItem>
-                  <NFormItem
-                    v-if="generationForm.gitEnabled && generationForm.gitAutoCommit && generationForm.gitCreateBranch"
-                    :label="$t('page.lowcode.codeGeneration.gitBranchName')"
-                    path="gitBranchName"
-                  >
-                    <NInput
-                      v-model:value="generationForm.gitBranchName"
-                      :placeholder="$t('page.lowcode.codeGeneration.form.gitBranchName.placeholder')"
-                    />
-                  </NFormItem>
-                </NGridItem>
-                <NGridItem>
-                  <NFormItem
-                    v-if="generationForm.gitEnabled && generationForm.gitAutoCommit"
-                    :label="$t('page.lowcode.codeGeneration.gitPush')"
-                    path="gitPush"
-                  >
-                    <NSwitch v-model:value="generationForm.gitPush" />
-                  </NFormItem>
-                </NGridItem>
-              </NGrid>
-
-              <NFormItem>
-                <NSpace>
-                  <NButton type="primary" :loading="generating" @click="handleGenerate">
-                    <template #icon>
-                      <NIcon><icon-mdi-play /></NIcon>
-                    </template>
-                    {{ $t('page.lowcode.codeGeneration.generate') }}
-                  </NButton>
-                  <NButton @click="handleReset">
-                    <template #icon>
-                      <NIcon><icon-mdi-refresh /></NIcon>
-                    </template>
-                    {{ $t('common.reset') }}
-                  </NButton>
-                  <NButton type="info" :loading="previewing" @click="handlePreview">
-                    <template #icon>
-                      <NIcon><icon-mdi-eye /></NIcon>
-                    </template>
-                    {{ $t('page.lowcode.codeGeneration.preview') }}
-                  </NButton>
-                  <NButton @click="handleValidate">
-                    <template #icon>
-                      <NIcon><icon-mdi-check-circle /></NIcon>
-                    </template>
-                    {{ $t('page.lowcode.codeGeneration.validate') }}
-                  </NButton>
-                </NSpace>
-              </NFormItem>
-            </NForm>
-          </div>
-        </template>
-
-        <template #2>
-          <!-- Enhanced Preview Panel -->
-          <div class="pl-4 h-full">
-            <CodePreview
-              :preview-data="previewContent"
-              :loading="previewing"
-              @refresh="handleRefreshPreview"
-              @download="handleDownloadPreview"
-            />
-          </div>
-        </template>
-      </NSplit>
-    </NCard>
-    
-    <!-- Generation Progress -->
-    <NCard v-if="generationProgress" :title="$t('page.lowcode.codeGeneration.progress')" :bordered="false" size="small" class="card-wrapper">
-      <NSpace vertical>
-        <NProgress 
-          type="line" 
-          :percentage="generationProgress.percentage" 
-          :status="generationProgress.status"
-          :show-indicator="true"
-        />
-        <NText>{{ generationProgress.message }}</NText>
-        <NSpace v-if="generationProgress.logs.length > 0" vertical>
-          <NText strong>{{ $t('page.lowcode.codeGeneration.logs') }}:</NText>
-          <NScrollbar style="max-height: 200px">
-            <div v-for="(log, index) in generationProgress.logs" :key="index" class="mb-2">
-              <NTag :type="getLogTagType(log.level)" size="small">{{ log.level }}</NTag>
-              <span class="ml-2">{{ log.message }}</span>
-              <NText depth="3" class="ml-2">{{ new Date(log.timestamp).toLocaleTimeString() }}</NText>
-            </div>
-          </NScrollbar>
-        </NSpace>
-      </NSpace>
-    </NCard>
-    
-    <!-- Generation Result -->
-    <NCard v-if="generationResult" :title="$t('page.lowcode.codeGeneration.result')" :bordered="false" size="small" class="card-wrapper">
-      <NTabs type="line" animated>
-        <NTabPane name="summary" :tab="$t('page.lowcode.codeGeneration.summary')">
-          <NSpace vertical>
-            <NSpace align="center">
-              <NText strong>{{ $t('page.lowcode.codeGeneration.status') }}:</NText>
-              <NTag :type="generationResult.success ? 'success' : 'error'">
-                {{ generationResult.success ? $t('common.success') : $t('common.failed') }}
-              </NTag>
-            </NSpace>
-            <NSpace align="center">
-              <NText strong>{{ $t('page.lowcode.codeGeneration.filesGenerated') }}:</NText>
-              <NText>{{ generationResult.filesGenerated || 0 }}</NText>
-            </NSpace>
-            <NSpace align="center">
-              <NText strong>{{ $t('page.lowcode.codeGeneration.outputPath') }}:</NText>
-              <NText code>{{ generationResult.outputPath }}</NText>
-            </NSpace>
-            <div v-if="generationResult.errors && generationResult.errors.length > 0">
-              <NText strong type="error">{{ $t('page.lowcode.codeGeneration.errors') }}:</NText>
-              <ul>
-                <li v-for="error in generationResult.errors" :key="error" class="text-red-500">
-                  {{ error }}
-                </li>
-              </ul>
-            </div>
-          </NSpace>
-        </NTabPane>
-        <NTabPane name="files" :tab="$t('page.lowcode.codeGeneration.generatedFiles')">
-          <NTree 
-            v-if="generationResult.fileTree"
-            :data="generationResult.fileTree"
-            key-field="path"
-            label-field="name"
-            children-field="children"
-            selectable
-            @update:selected-keys="handleFileSelect"
-          />
-        </NTabPane>
-        <NTabPane v-if="selectedFileContent" name="content" :tab="$t('page.lowcode.codeGeneration.fileContent')">
-          <NCode :code="selectedFileContent" :language="getFileLanguage(selectedFileName)" />
-        </NTabPane>
-      </NTabs>
-    </NCard>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { reactive, ref, watch, onMounted, computed } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import type { FormInst, FormRules } from 'naive-ui';
 import {
+  fetchGetAllEntities,
   fetchGetAllProjects,
   fetchGetAllTemplates,
-  fetchGetAllEntities,
   fetchGetGeneratedFileContent,
   fetchGetTemplateVariables
 } from '@/service/api';
-import { $t } from '@/locales';
-import { createRequiredFormRule } from '@/utils/form/rule';
 import { useLowcodeStore } from '@/store/modules/lowcode';
+import { createRequiredFormRule } from '@/utils/form/rule';
+import { $t } from '@/locales';
 import ProjectSelector from '@/components/common/ProjectSelector.vue';
 import CodePreview from '@/components/lowcode/CodePreview.vue';
 
@@ -617,9 +260,7 @@ function handleTargetProjectChange(targetProject: string) {
   const project = targetProjectOptions.value.find(p => p.value === targetProject);
   if (project) {
     // 这里可以根据项目类型设置默认输出路径
-    generationForm.outputPath = targetProject === 'amis-lowcode-backend'
-      ? '../amis-lowcode-backend'
-      : './generated';
+    generationForm.outputPath = targetProject === 'amis-lowcode-backend' ? '../amis-lowcode-backend' : './generated';
   }
 }
 
@@ -665,7 +306,7 @@ function handleAutoFillVariables() {
           generationForm.variables[variable.name] = firstEntity.label;
         }
         if (variable.name === 'tableName' && !generationForm.variables[variable.name]) {
-          generationForm.variables[variable.name] = firstEntity.label.toLowerCase() + 's';
+          generationForm.variables[variable.name] = `${firstEntity.label.toLowerCase()}s`;
         }
       });
     }
@@ -776,15 +417,17 @@ async function handleGenerate() {
         format: generationForm.format,
         dryRun: generationForm.dryRun
       },
-      git: generationForm.gitEnabled ? {
-        enabled: true,
-        autoCommit: generationForm.gitAutoCommit,
-        createBranch: generationForm.gitCreateBranch,
-        branchName: generationForm.gitBranchName || undefined,
-        push: generationForm.gitPush
-      } : {
-        enabled: false
-      }
+      git: generationForm.gitEnabled
+        ? {
+            enabled: true,
+            autoCommit: generationForm.gitAutoCommit,
+            createBranch: generationForm.gitCreateBranch,
+            branchName: generationForm.gitBranchName || undefined,
+            push: generationForm.gitPush
+          }
+        : {
+            enabled: false
+          }
     };
 
     const response = await fetch('/api/v1/code-generation/generate', {
@@ -803,10 +446,11 @@ async function handleGenerate() {
         filesGenerated: result.result.metadata?.totalFiles || 0,
         outputPath: generationForm.outputPath,
         errors: result.result.errors || [],
-        fileTree: result.result.generatedFiles?.map((file: string) => ({
-          name: file.split('/').pop(),
-          path: file
-        })) || []
+        fileTree:
+          result.result.generatedFiles?.map((file: string) => ({
+            name: file.split('/').pop(),
+            path: file
+          })) || []
       };
 
       generationProgress.value = {
@@ -908,18 +552,20 @@ export class UserController {
           name: 'src',
           path: 'src',
           children: [
-            { name: 'services', path: 'src/services', children: [
-              { name: 'user.service.ts', path: 'src/services/user.service.ts' }
-            ]},
-            { name: 'controllers', path: 'src/controllers', children: [
-              { name: 'user.controller.ts', path: 'src/controllers/user.controller.ts' }
-            ]}
+            {
+              name: 'services',
+              path: 'src/services',
+              children: [{ name: 'user.service.ts', path: 'src/services/user.service.ts' }]
+            },
+            {
+              name: 'controllers',
+              path: 'src/controllers',
+              children: [{ name: 'user.controller.ts', path: 'src/controllers/user.controller.ts' }]
+            }
           ]
         }
       ],
-      validation: [
-        { type: 'success', title: 'Validation Passed', message: 'All templates and variables are valid' }
-      ]
+      validation: [{ type: 'success', title: 'Validation Passed', message: 'All templates and variables are valid' }]
     };
 
     previewContent.value = mockPreviewData;
@@ -980,13 +626,380 @@ onMounted(() => {
   }
 });
 
-watch(() => props.projectId, (newProjectId) => {
-  if (newProjectId) {
-    generationForm.projectId = newProjectId;
-    loadTemplates(newProjectId);
-    loadEntities(newProjectId);
+watch(
+  () => props.projectId,
+  newProjectId => {
+    if (newProjectId) {
+      generationForm.projectId = newProjectId;
+      loadTemplates(newProjectId);
+      loadEntities(newProjectId);
+    }
   }
-});
+);
 </script>
+
+<template>
+  <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
+    <!-- Global Project Selector -->
+    <NCard :bordered="false" size="small" class="card-wrapper">
+      <ProjectSelector
+        :show-quick-actions="true"
+        @change="handleGlobalProjectChange"
+        @create="handleCreateProject"
+        @settings="handleProjectSettings"
+        @stats="handleProjectStats"
+      />
+    </NCard>
+
+    <!-- Main Generation Form -->
+    <NCard :title="$t('page.lowcode.codeGeneration.title')" :bordered="false" size="small" class="card-wrapper">
+      <template #header-extra>
+        <NSpace>
+          <NButton size="small" @click="handleLoadTemplate">
+            <template #icon>
+              <NIcon><icon-mdi-upload /></NIcon>
+            </template>
+            {{ $t('page.lowcode.codeGeneration.loadTemplate') }}
+          </NButton>
+          <NButton size="small" @click="handleSaveTemplate">
+            <template #icon>
+              <NIcon><icon-mdi-download /></NIcon>
+            </template>
+            {{ $t('page.lowcode.codeGeneration.saveTemplate') }}
+          </NButton>
+        </NSpace>
+      </template>
+
+      <NSplit direction="horizontal" :default-size="0.6" :min="0.3" :max="0.8">
+        <template #1>
+          <!-- Generation Configuration -->
+          <div class="pr-4">
+            <NForm ref="formRef" :model="generationForm" :rules="rules" label-placement="left" :label-width="120">
+              <NFormItem :label="$t('page.lowcode.codeGeneration.template')" path="templateIds">
+                <NSelect
+                  v-model:value="generationForm.templateIds"
+                  :placeholder="$t('page.lowcode.codeGeneration.form.template.placeholder')"
+                  :options="templateOptions"
+                  :loading="templateLoading"
+                  multiple
+                  clearable
+                  filterable
+                  @update:value="handleTemplateChange"
+                />
+              </NFormItem>
+
+              <NFormItem :label="$t('page.lowcode.codeGeneration.entities')" path="entityIds">
+                <NSelect
+                  v-model:value="generationForm.entityIds"
+                  :placeholder="$t('page.lowcode.codeGeneration.form.entities.placeholder')"
+                  :options="entityOptions"
+                  :loading="entityLoading"
+                  multiple
+                  clearable
+                  filterable
+                  @update:value="handleEntityChange"
+                />
+              </NFormItem>
+
+              <NFormItem :label="$t('page.lowcode.codeGeneration.targetProject')" path="targetProject">
+                <NSelect
+                  v-model:value="generationForm.targetProject"
+                  :placeholder="$t('page.lowcode.codeGeneration.form.targetProject.placeholder')"
+                  :options="targetProjectOptions"
+                  :loading="targetProjectLoading"
+                  clearable
+                  filterable
+                  @update:value="handleTargetProjectChange"
+                />
+              </NFormItem>
+
+              <NFormItem :label="$t('page.lowcode.codeGeneration.outputPath')" path="outputPath">
+                <NInputGroup>
+                  <NInput
+                    v-model:value="generationForm.outputPath"
+                    :placeholder="$t('page.lowcode.codeGeneration.form.outputPath.placeholder')"
+                    readonly
+                  />
+                  <NButton @click="handleBrowseOutputPath">
+                    <template #icon>
+                      <NIcon><icon-mdi-folder-open /></NIcon>
+                    </template>
+                  </NButton>
+                </NInputGroup>
+              </NFormItem>
+
+              <NDivider title-placement="left">
+                <NSpace align="center">
+                  <span>{{ $t('page.lowcode.codeGeneration.templateVariables') }}</span>
+                  <NButton v-if="templateVariables.length > 0" size="tiny" @click="handleAutoFillVariables">
+                    {{ $t('page.lowcode.codeGeneration.autoFill') }}
+                  </NButton>
+                </NSpace>
+              </NDivider>
+
+              <div v-if="templateVariables.length > 0" class="space-y-4">
+                <NFormItem
+                  v-for="variable in templateVariables"
+                  :key="variable.name"
+                  :label="variable.name"
+                  :path="`variables.${variable.name}`"
+                >
+                  <template #label>
+                    <NSpace align="center">
+                      <span>{{ variable.name }}</span>
+                      <NTooltip v-if="variable.description">
+                        <template #trigger>
+                          <NIcon size="14" class="text-gray-400">
+                            <icon-ic-round-help />
+                          </NIcon>
+                        </template>
+                        {{ variable.description }}
+                      </NTooltip>
+                      <NTag v-if="variable.required" type="error" size="small">Required</NTag>
+                      <NTag v-if="variable.type" type="info" size="small">{{ variable.type }}</NTag>
+                    </NSpace>
+                  </template>
+
+                  <NInput
+                    v-if="variable.type === 'string'"
+                    v-model:value="generationForm.variables[variable.name]"
+                    :placeholder="variable.defaultValue || `Enter ${variable.name}`"
+                    @input="handleVariableChange"
+                  />
+                  <NInputNumber
+                    v-else-if="variable.type === 'number'"
+                    v-model:value="generationForm.variables[variable.name]"
+                    :placeholder="variable.defaultValue || `Enter ${variable.name}`"
+                    style="width: 100%"
+                    @update:value="handleVariableChange"
+                  />
+                  <NSwitch
+                    v-else-if="variable.type === 'boolean'"
+                    v-model:value="generationForm.variables[variable.name]"
+                    @update:value="handleVariableChange"
+                  />
+                  <NSelect
+                    v-else-if="variable.type === 'array'"
+                    v-model:value="generationForm.variables[variable.name]"
+                    :options="variable.options?.map(opt => ({ label: opt, value: opt }))"
+                    :placeholder="variable.defaultValue || `Select ${variable.name}`"
+                    multiple
+                    tag
+                    @update:value="handleVariableChange"
+                  />
+                  <NInput
+                    v-else
+                    v-model:value="generationForm.variables[variable.name]"
+                    :placeholder="variable.defaultValue || `Enter ${variable.name}`"
+                    type="textarea"
+                    :rows="3"
+                    @input="handleVariableChange"
+                  />
+                </NFormItem>
+              </div>
+              <NEmpty v-else :description="$t('page.lowcode.codeGeneration.noVariables')" />
+
+              <NDivider title-placement="left">{{ $t('page.lowcode.codeGeneration.options') }}</NDivider>
+
+              <NGrid :cols="2" :x-gap="16">
+                <NGridItem>
+                  <NFormItem :label="$t('page.lowcode.codeGeneration.overwriteExisting')" path="overwriteExisting">
+                    <NSwitch v-model:value="generationForm.overwriteExisting" />
+                  </NFormItem>
+                </NGridItem>
+                <NGridItem>
+                  <NFormItem :label="$t('page.lowcode.codeGeneration.createDirectories')" path="createDirectories">
+                    <NSwitch v-model:value="generationForm.createDirectories" />
+                  </NFormItem>
+                </NGridItem>
+                <NGridItem>
+                  <NFormItem :label="$t('page.lowcode.codeGeneration.format')" path="format">
+                    <NSwitch v-model:value="generationForm.format" />
+                  </NFormItem>
+                </NGridItem>
+                <NGridItem>
+                  <NFormItem :label="$t('page.lowcode.codeGeneration.dryRun')" path="dryRun">
+                    <NSwitch v-model:value="generationForm.dryRun" />
+                  </NFormItem>
+                </NGridItem>
+              </NGrid>
+
+              <NDivider title-placement="left">{{ $t('page.lowcode.codeGeneration.gitIntegration') }}</NDivider>
+
+              <NGrid :cols="2" :x-gap="16">
+                <NGridItem>
+                  <NFormItem :label="$t('page.lowcode.codeGeneration.gitEnabled')" path="gitEnabled">
+                    <NSwitch v-model:value="generationForm.gitEnabled" @update:value="handleGitEnabledChange" />
+                  </NFormItem>
+                </NGridItem>
+                <NGridItem>
+                  <NFormItem
+                    v-if="generationForm.gitEnabled"
+                    :label="$t('page.lowcode.codeGeneration.gitAutoCommit')"
+                    path="gitAutoCommit"
+                  >
+                    <NSwitch v-model:value="generationForm.gitAutoCommit" />
+                  </NFormItem>
+                </NGridItem>
+                <NGridItem>
+                  <NFormItem
+                    v-if="generationForm.gitEnabled && generationForm.gitAutoCommit"
+                    :label="$t('page.lowcode.codeGeneration.gitCreateBranch')"
+                    path="gitCreateBranch"
+                  >
+                    <NSwitch v-model:value="generationForm.gitCreateBranch" />
+                  </NFormItem>
+                </NGridItem>
+                <NGridItem>
+                  <NFormItem
+                    v-if="generationForm.gitEnabled && generationForm.gitAutoCommit && generationForm.gitCreateBranch"
+                    :label="$t('page.lowcode.codeGeneration.gitBranchName')"
+                    path="gitBranchName"
+                  >
+                    <NInput
+                      v-model:value="generationForm.gitBranchName"
+                      :placeholder="$t('page.lowcode.codeGeneration.form.gitBranchName.placeholder')"
+                    />
+                  </NFormItem>
+                </NGridItem>
+                <NGridItem>
+                  <NFormItem
+                    v-if="generationForm.gitEnabled && generationForm.gitAutoCommit"
+                    :label="$t('page.lowcode.codeGeneration.gitPush')"
+                    path="gitPush"
+                  >
+                    <NSwitch v-model:value="generationForm.gitPush" />
+                  </NFormItem>
+                </NGridItem>
+              </NGrid>
+
+              <NFormItem>
+                <NSpace>
+                  <NButton type="primary" :loading="generating" @click="handleGenerate">
+                    <template #icon>
+                      <NIcon><icon-mdi-play /></NIcon>
+                    </template>
+                    {{ $t('page.lowcode.codeGeneration.generate') }}
+                  </NButton>
+                  <NButton @click="handleReset">
+                    <template #icon>
+                      <NIcon><icon-mdi-refresh /></NIcon>
+                    </template>
+                    {{ $t('common.reset') }}
+                  </NButton>
+                  <NButton type="info" :loading="previewing" @click="handlePreview">
+                    <template #icon>
+                      <NIcon><icon-mdi-eye /></NIcon>
+                    </template>
+                    {{ $t('page.lowcode.codeGeneration.preview') }}
+                  </NButton>
+                  <NButton @click="handleValidate">
+                    <template #icon>
+                      <NIcon><icon-mdi-check-circle /></NIcon>
+                    </template>
+                    {{ $t('page.lowcode.codeGeneration.validate') }}
+                  </NButton>
+                </NSpace>
+              </NFormItem>
+            </NForm>
+          </div>
+        </template>
+
+        <template #2>
+          <!-- Enhanced Preview Panel -->
+          <div class="h-full pl-4">
+            <CodePreview
+              :preview-data="previewContent"
+              :loading="previewing"
+              @refresh="handleRefreshPreview"
+              @download="handleDownloadPreview"
+            />
+          </div>
+        </template>
+      </NSplit>
+    </NCard>
+
+    <!-- Generation Progress -->
+    <NCard
+      v-if="generationProgress"
+      :title="$t('page.lowcode.codeGeneration.progress')"
+      :bordered="false"
+      size="small"
+      class="card-wrapper"
+    >
+      <NSpace vertical>
+        <NProgress
+          type="line"
+          :percentage="generationProgress.percentage"
+          :status="generationProgress.status"
+          :show-indicator="true"
+        />
+        <NText>{{ generationProgress.message }}</NText>
+        <NSpace v-if="generationProgress.logs.length > 0" vertical>
+          <NText strong>{{ $t('page.lowcode.codeGeneration.logs') }}:</NText>
+          <NScrollbar style="max-height: 200px">
+            <div v-for="(log, index) in generationProgress.logs" :key="index" class="mb-2">
+              <NTag :type="getLogTagType(log.level)" size="small">{{ log.level }}</NTag>
+              <span class="ml-2">{{ log.message }}</span>
+              <NText depth="3" class="ml-2">{{ new Date(log.timestamp).toLocaleTimeString() }}</NText>
+            </div>
+          </NScrollbar>
+        </NSpace>
+      </NSpace>
+    </NCard>
+
+    <!-- Generation Result -->
+    <NCard
+      v-if="generationResult"
+      :title="$t('page.lowcode.codeGeneration.result')"
+      :bordered="false"
+      size="small"
+      class="card-wrapper"
+    >
+      <NTabs type="line" animated>
+        <NTabPane name="summary" :tab="$t('page.lowcode.codeGeneration.summary')">
+          <NSpace vertical>
+            <NSpace align="center">
+              <NText strong>{{ $t('page.lowcode.codeGeneration.status') }}:</NText>
+              <NTag :type="generationResult.success ? 'success' : 'error'">
+                {{ generationResult.success ? $t('common.success') : $t('common.failed') }}
+              </NTag>
+            </NSpace>
+            <NSpace align="center">
+              <NText strong>{{ $t('page.lowcode.codeGeneration.filesGenerated') }}:</NText>
+              <NText>{{ generationResult.filesGenerated || 0 }}</NText>
+            </NSpace>
+            <NSpace align="center">
+              <NText strong>{{ $t('page.lowcode.codeGeneration.outputPath') }}:</NText>
+              <NText code>{{ generationResult.outputPath }}</NText>
+            </NSpace>
+            <div v-if="generationResult.errors && generationResult.errors.length > 0">
+              <NText strong type="error">{{ $t('page.lowcode.codeGeneration.errors') }}:</NText>
+              <ul>
+                <li v-for="error in generationResult.errors" :key="error" class="text-red-500">
+                  {{ error }}
+                </li>
+              </ul>
+            </div>
+          </NSpace>
+        </NTabPane>
+        <NTabPane name="files" :tab="$t('page.lowcode.codeGeneration.generatedFiles')">
+          <NTree
+            v-if="generationResult.fileTree"
+            :data="generationResult.fileTree"
+            key-field="path"
+            label-field="name"
+            children-field="children"
+            selectable
+            @update:selected-keys="handleFileSelect"
+          />
+        </NTabPane>
+        <NTabPane v-if="selectedFileContent" name="content" :tab="$t('page.lowcode.codeGeneration.fileContent')">
+          <NCode :code="selectedFileContent" :language="getFileLanguage(selectedFileName)" />
+        </NTabPane>
+      </NTabs>
+    </NCard>
+  </div>
+</template>
 
 <style scoped></style>

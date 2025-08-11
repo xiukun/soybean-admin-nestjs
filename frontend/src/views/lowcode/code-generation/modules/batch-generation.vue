@@ -1,3 +1,275 @@
+<script setup lang="ts">
+import { computed, h, reactive, ref } from 'vue';
+import type { DataTableColumns, FormInst, FormRules } from 'naive-ui';
+import { createRequiredFormRule } from '@/utils/form/rule';
+import { $t } from '@/locales';
+
+interface BatchProgress {
+  name: string;
+  status: 'PENDING' | 'RUNNING' | 'SUCCESS' | 'FAILED';
+  percentage: number;
+  currentTask: string;
+}
+
+interface BatchResult {
+  name: string;
+  status: 'SUCCESS' | 'FAILED';
+  filesGenerated: number;
+  outputPath: string;
+  duration: number;
+  errors?: string[];
+}
+
+// State
+const batchFormRef = ref<FormInst | null>(null);
+const generating = ref(false);
+const batchProgress = ref<BatchProgress[]>([]);
+const batchResults = ref<BatchResult[]>([]);
+
+// Form
+const batchForm = reactive({
+  mode: 'projects',
+  concurrency: 3,
+  projectIds: [],
+  entityIds: [],
+  templateIds: [],
+  outputStrategy: 'separate',
+  baseOutputPath: './batch-generated',
+  options: {
+    overwriteExisting: false,
+    generateTests: true,
+    generateDocs: true,
+    enableLinting: true,
+    createGitRepo: false,
+    autoCommit: false
+  }
+});
+
+// Options
+const batchModeOptions = [
+  { label: $t('page.lowcode.codeGeneration.batchByProjects'), value: 'projects' },
+  { label: $t('page.lowcode.codeGeneration.batchByEntities'), value: 'entities' },
+  { label: $t('page.lowcode.codeGeneration.batchByTemplates'), value: 'templates' }
+];
+
+// Mock data for transfer options
+const projectTransferOptions = ref([
+  { label: 'E-commerce Platform', value: 'project-1' },
+  { label: 'CRM System', value: 'project-2' }
+]);
+
+const entityTransferOptions = ref([
+  { label: 'User', value: 'entity-1' },
+  { label: 'Product', value: 'entity-2' },
+  { label: 'Order', value: 'entity-3' }
+]);
+
+const templateTransferOptions = ref([
+  { label: 'NestJS Controller', value: 'template-1' },
+  { label: 'NestJS Service', value: 'template-2' },
+  { label: 'DTO Template', value: 'template-3' }
+]);
+
+// Form rules
+const batchRules: FormRules = {
+  mode: createRequiredFormRule($t('page.lowcode.codeGeneration.batchModeRequired')),
+  baseOutputPath: createRequiredFormRule($t('page.lowcode.codeGeneration.baseOutputPathRequired'))
+};
+
+// Table columns for results
+const resultColumns: DataTableColumns<BatchResult> = [
+  { title: $t('page.lowcode.codeGeneration.name'), key: 'name', width: 200 },
+  {
+    title: $t('page.lowcode.codeGeneration.status'),
+    key: 'status',
+    width: 100,
+    render: row =>
+      h(
+        'NTag',
+        { type: row.status === 'SUCCESS' ? 'success' : 'error' },
+        $t(`page.lowcode.codeGeneration.status.${row.status.toLowerCase()}`)
+      )
+  },
+  { title: $t('page.lowcode.codeGeneration.filesGenerated'), key: 'filesGenerated', width: 120, align: 'center' },
+  { title: $t('page.lowcode.codeGeneration.outputPath'), key: 'outputPath', ellipsis: { tooltip: true } },
+  {
+    title: $t('page.lowcode.codeGeneration.duration'),
+    key: 'duration',
+    width: 100,
+    render: row => `${row.duration}ms`
+  },
+  {
+    title: $t('common.actions'),
+    key: 'actions',
+    width: 150,
+    render: row => [
+      h(
+        'NButton',
+        {
+          size: 'small',
+          onClick: () => handleViewResult(row),
+          style: { marginRight: '8px' }
+        },
+        $t('common.view')
+      ),
+      h(
+        'NButton',
+        {
+          size: 'small',
+          onClick: () => handleDownloadResult(row)
+        },
+        $t('common.download')
+      )
+    ]
+  }
+];
+
+// Methods
+function renderProjectLabel(option: any) {
+  return option.label;
+}
+
+function renderEntityLabel(option: any) {
+  return option.label;
+}
+
+function renderTemplateLabel(option: any) {
+  return option.label;
+}
+
+function getProgressStatusType(status: string): 'success' | 'warning' | 'error' | 'info' {
+  const statusMap: Record<string, 'success' | 'warning' | 'error' | 'info'> = {
+    SUCCESS: 'success',
+    FAILED: 'error',
+    RUNNING: 'info',
+    PENDING: 'warning'
+  };
+  return statusMap[status] || 'info';
+}
+
+function handleModeChange() {
+  // Reset selections when mode changes
+  batchForm.projectIds = [];
+  batchForm.entityIds = [];
+  batchForm.templateIds = [];
+}
+
+function handleBrowseBaseOutputPath() {
+  window.$message?.info('文件浏览器功能开发中');
+}
+
+function handleReset() {
+  Object.assign(batchForm, {
+    mode: 'projects',
+    concurrency: 3,
+    projectIds: [],
+    entityIds: [],
+    templateIds: [],
+    outputStrategy: 'separate',
+    baseOutputPath: './batch-generated',
+    options: {
+      overwriteExisting: false,
+      generateTests: true,
+      generateDocs: true,
+      enableLinting: true,
+      createGitRepo: false,
+      autoCommit: false
+    }
+  });
+  batchProgress.value = [];
+  batchResults.value = [];
+}
+
+function handlePreview() {
+  window.$message?.info('批量预览功能开发中');
+}
+
+async function handleStartBatchGeneration() {
+  await batchFormRef.value?.validate();
+
+  try {
+    generating.value = true;
+
+    // Mock batch generation
+    const items =
+      batchForm.mode === 'projects'
+        ? batchForm.projectIds
+        : batchForm.mode === 'entities'
+          ? batchForm.entityIds
+          : batchForm.templateIds;
+
+    batchProgress.value = items.map((id: string) => ({
+      name: `Item ${id}`,
+      status: 'PENDING' as const,
+      percentage: 0,
+      currentTask: 'Waiting to start...'
+    }));
+
+    // Simulate concurrent generation
+    for (let i = 0; i < items.length; i += batchForm.concurrency) {
+      const batch = items.slice(i, i + batchForm.concurrency);
+
+      await Promise.all(
+        batch.map(async (id: string, index: number) => {
+          const progressIndex = i + index;
+          const progress = batchProgress.value[progressIndex];
+
+          progress.status = 'RUNNING';
+          progress.currentTask = 'Starting generation...';
+
+          // Simulate generation steps
+          const steps = ['Analyzing...', 'Generating...', 'Validating...', 'Finalizing...'];
+          for (let step = 0; step < steps.length; step++) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            progress.currentTask = steps[step];
+            progress.percentage = ((step + 1) / steps.length) * 100;
+          }
+
+          progress.status = 'SUCCESS';
+          progress.currentTask = 'Completed';
+
+          // Add to results
+          batchResults.value.push({
+            name: `Item ${id}`,
+            status: 'SUCCESS',
+            filesGenerated: Math.floor(Math.random() * 20) + 5,
+            outputPath: `${batchForm.baseOutputPath}/item-${id}`,
+            duration: Math.floor(Math.random() * 5000) + 1000
+          });
+        })
+      );
+    }
+
+    window.$message?.success($t('page.lowcode.codeGeneration.batchGenerationCompleted'));
+  } catch (error) {
+    window.$message?.error($t('page.lowcode.codeGeneration.batchGenerationFailed'));
+  } finally {
+    generating.value = false;
+  }
+}
+
+function handleViewResult(result: BatchResult) {
+  window.$message?.info(`查看结果: ${result.name}`);
+}
+
+function handleDownloadResult(result: BatchResult) {
+  window.$message?.info(`下载结果: ${result.name}`);
+}
+
+function handleDownloadAll() {
+  window.$message?.info('下载所有结果功能开发中');
+}
+
+function handleOpenOutputDirectory() {
+  window.$message?.info('打开输出目录功能开发中');
+}
+
+function handleClearResults() {
+  batchResults.value = [];
+  batchProgress.value = [];
+}
+</script>
+
 <template>
   <div class="batch-generation">
     <!-- 批量生成配置 -->
@@ -129,14 +401,19 @@
     </NCard>
 
     <!-- 批量生成进度 -->
-    <NCard v-if="batchProgress.length > 0" :title="$t('page.lowcode.codeGeneration.batchProgress')" size="small" class="mb-4">
+    <NCard
+      v-if="batchProgress.length > 0"
+      :title="$t('page.lowcode.codeGeneration.batchProgress')"
+      size="small"
+      class="mb-4"
+    >
       <div class="space-y-3">
         <div
           v-for="(progress, index) in batchProgress"
           :key="index"
-          class="progress-item p-3 border border-gray-200 rounded"
+          class="progress-item border border-gray-200 rounded p-3"
         >
-          <div class="flex justify-between items-center mb-2">
+          <div class="mb-2 flex items-center justify-between">
             <NText strong>{{ progress.name }}</NText>
             <NTag :type="getProgressStatusType(progress.status)">
               {{ $t(`page.lowcode.codeGeneration.status.${progress.status.toLowerCase()}`) }}
@@ -155,14 +432,8 @@
 
     <!-- 批量生成结果 -->
     <NCard v-if="batchResults.length > 0" :title="$t('page.lowcode.codeGeneration.batchResults')" size="small">
-      <NDataTable
-        :columns="resultColumns"
-        :data="batchResults"
-        size="small"
-        :pagination="false"
-        :max-height="400"
-      />
-      
+      <NDataTable :columns="resultColumns" :data="batchResults" size="small" :pagination="false" :max-height="400" />
+
       <div class="mt-4">
         <NSpace>
           <NButton @click="handleDownloadAll">
@@ -188,263 +459,6 @@
     </NCard>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, reactive, computed, h } from 'vue';
-import type { FormInst, FormRules, DataTableColumns } from 'naive-ui';
-import { $t } from '@/locales';
-import { createRequiredFormRule } from '@/utils/form/rule';
-
-interface BatchProgress {
-  name: string;
-  status: 'PENDING' | 'RUNNING' | 'SUCCESS' | 'FAILED';
-  percentage: number;
-  currentTask: string;
-}
-
-interface BatchResult {
-  name: string;
-  status: 'SUCCESS' | 'FAILED';
-  filesGenerated: number;
-  outputPath: string;
-  duration: number;
-  errors?: string[];
-}
-
-// State
-const batchFormRef = ref<FormInst | null>(null);
-const generating = ref(false);
-const batchProgress = ref<BatchProgress[]>([]);
-const batchResults = ref<BatchResult[]>([]);
-
-// Form
-const batchForm = reactive({
-  mode: 'projects',
-  concurrency: 3,
-  projectIds: [],
-  entityIds: [],
-  templateIds: [],
-  outputStrategy: 'separate',
-  baseOutputPath: './batch-generated',
-  options: {
-    overwriteExisting: false,
-    generateTests: true,
-    generateDocs: true,
-    enableLinting: true,
-    createGitRepo: false,
-    autoCommit: false
-  }
-});
-
-// Options
-const batchModeOptions = [
-  { label: $t('page.lowcode.codeGeneration.batchByProjects'), value: 'projects' },
-  { label: $t('page.lowcode.codeGeneration.batchByEntities'), value: 'entities' },
-  { label: $t('page.lowcode.codeGeneration.batchByTemplates'), value: 'templates' }
-];
-
-// Mock data for transfer options
-const projectTransferOptions = ref([
-  { label: 'E-commerce Platform', value: 'project-1' },
-  { label: 'CRM System', value: 'project-2' }
-]);
-
-const entityTransferOptions = ref([
-  { label: 'User', value: 'entity-1' },
-  { label: 'Product', value: 'entity-2' },
-  { label: 'Order', value: 'entity-3' }
-]);
-
-const templateTransferOptions = ref([
-  { label: 'NestJS Controller', value: 'template-1' },
-  { label: 'NestJS Service', value: 'template-2' },
-  { label: 'DTO Template', value: 'template-3' }
-]);
-
-// Form rules
-const batchRules: FormRules = {
-  mode: createRequiredFormRule($t('page.lowcode.codeGeneration.batchModeRequired')),
-  baseOutputPath: createRequiredFormRule($t('page.lowcode.codeGeneration.baseOutputPathRequired'))
-};
-
-// Table columns for results
-const resultColumns: DataTableColumns<BatchResult> = [
-  { title: $t('page.lowcode.codeGeneration.name'), key: 'name', width: 200 },
-  {
-    title: $t('page.lowcode.codeGeneration.status'),
-    key: 'status',
-    width: 100,
-    render: (row) => h('NTag', { type: row.status === 'SUCCESS' ? 'success' : 'error' }, 
-      $t(`page.lowcode.codeGeneration.status.${row.status.toLowerCase()}`)
-    )
-  },
-  { title: $t('page.lowcode.codeGeneration.filesGenerated'), key: 'filesGenerated', width: 120, align: 'center' },
-  { title: $t('page.lowcode.codeGeneration.outputPath'), key: 'outputPath', ellipsis: { tooltip: true } },
-  { title: $t('page.lowcode.codeGeneration.duration'), key: 'duration', width: 100, render: (row) => `${row.duration}ms` },
-  {
-    title: $t('common.actions'),
-    key: 'actions',
-    width: 150,
-    render: (row) => [
-      h('NButton', 
-        { 
-          size: 'small', 
-          onClick: () => handleViewResult(row),
-          style: { marginRight: '8px' }
-        }, 
-        $t('common.view')
-      ),
-      h('NButton', 
-        { 
-          size: 'small', 
-          onClick: () => handleDownloadResult(row)
-        }, 
-        $t('common.download')
-      )
-    ]
-  }
-];
-
-// Methods
-function renderProjectLabel(option: any) {
-  return option.label;
-}
-
-function renderEntityLabel(option: any) {
-  return option.label;
-}
-
-function renderTemplateLabel(option: any) {
-  return option.label;
-}
-
-function getProgressStatusType(status: string): 'success' | 'warning' | 'error' | 'info' {
-  const statusMap: Record<string, 'success' | 'warning' | 'error' | 'info'> = {
-    SUCCESS: 'success',
-    FAILED: 'error',
-    RUNNING: 'info',
-    PENDING: 'warning'
-  };
-  return statusMap[status] || 'info';
-}
-
-function handleModeChange() {
-  // Reset selections when mode changes
-  batchForm.projectIds = [];
-  batchForm.entityIds = [];
-  batchForm.templateIds = [];
-}
-
-function handleBrowseBaseOutputPath() {
-  window.$message?.info('文件浏览器功能开发中');
-}
-
-function handleReset() {
-  Object.assign(batchForm, {
-    mode: 'projects',
-    concurrency: 3,
-    projectIds: [],
-    entityIds: [],
-    templateIds: [],
-    outputStrategy: 'separate',
-    baseOutputPath: './batch-generated',
-    options: {
-      overwriteExisting: false,
-      generateTests: true,
-      generateDocs: true,
-      enableLinting: true,
-      createGitRepo: false,
-      autoCommit: false
-    }
-  });
-  batchProgress.value = [];
-  batchResults.value = [];
-}
-
-function handlePreview() {
-  window.$message?.info('批量预览功能开发中');
-}
-
-async function handleStartBatchGeneration() {
-  await batchFormRef.value?.validate();
-  
-  try {
-    generating.value = true;
-    
-    // Mock batch generation
-    const items = batchForm.mode === 'projects' ? batchForm.projectIds :
-                  batchForm.mode === 'entities' ? batchForm.entityIds :
-                  batchForm.templateIds;
-    
-    batchProgress.value = items.map((id: string) => ({
-      name: `Item ${id}`,
-      status: 'PENDING' as const,
-      percentage: 0,
-      currentTask: 'Waiting to start...'
-    }));
-    
-    // Simulate concurrent generation
-    for (let i = 0; i < items.length; i += batchForm.concurrency) {
-      const batch = items.slice(i, i + batchForm.concurrency);
-      
-      await Promise.all(batch.map(async (id: string, index: number) => {
-        const progressIndex = i + index;
-        const progress = batchProgress.value[progressIndex];
-        
-        progress.status = 'RUNNING';
-        progress.currentTask = 'Starting generation...';
-        
-        // Simulate generation steps
-        const steps = ['Analyzing...', 'Generating...', 'Validating...', 'Finalizing...'];
-        for (let step = 0; step < steps.length; step++) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          progress.currentTask = steps[step];
-          progress.percentage = ((step + 1) / steps.length) * 100;
-        }
-        
-        progress.status = 'SUCCESS';
-        progress.currentTask = 'Completed';
-        
-        // Add to results
-        batchResults.value.push({
-          name: `Item ${id}`,
-          status: 'SUCCESS',
-          filesGenerated: Math.floor(Math.random() * 20) + 5,
-          outputPath: `${batchForm.baseOutputPath}/item-${id}`,
-          duration: Math.floor(Math.random() * 5000) + 1000
-        });
-      }));
-    }
-    
-    window.$message?.success($t('page.lowcode.codeGeneration.batchGenerationCompleted'));
-  } catch (error) {
-    window.$message?.error($t('page.lowcode.codeGeneration.batchGenerationFailed'));
-  } finally {
-    generating.value = false;
-  }
-}
-
-function handleViewResult(result: BatchResult) {
-  window.$message?.info(`查看结果: ${result.name}`);
-}
-
-function handleDownloadResult(result: BatchResult) {
-  window.$message?.info(`下载结果: ${result.name}`);
-}
-
-function handleDownloadAll() {
-  window.$message?.info('下载所有结果功能开发中');
-}
-
-function handleOpenOutputDirectory() {
-  window.$message?.info('打开输出目录功能开发中');
-}
-
-function handleClearResults() {
-  batchResults.value = [];
-  batchProgress.value = [];
-}
-</script>
 
 <style scoped>
 .batch-generation {

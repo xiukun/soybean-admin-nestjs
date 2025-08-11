@@ -1,6 +1,4 @@
-/**
- * 实体管理相关的类型定义
- */
+/** 实体管理相关的类型定义 */
 
 // 坐标点
 export interface Point {
@@ -21,14 +19,14 @@ export interface Entity {
   fieldCount: number;
   createdAt: string;
   updatedAt: string;
-  
+
   // 布局字段
   x: number;
   y: number;
   width: number;
   height: number;
   color?: string;
-  
+
   // 扩展字段
   zIndex?: number;
   locked?: boolean;
@@ -53,27 +51,27 @@ export interface EntityRelationship {
   type: 'ONE_TO_ONE' | 'ONE_TO_MANY' | 'MANY_TO_MANY';
   name: string;
   description?: string;
-  
+
   // 字段关联
   sourceFieldName?: string;
   targetFieldName?: string;
-  
+
   // 级联操作
   cascadeAction?: 'RESTRICT' | 'CASCADE' | 'SET_NULL';
-  
+
   // 视觉样式
   lineStyle: 'solid' | 'dashed' | 'dotted';
   lineColor: string;
   lineWidth: number;
-  
+
   // 连接点和路径
   sourcePoint?: Point;
   targetPoint?: Point;
   controlPoints?: Point[];
-  
+
   // 标签位置
   labelPosition?: Point;
-  
+
   createdAt: string;
   updatedAt: string;
 }
@@ -137,7 +135,7 @@ export interface SelectionState {
 }
 
 // 工具栏操作类型
-export type ToolbarAction = 
+export type ToolbarAction =
   | 'select'
   | 'pan'
   | 'connect'

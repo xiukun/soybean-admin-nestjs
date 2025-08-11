@@ -1,3 +1,110 @@
+<script setup lang="ts">
+import { computed, onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useLowcodeStore } from '@/store/modules/lowcode';
+import { $t } from '@/locales';
+import EntityManagement from './modules/entity-management.vue';
+import TemplateManagement from './modules/template-management.vue';
+import ApiManagement from './modules/api-management.vue';
+import CodeGeneration from './modules/code-generation.vue';
+import ProjectConfiguration from './modules/project-configuration.vue';
+
+interface Props {
+  id: string;
+}
+
+const props = defineProps<Props>();
+
+const router = useRouter();
+const route = useRoute();
+const lowcodeStore = useLowcodeStore();
+
+// State
+const loading = ref(false);
+const project = ref(null);
+const entityCount = ref(0);
+const templateCount = ref(0);
+const apiCount = ref(0);
+const generatedCount = ref(0);
+
+// Computed
+const projectId = computed(() => props.id || (route.params.id as string));
+
+// Methods
+function getStatusType(status?: string): 'success' | 'warning' | 'error' | 'info' {
+  const statusMap: Record<string, 'success' | 'warning' | 'error' | 'info'> = {
+    ACTIVE: 'success',
+    INACTIVE: 'warning',
+    ARCHIVED: 'error'
+  };
+  return statusMap[status || ''] || 'info';
+}
+
+function handleGoBack() {
+  router.push('/lowcode/project');
+}
+
+function handleEditProject() {
+  // 打开编辑项目模态框
+  window.$message?.info('编辑项目功能开发中');
+}
+
+function handleOpenDesigner() {
+  // 打开设计器
+  window.$message?.info('设计器功能开发中');
+}
+
+function handleProjectUpdate(updatedProject: any) {
+  project.value = updatedProject;
+}
+
+async function loadProjectDetail() {
+  try {
+    loading.value = true;
+
+    // Mock data - 在实际实现中，这里会调用API
+    const mockProject = {
+      id: projectId.value,
+      name: 'E-commerce Platform',
+      code: 'ecommerce-platform',
+      description: 'A comprehensive e-commerce platform with user management, product catalog, and order processing.',
+      status: 'ACTIVE',
+      config: {
+        framework: 'nestjs',
+        architecture: 'base-biz',
+        language: 'typescript',
+        database: 'postgresql',
+        version: '1.0.0'
+      },
+      createdBy: 'admin',
+      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    project.value = mockProject;
+
+    // 加载统计数据
+    entityCount.value = 15;
+    templateCount.value = 8;
+    apiCount.value = 32;
+    generatedCount.value = 156;
+
+    // 设置为当前项目
+    lowcodeStore.setCurrentProject(projectId.value);
+  } catch (error) {
+    console.error('Failed to load project detail:', error);
+    window.$message?.error($t('page.lowcode.project.loadFailed'));
+  } finally {
+    loading.value = false;
+  }
+}
+
+// Lifecycle
+onMounted(() => {
+  loadProjectDetail();
+});
+</script>
+
 <template>
   <div class="project-detail">
     <!-- 页面头部 -->
@@ -11,7 +118,9 @@
               </template>
             </NButton>
             <div>
-              <NText tag="h1" class="text-2xl font-bold">{{ project?.name || $t('page.lowcode.project.detail') }}</NText>
+              <NText tag="h1" class="text-2xl font-bold">
+                {{ project?.name || $t('page.lowcode.project.detail') }}
+              </NText>
               <NText depth="3">{{ project?.description || $t('page.lowcode.project.noDescription') }}</NText>
             </div>
           </NSpace>
@@ -143,113 +252,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { $t } from '@/locales';
-import { useLowcodeStore } from '@/store/modules/lowcode';
-import EntityManagement from './modules/entity-management.vue';
-import TemplateManagement from './modules/template-management.vue';
-import ApiManagement from './modules/api-management.vue';
-import CodeGeneration from './modules/code-generation.vue';
-import ProjectConfiguration from './modules/project-configuration.vue';
-
-interface Props {
-  id: string;
-}
-
-const props = defineProps<Props>();
-
-const router = useRouter();
-const route = useRoute();
-const lowcodeStore = useLowcodeStore();
-
-// State
-const loading = ref(false);
-const project = ref(null);
-const entityCount = ref(0);
-const templateCount = ref(0);
-const apiCount = ref(0);
-const generatedCount = ref(0);
-
-// Computed
-const projectId = computed(() => props.id || route.params.id as string);
-
-// Methods
-function getStatusType(status?: string): 'success' | 'warning' | 'error' | 'info' {
-  const statusMap: Record<string, 'success' | 'warning' | 'error' | 'info'> = {
-    ACTIVE: 'success',
-    INACTIVE: 'warning',
-    ARCHIVED: 'error'
-  };
-  return statusMap[status || ''] || 'info';
-}
-
-function handleGoBack() {
-  router.push('/lowcode/project');
-}
-
-function handleEditProject() {
-  // 打开编辑项目模态框
-  window.$message?.info('编辑项目功能开发中');
-}
-
-function handleOpenDesigner() {
-  // 打开设计器
-  window.$message?.info('设计器功能开发中');
-}
-
-function handleProjectUpdate(updatedProject: any) {
-  project.value = updatedProject;
-}
-
-async function loadProjectDetail() {
-  try {
-    loading.value = true;
-    
-    // Mock data - 在实际实现中，这里会调用API
-    const mockProject = {
-      id: projectId.value,
-      name: 'E-commerce Platform',
-      code: 'ecommerce-platform',
-      description: 'A comprehensive e-commerce platform with user management, product catalog, and order processing.',
-      status: 'ACTIVE',
-      config: {
-        framework: 'nestjs',
-        architecture: 'base-biz',
-        language: 'typescript',
-        database: 'postgresql',
-        version: '1.0.0'
-      },
-      createdBy: 'admin',
-      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    
-    project.value = mockProject;
-    
-    // 加载统计数据
-    entityCount.value = 15;
-    templateCount.value = 8;
-    apiCount.value = 32;
-    generatedCount.value = 156;
-    
-    // 设置为当前项目
-    lowcodeStore.setCurrentProject(projectId.value);
-  } catch (error) {
-    console.error('Failed to load project detail:', error);
-    window.$message?.error($t('page.lowcode.project.loadFailed'));
-  } finally {
-    loading.value = false;
-  }
-}
-
-// Lifecycle
-onMounted(() => {
-  loadProjectDetail();
-});
-</script>
 
 <style scoped>
 .project-detail {

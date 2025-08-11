@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import VirtualProjectList from '../components/VirtualProjectList.vue';
 
 // Mock项目数据
@@ -33,7 +33,7 @@ describe('VirtualProjectList', () => {
         itemHeight: 120
       }
     });
-    
+
     expect(wrapper.exists()).toBe(true);
     expect(wrapper.find('.virtual-list-container').exists()).toBe(true);
   });
@@ -46,7 +46,7 @@ describe('VirtualProjectList', () => {
         containerHeight: 600
       }
     });
-    
+
     // 容器高度600px，项目高度120px，应该显示5个项目
     const visibleItems = wrapper.vm.visibleItems;
     expect(visibleItems.length).toBeLessThanOrEqual(7); // 包含缓冲区
@@ -59,14 +59,14 @@ describe('VirtualProjectList', () => {
         itemHeight: 120
       }
     });
-    
+
     const container = wrapper.find('.virtual-list-container');
-    
+
     // 模拟滚动
     await container.trigger('scroll', {
       target: { scrollTop: 240 } // 滚动到第3个项目
     });
-    
+
     // 检查偏移量是否正确更新
     expect(wrapper.vm.offsetY).toBeGreaterThan(0);
   });
@@ -78,12 +78,12 @@ describe('VirtualProjectList', () => {
         itemHeight: 120
       }
     });
-    
+
     // 查找第一个项目的编辑按钮
     const editButton = wrapper.find('[data-action="edit"]');
     if (editButton.exists()) {
       await editButton.trigger('click');
-      
+
       expect(wrapper.emitted('edit')).toBeTruthy();
       expect(wrapper.emitted('edit')?.[0]).toEqual([mockProjects[0]]);
     }
@@ -95,14 +95,14 @@ describe('VirtualProjectList', () => {
       { ...mockProjects[1], status: 'INACTIVE' as const },
       { ...mockProjects[2], status: 'ARCHIVED' as const }
     ];
-    
+
     const wrapper = mount(VirtualProjectList, {
       props: {
         projects: testProjects,
         itemHeight: 120
       }
     });
-    
+
     const statusTags = wrapper.findAll('.n-tag');
     expect(statusTags.length).toBeGreaterThan(0);
   });
@@ -114,7 +114,7 @@ describe('VirtualProjectList', () => {
         itemHeight: 120
       }
     });
-    
+
     expect(wrapper.find('.empty-state').exists()).toBe(true);
   });
 });

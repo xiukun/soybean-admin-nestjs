@@ -99,12 +99,15 @@ export function fetchPreviewCodeGeneration(data: {
  * @param projectId - project id
  * @param params - search params
  */
-export function fetchGetGenerationHistory(projectId: string, params?: {
-  current?: number;
-  size?: number;
-  templateId?: string;
-  status?: string;
-}) {
+export function fetchGetGenerationHistory(
+  projectId: string,
+  params?: {
+    current?: number;
+    size?: number;
+    templateId?: string;
+    status?: string;
+  }
+) {
   return request<{
     records: Array<{
       id: string;

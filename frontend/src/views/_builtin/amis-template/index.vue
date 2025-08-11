@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { defineOptions, onActivated, onBeforeMount, onDeactivated, ref, computed } from 'vue';
+import { computed, defineOptions, onActivated, onBeforeMount, onDeactivated, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { fetchGetLowcodePageByMenuId } from '@/service/api/lowcode';
 import { useThemeStore } from '@/store/modules/theme';
 import { useAppStore } from '@/store/modules/app';
-
 import AmisRenderer from '@/components/amis-renderer/amis.vue';
 import OpenDesignerIcon from '@/components/amis-renderer/open-designer-icon.vue';
 
@@ -25,7 +24,7 @@ const localeMark = ref(appStore.locale);
 // 获取当前菜单ID（从路由meta中直接获取）
 const currentMenuId = computed(() => {
   const menuId = route.meta?.menuId;
-  return menuId ? parseInt(menuId, 10) : null;
+  return menuId ? Number.parseInt(menuId, 10) : null;
 });
 
 onBeforeMount(async () => {

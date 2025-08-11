@@ -1,76 +1,14 @@
-<template>
-  <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
-    <!-- Entity selector when no entityId is provided -->
-    <NCard v-if="!currentEntityId" :bordered="false" size="small">
-      <NSpace align="center">
-        <span>选择实体：</span>
-        <NSelect
-          v-model:value="selectedEntityId"
-          :options="entityOptions"
-          placeholder="请选择实体"
-          style="width: 300px"
-          :loading="entityLoading"
-          clearable
-          @update:value="handleEntityChange"
-        />
-      </NSpace>
-    </NCard>
-
-    <!-- 显示当前选中的实体信息 -->
-    <NCard v-if="currentEntityId && currentEntityName" :bordered="false" size="small">
-      <NSpace align="center">
-        <NIcon><icon-mdi-table /></NIcon>
-        <span>当前实体：<strong>{{ currentEntityName }}</strong></span>
-        <NTag type="info">{{ data.length }} 个字段</NTag>
-      </NSpace>
-    </NCard>
-
-    <NCard :title="$t('page.lowcode.field.title')" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
-      <template #header-extra>
-        <TableHeaderOperation
-          v-model:columns="columnChecks"
-          :disabled-delete="checkedRowKeys.length === 0"
-          :loading="loading"
-          @add="handleAdd"
-          @delete="handleBatchDelete"
-          @refresh="getData"
-        />
-      </template>
-      <NDataTable
-        v-model:checked-row-keys="checkedRowKeys"
-        :columns="columns"
-        :data="data"
-        size="small"
-        :flex-height="!appStore.isMobile"
-        :scroll-x="962"
-        :loading="loading"
-        remote
-        :row-key="(row: any) => row.id"
-        :pagination="mobilePagination"
-        class="sm:h-full"
-      />
-    </NCard>
-    <FieldOperateDrawer
-      v-model:visible="drawerVisible"
-      :operate-type="operateType"
-      :row-data="editingData as any"
-      :entity-id="currentEntityId"
-      @submitted="getData"
-    />
-  </div>
-</template>
-
 <script setup lang="tsx">
-import { computed, ref, watch, onMounted } from 'vue';
-import { NButton, NPopconfirm, NSpace, NTag, NSelect, NCard } from 'naive-ui';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import { NButton, NCard, NPopconfirm, NSelect, NSpace, NTag } from 'naive-ui';
 import { fetchDeleteField, fetchGetFieldList, fetchMoveField } from '@/service/api';
 import { fetchGetAllEntities } from '@/service/api/lowcode-entity';
-import { $t } from '@/locales';
 import { useAppStore } from '@/store/modules/app';
 import { useTable, useTableOperate } from '@/hooks/common/table';
-import FieldOperateDrawer from './modules/field-operate-drawer.vue';
+import { $t } from '@/locales';
 import TableHeaderOperation from '@/components/advanced/table-header-operation.vue';
-import { useRoute } from 'vue-router';
+import FieldOperateDrawer from './modules/field-operate-drawer.vue';
 
 const appStore = useAppStore();
 const route = useRoute();
@@ -102,7 +40,9 @@ const currentEntityName = computed(() => {
 });
 
 // Create a wrapper function for the API call
-const getFieldListApi = (params: any): Promise<NaiveUI.FlatResponseData<Api.Common.PaginatingQueryRecord<Api.Lowcode.Field>>> => {
+const getFieldListApi = (
+  params: any
+): Promise<NaiveUI.FlatResponseData<Api.Common.PaginatingQueryRecord<Api.Lowcode.Field>>> => {
   const entityId = currentEntityId.value;
   if (!entityId) {
     return Promise.resolve({
@@ -118,37 +58,30 @@ const getFieldListApi = (params: any): Promise<NaiveUI.FlatResponseData<Api.Comm
   }
 
   // Transform the field array response to match the expected paginated format
-  return fetchGetFieldList(entityId).then(response => {
-    const fields = response.data || [];
-    return {
-      data: {
-        records: fields,
-        total: fields.length,
-        current: 1,
-        size: fields.length
-      },
-      error: null,
-      response: response.response
-    };
-  }).catch(error => {
-    return {
-      data: null,
-      error: error,
-      response: error.response
-    };
-  });
+  return fetchGetFieldList(entityId)
+    .then(response => {
+      const fields = response.data || [];
+      return {
+        data: {
+          records: fields,
+          total: fields.length,
+          current: 1,
+          size: fields.length
+        },
+        error: null,
+        response: response.response
+      };
+    })
+    .catch(error => {
+      return {
+        data: null,
+        error,
+        response: error.response
+      };
+    });
 };
 
-const {
-  columns,
-  columnChecks,
-  data,
-  loading,
-  getData,
-  mobilePagination,
-  searchParams,
-  resetSearchParams
-} = useTable({
+const { columns, columnChecks, data, loading, getData, mobilePagination, searchParams, resetSearchParams } = useTable({
   apiFn: getFieldListApi,
   showTotal: true,
   apiParams: {
@@ -229,8 +162,18 @@ const {
       width: 200,
       render: row => {
         const attributes = [];
-        if (row.unique) attributes.push(<NTag type="warning" size="small">UK</NTag>);
-        if (row.required) attributes.push(<NTag type="info" size="small">NN</NTag>);
+        if (row.unique)
+          attributes.push(
+            <NTag type="warning" size="small">
+              UK
+            </NTag>
+          );
+        if (row.required)
+          attributes.push(
+            <NTag type="info" size="small">
+              NN
+            </NTag>
+          );
         return <NSpace>{attributes}</NSpace>;
       }
     },
@@ -239,7 +182,7 @@ const {
       title: $t('page.lowcode.field.defaultValue'),
       align: 'center',
       width: 100,
-      render: row => row.defaultValue ? <code>{String(row.defaultValue)}</code> : '-'
+      render: row => (row.defaultValue ? <code>{String(row.defaultValue)}</code> : '-')
     },
     {
       key: 'description',
@@ -277,15 +220,8 @@ const {
   ]
 });
 
-const {
-  drawerVisible,
-  operateType,
-  editingData,
-  handleAdd,
-  handleEdit,
-  checkedRowKeys,
-  onBatchDeleted
-} = useTableOperate(data as any, getData);
+const { drawerVisible, operateType, editingData, handleAdd, handleEdit, checkedRowKeys, onBatchDeleted } =
+  useTableOperate(data as any, getData);
 
 async function handleDelete(id: string) {
   await fetchDeleteField(id);
@@ -317,7 +253,7 @@ async function loadEntities() {
           label: entity.name,
           value: entity.id
         }));
-        
+
         // 如果URL中有entityId参数，设置为默认选中
         const urlEntityId = route.query.entityId as string;
         if (urlEntityId && !selectedEntityId.value) {
@@ -342,30 +278,103 @@ function handleEntityChange(entityId: string | null) {
 }
 
 // Watch for entityId changes
-watch(() => currentEntityId.value, () => {
-  if (currentEntityId.value) {
-    getData();
-  }
-}, { immediate: true });
+watch(
+  () => currentEntityId.value,
+  () => {
+    if (currentEntityId.value) {
+      getData();
+    }
+  },
+  { immediate: true }
+);
 
 // 监听路由参数变化
-watch(() => route.query, (newQuery) => {
-  const entityId = newQuery.entityId as string;
-  const projectId = newQuery.projectId as string;
-  
-  if (entityId && entityId !== selectedEntityId.value) {
-    selectedEntityId.value = entityId;
-  }
-  
-  if (projectId) {
-    loadEntities();
-  }
-}, { immediate: true });
+watch(
+  () => route.query,
+  newQuery => {
+    const entityId = newQuery.entityId as string;
+    const projectId = newQuery.projectId as string;
+
+    if (entityId && entityId !== selectedEntityId.value) {
+      selectedEntityId.value = entityId;
+    }
+
+    if (projectId) {
+      loadEntities();
+    }
+  },
+  { immediate: true }
+);
 
 // Load entities on component mount
 onMounted(() => {
   loadEntities();
 });
 </script>
+
+<template>
+  <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
+    <!-- Entity selector when no entityId is provided -->
+    <NCard v-if="!currentEntityId" :bordered="false" size="small">
+      <NSpace align="center">
+        <span>选择实体：</span>
+        <NSelect
+          v-model:value="selectedEntityId"
+          :options="entityOptions"
+          placeholder="请选择实体"
+          style="width: 300px"
+          :loading="entityLoading"
+          clearable
+          @update:value="handleEntityChange"
+        />
+      </NSpace>
+    </NCard>
+
+    <!-- 显示当前选中的实体信息 -->
+    <NCard v-if="currentEntityId && currentEntityName" :bordered="false" size="small">
+      <NSpace align="center">
+        <NIcon><icon-mdi-table /></NIcon>
+        <span>
+          当前实体：
+          <strong>{{ currentEntityName }}</strong>
+        </span>
+        <NTag type="info">{{ data.length }} 个字段</NTag>
+      </NSpace>
+    </NCard>
+
+    <NCard :title="$t('page.lowcode.field.title')" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
+      <template #header-extra>
+        <TableHeaderOperation
+          v-model:columns="columnChecks"
+          :disabled-delete="checkedRowKeys.length === 0"
+          :loading="loading"
+          @add="handleAdd"
+          @delete="handleBatchDelete"
+          @refresh="getData"
+        />
+      </template>
+      <NDataTable
+        v-model:checked-row-keys="checkedRowKeys"
+        :columns="columns"
+        :data="data"
+        size="small"
+        :flex-height="!appStore.isMobile"
+        :scroll-x="962"
+        :loading="loading"
+        remote
+        :row-key="(row: any) => row.id"
+        :pagination="mobilePagination"
+        class="sm:h-full"
+      />
+    </NCard>
+    <FieldOperateDrawer
+      v-model:visible="drawerVisible"
+      :operate-type="operateType"
+      :row-data="editingData as any"
+      :entity-id="currentEntityId"
+      @submitted="getData"
+    />
+  </div>
+</template>
 
 <style scoped></style>

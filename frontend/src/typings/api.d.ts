@@ -38,8 +38,7 @@ declare namespace Api {
      * - "INACTIVE": inactive
      * - "ARCHIVED": archived
      */
-    type ObjectEnableStatus = 'ACTIVE'| 'INACTIVE'| 'ARCHIVED';
-
+    type ObjectEnableStatus = 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
 
     /** common record */
     type CommonRecord<T = any> = {
@@ -239,9 +238,7 @@ declare namespace Api {
   }
 
   /**
-  /**
-  /**
-   * namespace Lowcode
+   * /** /** namespace Lowcode
    *
    * 低代码相关接口类型定义
    */

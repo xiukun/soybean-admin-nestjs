@@ -1,292 +1,6 @@
-<template>
-  <div class="toolbox-panel">
-    <!-- 面板头部 -->
-    <div class="panel-header">
-      <div class="header-title">
-        <NIcon size="18" class="text-purple-500">
-          <icon-mdi-toolbox />
-        </NIcon>
-        <NText class="font-medium ml-2">工具箱</NText>
-      </div>
-      <NButton text size="tiny" @click="collapsed = !collapsed">
-        <NIcon>
-          <icon-mdi-chevron-left v-if="!collapsed" />
-          <icon-mdi-chevron-right v-if="collapsed" />
-        </NIcon>
-      </NButton>
-    </div>
-    
-    <!-- 工具内容 -->
-    <div v-if="!collapsed" class="panel-content">
-      <!-- 实体操作 -->
-      <div class="tool-section">
-        <div class="section-header">
-          <NIcon size="16" class="text-blue-500">
-            <icon-mdi-cube-outline />
-          </NIcon>
-          <NText class="section-title">实体操作</NText>
-        </div>
-        
-        <div class="tool-grid">
-          <div 
-            class="tool-item"
-            :class="{ active: currentMode === 'select' }"
-            @click="setMode('select')"
-          >
-            <NIcon size="20">
-              <icon-mdi-cursor-default />
-            </NIcon>
-            <span class="tool-label">选择</span>
-          </div>
-          
-          <div 
-            class="tool-item"
-            :class="{ active: currentMode === 'create' }"
-            @click="setMode('create')"
-          >
-            <NIcon size="20">
-              <icon-mdi-plus-box />
-            </NIcon>
-            <span class="tool-label">创建实体</span>
-          </div>
-          
-          <div 
-            class="tool-item"
-            :class="{ active: currentMode === 'connect' }"
-            @click="setMode('connect')"
-          >
-            <NIcon size="20">
-              <icon-mdi-vector-line />
-            </NIcon>
-            <span class="tool-label">连接关系</span>
-          </div>
-          
-          <div 
-            class="tool-item"
-            @click="handleDeleteSelected"
-          >
-            <NIcon size="20" class="text-red-500">
-              <icon-mdi-delete />
-            </NIcon>
-            <span class="tool-label">删除</span>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 关系类型 -->
-      <div class="tool-section">
-        <div class="section-header">
-          <NIcon size="16" class="text-green-500">
-            <icon-mdi-connection />
-          </NIcon>
-          <NText class="section-title">关系类型</NText>
-        </div>
-        
-        <div class="relationship-types">
-          <div 
-            v-for="type in relationshipTypes"
-            :key="type.value"
-            class="relationship-type"
-            :class="{ active: currentRelationType === type.value }"
-            @click="setRelationType(type.value)"
-          >
-            <div class="type-icon">
-              <component :is="type.icon" />
-            </div>
-            <div class="type-info">
-              <div class="type-name">{{ type.label }}</div>
-              <div class="type-desc">{{ type.description }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 实体模板 -->
-      <div class="tool-section">
-        <div class="section-header">
-          <NIcon size="16" class="text-orange-500">
-            <icon-mdi-file-document-multiple />
-          </NIcon>
-          <NText class="section-title">实体模板</NText>
-        </div>
-        
-        <div class="template-list">
-          <div 
-            v-for="template in entityTemplates"
-            :key="template.id"
-            class="template-item"
-            @click="createFromTemplate(template)"
-          >
-            <div class="template-icon">
-              <NIcon size="16" :class="template.iconColor">
-                <component :is="template.icon" />
-              </NIcon>
-            </div>
-            <div class="template-info">
-              <div class="template-name">{{ template.name }}</div>
-              <div class="template-desc">{{ template.description }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 图层控制 -->
-      <div class="tool-section">
-        <div class="section-header">
-          <NIcon size="16" class="text-indigo-500">
-            <icon-mdi-layers />
-          </NIcon>
-          <NText class="section-title">图层控制</NText>
-        </div>
-        
-        <div class="layer-controls">
-          <div class="control-item">
-            <NText depth="3" class="text-sm">显示网格</NText>
-            <NSwitch 
-              v-model:value="showGrid" 
-              size="small"
-              @update:value="handleGridToggle"
-            />
-          </div>
-          
-          <div class="control-item">
-            <NText depth="3" class="text-sm">显示连接点</NText>
-            <NSwitch 
-              v-model:value="showPorts" 
-              size="small"
-              @update:value="handlePortsToggle"
-            />
-          </div>
-          
-          <div class="control-item">
-            <NText depth="3" class="text-sm">显示小地图</NText>
-            <NSwitch 
-              v-model:value="showMinimap" 
-              size="small"
-              @update:value="handleMinimapToggle"
-            />
-          </div>
-          
-          <div class="control-item">
-            <NText depth="3" class="text-sm">显示标尺</NText>
-            <NSwitch 
-              v-model:value="showRuler" 
-              size="small"
-              @update:value="handleRulerToggle"
-            />
-          </div>
-        </div>
-      </div>
-      
-      <!-- 小地图 -->
-      <div v-if="showMinimap" class="tool-section">
-        <div class="section-header">
-          <NIcon size="16" class="text-teal-500">
-            <icon-mdi-map />
-          </NIcon>
-          <NText class="section-title">小地图</NText>
-        </div>
-        
-        <div class="minimap-container">
-          <div ref="minimapContainer" class="minimap"></div>
-        </div>
-      </div>
-      
-      <!-- 快捷操作 -->
-      <div class="tool-section">
-        <div class="section-header">
-          <NIcon size="16" class="text-cyan-500">
-            <icon-mdi-lightning-bolt />
-          </NIcon>
-          <NText class="section-title">快捷操作</NText>
-        </div>
-        
-        <div class="quick-actions">
-          <NButton block size="small" @click="handleAutoLayout">
-            <template #icon>
-              <NIcon><icon-mdi-auto-fix /></NIcon>
-            </template>
-            自动布局
-          </NButton>
-          
-          <NButton block size="small" @click="handleAlignLeft">
-            <template #icon>
-              <NIcon><icon-mdi-format-align-left /></NIcon>
-            </template>
-            左对齐
-          </NButton>
-          
-          <NButton block size="small" @click="handleAlignCenter">
-            <template #icon>
-              <NIcon><icon-mdi-format-align-center /></NIcon>
-            </template>
-            居中对齐
-          </NButton>
-          
-          <NButton block size="small" @click="handleDistributeHorizontal">
-            <template #icon>
-              <NIcon><icon-mdi-distribute-horizontal-left /></NIcon>
-            </template>
-            水平分布
-          </NButton>
-          
-          <NButton block size="small" @click="handleDistributeVertical">
-            <template #icon>
-              <NIcon><icon-mdi-distribute-vertical-top /></NIcon>
-            </template>
-            垂直分布
-          </NButton>
-        </div>
-      </div>
-      
-      <!-- 导入导出 -->
-      <div class="tool-section">
-        <div class="section-header">
-          <NIcon size="16" class="text-pink-500">
-            <icon-mdi-import />
-          </NIcon>
-          <NText class="section-title">导入导出</NText>
-        </div>
-        
-        <div class="import-export">
-          <NButton block size="small" @click="handleImportEntities">
-            <template #icon>
-              <NIcon><icon-mdi-file-import /></NIcon>
-            </template>
-            导入实体
-          </NButton>
-          
-          <NButton block size="small" @click="handleExportEntities">
-            <template #icon>
-              <NIcon><icon-mdi-file-export /></NIcon>
-            </template>
-            导出实体
-          </NButton>
-          
-          <NButton block size="small" @click="handleExportSQL">
-            <template #icon>
-              <NIcon><icon-mdi-database-export /></NIcon>
-            </template>
-            导出SQL
-          </NButton>
-          
-          <NButton block size="small" @click="handleExportImage">
-            <template #icon>
-              <NIcon><icon-mdi-image-outline /></NIcon>
-            </template>
-            导出图片
-          </NButton>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
-import { 
-  NText, NIcon, NButton, NSwitch, useMessage 
-} from 'naive-ui';
+import { reactive, ref } from 'vue';
+import { NButton, NIcon, NSwitch, NText, useMessage } from 'naive-ui';
 
 // 图标导入
 import IconMdiToolbox from '~icons/mdi/toolbox';
@@ -322,7 +36,8 @@ import IconMdiMap from '~icons/mdi/map';
 
 /**
  * 工具箱面板组件
- * @description 提供实体设计器的各种工具和操作
+ *
+ * 提供实体设计器的各种工具和操作
  */
 
 interface EntityTemplate {
@@ -462,6 +177,7 @@ const entityTemplates: EntityTemplate[] = [
 
 /**
  * 设置操作模式
+ *
  * @param mode - 操作模式
  */
 function setMode(mode: string) {
@@ -471,6 +187,7 @@ function setMode(mode: string) {
 
 /**
  * 设置关系类型
+ *
  * @param type - 关系类型
  */
 function setRelationType(type: string) {
@@ -478,15 +195,14 @@ function setRelationType(type: string) {
   emit('relationship-type-change', type);
 }
 
-/**
- * 删除选中项
- */
+/** 删除选中项 */
 function handleDeleteSelected() {
   emit('delete-selected');
 }
 
 /**
  * 从模板创建实体
+ *
  * @param template - 实体模板
  */
 function createFromTemplate(template: EntityTemplate) {
@@ -496,6 +212,7 @@ function createFromTemplate(template: EntityTemplate) {
 
 /**
  * 处理网格显示切换
+ *
  * @param value - 是否显示
  */
 function handleGridToggle(value: boolean) {
@@ -504,6 +221,7 @@ function handleGridToggle(value: boolean) {
 
 /**
  * 处理连接点显示切换
+ *
  * @param value - 是否显示
  */
 function handlePortsToggle(value: boolean) {
@@ -512,6 +230,7 @@ function handlePortsToggle(value: boolean) {
 
 /**
  * 处理小地图显示切换
+ *
  * @param value - 是否显示
  */
 function handleMinimapToggle(value: boolean) {
@@ -520,80 +239,316 @@ function handleMinimapToggle(value: boolean) {
 
 /**
  * 处理标尺显示切换
+ *
  * @param value - 是否显示
  */
 function handleRulerToggle(value: boolean) {
   emit('display-option-change', 'ruler', value);
 }
 
-/**
- * 自动布局
- */
+/** 自动布局 */
 function handleAutoLayout() {
   emit('layout-action', 'auto');
   message.success('已应用自动布局');
 }
 
-/**
- * 左对齐
- */
+/** 左对齐 */
 function handleAlignLeft() {
   emit('layout-action', 'align-left');
   message.success('已左对齐选中实体');
 }
 
-/**
- * 居中对齐
- */
+/** 居中对齐 */
 function handleAlignCenter() {
   emit('layout-action', 'align-center');
   message.success('已居中对齐选中实体');
 }
 
-/**
- * 水平分布
- */
+/** 水平分布 */
 function handleDistributeHorizontal() {
   emit('layout-action', 'distribute-horizontal');
   message.success('已水平分布选中实体');
 }
 
-/**
- * 垂直分布
- */
+/** 垂直分布 */
 function handleDistributeVertical() {
   emit('layout-action', 'distribute-vertical');
   message.success('已垂直分布选中实体');
 }
 
-/**
- * 导入实体
- */
+/** 导入实体 */
 function handleImportEntities() {
   emit('import-export', 'import-entities');
 }
 
-/**
- * 导出实体
- */
+/** 导出实体 */
 function handleExportEntities() {
   emit('import-export', 'export-entities');
 }
 
-/**
- * 导出SQL
- */
+/** 导出SQL */
 function handleExportSQL() {
   emit('import-export', 'export-sql');
 }
 
-/**
- * 导出图片
- */
+/** 导出图片 */
 function handleExportImage() {
   emit('import-export', 'export-image');
 }
 </script>
+
+<template>
+  <div class="toolbox-panel">
+    <!-- 面板头部 -->
+    <div class="panel-header">
+      <div class="header-title">
+        <NIcon size="18" class="text-purple-500">
+          <icon-mdi-toolbox />
+        </NIcon>
+        <NText class="ml-2 font-medium">工具箱</NText>
+      </div>
+      <NButton text size="tiny" @click="collapsed = !collapsed">
+        <NIcon>
+          <icon-mdi-chevron-left v-if="!collapsed" />
+          <icon-mdi-chevron-right v-if="collapsed" />
+        </NIcon>
+      </NButton>
+    </div>
+
+    <!-- 工具内容 -->
+    <div v-if="!collapsed" class="panel-content">
+      <!-- 实体操作 -->
+      <div class="tool-section">
+        <div class="section-header">
+          <NIcon size="16" class="text-blue-500">
+            <icon-mdi-cube-outline />
+          </NIcon>
+          <NText class="section-title">实体操作</NText>
+        </div>
+
+        <div class="tool-grid">
+          <div class="tool-item" :class="{ active: currentMode === 'select' }" @click="setMode('select')">
+            <NIcon size="20">
+              <icon-mdi-cursor-default />
+            </NIcon>
+            <span class="tool-label">选择</span>
+          </div>
+
+          <div class="tool-item" :class="{ active: currentMode === 'create' }" @click="setMode('create')">
+            <NIcon size="20">
+              <icon-mdi-plus-box />
+            </NIcon>
+            <span class="tool-label">创建实体</span>
+          </div>
+
+          <div class="tool-item" :class="{ active: currentMode === 'connect' }" @click="setMode('connect')">
+            <NIcon size="20">
+              <icon-mdi-vector-line />
+            </NIcon>
+            <span class="tool-label">连接关系</span>
+          </div>
+
+          <div class="tool-item" @click="handleDeleteSelected">
+            <NIcon size="20" class="text-red-500">
+              <icon-mdi-delete />
+            </NIcon>
+            <span class="tool-label">删除</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 关系类型 -->
+      <div class="tool-section">
+        <div class="section-header">
+          <NIcon size="16" class="text-green-500">
+            <icon-mdi-connection />
+          </NIcon>
+          <NText class="section-title">关系类型</NText>
+        </div>
+
+        <div class="relationship-types">
+          <div
+            v-for="type in relationshipTypes"
+            :key="type.value"
+            class="relationship-type"
+            :class="{ active: currentRelationType === type.value }"
+            @click="setRelationType(type.value)"
+          >
+            <div class="type-icon">
+              <component :is="type.icon" />
+            </div>
+            <div class="type-info">
+              <div class="type-name">{{ type.label }}</div>
+              <div class="type-desc">{{ type.description }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 实体模板 -->
+      <div class="tool-section">
+        <div class="section-header">
+          <NIcon size="16" class="text-orange-500">
+            <icon-mdi-file-document-multiple />
+          </NIcon>
+          <NText class="section-title">实体模板</NText>
+        </div>
+
+        <div class="template-list">
+          <div
+            v-for="template in entityTemplates"
+            :key="template.id"
+            class="template-item"
+            @click="createFromTemplate(template)"
+          >
+            <div class="template-icon">
+              <NIcon size="16" :class="template.iconColor">
+                <component :is="template.icon" />
+              </NIcon>
+            </div>
+            <div class="template-info">
+              <div class="template-name">{{ template.name }}</div>
+              <div class="template-desc">{{ template.description }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 图层控制 -->
+      <div class="tool-section">
+        <div class="section-header">
+          <NIcon size="16" class="text-indigo-500">
+            <icon-mdi-layers />
+          </NIcon>
+          <NText class="section-title">图层控制</NText>
+        </div>
+
+        <div class="layer-controls">
+          <div class="control-item">
+            <NText depth="3" class="text-sm">显示网格</NText>
+            <NSwitch v-model:value="showGrid" size="small" @update:value="handleGridToggle" />
+          </div>
+
+          <div class="control-item">
+            <NText depth="3" class="text-sm">显示连接点</NText>
+            <NSwitch v-model:value="showPorts" size="small" @update:value="handlePortsToggle" />
+          </div>
+
+          <div class="control-item">
+            <NText depth="3" class="text-sm">显示小地图</NText>
+            <NSwitch v-model:value="showMinimap" size="small" @update:value="handleMinimapToggle" />
+          </div>
+
+          <div class="control-item">
+            <NText depth="3" class="text-sm">显示标尺</NText>
+            <NSwitch v-model:value="showRuler" size="small" @update:value="handleRulerToggle" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 小地图 -->
+      <div v-if="showMinimap" class="tool-section">
+        <div class="section-header">
+          <NIcon size="16" class="text-teal-500">
+            <icon-mdi-map />
+          </NIcon>
+          <NText class="section-title">小地图</NText>
+        </div>
+
+        <div class="minimap-container">
+          <div ref="minimapContainer" class="minimap"></div>
+        </div>
+      </div>
+
+      <!-- 快捷操作 -->
+      <div class="tool-section">
+        <div class="section-header">
+          <NIcon size="16" class="text-cyan-500">
+            <icon-mdi-lightning-bolt />
+          </NIcon>
+          <NText class="section-title">快捷操作</NText>
+        </div>
+
+        <div class="quick-actions">
+          <NButton block size="small" @click="handleAutoLayout">
+            <template #icon>
+              <NIcon><icon-mdi-auto-fix /></NIcon>
+            </template>
+            自动布局
+          </NButton>
+
+          <NButton block size="small" @click="handleAlignLeft">
+            <template #icon>
+              <NIcon><icon-mdi-format-align-left /></NIcon>
+            </template>
+            左对齐
+          </NButton>
+
+          <NButton block size="small" @click="handleAlignCenter">
+            <template #icon>
+              <NIcon><icon-mdi-format-align-center /></NIcon>
+            </template>
+            居中对齐
+          </NButton>
+
+          <NButton block size="small" @click="handleDistributeHorizontal">
+            <template #icon>
+              <NIcon><icon-mdi-distribute-horizontal-left /></NIcon>
+            </template>
+            水平分布
+          </NButton>
+
+          <NButton block size="small" @click="handleDistributeVertical">
+            <template #icon>
+              <NIcon><icon-mdi-distribute-vertical-top /></NIcon>
+            </template>
+            垂直分布
+          </NButton>
+        </div>
+      </div>
+
+      <!-- 导入导出 -->
+      <div class="tool-section">
+        <div class="section-header">
+          <NIcon size="16" class="text-pink-500">
+            <icon-mdi-import />
+          </NIcon>
+          <NText class="section-title">导入导出</NText>
+        </div>
+
+        <div class="import-export">
+          <NButton block size="small" @click="handleImportEntities">
+            <template #icon>
+              <NIcon><icon-mdi-file-import /></NIcon>
+            </template>
+            导入实体
+          </NButton>
+
+          <NButton block size="small" @click="handleExportEntities">
+            <template #icon>
+              <NIcon><icon-mdi-file-export /></NIcon>
+            </template>
+            导出实体
+          </NButton>
+
+          <NButton block size="small" @click="handleExportSQL">
+            <template #icon>
+              <NIcon><icon-mdi-database-export /></NIcon>
+            </template>
+            导出SQL
+          </NButton>
+
+          <NButton block size="small" @click="handleExportImage">
+            <template #icon>
+              <NIcon><icon-mdi-image-outline /></NIcon>
+            </template>
+            导出图片
+          </NButton>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .toolbox-panel {
@@ -734,7 +689,7 @@ function handleExportImage() {
   .toolbox-panel {
     width: 240px;
   }
-  
+
   .tool-grid {
     @apply grid-cols-1;
   }

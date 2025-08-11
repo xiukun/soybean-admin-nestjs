@@ -1,73 +1,6 @@
-<template>
-  <div class="ux-optimizations">
-    <!-- 加载状态优化 -->
-    <div v-if="loading" class="loading-container">
-      <n-spin size="large">
-        <template #description>
-          <div class="loading-text">
-            {{ loadingText }}
-          </div>
-        </template>
-      </n-spin>
-    </div>
-
-    <!-- 错误状态优化 -->
-    <div v-else-if="error" class="error-container">
-      <n-result status="error" :title="errorTitle" :description="errorDescription">
-        <template #footer>
-          <n-button type="primary" @click="handleRetry">
-            重试
-          </n-button>
-        </template>
-      </n-result>
-    </div>
-
-    <!-- 空状态优化 -->
-    <div v-else-if="isEmpty" class="empty-container">
-      <n-empty :description="emptyDescription">
-        <template #extra>
-          <n-button type="primary" @click="handleCreate">
-            {{ createButtonText }}
-          </n-button>
-        </template>
-      </n-empty>
-    </div>
-
-    <!-- 内容区域 -->
-    <div v-else class="content-container">
-      <slot />
-    </div>
-
-    <!-- 性能提示 -->
-    <div v-if="showPerformanceTip" class="performance-tip">
-      <n-alert type="info" closable @close="hidePerformanceTip">
-        <template #header>
-          <n-icon :component="InfoIcon" />
-          性能提示
-        </template>
-        当前显示 {{ itemCount }} 个项目，使用虚拟滚动优化性能
-      </n-alert>
-    </div>
-
-    <!-- 操作反馈 -->
-    <n-notification-provider>
-      <div ref="notificationRef" />
-    </n-notification-provider>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { 
-  NSpin, 
-  NResult, 
-  NEmpty, 
-  NButton, 
-  NAlert, 
-  NIcon,
-  NNotificationProvider,
-  useNotification
-} from 'naive-ui';
+import { computed, onMounted, ref } from 'vue';
+import { NAlert, NButton, NEmpty, NIcon, NNotificationProvider, NResult, NSpin, useNotification } from 'naive-ui';
 import { Information as InfoIcon } from '@vicons/ionicons5';
 
 interface Props {
@@ -153,6 +86,62 @@ defineExpose({
   showErrorNotification
 });
 </script>
+
+<template>
+  <div class="ux-optimizations">
+    <!-- 加载状态优化 -->
+    <div v-if="loading" class="loading-container">
+      <NSpin size="large">
+        <template #description>
+          <div class="loading-text">
+            {{ loadingText }}
+          </div>
+        </template>
+      </NSpin>
+    </div>
+
+    <!-- 错误状态优化 -->
+    <div v-else-if="error" class="error-container">
+      <NResult status="error" :title="errorTitle" :description="errorDescription">
+        <template #footer>
+          <NButton type="primary" @click="handleRetry">重试</NButton>
+        </template>
+      </NResult>
+    </div>
+
+    <!-- 空状态优化 -->
+    <div v-else-if="isEmpty" class="empty-container">
+      <NEmpty :description="emptyDescription">
+        <template #extra>
+          <NButton type="primary" @click="handleCreate">
+            {{ createButtonText }}
+          </NButton>
+        </template>
+      </NEmpty>
+    </div>
+
+    <!-- 内容区域 -->
+    <div v-else class="content-container">
+      <slot />
+    </div>
+
+    <!-- 性能提示 -->
+    <div v-if="showPerformanceTip" class="performance-tip">
+      <NAlert type="info" closable @close="hidePerformanceTip">
+        <template #header>
+          <NIcon :component="InfoIcon" />
+          性能提示
+        </template>
+        当前显示 {{ itemCount }} 个项目，使用虚拟滚动优化性能
+      </NAlert>
+    </div>
+
+    <!-- 操作反馈 -->
+    <NNotificationProvider>
+      <div ref="notificationRef" />
+    </NNotificationProvider>
+  </div>
+</template>
 
 <style scoped>
 .ux-optimizations {

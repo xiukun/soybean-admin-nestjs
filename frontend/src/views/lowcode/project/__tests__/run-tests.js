@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-const { execSync } = require('child_process');
-const path = require('path');
+const { execSync } = require('node:child_process');
+const path = require('node:path');
 
 console.log('🧪 开始运行低代码项目管理模块测试...\n');
 
 const testFiles = [
   'project-management.test.ts',
-  'project-performance.test.ts', 
+  'project-performance.test.ts',
   'virtual-list.test.ts',
   'project-api.test.ts'
 ];
@@ -16,10 +16,10 @@ const testDir = path.join(__dirname);
 
 testFiles.forEach((testFile, index) => {
   console.log(`📋 运行测试 ${index + 1}/${testFiles.length}: ${testFile}`);
-  
+
   try {
     const command = `npx vitest run ${path.join(testDir, testFile)}`;
-    execSync(command, { 
+    execSync(command, {
       stdio: 'inherit',
       cwd: path.join(__dirname, '../../../..')
     });

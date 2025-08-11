@@ -1,7 +1,7 @@
 // 项目管理相关类型定义
 export interface ProjectStatus {
   ACTIVE: 'ACTIVE';
-  INACTIVE: 'INACTIVE'; 
+  INACTIVE: 'INACTIVE';
   ARCHIVED: 'ARCHIVED';
 }
 

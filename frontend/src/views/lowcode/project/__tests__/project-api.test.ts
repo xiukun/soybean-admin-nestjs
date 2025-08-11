@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createProject, updateProject, deleteProject, getProjects } from '../../../service/api/lowcode-project';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { createProject, deleteProject, getProjects, updateProject } from '../../../service/api/lowcode-project';
 
 // Mock HTTP 客户端
 vi.mock('../../../service/request', () => ({
@@ -29,7 +29,7 @@ describe('Project API', () => {
       vi.mocked(request).mockResolvedValue(mockResponse);
 
       const result = await getProjects();
-      
+
       expect(request).toHaveBeenCalledWith({
         url: '/lowcode/projects',
         method: 'GET'
@@ -42,7 +42,7 @@ describe('Project API', () => {
       vi.mocked(request).mockResolvedValue({ data: [], total: 0 });
 
       await getProjects({ page: 2, pageSize: 10 });
-      
+
       expect(request).toHaveBeenCalledWith({
         url: '/lowcode/projects',
         method: 'GET',
@@ -69,7 +69,7 @@ describe('Project API', () => {
       vi.mocked(request).mockResolvedValue(mockResponse);
 
       const result = await createProject(projectData);
-      
+
       expect(request).toHaveBeenCalledWith({
         url: '/lowcode/projects',
         method: 'POST',
@@ -97,7 +97,7 @@ describe('Project API', () => {
       vi.mocked(request).mockResolvedValue(mockResponse);
 
       const result = await updateProject(projectId, updateData);
-      
+
       expect(request).toHaveBeenCalledWith({
         url: `/lowcode/projects/${projectId}`,
         method: 'PUT',
@@ -115,7 +115,7 @@ describe('Project API', () => {
       vi.mocked(request).mockResolvedValue({ success: true });
 
       const result = await deleteProject(projectId);
-      
+
       expect(request).toHaveBeenCalledWith({
         url: `/lowcode/projects/${projectId}`,
         method: 'DELETE'

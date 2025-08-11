@@ -1,235 +1,5 @@
-<template>
-  <div class="code-preview h-full">
-    <div class="h-full flex flex-col">
-      <!-- Header -->
-      <div class="p-4 border-b">
-        <NSpace justify="space-between" align="center">
-          <NSpace align="center">
-            <NText strong>{{ $t('page.lowcode.codeGeneration.preview') }}</NText>
-            <NTag v-if="previewData" type="info" size="small">
-              {{ previewData.files?.length || 0 }} {{ $t('page.lowcode.codeGeneration.files') }}
-            </NTag>
-          </NSpace>
-          <NSpace>
-            <NSelect
-              v-model:value="viewMode"
-              size="small"
-              style="width: 120px"
-              :options="viewModeOptions"
-              @update:value="handleViewModeChange"
-            />
-            <NButton size="small" @click="handleRefresh" :loading="refreshing">
-              <template #icon>
-                <NIcon><icon-mdi-refresh /></NIcon>
-              </template>
-            </NButton>
-            <NButton size="small" @click="handleDownload" :disabled="!previewData">
-              <template #icon>
-                <NIcon><icon-mdi-download /></NIcon>
-              </template>
-            </NButton>
-          </NSpace>
-        </NSpace>
-      </div>
-
-      <!-- Content -->
-      <div class="flex-1 overflow-hidden">
-        <!-- Files View -->
-        <div v-if="viewMode === 'files'" class="h-full">
-          <NSplit v-if="previewData?.files?.length" direction="horizontal" :default-size="0.3" :min="0.2" :max="0.5">
-            <template #1>
-              <!-- File Tree -->
-              <div class="h-full border-r">
-                <div class="p-2 border-b">
-                  <NInput
-                    v-model:value="fileSearchQuery"
-                    size="small"
-                    :placeholder="$t('page.lowcode.codeGeneration.searchFiles')"
-                    clearable
-                  >
-                    <template #prefix>
-                      <NIcon><icon-mdi-magnify /></NIcon>
-                    </template>
-                  </NInput>
-                </div>
-                <div class="flex-1 overflow-auto">
-                  <NTree
-                    :data="filteredFileTree"
-                    key-field="path"
-                    label-field="name"
-                    children-field="children"
-                    selectable
-                    :selected-keys="selectedFileKeys"
-                    @update:selected-keys="handleFileSelect"
-                  >
-                    <template #prefix="{ option }">
-                      <NIcon :color="getFileIconColor(option.name)">
-                        <component :is="getFileIcon(option.name)" />
-                      </NIcon>
-                    </template>
-                  </NTree>
-                </div>
-              </div>
-            </template>
-
-            <template #2>
-              <!-- File Content -->
-              <div class="h-full flex flex-col">
-                <div v-if="selectedFile" class="p-2 border-b">
-                  <NSpace align="center">
-                    <NIcon :color="getFileIconColor(selectedFile.name)">
-                      <component :is="getFileIcon(selectedFile.name)" />
-                    </NIcon>
-                    <NText strong>{{ selectedFile.name }}</NText>
-                    <NTag size="small">{{ getFileLanguage(selectedFile.name) }}</NTag>
-                    <NText depth="3">{{ formatFileSize(selectedFile.size) }}</NText>
-                  </NSpace>
-                </div>
-                <div class="flex-1 overflow-hidden">
-                  <NScrollbar v-if="selectedFile" class="h-full">
-                    <NCode
-                      :code="selectedFile.content"
-                      :language="getFileLanguage(selectedFile.name)"
-                      :theme="isDark ? 'dark' : 'light'"
-                      show-line-numbers
-                      word-wrap
-                    />
-                  </NScrollbar>
-                  <div v-else class="h-full flex items-center justify-center">
-                    <NEmpty :description="$t('page.lowcode.codeGeneration.selectFile')" />
-                  </div>
-                </div>
-              </div>
-            </template>
-          </NSplit>
-          <div v-else class="h-full flex items-center justify-center">
-            <NEmpty :description="$t('page.lowcode.codeGeneration.noFiles')" />
-          </div>
-        </div>
-
-        <!-- Structure View -->
-        <div v-else-if="viewMode === 'structure'" class="h-full p-4">
-          <div v-if="previewData?.structure" class="h-full">
-            <NTree
-              :data="previewData.structure"
-              key-field="path"
-              label-field="name"
-              children-field="children"
-              block-line
-              expand-on-click
-              :default-expanded-keys="getDefaultExpandedKeys(previewData.structure)"
-            >
-              <template #prefix="{ option }">
-                <NIcon :color="option.type === 'folder' ? '#ffa500' : getFileIconColor(option.name)">
-                  <component :is="option.type === 'folder' ? 'icon-mdi-folder' : getFileIcon(option.name)" />
-                </NIcon>
-              </template>
-              <template #suffix="{ option }">
-                <NSpace v-if="option.type === 'file'" size="small">
-                  <NTag size="tiny">{{ getFileLanguage(option.name) }}</NTag>
-                  <NText depth="3" style="font-size: 12px">{{ formatFileSize(option.size) }}</NText>
-                </NSpace>
-              </template>
-            </NTree>
-          </div>
-          <NEmpty v-else :description="$t('page.lowcode.codeGeneration.noStructure')" />
-        </div>
-
-        <!-- Validation View -->
-        <div v-else-if="viewMode === 'validation'" class="h-full p-4">
-          <div v-if="previewData?.validation" class="space-y-4">
-            <NAlert
-              v-for="(issue, index) in previewData.validation"
-              :key="index"
-              :type="issue.type"
-              :title="issue.title"
-              :show-icon="true"
-            >
-              {{ issue.message }}
-              <template v-if="issue.suggestion" #footer>
-                <NText depth="3">{{ $t('page.lowcode.codeGeneration.suggestion') }}: {{ issue.suggestion }}</NText>
-              </template>
-            </NAlert>
-          </div>
-          <NEmpty v-else :description="$t('page.lowcode.codeGeneration.noValidation')" />
-        </div>
-
-        <!-- Statistics View -->
-        <div v-else-if="viewMode === 'stats'" class="h-full p-4">
-          <div v-if="previewData" class="space-y-6">
-            <!-- Overview Cards -->
-            <NGrid :cols="4" :x-gap="16">
-              <NGridItem>
-                <NStatistic :label="$t('page.lowcode.codeGeneration.totalFiles')" :value="previewData.files?.length || 0" />
-              </NGridItem>
-              <NGridItem>
-                <NStatistic :label="$t('page.lowcode.codeGeneration.totalLines')" :value="getTotalLines()" />
-              </NGridItem>
-              <NGridItem>
-                <NStatistic :label="$t('page.lowcode.codeGeneration.totalSize')" :value="getTotalSize()" suffix="KB" />
-              </NGridItem>
-              <NGridItem>
-                <NStatistic :label="$t('page.lowcode.codeGeneration.languages')" :value="getLanguageCount()" />
-              </NGridItem>
-            </NGrid>
-
-            <!-- Language Distribution -->
-            <NCard :title="$t('page.lowcode.codeGeneration.languageDistribution')" size="small">
-              <div class="space-y-2">
-                <div v-for="(count, language) in getLanguageDistribution()" :key="language" class="flex items-center justify-between">
-                  <NSpace align="center">
-                    <NIcon :color="getLanguageColor(language)">
-                      <component :is="getLanguageIcon(language)" />
-                    </NIcon>
-                    <NText>{{ language }}</NText>
-                  </NSpace>
-                  <NSpace align="center">
-                    <NText>{{ count }} {{ $t('page.lowcode.codeGeneration.files') }}</NText>
-                    <NProgress
-                      type="line"
-                      :percentage="(count / (previewData.files?.length || 1)) * 100"
-                      :height="6"
-                      :show-indicator="false"
-                      style="width: 100px"
-                    />
-                  </NSpace>
-                </div>
-              </div>
-            </NCard>
-
-            <!-- File Size Distribution -->
-            <NCard :title="$t('page.lowcode.codeGeneration.fileSizeDistribution')" size="small">
-              <NList>
-                <NListItem v-for="file in getSortedFilesBySize()" :key="file.path">
-                  <NThing>
-                    <template #header>{{ file.name }}</template>
-                    <template #description>{{ file.path }}</template>
-                  </NThing>
-                  <template #suffix>
-                    <NSpace align="center">
-                      <NText>{{ formatFileSize(file.size) }}</NText>
-                      <NProgress
-                        type="line"
-                        :percentage="(file.size / getMaxFileSize()) * 100"
-                        :height="6"
-                        :show-indicator="false"
-                        style="width: 80px"
-                      />
-                    </NSpace>
-                  </template>
-                </NListItem>
-              </NList>
-            </NCard>
-          </div>
-          <NEmpty v-else :description="$t('page.lowcode.codeGeneration.noStats')" />
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useThemeStore } from '@/store/modules/theme';
 import { $t } from '@/locales';
 
@@ -282,16 +52,17 @@ const selectedFile = computed(() => {
 
 const filteredFileTree = computed(() => {
   if (!props.previewData?.files) return [];
-  
+
   let files = props.previewData.files;
-  
+
   if (fileSearchQuery.value) {
-    files = files.filter(file => 
-      file.name.toLowerCase().includes(fileSearchQuery.value.toLowerCase()) ||
-      file.path.toLowerCase().includes(fileSearchQuery.value.toLowerCase())
+    files = files.filter(
+      file =>
+        file.name.toLowerCase().includes(fileSearchQuery.value.toLowerCase()) ||
+        file.path.toLowerCase().includes(fileSearchQuery.value.toLowerCase())
     );
   }
-  
+
   // Convert flat file list to tree structure
   return buildFileTree(files);
 });
@@ -316,7 +87,7 @@ function buildFileTree(files: PreviewFile[]): any[] {
 
     parts.forEach((part, index) => {
       currentPath = currentPath ? `${currentPath}/${part}` : part;
-      
+
       if (index === parts.length - 1) {
         // This is a file
         currentLevel.push({
@@ -437,7 +208,7 @@ function formatFileSize(bytes: number): string {
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
 }
 
 function getDefaultExpandedKeys(structure: any[]): string[] {
@@ -519,13 +290,254 @@ function handleDownload() {
 }
 
 // Watch for preview data changes
-watch(() => props.previewData, () => {
-  // Auto-select first file when preview data changes
-  if (props.previewData?.files?.length && selectedFileKeys.value.length === 0) {
-    selectedFileKeys.value = [props.previewData.files[0].path];
-  }
-}, { immediate: true });
+watch(
+  () => props.previewData,
+  () => {
+    // Auto-select first file when preview data changes
+    if (props.previewData?.files?.length && selectedFileKeys.value.length === 0) {
+      selectedFileKeys.value = [props.previewData.files[0].path];
+    }
+  },
+  { immediate: true }
+);
 </script>
+
+<template>
+  <div class="code-preview h-full">
+    <div class="h-full flex flex-col">
+      <!-- Header -->
+      <div class="border-b p-4">
+        <NSpace justify="space-between" align="center">
+          <NSpace align="center">
+            <NText strong>{{ $t('page.lowcode.codeGeneration.preview') }}</NText>
+            <NTag v-if="previewData" type="info" size="small">
+              {{ previewData.files?.length || 0 }} {{ $t('page.lowcode.codeGeneration.files') }}
+            </NTag>
+          </NSpace>
+          <NSpace>
+            <NSelect
+              v-model:value="viewMode"
+              size="small"
+              style="width: 120px"
+              :options="viewModeOptions"
+              @update:value="handleViewModeChange"
+            />
+            <NButton size="small" :loading="refreshing" @click="handleRefresh">
+              <template #icon>
+                <NIcon><icon-mdi-refresh /></NIcon>
+              </template>
+            </NButton>
+            <NButton size="small" :disabled="!previewData" @click="handleDownload">
+              <template #icon>
+                <NIcon><icon-mdi-download /></NIcon>
+              </template>
+            </NButton>
+          </NSpace>
+        </NSpace>
+      </div>
+
+      <!-- Content -->
+      <div class="flex-1 overflow-hidden">
+        <!-- Files View -->
+        <div v-if="viewMode === 'files'" class="h-full">
+          <NSplit v-if="previewData?.files?.length" direction="horizontal" :default-size="0.3" :min="0.2" :max="0.5">
+            <template #1>
+              <!-- File Tree -->
+              <div class="h-full border-r">
+                <div class="border-b p-2">
+                  <NInput
+                    v-model:value="fileSearchQuery"
+                    size="small"
+                    :placeholder="$t('page.lowcode.codeGeneration.searchFiles')"
+                    clearable
+                  >
+                    <template #prefix>
+                      <NIcon><icon-mdi-magnify /></NIcon>
+                    </template>
+                  </NInput>
+                </div>
+                <div class="flex-1 overflow-auto">
+                  <NTree
+                    :data="filteredFileTree"
+                    key-field="path"
+                    label-field="name"
+                    children-field="children"
+                    selectable
+                    :selected-keys="selectedFileKeys"
+                    @update:selected-keys="handleFileSelect"
+                  >
+                    <template #prefix="{ option }">
+                      <NIcon :color="getFileIconColor(option.name)">
+                        <component :is="getFileIcon(option.name)" />
+                      </NIcon>
+                    </template>
+                  </NTree>
+                </div>
+              </div>
+            </template>
+
+            <template #2>
+              <!-- File Content -->
+              <div class="h-full flex flex-col">
+                <div v-if="selectedFile" class="border-b p-2">
+                  <NSpace align="center">
+                    <NIcon :color="getFileIconColor(selectedFile.name)">
+                      <component :is="getFileIcon(selectedFile.name)" />
+                    </NIcon>
+                    <NText strong>{{ selectedFile.name }}</NText>
+                    <NTag size="small">{{ getFileLanguage(selectedFile.name) }}</NTag>
+                    <NText depth="3">{{ formatFileSize(selectedFile.size) }}</NText>
+                  </NSpace>
+                </div>
+                <div class="flex-1 overflow-hidden">
+                  <NScrollbar v-if="selectedFile" class="h-full">
+                    <NCode
+                      :code="selectedFile.content"
+                      :language="getFileLanguage(selectedFile.name)"
+                      :theme="isDark ? 'dark' : 'light'"
+                      show-line-numbers
+                      word-wrap
+                    />
+                  </NScrollbar>
+                  <div v-else class="h-full flex items-center justify-center">
+                    <NEmpty :description="$t('page.lowcode.codeGeneration.selectFile')" />
+                  </div>
+                </div>
+              </div>
+            </template>
+          </NSplit>
+          <div v-else class="h-full flex items-center justify-center">
+            <NEmpty :description="$t('page.lowcode.codeGeneration.noFiles')" />
+          </div>
+        </div>
+
+        <!-- Structure View -->
+        <div v-else-if="viewMode === 'structure'" class="h-full p-4">
+          <div v-if="previewData?.structure" class="h-full">
+            <NTree
+              :data="previewData.structure"
+              key-field="path"
+              label-field="name"
+              children-field="children"
+              block-line
+              expand-on-click
+              :default-expanded-keys="getDefaultExpandedKeys(previewData.structure)"
+            >
+              <template #prefix="{ option }">
+                <NIcon :color="option.type === 'folder' ? '#ffa500' : getFileIconColor(option.name)">
+                  <component :is="option.type === 'folder' ? 'icon-mdi-folder' : getFileIcon(option.name)" />
+                </NIcon>
+              </template>
+              <template #suffix="{ option }">
+                <NSpace v-if="option.type === 'file'" size="small">
+                  <NTag size="tiny">{{ getFileLanguage(option.name) }}</NTag>
+                  <NText depth="3" style="font-size: 12px">{{ formatFileSize(option.size) }}</NText>
+                </NSpace>
+              </template>
+            </NTree>
+          </div>
+          <NEmpty v-else :description="$t('page.lowcode.codeGeneration.noStructure')" />
+        </div>
+
+        <!-- Validation View -->
+        <div v-else-if="viewMode === 'validation'" class="h-full p-4">
+          <div v-if="previewData?.validation" class="space-y-4">
+            <NAlert
+              v-for="(issue, index) in previewData.validation"
+              :key="index"
+              :type="issue.type"
+              :title="issue.title"
+              :show-icon="true"
+            >
+              {{ issue.message }}
+              <template v-if="issue.suggestion" #footer>
+                <NText depth="3">{{ $t('page.lowcode.codeGeneration.suggestion') }}: {{ issue.suggestion }}</NText>
+              </template>
+            </NAlert>
+          </div>
+          <NEmpty v-else :description="$t('page.lowcode.codeGeneration.noValidation')" />
+        </div>
+
+        <!-- Statistics View -->
+        <div v-else-if="viewMode === 'stats'" class="h-full p-4">
+          <div v-if="previewData" class="space-y-6">
+            <!-- Overview Cards -->
+            <NGrid :cols="4" :x-gap="16">
+              <NGridItem>
+                <NStatistic
+                  :label="$t('page.lowcode.codeGeneration.totalFiles')"
+                  :value="previewData.files?.length || 0"
+                />
+              </NGridItem>
+              <NGridItem>
+                <NStatistic :label="$t('page.lowcode.codeGeneration.totalLines')" :value="getTotalLines()" />
+              </NGridItem>
+              <NGridItem>
+                <NStatistic :label="$t('page.lowcode.codeGeneration.totalSize')" :value="getTotalSize()" suffix="KB" />
+              </NGridItem>
+              <NGridItem>
+                <NStatistic :label="$t('page.lowcode.codeGeneration.languages')" :value="getLanguageCount()" />
+              </NGridItem>
+            </NGrid>
+
+            <!-- Language Distribution -->
+            <NCard :title="$t('page.lowcode.codeGeneration.languageDistribution')" size="small">
+              <div class="space-y-2">
+                <div
+                  v-for="(count, language) in getLanguageDistribution()"
+                  :key="language"
+                  class="flex items-center justify-between"
+                >
+                  <NSpace align="center">
+                    <NIcon :color="getLanguageColor(language)">
+                      <component :is="getLanguageIcon(language)" />
+                    </NIcon>
+                    <NText>{{ language }}</NText>
+                  </NSpace>
+                  <NSpace align="center">
+                    <NText>{{ count }} {{ $t('page.lowcode.codeGeneration.files') }}</NText>
+                    <NProgress
+                      type="line"
+                      :percentage="(count / (previewData.files?.length || 1)) * 100"
+                      :height="6"
+                      :show-indicator="false"
+                      style="width: 100px"
+                    />
+                  </NSpace>
+                </div>
+              </div>
+            </NCard>
+
+            <!-- File Size Distribution -->
+            <NCard :title="$t('page.lowcode.codeGeneration.fileSizeDistribution')" size="small">
+              <NList>
+                <NListItem v-for="file in getSortedFilesBySize()" :key="file.path">
+                  <NThing>
+                    <template #header>{{ file.name }}</template>
+                    <template #description>{{ file.path }}</template>
+                  </NThing>
+                  <template #suffix>
+                    <NSpace align="center">
+                      <NText>{{ formatFileSize(file.size) }}</NText>
+                      <NProgress
+                        type="line"
+                        :percentage="(file.size / getMaxFileSize()) * 100"
+                        :height="6"
+                        :show-indicator="false"
+                        style="width: 80px"
+                      />
+                    </NSpace>
+                  </template>
+                </NListItem>
+              </NList>
+            </NCard>
+          </div>
+          <NEmpty v-else :description="$t('page.lowcode.codeGeneration.noStats')" />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .code-preview {

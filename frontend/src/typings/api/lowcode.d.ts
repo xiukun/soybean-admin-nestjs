@@ -51,8 +51,7 @@ declare namespace Api {
     }
 
     /** Project list */
-    interface ProjectList extends Common.PaginatingQueryRecord<Project> {
-    }
+    interface ProjectList extends Common.PaginatingQueryRecord<Project> {}
 
     /** Project edit */
     interface ProjectEdit {
@@ -130,8 +129,7 @@ declare namespace Api {
     }
 
     /** Entity list */
-    interface EntityList extends Common.PaginatingQueryRecord<Entity> {
-    }
+    interface EntityList extends Common.PaginatingQueryRecord<Entity> {}
 
     /** Entity edit */
     interface EntityEdit {
@@ -166,7 +164,20 @@ declare namespace Api {
     }
 
     /** Field type */
-    type FieldType = 'VARCHAR' | 'TEXT' | 'INT' | 'BIGINT' | 'DECIMAL' | 'FLOAT' | 'DOUBLE' | 'BOOLEAN' | 'DATE' | 'DATETIME' | 'TIMESTAMP' | 'JSON' | 'UUID';
+    type FieldType =
+      | 'VARCHAR'
+      | 'TEXT'
+      | 'INT'
+      | 'BIGINT'
+      | 'DECIMAL'
+      | 'FLOAT'
+      | 'DOUBLE'
+      | 'BOOLEAN'
+      | 'DATE'
+      | 'DATETIME'
+      | 'TIMESTAMP'
+      | 'JSON'
+      | 'UUID';
 
     /** Field */
     interface Field {
@@ -482,7 +493,18 @@ declare namespace Api {
     type JoinType = 'INNER' | 'LEFT' | 'RIGHT' | 'FULL';
 
     /** Filter operator */
-    type FilterOperator = 'eq' | 'ne' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'in' | 'not_in' | 'is_null' | 'is_not_null';
+    type FilterOperator =
+      | 'eq'
+      | 'ne'
+      | 'gt'
+      | 'gte'
+      | 'lt'
+      | 'lte'
+      | 'like'
+      | 'in'
+      | 'not_in'
+      | 'is_null'
+      | 'is_not_null';
 
     /** Sort direction */
     type SortDirection = 'ASC' | 'DESC';
@@ -638,7 +660,17 @@ declare namespace Api {
 
     /** Field data type */
     /** Field data type */
-    type FieldDataType = 'STRING' | 'INTEGER' | 'DECIMAL' | 'BOOLEAN' | 'DATE' | 'DATETIME' | 'TEXT' | 'JSON' | 'UUID' | 'ENUM';
+    type FieldDataType =
+      | 'STRING'
+      | 'INTEGER'
+      | 'DECIMAL'
+      | 'BOOLEAN'
+      | 'DATE'
+      | 'DATETIME'
+      | 'TEXT'
+      | 'JSON'
+      | 'UUID'
+      | 'ENUM';
 
     /** Field */
     interface Field {
@@ -837,85 +869,85 @@ declare namespace Api {
   }
 }
 
-    /** 关系类型 */
-    type RelationshipType = "ONE_TO_ONE" | "ONE_TO_MANY" | "MANY_TO_ONE" | "MANY_TO_MANY";
+/** 关系类型 */
+type RelationshipType = 'ONE_TO_ONE' | 'ONE_TO_MANY' | 'MANY_TO_ONE' | 'MANY_TO_MANY';
 
-    /** 关系状态 */
-    type RelationshipStatus = "ACTIVE" | "INACTIVE";
+/** 关系状态 */
+type RelationshipStatus = 'ACTIVE' | 'INACTIVE';
 
-    /** 关系搜索参数 */
-    interface RelationshipSearchParams extends Api.Common.CommonSearchParams {
-      /** 项目ID */
-      projectId?: string;
-      /** 关系类型 */
-      type?: RelationshipType;
-      /** 关系状态 */
-      status?: RelationshipStatus;
-      /** 搜索关键词 */
-      search?: string;
-    }
+/** 关系搜索参数 */
+interface RelationshipSearchParams extends Api.Common.CommonSearchParams {
+  /** 项目ID */
+  projectId?: string;
+  /** 关系类型 */
+  type?: RelationshipType;
+  /** 关系状态 */
+  status?: RelationshipStatus;
+  /** 搜索关键词 */
+  search?: string;
+}
 
-    /** 关系列表响应 */
-    interface RelationshipList extends Api.Common.PaginatingQueryRecord<Relationship> {}
+/** 关系列表响应 */
+interface RelationshipList extends Api.Common.PaginatingQueryRecord<Relationship> {}
 
-    /** 关系实体 */
-    interface Relationship {
-      /** 关系ID */
-      id: string;
-      /** 关系名称 */
-      name: string;
-      /** 关系代码 */
-      code: string;
-      /** 关系类型 */
-      type: RelationshipType;
-      /** 源实体ID */
-      sourceEntityId: string;
-      /** 目标实体ID */
-      targetEntityId: string;
-      /** 外键字段 */
-      foreignKeyField?: string;
-      /** 级联删除 */
-      cascadeDelete?: boolean;
-      /** 级联更新 */
-      cascadeUpdate?: boolean;
-      /** 关系描述 */
-      description?: string;
-      /** 关系状态 */
-      status: RelationshipStatus;
-      /** 项目ID */
-      projectId: string;
-      /** 创建时间 */
-      createdAt: string;
-      /** 更新时间 */
-      updatedAt: string;
-      /** 源实体信息 */
-      sourceEntity?: Entity;
-      /** 目标实体信息 */
-      targetEntity?: Entity;
-    }
+/** 关系实体 */
+interface Relationship {
+  /** 关系ID */
+  id: string;
+  /** 关系名称 */
+  name: string;
+  /** 关系代码 */
+  code: string;
+  /** 关系类型 */
+  type: RelationshipType;
+  /** 源实体ID */
+  sourceEntityId: string;
+  /** 目标实体ID */
+  targetEntityId: string;
+  /** 外键字段 */
+  foreignKeyField?: string;
+  /** 级联删除 */
+  cascadeDelete?: boolean;
+  /** 级联更新 */
+  cascadeUpdate?: boolean;
+  /** 关系描述 */
+  description?: string;
+  /** 关系状态 */
+  status: RelationshipStatus;
+  /** 项目ID */
+  projectId: string;
+  /** 创建时间 */
+  createdAt: string;
+  /** 更新时间 */
+  updatedAt: string;
+  /** 源实体信息 */
+  sourceEntity?: Entity;
+  /** 目标实体信息 */
+  targetEntity?: Entity;
+}
 
-    /** 关系编辑参数 */
-    interface RelationshipEdit {
-      /** 关系名称 */
-      name: string;
-      /** 关系代码 */
-      code: string;
-      /** 关系类型 */
-      type: RelationshipType;
-      /** 源实体ID */
-      sourceEntityId: string;
-      /** 目标实体ID */
-      targetEntityId: string;
-      /** 外键字段 */
-      foreignKeyField?: string;
-      /** 级联删除 */
-      cascadeDelete?: boolean;
-      /** 级联更新 */
-      cascadeUpdate?: boolean;
-      /** 关系描述 */
-      description?: string;
-      /** 关系状态 */
-      status: RelationshipStatus;
-      /** 项目ID */
-      projectId: string;
-    }
+/** 关系编辑参数 */
+interface RelationshipEdit {
+  /** 关系名称 */
+  name: string;
+  /** 关系代码 */
+  code: string;
+  /** 关系类型 */
+  type: RelationshipType;
+  /** 源实体ID */
+  sourceEntityId: string;
+  /** 目标实体ID */
+  targetEntityId: string;
+  /** 外键字段 */
+  foreignKeyField?: string;
+  /** 级联删除 */
+  cascadeDelete?: boolean;
+  /** 级联更新 */
+  cascadeUpdate?: boolean;
+  /** 关系描述 */
+  description?: string;
+  /** 关系状态 */
+  status: RelationshipStatus;
+  /** 项目ID */
+  projectId: string;
+}

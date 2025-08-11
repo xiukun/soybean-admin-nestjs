@@ -23,11 +23,13 @@ export function fetchGetAllRoles() {
 
 /** get user list */
 export async function fetchGetUserList(params?: Api.SystemManage.UserSearchParams) {
-  console.log(await request<Api.SystemManage.UserList>({
-    url: '/user',
-    method: 'get',
-    params
-  }));
+  console.log(
+    await request<Api.SystemManage.UserList>({
+      url: '/user',
+      method: 'get',
+      params
+    })
+  );
   return request<Api.SystemManage.UserList>({
     url: '/user',
     method: 'get',

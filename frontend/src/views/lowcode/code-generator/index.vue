@@ -1,3 +1,536 @@
+<script setup lang="ts">
+import { computed, onMounted, reactive, ref } from 'vue';
+import { useRoute } from 'vue-router';
+
+// 选项数据
+const databaseOptions = [
+  { label: 'PostgreSQL', value: 'postgresql' },
+  { label: 'MySQL', value: 'mysql' },
+  { label: 'MongoDB', value: 'mongodb' },
+  { label: 'SQLite', value: 'sqlite' }
+];
+
+const ormOptions = [
+  { label: 'Prisma', value: 'prisma' },
+  { label: 'Sequelize', value: 'sequelize' },
+  { label: 'Mongoose', value: 'mongoose' }
+];
+
+const namingConventionOptions = [
+  { label: '驼峰命名', value: 'camelCase' },
+  { label: '帕斯卡命名', value: 'pascalCase' },
+  { label: '短横线命名', value: 'kebabCase' },
+  { label: '下划线命名', value: 'snakeCase' }
+];
+
+const templateCategoryOptions = [
+  { label: '全部分类', value: '' },
+  { label: '实体模板', value: 'entity' },
+  { label: '服务模板', value: 'service' },
+  { label: '控制器模板', value: 'controller' },
+  { label: 'DTO模板', value: 'dto' }
+];
+
+// 路由参数
+const route = useRoute();
+const projectId = computed(() => route.params.projectId as string);
+
+// 响应式数据
+const projectInfo = ref(null);
+const entities = ref([]);
+const relations = ref([]);
+const templates = ref([]);
+
+// 界面状态
+const activeConfigTab = ref('generation');
+const activePreviewTab = ref('');
+const entitySearchText = ref('');
+const templateSearchText = ref('');
+const templateCategoryFilter = ref('');
+
+// 选择状态
+const selectedEntities = ref([]);
+const selectedTemplates = ref([]);
+const currentEntity = ref(null);
+
+// 生成配置
+const generationConfig = reactive({
+  framework: 'nestjs',
+  database: 'postgresql',
+  orm: 'prisma',
+  features: {
+    swagger: true,
+    validation: true,
+    authentication: false,
+    caching: false,
+    testing: true,
+    pagination: true
+  },
+  naming: {
+    convention: 'camelCase',
+    prefix: '',
+    suffix: ''
+  },
+  output: {
+    baseDir: './generated'
+  },
+  layers: ['base', 'biz']
+});
+
+// 预览相关
+const previewEntityId = ref('');
+const previewCodes = ref({});
+
+// 生成结果
+const generationResults = ref([]);
+const expandedResults = ref([]);
+
+// 弹窗状态
+const filePreviewVisible = ref(false);
+const previewFile = ref(null);
+const batchGenerationVisible = ref(false);
+const batchGenerationCompleted = ref(false);
+const batchProgress = ref(0);
+const batchProgressText = ref('');
+const batchGenerationLog = ref([]);
+
+// 计算属性
+const filteredEntities = computed(() => {
+  if (!entitySearchText.value) return entities.value;
+  return entities.value.filter(
+    entity =>
+      entity.name.toLowerCase().includes(entitySearchText.value.toLowerCase()) ||
+      entity.description?.toLowerCase().includes(entitySearchText.value.toLowerCase())
+  );
+});
+
+const filteredTemplates = computed(() => {
+  let filtered = templates.value;
+
+  if (templateSearchText.value) {
+    filtered = filtered.filter(
+      template =>
+        template.name.toLowerCase().includes(templateSearchText.value.toLowerCase()) ||
+        template.description?.toLowerCase().includes(templateSearchText.value.toLowerCase())
+    );
+  }
+
+  if (templateCategoryFilter.value) {
+    filtered = filtered.filter(template => template.category === templateCategoryFilter.value);
+  }
+
+  // 根据框架过滤
+  filtered = filtered.filter(
+    template => template.framework === generationConfig.framework || template.framework === 'universal'
+  );
+
+  return filtered;
+});
+
+const selectedTemplateObjects = computed(() => {
+  return templates.value.filter(template => selectedTemplates.value.includes(template.id));
+});
+
+const entityOptions = computed(() => {
+  return entities.value.map(entity => ({
+    label: entity.name,
+    value: entity.id
+  }));
+});
+
+// 初始化
+onMounted(async () => {
+  await loadData();
+  await loadTemplates();
+});
+
+// 数据加载
+const loadData = async () => {
+  try {
+    // 加载项目信息
+    // const projectResponse = await api.getProject(projectId.value)
+    // projectInfo.value = projectResponse.data
+
+    // 加载实体和关系
+    // const entitiesResponse = await api.getProjectEntities(projectId.value)
+    // entities.value = entitiesResponse.data.entities
+    // relations.value = entitiesResponse.data.relations
+
+    // 模拟数据
+    projectInfo.value = { name: '示例项目' };
+    entities.value = [
+      {
+        id: '1',
+        name: 'User',
+        tableName: 'users',
+        description: '用户实体',
+        fields: [
+          { id: '1', name: 'id', type: 'string', isPrimary: true },
+          { id: '2', name: 'username', type: 'string', isRequired: true },
+          { id: '3', name: 'email', type: 'string', isRequired: true }
+        ]
+      },
+      {
+        id: '2',
+        name: 'Post',
+        tableName: 'posts',
+        description: '文章实体',
+        fields: [
+          { id: '4', name: 'id', type: 'string', isPrimary: true },
+          { id: '5', name: 'title', type: 'string', isRequired: true },
+          { id: '6', name: 'content', type: 'text', isRequired: true }
+        ]
+      }
+    ];
+  } catch (error) {
+    window.$message?.error('加载数据失败');
+    console.error(error);
+  }
+};
+
+const loadTemplates = async () => {
+  try {
+    // const response = await api.getTemplates({ framework: generationConfig.framework })
+    // templates.value = response.data.options
+
+    // 模拟数据
+    templates.value = [
+      {
+        id: '1',
+        name: 'NestJS Entity',
+        description: 'NestJS实体模板',
+        category: 'entity',
+        framework: 'nestjs',
+        version: '1.0.0',
+        content: 'entity template content...'
+      },
+      {
+        id: '2',
+        name: 'NestJS Service',
+        description: 'NestJS服务模板',
+        category: 'service',
+        framework: 'nestjs',
+        version: '1.0.0',
+        content: 'service template content...'
+      },
+      {
+        id: '3',
+        name: 'NestJS Controller',
+        description: 'NestJS控制器模板',
+        category: 'controller',
+        framework: 'nestjs',
+        version: '1.0.0',
+        content: 'controller template content...'
+      }
+    ];
+
+    // 默认选择所有模板
+    selectedTemplates.value = templates.value.map(t => t.id);
+  } catch (error) {
+    window.$message?.error('加载模板失败');
+    console.error(error);
+  }
+};
+
+// 实体操作
+const selectEntity = entity => {
+  currentEntity.value = entity;
+};
+
+const toggleEntitySelection = entityId => {
+  const index = selectedEntities.value.indexOf(entityId);
+  if (index > -1) {
+    selectedEntities.value.splice(index, 1);
+  } else {
+    selectedEntities.value.push(entityId);
+  }
+};
+
+const selectAllEntities = () => {
+  if (selectedEntities.value.length === entities.value.length) {
+    selectedEntities.value = [];
+  } else {
+    selectedEntities.value = entities.value.map(e => e.id);
+  }
+};
+
+const getEntityRelationsCount = entityId => {
+  return relations.value.filter(r => r.sourceEntityId === entityId || r.targetEntityId === entityId).length;
+};
+
+// 模板操作
+const toggleTemplateSelection = templateId => {
+  const index = selectedTemplates.value.indexOf(templateId);
+  if (index > -1) {
+    selectedTemplates.value.splice(index, 1);
+  } else {
+    selectedTemplates.value.push(templateId);
+  }
+};
+
+const getCategoryColor = category => {
+  const colors = {
+    entity: 'blue',
+    service: 'green',
+    controller: 'orange',
+    dto: 'purple'
+  };
+  return colors[category] || 'default';
+};
+
+const previewTemplate = template => {
+  window.$message?.info(`预览模板: ${template.name}`);
+};
+
+// 配置操作
+const onFrameworkChange = () => {
+  loadTemplates();
+};
+
+// 预览操作
+const generatePreview = async () => {
+  if (!previewEntityId.value || selectedTemplates.value.length === 0) return;
+
+  try {
+    // const response = await api.previewGeneration({
+    //   entityId: previewEntityId.value,
+    //   templateIds: selectedTemplates.value,
+    //   config: generationConfig
+    // })
+    // previewCodes.value = response.data
+
+    // 模拟预览代码
+    previewCodes.value = {};
+    selectedTemplates.value.forEach(templateId => {
+      previewCodes.value[templateId] = `// Generated code for ${getPreviewEntityName()}
+// Template: ${templates.value.find(t => t.id === templateId)?.name}
+// Framework: ${generationConfig.framework}
+
+export class ${getPreviewEntityName()} {
+  // Generated properties and methods
+}`;
+    });
+
+    if (selectedTemplateObjects.value.length > 0) {
+      activePreviewTab.value = selectedTemplateObjects.value[0].id;
+    }
+  } catch (error) {
+    window.$message?.error('生成预览失败');
+    console.error(error);
+  }
+};
+
+const getPreviewEntityName = () => {
+  const entity = entities.value.find(e => e.id === previewEntityId.value);
+  return entity ? entity.name : '';
+};
+
+const getPreviewCode = templateId => {
+  return previewCodes.value[templateId] || '// 暂无预览代码';
+};
+
+const copyPreviewCode = templateId => {
+  const code = getPreviewCode(templateId);
+  navigator.clipboard.writeText(code);
+  window.$message?.success('代码已复制到剪贴板');
+};
+
+// 生成操作
+const generateSingleEntity = async entity => {
+  if (selectedTemplates.value.length === 0) {
+    window.$message?.warning('请先选择模板');
+    return;
+  }
+
+  try {
+    // const response = await api.generateCode({
+    //   entityIds: [entity.id],
+    //   templateIds: selectedTemplates.value,
+    //   config: generationConfig
+    // })
+
+    // 模拟生成结果
+    const result = {
+      id: Date.now().toString(),
+      entityName: entity.name,
+      status: 'success',
+      createdAt: new Date(),
+      files: [
+        {
+          path: `src/entities/${entity.name.toLowerCase()}.entity.ts`,
+          content: `// Generated entity for ${entity.name}`,
+          size: 1024,
+          type: 'entity'
+        },
+        {
+          path: `src/services/${entity.name.toLowerCase()}.service.ts`,
+          content: `// Generated service for ${entity.name}`,
+          size: 2048,
+          type: 'service'
+        }
+      ]
+    };
+
+    generationResults.value.unshift(result);
+    window.$message?.success(`${entity.name} 代码生成成功`);
+  } catch (error) {
+    window.$message?.error('代码生成失败');
+    console.error(error);
+  }
+};
+
+const batchGenerate = async () => {
+  if (selectedEntities.value.length === 0) {
+    window.$message?.warning('请先选择实体');
+    return;
+  }
+
+  if (selectedTemplates.value.length === 0) {
+    window.$message?.warning('请先选择模板');
+    return;
+  }
+
+  batchGenerationVisible.value = true;
+  batchGenerationCompleted.value = false;
+  batchProgress.value = 0;
+  batchProgressText.value = '准备生成...';
+  batchGenerationLog.value = [];
+
+  try {
+    const totalEntities = selectedEntities.value.length;
+
+    for (let i = 0; i < totalEntities; i++) {
+      const entityId = selectedEntities.value[i];
+      const entity = entities.value.find(e => e.id === entityId);
+
+      batchProgressText.value = `正在生成 ${entity.name}...`;
+      batchGenerationLog.value.push({
+        type: 'info',
+        message: `开始生成 ${entity.name}`
+      });
+
+      // 模拟生成过程
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // 模拟生成结果
+      const result = {
+        id: Date.now().toString() + i,
+        entityName: entity.name,
+        status: 'success',
+        createdAt: new Date(),
+        files: [
+          {
+            path: `src/entities/${entity.name.toLowerCase()}.entity.ts`,
+            content: `// Generated entity for ${entity.name}`,
+            size: 1024,
+            type: 'entity'
+          }
+        ]
+      };
+
+      generationResults.value.unshift(result);
+      batchGenerationLog.value.push({
+        type: 'success',
+        message: `${entity.name} 生成完成`
+      });
+
+      batchProgress.value = Math.round(((i + 1) / totalEntities) * 100);
+    }
+
+    batchProgressText.value = '批量生成完成';
+    batchGenerationCompleted.value = true;
+    window.$message?.success('批量生成完成');
+  } catch (error) {
+    batchGenerationLog.value.push({
+      type: 'error',
+      message: `生成失败: ${error.message}`
+    });
+    window.$message?.error('批量生成失败');
+    console.error(error);
+  }
+};
+
+// 结果操作
+const toggleResultExpansion = resultId => {
+  const index = expandedResults.value.indexOf(resultId);
+  if (index > -1) {
+    expandedResults.value.splice(index, 1);
+  } else {
+    expandedResults.value.push(resultId);
+  }
+};
+
+const getStatusText = status => {
+  const statusMap = {
+    success: '成功',
+    error: '失败',
+    pending: '进行中'
+  };
+  return statusMap[status] || status;
+};
+
+const formatTime = time => {
+  return new Date(time).toLocaleString();
+};
+
+const formatFileSize = size => {
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const getFileTypeColor = type => {
+  const colors = {
+    entity: 'blue',
+    service: 'green',
+    controller: 'orange',
+    dto: 'purple',
+    test: 'cyan'
+  };
+  return colors[type] || 'default';
+};
+
+const showFilePreview = file => {
+  previewFile.value = file;
+  filePreviewVisible.value = true;
+};
+
+const copyFileContent = () => {
+  navigator.clipboard.writeText(previewFile.value.content);
+  window.$message?.success('文件内容已复制到剪贴板');
+};
+
+const downloadFile = file => {
+  const blob = new Blob([file.content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = file.path.split('/').pop();
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+const downloadResult = result => {
+  window.$message?.info(`下载 ${result.entityName} 的所有文件`);
+};
+
+const regenerateResult = result => {
+  window.$message?.info(`重新生成 ${result.entityName}`);
+};
+
+const clearResults = () => {
+  generationResults.value = [];
+  expandedResults.value = [];
+  window.$message?.success('结果已清空');
+};
+
+const refreshData = () => {
+  loadData();
+  loadTemplates();
+  window.$message?.success('数据已刷新');
+};
+</script>
+
 <template>
   <div class="code-generator">
     <!-- 头部工具栏 -->
@@ -5,10 +538,10 @@
       <div class="header-left">
         <NBreadcrumb>
           <NBreadcrumbItem>
-            <router-link to="/lowcode/projects">项目管理</router-link>
+            <RouterLink to="/lowcode/projects">项目管理</RouterLink>
           </NBreadcrumbItem>
           <NBreadcrumbItem>
-            <router-link :to="`/lowcode/projects/${projectId}`">{{ projectInfo?.name }}</router-link>
+            <RouterLink :to="`/lowcode/projects/${projectId}`">{{ projectInfo?.name }}</RouterLink>
           </NBreadcrumbItem>
           <NBreadcrumbItem>代码生成</NBreadcrumbItem>
         </NBreadcrumb>
@@ -20,7 +553,7 @@
           </template>
           刷新
         </NButton>
-        <NButton type="primary" @click="batchGenerate" :disabled="selectedEntities.length === 0">
+        <NButton type="primary" :disabled="selectedEntities.length === 0" @click="batchGenerate">
           <template #icon>
             <NIcon><icon-mdi-lightning-bolt /></NIcon>
           </template>
@@ -42,25 +575,21 @@
 
         <div class="entities-list">
           <div class="search-box">
-            <NInput
-              v-model:value="entitySearchText"
-              placeholder="搜索实体..."
-              clearable
-            >
+            <NInput v-model:value="entitySearchText" placeholder="搜索实体..." clearable>
               <template #prefix>
                 <NIcon><icon-mdi-magnify /></NIcon>
               </template>
             </NInput>
           </div>
-          
+
           <div class="entity-items">
             <div
               v-for="entity in filteredEntities"
               :key="entity.id"
               class="entity-item"
-              :class="{ 
+              :class="{
                 selected: selectedEntities.includes(entity.id),
-                active: currentEntity?.id === entity.id 
+                active: currentEntity?.id === entity.id
               }"
               @click="selectEntity(entity)"
             >
@@ -108,43 +637,23 @@
 
             <div class="config-section">
               <h4>数据库类型</h4>
-              <NSelect
-                v-model:value="generationConfig.database"
-                style="width: 200px"
-                :options="databaseOptions"
-              />
+              <NSelect v-model:value="generationConfig.database" style="width: 200px" :options="databaseOptions" />
             </div>
 
             <div class="config-section">
               <h4>ORM框架</h4>
-              <NSelect
-                v-model:value="generationConfig.orm"
-                style="width: 200px"
-                :options="ormOptions"
-              />
+              <NSelect v-model:value="generationConfig.orm" style="width: 200px" :options="ormOptions" />
             </div>
 
             <div class="config-section">
               <h4>生成选项</h4>
               <NSpace vertical>
-                <NCheckbox v-model:checked="generationConfig.features.swagger">
-                  Swagger API 文档
-                </NCheckbox>
-                <NCheckbox v-model:checked="generationConfig.features.validation">
-                  数据验证
-                </NCheckbox>
-                <NCheckbox v-model:checked="generationConfig.features.authentication">
-                  身份认证
-                </NCheckbox>
-                <NCheckbox v-model:checked="generationConfig.features.caching">
-                  缓存支持
-                </NCheckbox>
-                <NCheckbox v-model:checked="generationConfig.features.testing">
-                  单元测试
-                </NCheckbox>
-                <NCheckbox v-model:checked="generationConfig.features.pagination">
-                  分页查询
-                </NCheckbox>
+                <NCheckbox v-model:checked="generationConfig.features.swagger">Swagger API 文档</NCheckbox>
+                <NCheckbox v-model:checked="generationConfig.features.validation">数据验证</NCheckbox>
+                <NCheckbox v-model:checked="generationConfig.features.authentication">身份认证</NCheckbox>
+                <NCheckbox v-model:checked="generationConfig.features.caching">缓存支持</NCheckbox>
+                <NCheckbox v-model:checked="generationConfig.features.testing">单元测试</NCheckbox>
+                <NCheckbox v-model:checked="generationConfig.features.pagination">分页查询</NCheckbox>
               </NSpace>
             </div>
 
@@ -152,10 +661,7 @@
               <h4>命名规范</h4>
               <NForm label-placement="top">
                 <NFormItem label="命名约定">
-                  <NSelect
-                    v-model:value="generationConfig.naming.convention"
-                    :options="namingConventionOptions"
-                  />
+                  <NSelect v-model:value="generationConfig.naming.convention" :options="namingConventionOptions" />
                 </NFormItem>
                 <NFormItem label="类名前缀">
                   <NInput v-model:value="generationConfig.naming.prefix" placeholder="可选" />
@@ -186,11 +692,7 @@
           <NTabPane name="templates" tab="模板选择">
             <div class="templates-section">
               <div class="templates-filter">
-                <NInput
-                  v-model:value="templateSearchText"
-                  placeholder="搜索模板..."
-                  style="width: 200px"
-                >
+                <NInput v-model:value="templateSearchText" placeholder="搜索模板..." style="width: 200px">
                   <template #prefix>
                     <NIcon><icon-mdi-magnify /></NIcon>
                   </template>
@@ -212,10 +714,7 @@
                   @click="toggleTemplateSelection(template.id)"
                 >
                   <div class="template-checkbox">
-                    <NCheckbox
-                      :checked="selectedTemplates.includes(template.id)"
-                      @click.stop
-                    />
+                    <NCheckbox :checked="selectedTemplates.includes(template.id)" @click.stop />
                   </div>
                   <div class="template-info">
                     <div class="template-name">{{ template.name }}</div>
@@ -254,7 +753,7 @@
                 />
               </div>
 
-              <div class="preview-templates" v-if="previewEntityId">
+              <div v-if="previewEntityId" class="preview-templates">
                 <h4>模板预览</h4>
                 <NTabs v-model:value="activePreviewTab" type="card" size="small">
                   <NTabPane
@@ -289,16 +788,14 @@
       <div class="results-panel">
         <div class="panel-header">
           <h3>生成结果</h3>
-          <NButton text size="small" @click="clearResults">
-            清空结果
-          </NButton>
+          <NButton text size="small" @click="clearResults">清空结果</NButton>
         </div>
 
         <div class="results-content">
           <div v-if="generationResults.length === 0" class="empty-results">
             <NEmpty description="暂无生成结果" />
           </div>
-          
+
           <div v-else class="results-list">
             <div
               v-for="result in generationResults"
@@ -316,22 +813,15 @@
                 <div class="result-meta">
                   <span class="result-files">{{ result.files?.length || 0 }} 文件</span>
                   <span class="result-time">{{ formatTime(result.createdAt) }}</span>
-                  <NIcon
-                    class="expand-icon"
-                    :class="{ expanded: expandedResults.includes(result.id) }"
-                  >
+                  <NIcon class="expand-icon" :class="{ expanded: expandedResults.includes(result.id) }">
                     <icon-mdi-chevron-down />
                   </NIcon>
                 </div>
               </div>
 
-              <div class="result-content" v-if="expandedResults.includes(result.id)">
+              <div v-if="expandedResults.includes(result.id)" class="result-content">
                 <div class="result-files">
-                  <div
-                    v-for="file in result.files"
-                    :key="file.path"
-                    class="file-item"
-                  >
+                  <div v-for="file in result.files" :key="file.path" class="file-item">
                     <div class="file-info">
                       <span class="file-path">{{ file.path }}</span>
                       <span class="file-size">{{ formatFileSize(file.size) }}</span>
@@ -376,12 +866,7 @@
     </div>
 
     <!-- 文件预览弹窗 -->
-    <NModal
-      v-model:show="filePreviewVisible"
-      title="文件预览"
-      style="width: 80%"
-      preset="dialog"
-    >
+    <NModal v-model:show="filePreviewVisible" title="文件预览" style="width: 80%" preset="dialog">
       <div class="file-preview">
         <div class="preview-header">
           <span class="file-path">{{ previewFile?.path }}</span>
@@ -408,565 +893,22 @@
       :show-icon="false"
     >
       <div class="batch-progress">
-        <NProgress
-          :percentage="batchProgress"
-          :status="batchGenerationCompleted ? 'success' : 'default'"
-        />
+        <NProgress :percentage="batchProgress" :status="batchGenerationCompleted ? 'success' : 'default'" />
         <div class="progress-info">
           <span>{{ batchProgressText }}</span>
         </div>
-        <div class="progress-details" v-if="batchGenerationLog.length > 0">
-          <div
-            v-for="(log, index) in batchGenerationLog"
-            :key="index"
-            class="log-item"
-            :class="log.type"
-          >
+        <div v-if="batchGenerationLog.length > 0" class="progress-details">
+          <div v-for="(log, index) in batchGenerationLog" :key="index" class="log-item" :class="log.type">
             {{ log.message }}
           </div>
         </div>
       </div>
       <template #action>
-        <NButton v-if="batchGenerationCompleted" @click="batchGenerationVisible = false">
-          确定
-        </NButton>
+        <NButton v-if="batchGenerationCompleted" @click="batchGenerationVisible = false">确定</NButton>
       </template>
     </NModal>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-
-// 选项数据
-const databaseOptions = [
-  { label: 'PostgreSQL', value: 'postgresql' },
-  { label: 'MySQL', value: 'mysql' },
-  { label: 'MongoDB', value: 'mongodb' },
-  { label: 'SQLite', value: 'sqlite' }
-]
-
-const ormOptions = [
-  { label: 'Prisma', value: 'prisma' },
-  { label: 'Sequelize', value: 'sequelize' },
-  { label: 'Mongoose', value: 'mongoose' }
-]
-
-const namingConventionOptions = [
-  { label: '驼峰命名', value: 'camelCase' },
-  { label: '帕斯卡命名', value: 'pascalCase' },
-  { label: '短横线命名', value: 'kebabCase' },
-  { label: '下划线命名', value: 'snakeCase' }
-]
-
-const templateCategoryOptions = [
-  { label: '全部分类', value: '' },
-  { label: '实体模板', value: 'entity' },
-  { label: '服务模板', value: 'service' },
-  { label: '控制器模板', value: 'controller' },
-  { label: 'DTO模板', value: 'dto' }
-]
-
-// 路由参数
-const route = useRoute()
-const projectId = computed(() => route.params.projectId as string)
-
-// 响应式数据
-const projectInfo = ref(null)
-const entities = ref([])
-const relations = ref([])
-const templates = ref([])
-
-// 界面状态
-const activeConfigTab = ref('generation')
-const activePreviewTab = ref('')
-const entitySearchText = ref('')
-const templateSearchText = ref('')
-const templateCategoryFilter = ref('')
-
-// 选择状态
-const selectedEntities = ref([])
-const selectedTemplates = ref([])
-const currentEntity = ref(null)
-
-// 生成配置
-const generationConfig = reactive({
-  framework: 'nestjs',
-  database: 'postgresql',
-  orm: 'prisma',
-  features: {
-    swagger: true,
-    validation: true,
-    authentication: false,
-    caching: false,
-    testing: true,
-    pagination: true
-  },
-  naming: {
-    convention: 'camelCase',
-    prefix: '',
-    suffix: ''
-  },
-  output: {
-    baseDir: './generated'
-  },
-  layers: ['base', 'biz']
-})
-
-// 预览相关
-const previewEntityId = ref('')
-const previewCodes = ref({})
-
-// 生成结果
-const generationResults = ref([])
-const expandedResults = ref([])
-
-// 弹窗状态
-const filePreviewVisible = ref(false)
-const previewFile = ref(null)
-const batchGenerationVisible = ref(false)
-const batchGenerationCompleted = ref(false)
-const batchProgress = ref(0)
-const batchProgressText = ref('')
-const batchGenerationLog = ref([])
-
-// 计算属性
-const filteredEntities = computed(() => {
-  if (!entitySearchText.value) return entities.value
-  return entities.value.filter(entity =>
-    entity.name.toLowerCase().includes(entitySearchText.value.toLowerCase()) ||
-    entity.description?.toLowerCase().includes(entitySearchText.value.toLowerCase())
-  )
-})
-
-const filteredTemplates = computed(() => {
-  let filtered = templates.value
-
-  if (templateSearchText.value) {
-    filtered = filtered.filter(template =>
-      template.name.toLowerCase().includes(templateSearchText.value.toLowerCase()) ||
-      template.description?.toLowerCase().includes(templateSearchText.value.toLowerCase())
-    )
-  }
-
-  if (templateCategoryFilter.value) {
-    filtered = filtered.filter(template => template.category === templateCategoryFilter.value)
-  }
-
-  // 根据框架过滤
-  filtered = filtered.filter(template => 
-    template.framework === generationConfig.framework || template.framework === 'universal'
-  )
-
-  return filtered
-})
-
-const selectedTemplateObjects = computed(() => {
-  return templates.value.filter(template => selectedTemplates.value.includes(template.id))
-})
-
-const entityOptions = computed(() => {
-  return entities.value.map(entity => ({
-    label: entity.name,
-    value: entity.id
-  }))
-})
-
-// 初始化
-onMounted(async () => {
-  await loadData()
-  await loadTemplates()
-})
-
-// 数据加载
-const loadData = async () => {
-  try {
-    // 加载项目信息
-    // const projectResponse = await api.getProject(projectId.value)
-    // projectInfo.value = projectResponse.data
-
-    // 加载实体和关系
-    // const entitiesResponse = await api.getProjectEntities(projectId.value)
-    // entities.value = entitiesResponse.data.entities
-    // relations.value = entitiesResponse.data.relations
-
-    // 模拟数据
-    projectInfo.value = { name: '示例项目' }
-    entities.value = [
-      {
-        id: '1',
-        name: 'User',
-        tableName: 'users',
-        description: '用户实体',
-        fields: [
-          { id: '1', name: 'id', type: 'string', isPrimary: true },
-          { id: '2', name: 'username', type: 'string', isRequired: true },
-          { id: '3', name: 'email', type: 'string', isRequired: true }
-        ]
-      },
-      {
-        id: '2',
-        name: 'Post',
-        tableName: 'posts',
-        description: '文章实体',
-        fields: [
-          { id: '4', name: 'id', type: 'string', isPrimary: true },
-          { id: '5', name: 'title', type: 'string', isRequired: true },
-          { id: '6', name: 'content', type: 'text', isRequired: true }
-        ]
-      }
-    ]
-  } catch (error) {
-    window.$message?.error('加载数据失败')
-    console.error(error)
-  }
-}
-
-const loadTemplates = async () => {
-  try {
-    // const response = await api.getTemplates({ framework: generationConfig.framework })
-    // templates.value = response.data.options
-
-    // 模拟数据
-    templates.value = [
-      {
-        id: '1',
-        name: 'NestJS Entity',
-        description: 'NestJS实体模板',
-        category: 'entity',
-        framework: 'nestjs',
-        version: '1.0.0',
-        content: 'entity template content...'
-      },
-      {
-        id: '2',
-        name: 'NestJS Service',
-        description: 'NestJS服务模板',
-        category: 'service',
-        framework: 'nestjs',
-        version: '1.0.0',
-        content: 'service template content...'
-      },
-      {
-        id: '3',
-        name: 'NestJS Controller',
-        description: 'NestJS控制器模板',
-        category: 'controller',
-        framework: 'nestjs',
-        version: '1.0.0',
-        content: 'controller template content...'
-      }
-    ]
-
-    // 默认选择所有模板
-    selectedTemplates.value = templates.value.map(t => t.id)
-  } catch (error) {
-    window.$message?.error('加载模板失败')
-    console.error(error)
-  }
-}
-
-// 实体操作
-const selectEntity = (entity) => {
-  currentEntity.value = entity
-}
-
-const toggleEntitySelection = (entityId) => {
-  const index = selectedEntities.value.indexOf(entityId)
-  if (index > -1) {
-    selectedEntities.value.splice(index, 1)
-  } else {
-    selectedEntities.value.push(entityId)
-  }
-}
-
-const selectAllEntities = () => {
-  if (selectedEntities.value.length === entities.value.length) {
-    selectedEntities.value = []
-  } else {
-    selectedEntities.value = entities.value.map(e => e.id)
-  }
-}
-
-const getEntityRelationsCount = (entityId) => {
-  return relations.value.filter(r => 
-    r.sourceEntityId === entityId || r.targetEntityId === entityId
-  ).length
-}
-
-// 模板操作
-const toggleTemplateSelection = (templateId) => {
-  const index = selectedTemplates.value.indexOf(templateId)
-  if (index > -1) {
-    selectedTemplates.value.splice(index, 1)
-  } else {
-    selectedTemplates.value.push(templateId)
-  }
-}
-
-const getCategoryColor = (category) => {
-  const colors = {
-    entity: 'blue',
-    service: 'green',
-    controller: 'orange',
-    dto: 'purple'
-  }
-  return colors[category] || 'default'
-}
-
-const previewTemplate = (template) => {
-  window.$message?.info(`预览模板: ${template.name}`)
-}
-
-// 配置操作
-const onFrameworkChange = () => {
-  loadTemplates()
-}
-
-// 预览操作
-const generatePreview = async () => {
-  if (!previewEntityId.value || selectedTemplates.value.length === 0) return
-
-  try {
-    // const response = await api.previewGeneration({
-    //   entityId: previewEntityId.value,
-    //   templateIds: selectedTemplates.value,
-    //   config: generationConfig
-    // })
-    // previewCodes.value = response.data
-
-    // 模拟预览代码
-    previewCodes.value = {}
-    selectedTemplates.value.forEach(templateId => {
-      previewCodes.value[templateId] = `// Generated code for ${getPreviewEntityName()}
-// Template: ${templates.value.find(t => t.id === templateId)?.name}
-// Framework: ${generationConfig.framework}
-
-export class ${getPreviewEntityName()} {
-  // Generated properties and methods
-}`
-    })
-
-    if (selectedTemplateObjects.value.length > 0) {
-      activePreviewTab.value = selectedTemplateObjects.value[0].id
-    }
-  } catch (error) {
-    window.$message?.error('生成预览失败')
-    console.error(error)
-  }
-}
-
-const getPreviewEntityName = () => {
-  const entity = entities.value.find(e => e.id === previewEntityId.value)
-  return entity ? entity.name : ''
-}
-
-const getPreviewCode = (templateId) => {
-  return previewCodes.value[templateId] || '// 暂无预览代码'
-}
-
-const copyPreviewCode = (templateId) => {
-  const code = getPreviewCode(templateId)
-  navigator.clipboard.writeText(code)
-  window.$message?.success('代码已复制到剪贴板')
-}
-
-// 生成操作
-const generateSingleEntity = async (entity) => {
-  if (selectedTemplates.value.length === 0) {
-    window.$message?.warning('请先选择模板')
-    return
-  }
-
-  try {
-    // const response = await api.generateCode({
-    //   entityIds: [entity.id],
-    //   templateIds: selectedTemplates.value,
-    //   config: generationConfig
-    // })
-
-    // 模拟生成结果
-    const result = {
-      id: Date.now().toString(),
-      entityName: entity.name,
-      status: 'success',
-      createdAt: new Date(),
-      files: [
-        {
-          path: `src/entities/${entity.name.toLowerCase()}.entity.ts`,
-          content: `// Generated entity for ${entity.name}`,
-          size: 1024,
-          type: 'entity'
-        },
-        {
-          path: `src/services/${entity.name.toLowerCase()}.service.ts`,
-          content: `// Generated service for ${entity.name}`,
-          size: 2048,
-          type: 'service'
-        }
-      ]
-    }
-
-    generationResults.value.unshift(result)
-    window.$message?.success(`${entity.name} 代码生成成功`)
-  } catch (error) {
-    window.$message?.error('代码生成失败')
-    console.error(error)
-  }
-}
-
-const batchGenerate = async () => {
-  if (selectedEntities.value.length === 0) {
-    window.$message?.warning('请先选择实体')
-    return
-  }
-
-  if (selectedTemplates.value.length === 0) {
-    window.$message?.warning('请先选择模板')
-    return
-  }
-
-  batchGenerationVisible.value = true
-  batchGenerationCompleted.value = false
-  batchProgress.value = 0
-  batchProgressText.value = '准备生成...'
-  batchGenerationLog.value = []
-
-  try {
-    const totalEntities = selectedEntities.value.length
-    
-    for (let i = 0; i < totalEntities; i++) {
-      const entityId = selectedEntities.value[i]
-      const entity = entities.value.find(e => e.id === entityId)
-      
-      batchProgressText.value = `正在生成 ${entity.name}...`
-      batchGenerationLog.value.push({
-        type: 'info',
-        message: `开始生成 ${entity.name}`
-      })
-
-      // 模拟生成过程
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
-      // 模拟生成结果
-      const result = {
-        id: Date.now().toString() + i,
-        entityName: entity.name,
-        status: 'success',
-        createdAt: new Date(),
-        files: [
-          {
-            path: `src/entities/${entity.name.toLowerCase()}.entity.ts`,
-            content: `// Generated entity for ${entity.name}`,
-            size: 1024,
-            type: 'entity'
-          }
-        ]
-      }
-
-      generationResults.value.unshift(result)
-      batchGenerationLog.value.push({
-        type: 'success',
-        message: `${entity.name} 生成完成`
-      })
-
-      batchProgress.value = Math.round(((i + 1) / totalEntities) * 100)
-    }
-
-    batchProgressText.value = '批量生成完成'
-    batchGenerationCompleted.value = true
-    window.$message?.success('批量生成完成')
-  } catch (error) {
-    batchGenerationLog.value.push({
-      type: 'error',
-      message: `生成失败: ${error.message}`
-    })
-    window.$message?.error('批量生成失败')
-    console.error(error)
-  }
-}
-
-// 结果操作
-const toggleResultExpansion = (resultId) => {
-  const index = expandedResults.value.indexOf(resultId)
-  if (index > -1) {
-    expandedResults.value.splice(index, 1)
-  } else {
-    expandedResults.value.push(resultId)
-  }
-}
-
-const getStatusText = (status) => {
-  const statusMap = {
-    success: '成功',
-    error: '失败',
-    pending: '进行中'
-  }
-  return statusMap[status] || status
-}
-
-const formatTime = (time) => {
-  return new Date(time).toLocaleString()
-}
-
-const formatFileSize = (size) => {
-  if (size < 1024) return `${size} B`
-  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`
-  return `${(size / (1024 * 1024)).toFixed(1)} MB`
-}
-
-const getFileTypeColor = (type) => {
-  const colors = {
-    entity: 'blue',
-    service: 'green',
-    controller: 'orange',
-    dto: 'purple',
-    test: 'cyan'
-  }
-  return colors[type] || 'default'
-}
-
-const showFilePreview = (file) => {
-  previewFile.value = file
-  filePreviewVisible.value = true
-}
-
-const copyFileContent = () => {
-  navigator.clipboard.writeText(previewFile.value.content)
-  window.$message?.success('文件内容已复制到剪贴板')
-}
-
-const downloadFile = (file) => {
-  const blob = new Blob([file.content], { type: 'text/plain' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = file.path.split('/').pop()
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
-const downloadResult = (result) => {
-  window.$message?.info(`下载 ${result.entityName} 的所有文件`)
-}
-
-const regenerateResult = (result) => {
-  window.$message?.info(`重新生成 ${result.entityName}`)
-}
-
-const clearResults = () => {
-  generationResults.value = []
-  expandedResults.value = []
-  window.$message?.success('结果已清空')
-}
-
-const refreshData = () => {
-  loadData()
-  loadTemplates()
-  window.$message?.success('数据已刷新')
-}
-</script>
 
 <style scoped>
 .code-generator {
@@ -983,7 +925,7 @@ const refreshData = () => {
   padding: 16px 24px;
   background: #fff;
   border-bottom: 1px solid #d9d9d9;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .header-left,
@@ -1237,7 +1179,7 @@ const refreshData = () => {
 }
 
 .result-item:hover {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .result-header {

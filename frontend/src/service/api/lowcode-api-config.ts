@@ -1,8 +1,7 @@
 import { lowcodeRequest as request } from '../request';
 
 /**
- * get api config list by project (Platform Management Format)
- * 平台管理接口：使用 current/size 参数，返回 records 格式
+ * get api config list by project (Platform Management Format) 平台管理接口：使用 current/size 参数，返回 records 格式
  *
  * @param projectId - project id
  * @param params - api config search params
@@ -16,8 +15,7 @@ export function fetchGetApiConfigList(projectId: string, params?: Api.Lowcode.Ap
 }
 
 /**
- * get api config list by project (Lowcode Page Format)
- * 低代码页面接口：使用 page/perPage 参数，返回 options 格式
+ * get api config list by project (Lowcode Page Format) 低代码页面接口：使用 page/perPage 参数，返回 options 格式
  *
  * @param projectId - project id
  * @param params - api config search params

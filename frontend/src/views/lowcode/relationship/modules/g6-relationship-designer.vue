@@ -1,20 +1,7 @@
-<template>
-  <div class="g6-relationship-designer">
-    <!-- 工具栏 -->
-    <div class="toolbar">
-      <button @click="fitView">适应视图</button>
-      <button @click="addTestData">添加测试数据</button>
-    </div>
-    
-    <!-- G6画布容器 -->
-    <div ref="containerRef" class="graph-container"></div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-import { Graph } from '@antv/g6';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { useMessage } from 'naive-ui';
+import { Graph } from '@antv/g6';
 
 const message = useMessage();
 const containerRef = ref<HTMLDivElement>();
@@ -49,9 +36,9 @@ function initGraph() {
     // 确保容器尺寸有效
     const containerWidth = containerRef.value.clientWidth || 800;
     const containerHeight = containerRef.value.clientHeight || 600;
-    
+
     console.log('初始化G6图形，容器尺寸:', containerWidth, containerHeight);
-    
+
     // 创建G6图形实例 - 最简单的配置
     graph = new Graph({
       container: containerRef.value,
@@ -90,11 +77,11 @@ function initGraph() {
         }
       }
     });
-    
+
     console.log('G6图形初始化成功');
   } catch (error) {
     console.error('G6图形初始化失败:', error);
-    message.error('图形初始化失败: ' + (error instanceof Error ? error.message : String(error)));
+    message.error(`图形初始化失败: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -126,15 +113,15 @@ function addTestData() {
         { source: 'node1', target: 'node5', label: '一对多' }
       ]
     };
-    
+
     console.log('添加测试数据:', data);
-    
+
     // 添加数据到图形
     graph.data(data);
-    
+
     // 渲染图形
     graph.render();
-    
+
     // 自动适应视图
     setTimeout(() => {
       if (graph && !graph.destroyed) {
@@ -142,11 +129,11 @@ function addTestData() {
         console.log('自动适应视图完成');
       }
     }, 500);
-    
+
     message.success('测试数据添加成功');
   } catch (error) {
     console.error('添加测试数据失败:', error);
-    message.error('添加测试数据失败: ' + (error instanceof Error ? error.message : String(error)));
+    message.error(`添加测试数据失败: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -156,6 +143,19 @@ function fitView() {
   graph.fitView();
 }
 </script>
+
+<template>
+  <div class="g6-relationship-designer">
+    <!-- 工具栏 -->
+    <div class="toolbar">
+      <button @click="fitView">适应视图</button>
+      <button @click="addTestData">添加测试数据</button>
+    </div>
+
+    <!-- G6画布容器 -->
+    <div ref="containerRef" class="graph-container"></div>
+  </div>
+</template>
 
 <style scoped>
 .g6-relationship-designer {

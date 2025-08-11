@@ -1,127 +1,10 @@
-<template>
-  <NDrawer v-model:show="drawerVisible" display-directive="show" :width="720">
-    <NDrawerContent :title="title" :native-scrollbar="false" closable>
-      <NForm ref="formRef" :model="formModel" :rules="rules" label-placement="left" :label-width="120">
-        <NFormItem :label="$t('page.lowcode.apiConfig.name')" path="name">
-          <NInput v-model:value="formModel.name" :placeholder="$t('page.lowcode.apiConfig.form.name.placeholder')" />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.apiConfig.path')" path="path">
-          <NInput v-model:value="formModel.path" :placeholder="$t('page.lowcode.apiConfig.form.path.placeholder')" />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.apiConfig.method')" path="method">
-          <NSelect 
-            v-model:value="formModel.method" 
-            :placeholder="$t('page.lowcode.apiConfig.form.method.placeholder')"
-            :options="methodOptions"
-          />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.apiConfig.entity')" path="entityId">
-          <NSelect 
-            v-model:value="formModel.entityId" 
-            :placeholder="$t('page.lowcode.apiConfig.form.entity.placeholder')"
-            :options="entityOptions"
-            clearable
-            filterable
-          />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.apiConfig.description')" path="description">
-          <NInput
-            v-model:value="formModel.description"
-            :placeholder="$t('page.lowcode.apiConfig.form.description.placeholder')"
-            type="textarea"
-            :rows="3"
-          />
-        </NFormItem>
-        
-        <NDivider title-placement="left">{{ $t('page.lowcode.apiConfig.queryConfig') }}</NDivider>
-        
-        <NFormItem :label="$t('page.lowcode.apiConfig.paginationEnabled')" path="paginationEnabled">
-          <NSwitch v-model:value="formModel.paginationEnabled" />
-        </NFormItem>
-        <NFormItem v-if="formModel.paginationEnabled" :label="$t('page.lowcode.apiConfig.defaultPageSize')" path="defaultPageSize">
-          <NInputNumber 
-            v-model:value="formModel.defaultPageSize" 
-            :placeholder="$t('page.lowcode.apiConfig.form.defaultPageSize.placeholder')"
-            :min="1"
-            :max="1000"
-            style="width: 100%"
-          />
-        </NFormItem>
-        <NFormItem v-if="formModel.paginationEnabled" :label="$t('page.lowcode.apiConfig.maxPageSize')" path="maxPageSize">
-          <NInputNumber 
-            v-model:value="formModel.maxPageSize" 
-            :placeholder="$t('page.lowcode.apiConfig.form.maxPageSize.placeholder')"
-            :min="1"
-            :max="1000"
-            style="width: 100%"
-          />
-        </NFormItem>
-        
-        <NDivider title-placement="left">{{ $t('page.lowcode.apiConfig.responseConfig') }}</NDivider>
-        
-        <NFormItem :label="$t('page.lowcode.apiConfig.responseFormat')" path="responseFormat">
-          <NSelect 
-            v-model:value="formModel.responseFormat" 
-            :placeholder="$t('page.lowcode.apiConfig.form.responseFormat.placeholder')"
-            :options="responseFormatOptions"
-          />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.apiConfig.responseWrapper')" path="responseWrapper">
-          <NInput 
-            v-model:value="formModel.responseWrapper" 
-            :placeholder="$t('page.lowcode.apiConfig.form.responseWrapper.placeholder')" 
-          />
-        </NFormItem>
-        
-        <NDivider title-placement="left">{{ $t('page.lowcode.apiConfig.securityConfig') }}</NDivider>
-        
-        <NFormItem :label="$t('page.lowcode.apiConfig.authRequired')" path="authRequired">
-          <NSwitch v-model:value="formModel.authRequired" />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.apiConfig.rateLimitEnabled')" path="rateLimitEnabled">
-          <NSwitch v-model:value="formModel.rateLimitEnabled" />
-        </NFormItem>
-        <NFormItem v-if="formModel.rateLimitEnabled" :label="$t('page.lowcode.apiConfig.rateLimitRequests')" path="rateLimitRequests">
-          <NInputNumber 
-            v-model:value="formModel.rateLimitRequests" 
-            :placeholder="$t('page.lowcode.apiConfig.form.rateLimitRequests.placeholder')"
-            :min="1"
-            style="width: 100%"
-          />
-        </NFormItem>
-        <NFormItem v-if="formModel.rateLimitEnabled" :label="$t('page.lowcode.apiConfig.rateLimitWindow')" path="rateLimitWindow">
-          <NInputNumber 
-            v-model:value="formModel.rateLimitWindow" 
-            :placeholder="$t('page.lowcode.apiConfig.form.rateLimitWindow.placeholder')"
-            :min="1"
-            style="width: 100%"
-          />
-        </NFormItem>
-        
-        <NFormItem :label="$t('common.status')" path="status">
-          <NRadioGroup v-model:value="formModel.status">
-            <NRadio value="ACTIVE">{{ $t('page.lowcode.apiConfig.status.ACTIVE') }}</NRadio>
-            <NRadio value="INACTIVE">{{ $t('page.lowcode.apiConfig.status.INACTIVE') }}</NRadio>
-          </NRadioGroup>
-        </NFormItem>
-      </NForm>
-      <template #footer>
-        <NSpace :size="16">
-          <NButton @click="closeDrawer">{{ $t('common.cancel') }}</NButton>
-          <NButton type="primary" @click="handleSubmit">{{ $t('common.confirm') }}</NButton>
-        </NSpace>
-      </template>
-    </NDrawerContent>
-  </NDrawer>
-</template>
-
 <script setup lang="ts">
-import { computed, reactive, watch, onMounted, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import type { FormInst, FormRules } from 'naive-ui';
-import { fetchAddApiConfig, fetchUpdateApiConfig, fetchGetAllEntities } from '@/service/api';
-import { $t } from '@/locales';
-import { createRequiredFormRule } from '@/utils/form/rule';
+import { fetchAddApiConfig, fetchGetAllEntities, fetchUpdateApiConfig } from '@/service/api';
 import { useNaiveForm } from '@/hooks/common/form';
+import { createRequiredFormRule } from '@/utils/form/rule';
+import { $t } from '@/locales';
 
 export interface Props {
   /** the type of operation */
@@ -281,7 +164,7 @@ async function loadEntities() {
 
 async function handleSubmit() {
   await validate();
-  
+
   // Build the API config data from form model
   const apiConfigData: Api.Lowcode.ApiConfigEdit = {
     projectId: formModel.projectId,
@@ -291,25 +174,29 @@ async function handleSubmit() {
     description: formModel.description,
     entityId: formModel.entityId,
     queryConfig: {
-      pagination: formModel.paginationEnabled ? {
-        enabled: true,
-        defaultPageSize: formModel.defaultPageSize,
-        maxPageSize: formModel.maxPageSize
-      } : { enabled: false }
+      pagination: formModel.paginationEnabled
+        ? {
+            enabled: true,
+            defaultPageSize: formModel.defaultPageSize,
+            maxPageSize: formModel.maxPageSize
+          }
+        : { enabled: false }
     },
     responseConfig: {
       format: formModel.responseFormat,
       wrapper: formModel.responseWrapper
     },
     authRequired: formModel.authRequired,
-    rateLimit: formModel.rateLimitEnabled ? {
-      enabled: true,
-      requests: formModel.rateLimitRequests,
-      window: formModel.rateLimitWindow
-    } : { enabled: false },
+    rateLimit: formModel.rateLimitEnabled
+      ? {
+          enabled: true,
+          requests: formModel.rateLimitRequests,
+          window: formModel.rateLimitWindow
+        }
+      : { enabled: false },
     status: formModel.status
   };
-  
+
   const handlers: Record<NaiveUI.TableOperateType, () => Promise<void>> = {
     add: async () => {
       await fetchAddApiConfig(apiConfigData);
@@ -322,7 +209,7 @@ async function handleSubmit() {
   };
 
   await handlers[props.operateType]();
-  
+
   window.$message?.success($t('common.updateSuccess'));
   closeDrawer();
   emit('submitted');
@@ -353,5 +240,138 @@ onMounted(() => {
   loadEntities();
 });
 </script>
+
+<template>
+  <NDrawer v-model:show="drawerVisible" display-directive="show" :width="720">
+    <NDrawerContent :title="title" :native-scrollbar="false" closable>
+      <NForm ref="formRef" :model="formModel" :rules="rules" label-placement="left" :label-width="120">
+        <NFormItem :label="$t('page.lowcode.apiConfig.name')" path="name">
+          <NInput v-model:value="formModel.name" :placeholder="$t('page.lowcode.apiConfig.form.name.placeholder')" />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.apiConfig.path')" path="path">
+          <NInput v-model:value="formModel.path" :placeholder="$t('page.lowcode.apiConfig.form.path.placeholder')" />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.apiConfig.method')" path="method">
+          <NSelect
+            v-model:value="formModel.method"
+            :placeholder="$t('page.lowcode.apiConfig.form.method.placeholder')"
+            :options="methodOptions"
+          />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.apiConfig.entity')" path="entityId">
+          <NSelect
+            v-model:value="formModel.entityId"
+            :placeholder="$t('page.lowcode.apiConfig.form.entity.placeholder')"
+            :options="entityOptions"
+            clearable
+            filterable
+          />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.apiConfig.description')" path="description">
+          <NInput
+            v-model:value="formModel.description"
+            :placeholder="$t('page.lowcode.apiConfig.form.description.placeholder')"
+            type="textarea"
+            :rows="3"
+          />
+        </NFormItem>
+
+        <NDivider title-placement="left">{{ $t('page.lowcode.apiConfig.queryConfig') }}</NDivider>
+
+        <NFormItem :label="$t('page.lowcode.apiConfig.paginationEnabled')" path="paginationEnabled">
+          <NSwitch v-model:value="formModel.paginationEnabled" />
+        </NFormItem>
+        <NFormItem
+          v-if="formModel.paginationEnabled"
+          :label="$t('page.lowcode.apiConfig.defaultPageSize')"
+          path="defaultPageSize"
+        >
+          <NInputNumber
+            v-model:value="formModel.defaultPageSize"
+            :placeholder="$t('page.lowcode.apiConfig.form.defaultPageSize.placeholder')"
+            :min="1"
+            :max="1000"
+            style="width: 100%"
+          />
+        </NFormItem>
+        <NFormItem
+          v-if="formModel.paginationEnabled"
+          :label="$t('page.lowcode.apiConfig.maxPageSize')"
+          path="maxPageSize"
+        >
+          <NInputNumber
+            v-model:value="formModel.maxPageSize"
+            :placeholder="$t('page.lowcode.apiConfig.form.maxPageSize.placeholder')"
+            :min="1"
+            :max="1000"
+            style="width: 100%"
+          />
+        </NFormItem>
+
+        <NDivider title-placement="left">{{ $t('page.lowcode.apiConfig.responseConfig') }}</NDivider>
+
+        <NFormItem :label="$t('page.lowcode.apiConfig.responseFormat')" path="responseFormat">
+          <NSelect
+            v-model:value="formModel.responseFormat"
+            :placeholder="$t('page.lowcode.apiConfig.form.responseFormat.placeholder')"
+            :options="responseFormatOptions"
+          />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.apiConfig.responseWrapper')" path="responseWrapper">
+          <NInput
+            v-model:value="formModel.responseWrapper"
+            :placeholder="$t('page.lowcode.apiConfig.form.responseWrapper.placeholder')"
+          />
+        </NFormItem>
+
+        <NDivider title-placement="left">{{ $t('page.lowcode.apiConfig.securityConfig') }}</NDivider>
+
+        <NFormItem :label="$t('page.lowcode.apiConfig.authRequired')" path="authRequired">
+          <NSwitch v-model:value="formModel.authRequired" />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.apiConfig.rateLimitEnabled')" path="rateLimitEnabled">
+          <NSwitch v-model:value="formModel.rateLimitEnabled" />
+        </NFormItem>
+        <NFormItem
+          v-if="formModel.rateLimitEnabled"
+          :label="$t('page.lowcode.apiConfig.rateLimitRequests')"
+          path="rateLimitRequests"
+        >
+          <NInputNumber
+            v-model:value="formModel.rateLimitRequests"
+            :placeholder="$t('page.lowcode.apiConfig.form.rateLimitRequests.placeholder')"
+            :min="1"
+            style="width: 100%"
+          />
+        </NFormItem>
+        <NFormItem
+          v-if="formModel.rateLimitEnabled"
+          :label="$t('page.lowcode.apiConfig.rateLimitWindow')"
+          path="rateLimitWindow"
+        >
+          <NInputNumber
+            v-model:value="formModel.rateLimitWindow"
+            :placeholder="$t('page.lowcode.apiConfig.form.rateLimitWindow.placeholder')"
+            :min="1"
+            style="width: 100%"
+          />
+        </NFormItem>
+
+        <NFormItem :label="$t('common.status')" path="status">
+          <NRadioGroup v-model:value="formModel.status">
+            <NRadio value="ACTIVE">{{ $t('page.lowcode.apiConfig.status.ACTIVE') }}</NRadio>
+            <NRadio value="INACTIVE">{{ $t('page.lowcode.apiConfig.status.INACTIVE') }}</NRadio>
+          </NRadioGroup>
+        </NFormItem>
+      </NForm>
+      <template #footer>
+        <NSpace :size="16">
+          <NButton @click="closeDrawer">{{ $t('common.cancel') }}</NButton>
+          <NButton type="primary" @click="handleSubmit">{{ $t('common.confirm') }}</NButton>
+        </NSpace>
+      </template>
+    </NDrawerContent>
+  </NDrawer>
+</template>
 
 <style scoped></style>

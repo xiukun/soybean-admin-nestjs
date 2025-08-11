@@ -1,3 +1,29 @@
+<script setup lang="ts">
+import { queryStatusOptions } from '@/constants/business';
+import { $t } from '@/locales';
+
+export interface Emits {
+  (e: 'reset'): void;
+  (e: 'search'): void;
+}
+
+defineOptions({
+  name: 'QuerySearch'
+});
+
+const emit = defineEmits<Emits>();
+
+const model = defineModel<Api.Lowcode.QuerySearchParams>('model', { required: true });
+
+async function reset() {
+  emit('reset');
+}
+
+async function search() {
+  emit('search');
+}
+</script>
+
 <template>
   <NCard :title="$t('common.search')" :bordered="false" size="small" class="card-wrapper">
     <NForm ref="formRef" :model="model" :label-width="80" label-placement="left">
@@ -33,31 +59,5 @@
     </NForm>
   </NCard>
 </template>
-
-<script setup lang="ts">
-import { $t } from '@/locales';
-import { queryStatusOptions } from '@/constants/business';
-
-export interface Emits {
-  (e: 'reset'): void;
-  (e: 'search'): void;
-}
-
-defineOptions({
-  name: 'QuerySearch'
-});
-
-const emit = defineEmits<Emits>();
-
-const model = defineModel<Api.Lowcode.QuerySearchParams>('model', { required: true });
-
-async function reset() {
-  emit('reset');
-}
-
-async function search() {
-  emit('search');
-}
-</script>
 
 <style scoped></style>

@@ -2,7 +2,7 @@
 import { computed, reactive, ref, watch } from 'vue';
 import type { SelectOption } from 'naive-ui';
 import { enableStatusOptions, menuIconTypeOptions, menuTypeOptions } from '@/constants/business';
-import type { RouteModel, RouteCreateModel, RouteUpdateModel } from '@/service/api';
+import type { RouteCreateModel, RouteModel, RouteUpdateModel } from '@/service/api';
 import { createRoute, fetchGetAllRoles, updateRoute } from '@/service/api';
 import { useFormRules, useNaiveForm } from '@/hooks/common/form';
 import { getLocalIcons } from '@/utils/icon';
@@ -242,7 +242,7 @@ async function handleSubmit() {
   await validate();
 
   const params = getSubmitParams();
-  if(showLowcodePage.value){
+  if (showLowcodePage.value) {
     params.component = 'view.amis-template';
   }
   // request
@@ -312,7 +312,12 @@ watch(
               :placeholder="$t('page.manage.menu.form.page')"
             />
           </NFormItemGi>
-          <NFormItemGi v-if="showLowcodePage" span="24 m:12" :label="$t('page.manage.menu.lowcodePage')" path="lowcodePageId">
+          <NFormItemGi
+            v-if="showLowcodePage"
+            span="24 m:12"
+            :label="$t('page.manage.menu.lowcodePage')"
+            path="lowcodePageId"
+          >
             <NInput v-model:value="model.lowcodePageId" :placeholder="$t('page.manage.menu.form.lowcodePage')" />
           </NFormItemGi>
           <NFormItemGi span="24 m:12" :label="$t('page.manage.menu.i18nKey')" path="i18nKey">

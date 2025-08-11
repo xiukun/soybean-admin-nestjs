@@ -1,5 +1,5 @@
+import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
 import { fetchGetAllProjects, fetchGetProject } from '@/service/api';
 
 export interface Project {
@@ -96,24 +96,20 @@ export const useLowcodeStore = defineStore('lowcode', () => {
   const entities = ref<Entity[]>([]);
   const templates = ref<Template[]>([]);
   const generationHistory = ref<GenerationHistory[]>([]);
-  
+
   const loading = ref({
     projects: false,
     entities: false,
     templates: false,
     generation: false,
-    history: false,
+    history: false
   });
 
   // Computed
   const currentProjectId = computed(() => currentProject.value?.id || '');
   const activeProjects = computed(() => projects.value.filter(p => p.status === 'ACTIVE'));
-  const currentProjectEntities = computed(() => 
-    entities.value.filter(e => e.projectId === currentProjectId.value)
-  );
-  const currentProjectTemplates = computed(() => 
-    templates.value.filter(t => t.projectId === currentProjectId.value)
-  );
+  const currentProjectEntities = computed(() => entities.value.filter(e => e.projectId === currentProjectId.value));
+  const currentProjectTemplates = computed(() => templates.value.filter(t => t.projectId === currentProjectId.value));
 
   // Actions
   async function loadProjects() {
@@ -141,12 +137,12 @@ export const useLowcodeStore = defineStore('lowcode', () => {
         currentProject.value = project;
         // Store in localStorage for persistence
         localStorage.setItem('lowcode_current_project', projectId);
-        
+
         // Load project-specific data
         await Promise.all([
           loadProjectEntities(projectId),
           loadProjectTemplates(projectId),
-          loadGenerationHistory(projectId),
+          loadGenerationHistory(projectId)
         ]);
       } else {
         // Fetch project details if not in cache
@@ -154,11 +150,11 @@ export const useLowcodeStore = defineStore('lowcode', () => {
         if (data) {
           currentProject.value = data;
           localStorage.setItem('lowcode_current_project', projectId);
-          
+
           await Promise.all([
             loadProjectEntities(projectId),
             loadProjectTemplates(projectId),
-            loadGenerationHistory(projectId),
+            loadGenerationHistory(projectId)
           ]);
         }
       }
@@ -244,13 +240,13 @@ export const useLowcodeStore = defineStore('lowcode', () => {
     templates,
     generationHistory,
     loading,
-    
+
     // Computed
     currentProjectId,
     activeProjects,
     currentProjectEntities,
     currentProjectTemplates,
-    
+
     // Actions
     loadProjects,
     setCurrentProject,
@@ -260,7 +256,7 @@ export const useLowcodeStore = defineStore('lowcode', () => {
     addGenerationRecord,
     updateGenerationRecord,
     clearCurrentProject,
-    initializeFromStorage,
+    initializeFromStorage
   };
 });
 

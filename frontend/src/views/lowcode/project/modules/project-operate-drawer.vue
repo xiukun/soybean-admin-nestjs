@@ -1,47 +1,9 @@
-<template>
-  <NDrawer v-model:show="drawerVisible" display-directive="show" :width="360">
-    <NDrawerContent :title="title" :native-scrollbar="false" closable>
-      <NForm ref="formRef" :model="formModel" :rules="rules">
-        <NFormItem :label="$t('page.lowcode.project.name')" path="name">
-          <NInput v-model:value="formModel.name" :placeholder="$t('page.lowcode.project.form.name.placeholder')" />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.project.code')" path="code">
-          <NInput 
-            v-model:value="formModel.code" 
-            :placeholder="$t('page.lowcode.project.form.code.placeholder')"
-            :disabled="operateType === 'edit'"
-          />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.project.description')" path="description">
-          <NInput
-            v-model:value="formModel.description"
-            :placeholder="$t('page.lowcode.project.form.description.placeholder')"
-            type="textarea"
-            :rows="3"
-          />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.project.version')" path="version">
-          <NInput v-model:value="formModel.version" :placeholder="$t('page.lowcode.project.form.version.placeholder')" />
-        </NFormItem>
-      </NForm>
-      <template #footer>
-        <NSpace :size="16">
-          <NButton @click="closeDrawer">{{ $t('common.cancel') }}</NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
-            {{ $t('common.confirm') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NDrawerContent>
-  </NDrawer>
-</template>
-
 <script setup lang="ts">
-import { computed, reactive, watch, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import type { FormInst, FormRules } from 'naive-ui';
 import { fetchAddProject, fetchGetProject, fetchUpdateProject } from '@/service/api';
-import { $t } from '@/locales';
 import { createRequiredFormRule } from '@/utils/form/rule';
+import { $t } from '@/locales';
 
 defineOptions({
   name: 'ProjectOperateDrawer'
@@ -162,5 +124,46 @@ watch(
   }
 );
 </script>
+
+<template>
+  <NDrawer v-model:show="drawerVisible" display-directive="show" :width="360">
+    <NDrawerContent :title="title" :native-scrollbar="false" closable>
+      <NForm ref="formRef" :model="formModel" :rules="rules">
+        <NFormItem :label="$t('page.lowcode.project.name')" path="name">
+          <NInput v-model:value="formModel.name" :placeholder="$t('page.lowcode.project.form.name.placeholder')" />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.project.code')" path="code">
+          <NInput
+            v-model:value="formModel.code"
+            :placeholder="$t('page.lowcode.project.form.code.placeholder')"
+            :disabled="operateType === 'edit'"
+          />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.project.description')" path="description">
+          <NInput
+            v-model:value="formModel.description"
+            :placeholder="$t('page.lowcode.project.form.description.placeholder')"
+            type="textarea"
+            :rows="3"
+          />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.project.version')" path="version">
+          <NInput
+            v-model:value="formModel.version"
+            :placeholder="$t('page.lowcode.project.form.version.placeholder')"
+          />
+        </NFormItem>
+      </NForm>
+      <template #footer>
+        <NSpace :size="16">
+          <NButton @click="closeDrawer">{{ $t('common.cancel') }}</NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
+            {{ $t('common.confirm') }}
+          </NButton>
+        </NSpace>
+      </template>
+    </NDrawerContent>
+  </NDrawer>
+</template>
 
 <style scoped></style>

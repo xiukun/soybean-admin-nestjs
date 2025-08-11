@@ -1,85 +1,8 @@
-<template>
-  <div class="project-management">
-    <!-- 搜索和过滤区域 -->
-    <div class="mb-4 space-y-4">
-      <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold">项目管理</h1>
-        <div class="flex space-x-2">
-          <n-button type="primary" @click="handleCreateProject">
-            <template #icon>
-              <n-icon><PlusOutlined /></n-icon>
-            </template>
-            创建项目
-          </n-button>
-          <n-button @click="handleImportProject">
-            <template #icon>
-              <n-icon><ImportOutlined /></n-icon>
-            </template>
-            导入项目
-          </n-button>
-        </div>
-      </div>
-
-      <!-- 搜索栏 -->
-      <div class="flex items-center space-x-4">
-        <n-input
-          v-model:value="searchQuery"
-          placeholder="搜索项目名称或代码"
-          clearable
-          @input="handleSearch"
-          class="flex-1"
-        >
-          <template #prefix>
-            <n-icon><SearchOutlined /></n-icon>
-          </template>
-        </n-input>
-        
-        <!-- 状态过滤 -->
-        <n-select
-          v-model:value="statusFilter"
-          placeholder="按状态筛选"
-          clearable
-          @update:value="handleFilterChange"
-          :options="statusOptions"
-          class="w-40"
-        />
-        
-        <!-- 框架过滤 -->
-        <n-select
-          v-model:value="frameworkFilter"
-          placeholder="按框架筛选"
-          clearable
-          @update:value="handleFilterChange"
-          :options="frameworkOptions"
-          class="w-40"
-        />
-        
-        <n-button @click="handleRefresh">
-          <template #icon>
-            <n-icon><ReloadOutlined /></n-icon>
-          </template>
-          刷新
-        </n-button>
-      </div>
-    </div>
-
-    <!-- 项目列表 -->
-    <n-data-table
-      :columns="columns"
-      :data="paginatedProjects"
-      :loading="loading"
-      :pagination="paginationConfig"
-      @update:page="handlePageChange"
-      @update:page-size="handlePageSizeChange"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
 // @ts-nocheck
-import { ref, computed, onMounted } from 'vue';
-import { NButton, NIcon, NInput, NSelect, NDataTable, useMessage } from 'naive-ui';
-import { PlusOutlined, ImportOutlined, SearchOutlined, ReloadOutlined } from '@vicons/antd';
+import { computed, onMounted, ref } from 'vue';
+import { NButton, NDataTable, NIcon, NInput, NSelect, useMessage } from 'naive-ui';
+import { ImportOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from '@vicons/antd';
 import type { ProjectDisplay } from '../types/project-types';
 import { convertProjectStatus } from '../types/project-types';
 import { safeT } from '../types/i18n-fixes';
@@ -148,17 +71,25 @@ const columns = [
     width: 200,
     render: (row: ProjectDisplay) => {
       return [
-        h(NButton, {
-          size: 'small',
-          type: 'primary',
-          onClick: () => handleEditProject(row)
-        }, { default: () => '编辑' }),
-        h(NButton, {
-          size: 'small',
-          type: 'error',
-          style: { marginLeft: '8px' },
-          onClick: () => handleDeleteProject(row)
-        }, { default: () => '删除' })
+        h(
+          NButton,
+          {
+            size: 'small',
+            type: 'primary',
+            onClick: () => handleEditProject(row)
+          },
+          { default: () => '编辑' }
+        ),
+        h(
+          NButton,
+          {
+            size: 'small',
+            type: 'error',
+            style: { marginLeft: '8px' },
+            onClick: () => handleDeleteProject(row)
+          },
+          { default: () => '删除' }
+        )
       ];
     }
   }
@@ -177,22 +108,23 @@ const paginationConfig = computed(() => ({
 // 过滤后的项目
 const filteredProjects = computed(() => {
   let result = projects.value;
-  
+
   if (searchQuery.value) {
-    result = result.filter(project => 
-      project.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      project.code.toLowerCase().includes(searchQuery.value.toLowerCase())
+    result = result.filter(
+      project =>
+        project.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+        project.code.toLowerCase().includes(searchQuery.value.toLowerCase())
     );
   }
-  
+
   if (statusFilter.value) {
     result = result.filter(project => project.status === statusFilter.value);
   }
-  
+
   if (frameworkFilter.value) {
     result = result.filter(project => project.framework === frameworkFilter.value);
   }
-  
+
   return result;
 });
 
@@ -280,6 +212,83 @@ onMounted(() => {
   ];
 });
 </script>
+
+<template>
+  <div class="project-management">
+    <!-- 搜索和过滤区域 -->
+    <div class="mb-4 space-y-4">
+      <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold">项目管理</h1>
+        <div class="flex space-x-2">
+          <NButton type="primary" @click="handleCreateProject">
+            <template #icon>
+              <NIcon><PlusOutlined /></NIcon>
+            </template>
+            创建项目
+          </NButton>
+          <NButton @click="handleImportProject">
+            <template #icon>
+              <NIcon><ImportOutlined /></NIcon>
+            </template>
+            导入项目
+          </NButton>
+        </div>
+      </div>
+
+      <!-- 搜索栏 -->
+      <div class="flex items-center space-x-4">
+        <NInput
+          v-model:value="searchQuery"
+          placeholder="搜索项目名称或代码"
+          clearable
+          class="flex-1"
+          @input="handleSearch"
+        >
+          <template #prefix>
+            <NIcon><SearchOutlined /></NIcon>
+          </template>
+        </NInput>
+
+        <!-- 状态过滤 -->
+        <NSelect
+          v-model:value="statusFilter"
+          placeholder="按状态筛选"
+          clearable
+          :options="statusOptions"
+          class="w-40"
+          @update:value="handleFilterChange"
+        />
+
+        <!-- 框架过滤 -->
+        <NSelect
+          v-model:value="frameworkFilter"
+          placeholder="按框架筛选"
+          clearable
+          :options="frameworkOptions"
+          class="w-40"
+          @update:value="handleFilterChange"
+        />
+
+        <NButton @click="handleRefresh">
+          <template #icon>
+            <NIcon><ReloadOutlined /></NIcon>
+          </template>
+          刷新
+        </NButton>
+      </div>
+    </div>
+
+    <!-- 项目列表 -->
+    <NDataTable
+      :columns="columns"
+      :data="paginatedProjects"
+      :loading="loading"
+      :pagination="paginationConfig"
+      @update:page="handlePageChange"
+      @update:page-size="handlePageSizeChange"
+    />
+  </div>
+</template>
 
 <style scoped>
 .project-management {

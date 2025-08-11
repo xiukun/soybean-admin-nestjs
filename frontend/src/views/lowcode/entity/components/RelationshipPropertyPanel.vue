@@ -1,151 +1,21 @@
-<template>
-  <div class="relationship-property-panel">
-    <div class="panel-header">
-      <div class="header-title">
-        <NIcon size="18" class="text-blue-500">
-          <icon-mdi-connection />
-        </NIcon>
-        <span class="font-medium">关系属性</span>
-      </div>
-      <NButton size="small" quaternary circle @click="$emit('close')">
-        <template #icon>
-          <NIcon><icon-mdi-close /></NIcon>
-        </template>
-      </NButton>
-    </div>
-
-    <div class="panel-content">
-      <!-- 基本信息 -->
-      <div class="property-section">
-        <div class="section-title">
-          <NIcon size="16"><icon-mdi-information-outline /></NIcon>
-          <span>基本信息</span>
-        </div>
-        <div class="section-content">
-          <NForm :model="formData" label-placement="left" :label-width="80">
-            <NFormItem label="关系名称">
-              <NInput v-model:value="formData.name" @blur="handleUpdate" />
-            </NFormItem>
-            <NFormItem label="关系类型">
-              <NSelect 
-                v-model:value="formData.type" 
-                :options="relationshipTypeOptions"
-                @update:value="handleUpdate"
-              />
-            </NFormItem>
-            <NFormItem label="描述">
-              <NInput 
-                v-model:value="formData.description" 
-                type="textarea" 
-                :rows="3"
-                @blur="handleUpdate"
-              />
-            </NFormItem>
-          </NForm>
-        </div>
-      </div>
-
-      <!-- 实体信息 -->
-      <div class="property-section">
-        <div class="section-title">
-          <NIcon size="16"><icon-mdi-database /></NIcon>
-          <span>实体信息</span>
-        </div>
-        <div class="section-content">
-          <div class="entity-info">
-            <div class="entity-item">
-              <span class="label">源实体:</span>
-              <span class="value">{{ sourceEntityName }}</span>
-            </div>
-            <div class="entity-item">
-              <span class="label">目标实体:</span>
-              <span class="value">{{ targetEntityName }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 视觉样式 -->
-      <div class="property-section">
-        <div class="section-title">
-          <NIcon size="16"><icon-mdi-palette /></NIcon>
-          <span>视觉样式</span>
-        </div>
-        <div class="section-content">
-          <NForm :model="styleData" label-placement="left" :label-width="80">
-            <NFormItem label="线条颜色">
-              <NColorPicker v-model:value="styleData.lineColor" @update:value="handleStyleUpdate" />
-            </NFormItem>
-            <NFormItem label="线条宽度">
-              <NSlider 
-                v-model:value="styleData.lineWidth" 
-                :min="1" 
-                :max="5" 
-                :step="1"
-                @update:value="handleStyleUpdate"
-              />
-            </NFormItem>
-            <NFormItem label="线条样式">
-              <NSelect 
-                v-model:value="styleData.lineStyle" 
-                :options="lineStyleOptions"
-                @update:value="handleStyleUpdate"
-              />
-            </NFormItem>
-          </NForm>
-        </div>
-      </div>
-
-      <!-- 操作按钮 -->
-      <div class="property-section">
-        <div class="section-title">
-          <NIcon size="16"><icon-mdi-cog /></NIcon>
-          <span>操作</span>
-        </div>
-        <div class="section-content">
-          <NSpace vertical>
-            <NButton block secondary @click="handleEdit">
-              <template #icon>
-                <NIcon><icon-mdi-pencil /></NIcon>
-              </template>
-              编辑关系
-            </NButton>
-            <NButton block secondary @click="handleViewSQL">
-              <template #icon>
-                <NIcon><icon-mdi-code-tags /></NIcon>
-              </template>
-              查看SQL
-            </NButton>
-            <NButton block type="error" secondary @click="handleDelete">
-              <template #icon>
-                <NIcon><icon-mdi-delete /></NIcon>
-              </template>
-              删除关系
-            </NButton>
-          </NSpace>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue';
-import { 
-  NButton, 
-  NIcon, 
-  NForm, 
-  NFormItem, 
-  NInput, 
-  NSelect, 
-  NColorPicker, 
-  NSlider, 
+import { computed, reactive, ref, watch } from 'vue';
+import {
+  NButton,
+  NColorPicker,
+  NForm,
+  NFormItem,
+  NIcon,
+  NInput,
+  NSelect,
+  NSlider,
   NSpace,
   useDialog,
   useMessage
 } from 'naive-ui';
 
 // 图标导入
+import type { Entity, EntityRelationship } from '../types';
 import IconMdiConnection from '~icons/mdi/connection';
 import IconMdiClose from '~icons/mdi/close';
 import IconMdiInformationOutline from '~icons/mdi/information-outline';
@@ -155,8 +25,6 @@ import IconMdiCog from '~icons/mdi/cog';
 import IconMdiPencil from '~icons/mdi/pencil';
 import IconMdiCodeTags from '~icons/mdi/code-tags';
 import IconMdiDelete from '~icons/mdi/delete';
-
-import type { EntityRelationship, Entity } from '../types';
 
 interface Props {
   relationship: EntityRelationship;
@@ -212,22 +80,18 @@ const targetEntityName = computed(() => {
   return '目标实体'; // 临时值
 });
 
-/**
- * 初始化表单数据
- */
+/** 初始化表单数据 */
 function initFormData() {
   formData.name = props.relationship.name;
   formData.type = props.relationship.type;
   formData.description = props.relationship.description || '';
-  
+
   styleData.lineColor = props.relationship.lineColor || '#5F95FF';
   styleData.lineWidth = props.relationship.lineWidth || 2;
   styleData.lineStyle = props.relationship.lineStyle || 'solid';
 }
 
-/**
- * 处理基本信息更新
- */
+/** 处理基本信息更新 */
 function handleUpdate() {
   const updatedRelationship: EntityRelationship = {
     ...props.relationship,
@@ -235,13 +99,11 @@ function handleUpdate() {
     type: formData.type,
     description: formData.description
   };
-  
+
   emit('update', updatedRelationship);
 }
 
-/**
- * 处理样式更新
- */
+/** 处理样式更新 */
 function handleStyleUpdate() {
   const updatedRelationship: EntityRelationship = {
     ...props.relationship,
@@ -249,27 +111,21 @@ function handleStyleUpdate() {
     lineWidth: styleData.lineWidth,
     lineStyle: styleData.lineStyle
   };
-  
+
   emit('update', updatedRelationship);
 }
 
-/**
- * 处理编辑关系
- */
+/** 处理编辑关系 */
 function handleEdit() {
   message.info('编辑关系功能开发中...');
 }
 
-/**
- * 处理查看SQL
- */
+/** 处理查看SQL */
 function handleViewSQL() {
   message.info('查看SQL功能开发中...');
 }
 
-/**
- * 处理删除关系
- */
+/** 处理删除关系 */
 function handleDelete() {
   dialog.warning({
     title: '确认删除',
@@ -284,10 +140,136 @@ function handleDelete() {
 }
 
 // 监听关系变化
-watch(() => props.relationship, () => {
-  initFormData();
-}, { immediate: true, deep: true });
+watch(
+  () => props.relationship,
+  () => {
+    initFormData();
+  },
+  { immediate: true, deep: true }
+);
 </script>
+
+<template>
+  <div class="relationship-property-panel">
+    <div class="panel-header">
+      <div class="header-title">
+        <NIcon size="18" class="text-blue-500">
+          <icon-mdi-connection />
+        </NIcon>
+        <span class="font-medium">关系属性</span>
+      </div>
+      <NButton size="small" quaternary circle @click="$emit('close')">
+        <template #icon>
+          <NIcon><icon-mdi-close /></NIcon>
+        </template>
+      </NButton>
+    </div>
+
+    <div class="panel-content">
+      <!-- 基本信息 -->
+      <div class="property-section">
+        <div class="section-title">
+          <NIcon size="16"><icon-mdi-information-outline /></NIcon>
+          <span>基本信息</span>
+        </div>
+        <div class="section-content">
+          <NForm :model="formData" label-placement="left" :label-width="80">
+            <NFormItem label="关系名称">
+              <NInput v-model:value="formData.name" @blur="handleUpdate" />
+            </NFormItem>
+            <NFormItem label="关系类型">
+              <NSelect v-model:value="formData.type" :options="relationshipTypeOptions" @update:value="handleUpdate" />
+            </NFormItem>
+            <NFormItem label="描述">
+              <NInput v-model:value="formData.description" type="textarea" :rows="3" @blur="handleUpdate" />
+            </NFormItem>
+          </NForm>
+        </div>
+      </div>
+
+      <!-- 实体信息 -->
+      <div class="property-section">
+        <div class="section-title">
+          <NIcon size="16"><icon-mdi-database /></NIcon>
+          <span>实体信息</span>
+        </div>
+        <div class="section-content">
+          <div class="entity-info">
+            <div class="entity-item">
+              <span class="label">源实体:</span>
+              <span class="value">{{ sourceEntityName }}</span>
+            </div>
+            <div class="entity-item">
+              <span class="label">目标实体:</span>
+              <span class="value">{{ targetEntityName }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 视觉样式 -->
+      <div class="property-section">
+        <div class="section-title">
+          <NIcon size="16"><icon-mdi-palette /></NIcon>
+          <span>视觉样式</span>
+        </div>
+        <div class="section-content">
+          <NForm :model="styleData" label-placement="left" :label-width="80">
+            <NFormItem label="线条颜色">
+              <NColorPicker v-model:value="styleData.lineColor" @update:value="handleStyleUpdate" />
+            </NFormItem>
+            <NFormItem label="线条宽度">
+              <NSlider
+                v-model:value="styleData.lineWidth"
+                :min="1"
+                :max="5"
+                :step="1"
+                @update:value="handleStyleUpdate"
+              />
+            </NFormItem>
+            <NFormItem label="线条样式">
+              <NSelect
+                v-model:value="styleData.lineStyle"
+                :options="lineStyleOptions"
+                @update:value="handleStyleUpdate"
+              />
+            </NFormItem>
+          </NForm>
+        </div>
+      </div>
+
+      <!-- 操作按钮 -->
+      <div class="property-section">
+        <div class="section-title">
+          <NIcon size="16"><icon-mdi-cog /></NIcon>
+          <span>操作</span>
+        </div>
+        <div class="section-content">
+          <NSpace vertical>
+            <NButton block secondary @click="handleEdit">
+              <template #icon>
+                <NIcon><icon-mdi-pencil /></NIcon>
+              </template>
+              编辑关系
+            </NButton>
+            <NButton block secondary @click="handleViewSQL">
+              <template #icon>
+                <NIcon><icon-mdi-code-tags /></NIcon>
+              </template>
+              查看SQL
+            </NButton>
+            <NButton block type="error" secondary @click="handleDelete">
+              <template #icon>
+                <NIcon><icon-mdi-delete /></NIcon>
+              </template>
+              删除关系
+            </NButton>
+          </NSpace>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .relationship-property-panel {

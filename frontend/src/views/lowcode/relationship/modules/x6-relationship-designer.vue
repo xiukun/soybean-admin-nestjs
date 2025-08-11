@@ -1,491 +1,41 @@
-<template>
-  <div class="x6-relationship-designer" :class="{ 'connect-mode': isConnectMode, 'with-property-panel': !!selectedCell, 'loading': loading }">
-    <!-- 加载遮罩 -->
-    <div v-if="loading" class="loading-mask">
-      <n-spin size="large" />
-    </div>
-    <!-- 工具栏 -->
-    <div class="toolbar">
-      <n-space>
-        <n-tooltip placement="bottom">
-          <template #trigger>
-            <n-button 
-              quaternary 
-              circle 
-              :type="isConnectMode ? 'primary' : 'default'" 
-              @click="toggleConnectMode"
-            >
-              <template #icon>
-                <icon-mdi-connection class="text-16px" />
-              </template>
-            </n-button>
-          </template>
-          <span>{{ $t('page.lowcode.relationship.toolbar.connectMode') }}</span>
-        </n-tooltip>
-
-        <n-tooltip placement="bottom">
-          <template #trigger>
-            <n-button 
-              quaternary 
-              circle 
-              :loading="layoutLoading"
-              @click="autoLayout"
-            >
-              <template #icon>
-                <icon-mdi-auto-fix class="text-16px" />
-              </template>
-            </n-button>
-          </template>
-          <span>{{ $t('page.lowcode.relationship.toolbar.autoLayout') }}</span>
-        </n-tooltip>
-
-        <n-tooltip placement="bottom">
-          <template #trigger>
-            <n-button 
-              quaternary 
-              circle 
-              @click="toggleMinimap"
-            >
-              <template #icon>
-                <icon-mdi-map class="text-16px" />
-              </template>
-            </n-button>
-          </template>
-          <span>{{ $t('page.lowcode.relationship.toolbar.minimap') || '小地图' }}</span>
-        </n-tooltip>
-
-        <n-tooltip placement="bottom">
-          <template #trigger>
-            <n-button 
-              quaternary 
-              circle 
-              :type="showConnectionPoints ? 'primary' : 'default'"
-              @click="toggleConnectionPoints"
-            >
-              <template #icon>
-                <icon-mdi-circle-outline class="text-16px" />
-              </template>
-            </n-button>
-          </template>
-          <span>显示连接点</span>
-        </n-tooltip>
-
-        <n-divider vertical />
-
-        <n-tooltip placement="bottom">
-          <template #trigger>
-            <n-button 
-              quaternary 
-              circle 
-              @click="zoomIn"
-            >
-              <template #icon>
-                <icon-mdi-magnify-plus-outline class="text-16px" />
-              </template>
-            </n-button>
-          </template>
-          <span>{{ $t('page.lowcode.relationship.toolbar.zoomIn') }}</span>
-        </n-tooltip>
-
-        <n-tooltip placement="bottom">
-          <template #trigger>
-            <n-button 
-              quaternary 
-              circle 
-              @click="zoomOut"
-            >
-              <template #icon>
-                <icon-mdi-magnify-minus-outline class="text-16px" />
-              </template>
-            </n-button>
-          </template>
-          <span>{{ $t('page.lowcode.relationship.toolbar.zoomOut') }}</span>
-        </n-tooltip>
-
-        <n-tooltip placement="bottom">
-          <template #trigger>
-            <n-button 
-              quaternary 
-              circle 
-              @click="fitView"
-            >
-              <template #icon>
-                <icon-mdi-fit-to-page-outline class="text-16px" />
-              </template>
-            </n-button>
-          </template>
-          <span>{{ $t('page.lowcode.relationship.toolbar.fitCanvas') }}</span>
-        </n-tooltip>
-
-        <n-divider vertical />
-
-        <n-tooltip placement="bottom">
-          <template #trigger>
-            <n-button 
-              quaternary 
-              circle 
-              @click="toggleGridVisible"
-            >
-              <template #icon>
-                <icon-mdi-grid class="text-16px" />
-              </template>
-            </n-button>
-          </template>
-          <span>{{ $t('page.lowcode.relationship.toolbar.toggleGrid') || '显示/隐藏网格' }}</span>
-        </n-tooltip>
-
-        <n-tooltip placement="bottom">
-          <template #trigger>
-            <n-button 
-              quaternary 
-              circle 
-              @click="toggleSnapToGrid"
-            >
-              <template #icon>
-                <icon-mdi-magnet class="text-16px" />
-              </template>
-            </n-button>
-          </template>
-          <span>{{ $t('page.lowcode.relationship.toolbar.snapToGrid') || '对齐网格' }}</span>
-        </n-tooltip>
-
-        <n-divider vertical />
-
-        <n-dropdown 
-          trigger="click" 
-          :options="exportOptions" 
-          @select="handleExport"
-        >
-          <n-tooltip placement="bottom">
-            <template #trigger>
-              <n-button quaternary circle>
-                <template #icon>
-                  <icon-mdi-export class="text-16px" />
-                </template>
-              </n-button>
-            </template>
-            <span>{{ $t('page.lowcode.relationship.toolbar.export') }}</span>
-          </n-tooltip>
-        </n-dropdown>
-
-        <n-tooltip placement="bottom">
-          <template #trigger>
-            <n-button 
-              quaternary 
-              circle 
-              @click="saveGraphState"
-            >
-              <template #icon>
-                <icon-mdi-content-save class="text-16px" />
-              </template>
-            </n-button>
-          </template>
-          <span>{{ $t('page.lowcode.relationship.toolbar.saveState') || '保存状态' }}</span>
-        </n-tooltip>
-      </n-space>
-
-      <div class="zoom-display">
-        {{ Math.round(zoomLevel * 100) }}%
-      </div>
-    </div>
-
-    <!-- 连线提示 -->
-    <div v-if="isConnectMode" class="connect-hint">
-      <n-alert type="info" :show-icon="false">
-        <span v-if="!connectSourceNode">{{ $t('page.lowcode.relationship.selectSourceEntity') }}</span>
-        <span v-else>{{ $t('page.lowcode.relationship.selectTargetEntity', { name: connectSourceNode.getData().name }) }}</span>
-        <template #action>
-          <n-button size="tiny" @click="cancelConnect">{{ $t('page.lowcode.relationship.cancelConnect') }}</n-button>
-        </template>
-      </n-alert>
-    </div>
-
-    <!-- X6画布容器 -->
-    <div ref="containerRef" class="graph-container" :class="{ 'connect-mode': isConnectMode }"></div>
-
-    <!-- 实体列表 -->
-    <div class="entity-list">
-      <div class="entity-list-header">
-        <h3>{{ $t('page.lowcode.relationship.entityList') }}</h3>
-        <n-input 
-          v-model:value="entitySearchKeyword" 
-          :placeholder="$t('page.lowcode.common.search.placeholder')" 
-          size="small"
-          clearable
-        >
-          <template #prefix>
-            <icon-mdi-magnify class="text-14px" />
-          </template>
-        </n-input>
-      </div>
-      <div class="entity-list-content">
-        <n-spin :show="entitiesLoading">
-          <n-empty v-if="filteredEntities.length === 0" :description="$t('page.lowcode.common.messages.noData')" />
-          <div v-else class="entity-items">
-            <div 
-              v-for="entity in filteredEntities" 
-              :key="entity.id" 
-              class="entity-item"
-              :class="{ 'is-in-graph': isEntityInGraph(entity.id) }"
-              @click="handleEntityClick(entity)"
-            >
-              <div class="entity-item-content">
-                <div class="entity-name">{{ entity.name }}</div>
-                <div class="entity-code">{{ entity.code }}</div>
-              </div>
-              <div class="entity-actions">
-                <n-button 
-                  v-if="isEntityInGraph(entity.id)" 
-                  quaternary 
-                  circle 
-                  size="small"
-                  @click.stop="locateEntity(entity.id)"
-                >
-                  <template #icon>
-                    <icon-mdi-crosshairs-gps class="text-14px" />
-                  </template>
-                </n-button>
-                <n-button 
-                  v-if="isEntityInGraph(entity.id)" 
-                  quaternary 
-                  circle 
-                  size="small"
-                  @click.stop="removeEntityFromGraph(entity.id)"
-                >
-                  <template #icon>
-                    <icon-mdi-close class="text-14px" />
-                  </template>
-                </n-button>
-                <n-button 
-                  v-else
-                  quaternary 
-                  circle 
-                  size="small"
-                  @click.stop="addEntityToGraph(entity)"
-                >
-                  <template #icon>
-                    <icon-mdi-plus class="text-14px" />
-                  </template>
-                </n-button>
-              </div>
-            </div>
-          </div>
-        </n-spin>
-      </div>
-    </div>
-
-    <!-- 属性面板 -->
-    <div v-if="selectedCell" class="property-panel">
-      <div class="property-panel-header">
-        <h3>{{ $t('page.lowcode.relationship.propertyPanel.title') }}</h3>
-        <n-button quaternary circle size="small" @click="clearSelection">
-          <template #icon>
-            <icon-mdi-close class="text-16px" />
-          </template>
-        </n-button>
-      </div>
-
-      <div class="property-panel-content">
-        <!-- 实体属性 -->
-        <template v-if="selectedNode">
-          <n-tabs type="line" animated>
-            <n-tab-pane name="basic" :tab="$t('page.lowcode.relationship.propertyPanel.basicInfo')">
-              <n-form label-placement="left" label-width="80px" size="small">
-                <n-form-item :label="$t('page.lowcode.entity.name')">
-                  <n-input v-model:value="selectedNodeData.name" @blur="handleUpdateEntity" />
-                </n-form-item>
-                <n-form-item :label="$t('page.lowcode.entity.code')">
-                  <n-input v-model:value="selectedNodeData.code" disabled />
-                </n-form-item>
-                <n-form-item :label="$t('page.lowcode.entity.tableName')">
-                  <n-input v-model:value="selectedNodeData.tableName" @blur="handleUpdateEntity" />
-                </n-form-item>
-                <n-form-item :label="$t('page.lowcode.entity.description')">
-                  <n-input v-model:value="selectedNodeData.description" type="textarea" rows="3" @blur="handleUpdateEntity" />
-                </n-form-item>
-              </n-form>
-            </n-tab-pane>
-            
-            <n-tab-pane name="visual" :tab="$t('page.lowcode.relationship.propertyPanel.visualStyle')">
-              <n-form label-placement="left" label-width="80px" size="small">
-                <n-form-item :label="$t('page.lowcode.relationship.propertyPanel.color')">
-                  <n-color-picker v-model:value="selectedNodeVisual.color" @update:value="handleUpdateEntityVisual" />
-                </n-form-item>
-                <n-form-item :label="$t('page.lowcode.relationship.propertyPanel.position')">
-                  <div class="flex space-x-2">
-                    <n-input-number v-model:value="selectedNodeVisual.x" size="small" @update:value="handleUpdateEntityPosition" />
-                    <n-input-number v-model:value="selectedNodeVisual.y" size="small" @update:value="handleUpdateEntityPosition" />
-                  </div>
-                </n-form-item>
-                <n-form-item :label="$t('page.lowcode.relationship.propertyPanel.size')">
-                  <div class="flex space-x-2">
-                    <n-input-number v-model:value="selectedNodeVisual.width" size="small" @update:value="handleUpdateEntitySize" />
-                    <n-input-number v-model:value="selectedNodeVisual.height" size="small" @update:value="handleUpdateEntitySize" />
-                  </div>
-                </n-form-item>
-              </n-form>
-            </n-tab-pane>
-            
-            <n-tab-pane name="fields" :tab="$t('page.lowcode.relationship.propertyPanel.fieldManagement')">
-              <div class="mb-2 flex justify-between items-center">
-                <span class="text-sm font-medium">{{ $t('page.lowcode.relationship.propertyPanel.fields') }}</span>
-                <n-button size="small" @click="navigateToEntityFields">
-                  {{ $t('page.lowcode.entity.designFields') }}
-                </n-button>
-              </div>
-              
-              <n-spin :show="fieldsLoading">
-                <n-empty v-if="entityFields.length === 0" :description="$t('page.lowcode.common.messages.noData')" />
-                <n-list v-else size="small">
-                  <n-list-item v-for="field in entityFields" :key="field.id">
-                    <div class="flex justify-between items-center">
-                      <div>
-                        <div class="text-sm font-medium">{{ field.name }}</div>
-                        <div class="text-xs text-gray-500">{{ field.code }} ({{ getFieldTypeName(field.dataType) }})</div>
-                      </div>
-                      <div class="flex space-x-1">
-                        <n-tag v-if="field.isPrimaryKey" size="small" type="success">PK</n-tag>
-                        <n-tag v-if="field.isRequired" size="small" type="warning">{{ $t('page.lowcode.field.required') }}</n-tag>
-                        <n-tag v-if="field.isUnique" size="small" type="info">{{ $t('page.lowcode.field.unique') }}</n-tag>
-                      </div>
-                    </div>
-                  </n-list-item>
-                </n-list>
-              </n-spin>
-            </n-tab-pane>
-          </n-tabs>
-        </template>
-
-        <!-- 关系属性 -->
-        <template v-else-if="selectedEdge">
-          <n-tabs type="line" animated>
-            <n-tab-pane name="basic" :tab="$t('page.lowcode.relationship.propertyPanel.basicInfo')">
-              <n-form label-placement="left" label-width="80px" size="small">
-                <n-form-item :label="$t('page.lowcode.relationship.name')">
-                  <n-input v-model:value="selectedEdgeData.name" @blur="handleUpdateRelationship" />
-                </n-form-item>
-                <n-form-item :label="$t('page.lowcode.relationship.code')">
-                  <n-input v-model:value="selectedEdgeData.code" disabled />
-                </n-form-item>
-                <n-form-item :label="$t('page.lowcode.relationship.relationType')">
-                  <n-select 
-                    v-model:value="selectedEdgeData.type" 
-                    :options="relationshipTypeOptions" 
-                    @update:value="handleUpdateRelationship" 
-                  />
-                </n-form-item>
-                <n-form-item :label="$t('page.lowcode.relationship.description')">
-                  <n-input v-model:value="selectedEdgeData.description" type="textarea" rows="3" @blur="handleUpdateRelationship" />
-                </n-form-item>
-              </n-form>
-            </n-tab-pane>
-            
-            <n-tab-pane name="visual" :tab="$t('page.lowcode.relationship.propertyPanel.visualStyle')">
-              <n-form label-placement="left" label-width="80px" size="small">
-                <n-form-item :label="$t('page.lowcode.relationship.propertyPanel.lineStyle')">
-                  <n-select 
-                    v-model:value="selectedEdgeVisual.lineStyle" 
-                    :options="lineStyleOptions" 
-                    @update:value="handleUpdateEdgeVisual" 
-                  />
-                </n-form-item>
-                <n-form-item :label="$t('page.lowcode.relationship.propertyPanel.lineColor')">
-                  <n-color-picker v-model:value="selectedEdgeVisual.lineColor" @update:value="handleUpdateEdgeVisual" />
-                </n-form-item>
-                <n-form-item :label="$t('page.lowcode.relationship.onDelete')">
-                  <n-select 
-                    v-model:value="selectedEdgeData.onDelete" 
-                    :options="cascadeActionOptions" 
-                    @update:value="handleUpdateRelationship" 
-                  />
-                </n-form-item>
-                <n-form-item :label="$t('page.lowcode.relationship.onUpdate')">
-                  <n-select 
-                    v-model:value="selectedEdgeData.onUpdate" 
-                    :options="cascadeActionOptions" 
-                    @update:value="handleUpdateRelationship" 
-                  />
-                </n-form-item>
-              </n-form>
-            </n-tab-pane>
-            
-            <n-tab-pane name="advanced" :tab="$t('page.lowcode.project.advancedConfig')">
-              <n-form label-placement="left" label-width="80px" size="small">
-                <n-form-item :label="$t('page.lowcode.relationship.foreignKeyField')">
-                  <n-input v-model:value="selectedEdgeData.foreignKeyField" @blur="handleUpdateRelationship" />
-                </n-form-item>
-                <n-form-item :label="$t('page.lowcode.relationship.cascadeDelete')">
-                  <n-switch v-model:value="selectedEdgeData.cascadeDelete" @update:value="handleUpdateRelationship" />
-                </n-form-item>
-                <n-form-item :label="$t('page.lowcode.relationship.cascadeUpdate')">
-                  <n-switch v-model:value="selectedEdgeData.cascadeUpdate" @update:value="handleUpdateRelationship" />
-                </n-form-item>
-                <n-form-item :label="$t('page.lowcode.relationship.required')">
-                  <n-switch v-model:value="selectedEdgeData.required" @update:value="handleUpdateRelationship" />
-                </n-form-item>
-              </n-form>
-            </n-tab-pane>
-          </n-tabs>
-        </template>
-      </div>
-    </div>
-
-    <!-- 创建关系对话框 -->
-    <n-modal v-model:show="createRelationshipModalVisible" preset="dialog" :title="$t('page.lowcode.relationship.createRelationshipDialog')">
-      <div class="mb-4">
-        <span class="text-sm text-gray-600">
-          {{ $t('page.lowcode.relationship.sourceEntity') }}: {{ sourceEntityName }} → {{ $t('page.lowcode.relationship.targetEntity') }}: {{ targetEntityName }}
-        </span>
-      </div>
-      <n-form :model="newRelationshipForm" label-placement="left" label-width="80px">
-        <n-form-item :label="$t('page.lowcode.relationship.name')" required>
-          <n-input 
-            v-model:value="newRelationshipForm.name" 
-            :placeholder="$t('page.lowcode.relationship.form.name.placeholder')" 
-          />
-        </n-form-item>
-        <n-form-item :label="$t('page.lowcode.relationship.relationType')" required>
-          <n-select 
-            v-model:value="newRelationshipForm.type" 
-            :options="relationshipTypeOptions" 
-            :placeholder="$t('page.lowcode.relationship.form.relationType.placeholder')" 
-          />
-        </n-form-item>
-        <n-form-item :label="$t('page.lowcode.relationship.description')">
-          <n-input 
-            v-model:value="newRelationshipForm.description" 
-            type="textarea" 
-            :placeholder="$t('page.lowcode.relationship.form.description.placeholder')" 
-          />
-        </n-form-item>
-      </n-form>
-      
-      <template #action>
-        <n-space>
-          <n-button @click="cancelCreateRelationship">{{ $t('page.lowcode.common.actions.cancel') }}</n-button>
-          <n-button type="primary" @click="confirmCreateRelationship" :loading="createRelationshipLoading">
-            {{ $t('page.lowcode.common.actions.confirm') }}
-          </n-button>
-        </n-space>
-      </template>
-    </n-modal>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, reactive, computed } from 'vue';
-import { Graph, Shape, Node, Edge, Cell } from '@antv/x6';
-import { useI18n } from 'vue-i18n';
-// 使用动态导入替代静态导入，解决模块导出问题
-import { 
-  NButton, NSpace, NForm, NFormItem, NInput, NSelect, NInputNumber,
-  NAlert, NTooltip, NDivider, NDropdown, NModal, NTabs, NTabPane,
-  NColorPicker, NSwitch, NList, NListItem, NTag, NSpin, NEmpty, useMessage
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue';
+import {
+  NAlert,
+  NButton,
+  NColorPicker,
+  NDivider,
+  NDropdown,
+  NEmpty,
+  NForm,
+  NFormItem,
+  NInput,
+  NInputNumber,
+  NList,
+  NListItem,
+  NModal,
+  NSelect,
+  NSpace,
+  NSpin,
+  NSwitch,
+  NTabPane,
+  NTabs,
+  NTag,
+  NTooltip,
+  useMessage
 } from 'naive-ui';
 import { debounce } from 'lodash-es';
+import type { Cell, Edge, Node } from '@antv/x6';
+import { Graph, Shape } from '@antv/x6';
+import { useI18n } from 'vue-i18n';
+// 使用动态导入替代静态导入，解决模块导出问题
 import { fetchGetAllEntities, fetchUpdateEntity } from '@/service/api/lowcode-entity';
 import { fetchGetAllFields } from '@/service/api/lowcode-field';
-import { fetchGetAllRelationships, fetchUpdateRelationship, fetchAddRelationship } from '@/service/api/lowcode-relationship';
+import {
+  fetchAddRelationship,
+  fetchGetAllRelationships,
+  fetchUpdateRelationship
+} from '@/service/api/lowcode-relationship';
 import { X6ConnectionManager } from './X6ConnectionManager';
 
 interface Props {
@@ -565,10 +115,11 @@ const filteredEntities = computed(() => {
     return entities.value;
   }
   const keyword = entitySearchKeyword.value.toLowerCase();
-  return entities.value.filter(entity => 
-    entity.name.toLowerCase().includes(keyword) || 
-    entity.code.toLowerCase().includes(keyword) || 
-    (entity.tableName && entity.tableName.toLowerCase().includes(keyword))
+  return entities.value.filter(
+    entity =>
+      entity.name.toLowerCase().includes(keyword) ||
+      entity.code.toLowerCase().includes(keyword) ||
+      (entity.tableName && entity.tableName.toLowerCase().includes(keyword))
   );
 });
 
@@ -636,7 +187,7 @@ async function initGraph() {
     const rect = containerRef.value.getBoundingClientRect();
     const containerWidth = Math.max(rect.width, containerRef.value.clientWidth, 800);
     const containerHeight = Math.max(rect.height, containerRef.value.clientHeight, 600);
-    
+
     // 验证容器尺寸的有效��
     if (containerWidth < 100 || containerHeight < 100) {
       console.warn('容器尺寸异常，延迟初始化:', { width: containerWidth, height: containerHeight });
@@ -644,9 +195,9 @@ async function initGraph() {
       setTimeout(() => initGraph(), 200);
       return;
     }
-    
+
     console.log('初始化X6图形，容器尺寸:', containerWidth, containerHeight);
-    
+
     // 创建X6图形实例
     graph = new Graph({
       container: containerRef.value,
@@ -658,24 +209,24 @@ async function initGraph() {
         size: 10,
         args: {
           color: '#cccccc',
-          thickness: 1,
-        },
+          thickness: 1
+        }
       },
       connecting: {
         router: {
-          name: 'orth',
+          name: 'orth'
         },
         connector: {
           name: 'rounded',
           args: {
-            radius: 8,
-          },
+            radius: 8
+          }
         },
         anchor: 'center',
         connectionPoint: 'boundary',
         allowBlank: false,
         snap: {
-          radius: 20,
+          radius: 20
         },
         createEdge() {
           return new Shape.Edge({
@@ -685,19 +236,19 @@ async function initGraph() {
                 strokeWidth: 2,
                 targetMarker: {
                   name: 'classic',
-                  size: 8,
-                },
-              },
+                  size: 8
+                }
+              }
             },
             router: {
-              name: 'orth',
+              name: 'orth'
             },
             connector: {
               name: 'rounded',
               args: {
-                radius: 8,
-              },
-            },
+                radius: 8
+              }
+            }
           });
         },
         validateConnection({ sourceCell, targetCell }) {
@@ -706,18 +257,18 @@ async function initGraph() {
             return false;
           }
           return true;
-        },
+        }
       },
       mousewheel: {
         enabled: true,
         modifiers: ['ctrl', 'meta'],
         minScale: 0.5,
         maxScale: 3,
-        factor: 1.1,
+        factor: 1.1
       },
       panning: {
         enabled: true,
-        eventTypes: ['leftMouseDown', 'mouseWheel'],
+        eventTypes: ['leftMouseDown', 'mouseWheel']
       },
       interacting: {
         nodeMovable: true,
@@ -726,69 +277,74 @@ async function initGraph() {
         arrowheadMovable: true,
         vertexMovable: true,
         vertexAddable: true,
-        vertexDeletable: true,
+        vertexDeletable: true
       },
       snapline: {
         enabled: true,
-        sharp: true,
+        sharp: true
       },
       history: {
         enabled: true,
         beforeAddCommand(event: any, args: any) {
           if (args.key === 'tools') return false;
           return true;
-        },
+        }
       },
       clipboard: {
-        enabled: true,
+        enabled: true
       },
       keyboard: {
         enabled: true,
-        global: false,
+        global: false
       },
       selecting: {
         enabled: true,
         rubberband: true,
         showNodeSelectionBox: true,
-        showEdgeSelectionBox: true,
+        showEdgeSelectionBox: true
       },
       scroller: {
         enabled: true,
         pannable: true,
-        autoResize: true,
+        autoResize: true
       },
       translating: {
-        restrict: isSnapToGridEnabled.value,
-      },
+        restrict: isSnapToGridEnabled.value
+      }
     });
 
     // 注册插件
     await registerPlugins();
-    
+
     // 事件监听
     setupEventListeners();
-    
+
     // 创建连接管理器
     connectionManager = new X6ConnectionManager(graph);
-    
+
     // 加载保存的状态
     loadGraphState();
-    
+
     console.log('X6图形初始化成功');
   } catch (error) {
     console.error('X6图形初始化失败:', error);
-    message.error('图形初始化失败: ' + (error instanceof Error ? error.message : String(error)));
+    message.error(`图形初始化失败: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
 // 注册插件
 async function registerPlugins() {
   if (!graph) return;
-  
+
   try {
     // 动态导入插件，使用try-catch单独处理每个插件的导入
-    let Minimap, Snapline, Transform, Selection, Keyboard, History;
-    
+    let History;
+    let Keyboard;
+    let Minimap;
+    let Selection;
+    let Snapline;
+    let Transform;
+
     try {
       const minimapModule = await import('@antv/x6-plugin-minimap');
       Minimap = minimapModule.MiniMap;
@@ -796,42 +352,42 @@ async function registerPlugins() {
       console.error('小地图插件加载失败:', error);
       message.warning('小地图功能不可用');
     }
-    
+
     try {
       const snaplineModule = await import('@antv/x6-plugin-snapline');
       Snapline = snaplineModule.Snapline;
     } catch (error) {
       console.error('对齐线插件加载失败:', error);
     }
-    
+
     try {
       const transformModule = await import('@antv/x6-plugin-transform');
       Transform = transformModule.Transform;
     } catch (error) {
       console.error('变换插件加载失败:', error);
     }
-    
+
     try {
       const selectionModule = await import('@antv/x6-plugin-selection');
       Selection = selectionModule.Selection;
     } catch (error) {
       console.error('选择插件加载失败:', error);
     }
-    
+
     try {
       const keyboardModule = await import('@antv/x6-plugin-keyboard');
       Keyboard = keyboardModule.Keyboard;
     } catch (error) {
       console.error('键盘插件加载失败:', error);
     }
-    
+
     try {
       const historyModule = await import('@antv/x6-plugin-history');
       History = historyModule.History;
     } catch (error) {
       console.error('历史记录插件加载失败:', error);
     }
-    
+
     // 小地图插件
     if (Minimap) {
       try {
@@ -847,7 +403,7 @@ async function registerPlugins() {
                 if (cell.isNode()) {
                   return graph?.findViewByCell(cell);
                 }
-              },
+              }
             },
             createContainer() {
               const div = document.createElement('div');
@@ -864,14 +420,14 @@ async function registerPlugins() {
               div.style.display = isMinimapVisible.value ? 'block' : 'none';
               containerRef.value?.appendChild(div);
               return div;
-            },
+            }
           })
         );
       } catch (error) {
         console.error('小地图插件注册失败:', error);
       }
     }
-    
+
     // 对齐线插件
     if (Snapline) {
       try {
@@ -880,69 +436,77 @@ async function registerPlugins() {
         console.error('对齐线插件注册失败:', error);
       }
     }
-    
+
     // 变换插件
     if (Transform) {
       try {
-        graph.use(new Transform({
-          resizing: {
-            enabled: true,
-            minWidth: 100,
-            minHeight: 50,
-            orthogonal: false,
-          },
-          rotating: {
-            enabled: false,
-          },
-        }));
+        graph.use(
+          new Transform({
+            resizing: {
+              enabled: true,
+              minWidth: 100,
+              minHeight: 50,
+              orthogonal: false
+            },
+            rotating: {
+              enabled: false
+            }
+          })
+        );
       } catch (error) {
         console.error('变换插件注册失败:', error);
       }
     }
-    
+
     // 选择插件
     if (Selection) {
       try {
-        graph.use(new Selection({
-          multiple: true,
-          rubberband: true,
-          showNodeSelectionBox: true,
-          showEdgeSelectionBox: true,
-        }));
+        graph.use(
+          new Selection({
+            multiple: true,
+            rubberband: true,
+            showNodeSelectionBox: true,
+            showEdgeSelectionBox: true
+          })
+        );
       } catch (error) {
         console.error('选择插件注册失败:', error);
       }
     }
-    
+
     // 键盘插件
     if (Keyboard) {
       try {
-        graph.use(new Keyboard({
-          global: false,
-          enabled: true,
-        }));
+        graph.use(
+          new Keyboard({
+            global: false,
+            enabled: true
+          })
+        );
       } catch (error) {
         console.error('键盘插件注册失败:', error);
       }
     }
-    
+
     // 历史记录插件
     if (History) {
       try {
-        graph.use(new History({
-          enabled: true,
-        }));
+        graph.use(
+          new History({
+            enabled: true
+          })
+        );
       } catch (error) {
         console.error('历史记录插件注册失败:', error);
       }
     }
-    
+
     console.log('X6插件注册成功');
   } catch (error) {
     console.error('X6插件注册失败:', error);
-    message.error('图形插件加载失败: ' + (error instanceof Error ? error.message : String(error)));
+    message.error(`图形插件加载失败: ${error instanceof Error ? error.message : String(error)}`);
   }
-  
+
   // 注册键盘快捷键
   try {
     if (Keyboard) {
@@ -953,7 +517,7 @@ async function registerPlugins() {
         }
         return false;
       });
-      
+
       graph.bindKey(['meta+v', 'ctrl+v'], () => {
         if (!graph?.isClipboardEmpty()) {
           const cells = graph?.paste({ offset: 32 });
@@ -962,21 +526,21 @@ async function registerPlugins() {
         }
         return false;
       });
-      
+
       graph.bindKey(['meta+z', 'ctrl+z'], () => {
         if (graph?.canUndo()) {
           graph?.undo();
         }
         return false;
       });
-      
+
       graph.bindKey(['meta+shift+z', 'ctrl+shift+z', 'meta+y', 'ctrl+y'], () => {
         if (graph?.canRedo()) {
           graph?.redo();
         }
         return false;
       });
-      
+
       graph.bindKey('delete', () => {
         const cells = graph?.getSelectedCells();
         if (cells?.length) {
@@ -1014,10 +578,10 @@ function registerCustomNodes() {
                   strokeWidth: 2,
                   fill: '#ffffff',
                   style: {
-                    visibility: 'hidden',
-                  },
-                },
-              },
+                    visibility: 'hidden'
+                  }
+                }
+              }
             },
             // 右侧连接桩组
             right: {
@@ -1030,10 +594,10 @@ function registerCustomNodes() {
                   strokeWidth: 2,
                   fill: '#ffffff',
                   style: {
-                    visibility: 'hidden',
-                  },
-                },
-              },
+                    visibility: 'hidden'
+                  }
+                }
+              }
             },
             // 底部连接桩组
             bottom: {
@@ -1046,10 +610,10 @@ function registerCustomNodes() {
                   strokeWidth: 2,
                   fill: '#ffffff',
                   style: {
-                    visibility: 'hidden',
-                  },
-                },
-              },
+                    visibility: 'hidden'
+                  }
+                }
+              }
             },
             // 左侧连接桩组
             left: {
@@ -1062,11 +626,11 @@ function registerCustomNodes() {
                   strokeWidth: 2,
                   fill: '#ffffff',
                   style: {
-                    visibility: 'hidden',
-                  },
-                },
-              },
-            },
+                    visibility: 'hidden'
+                  }
+                }
+              }
+            }
           },
           items: [
             // 顶部连接点
@@ -1084,8 +648,8 @@ function registerCustomNodes() {
             // 左侧连接点
             { id: 'left-1', group: 'left', args: { y: '25%' } },
             { id: 'left-2', group: 'left', args: { y: '50%' } },
-            { id: 'left-3', group: 'left', args: { y: '75%' } },
-          ],
+            { id: 'left-3', group: 'left', args: { y: '75%' } }
+          ]
         },
         attrs: {
           body: {
@@ -1098,7 +662,7 @@ function registerCustomNodes() {
             shadowBlur: 8,
             shadowOffsetX: 2,
             shadowOffsetY: 2,
-            cursor: 'move',
+            cursor: 'move'
           },
           title: {
             text: '',
@@ -1109,7 +673,7 @@ function registerCustomNodes() {
             fontSize: 16,
             fontWeight: 'bold',
             fill: '#333333',
-            cursor: 'pointer',
+            cursor: 'pointer'
           },
           subtitle: {
             text: '',
@@ -1118,7 +682,7 @@ function registerCustomNodes() {
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
             fontSize: 12,
-            fill: '#666666',
+            fill: '#666666'
           },
           fieldCount: {
             text: '',
@@ -1127,14 +691,14 @@ function registerCustomNodes() {
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
             fontSize: 11,
-            fill: '#999999',
+            fill: '#999999'
           },
           statusIcon: {
             text: '●',
             refX: 10,
             refY: 10,
             fontSize: 12,
-            fill: '#4caf50',
+            fill: '#4caf50'
           },
           code: {
             text: '',
@@ -1143,7 +707,7 @@ function registerCustomNodes() {
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
             fontSize: 12,
-            fill: '#666666',
+            fill: '#666666'
           },
           fields: {
             text: '',
@@ -1152,7 +716,7 @@ function registerCustomNodes() {
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
             fontSize: 12,
-            fill: '#666666',
+            fill: '#666666'
           },
           table: {
             text: '',
@@ -1161,9 +725,9 @@ function registerCustomNodes() {
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
             fontSize: 12,
-            fill: '#666666',
-          },
-        },
+            fill: '#666666'
+          }
+        }
       });
     } catch (regError) {
       // 如果错误是因为节点已经注册，则忽略错误
@@ -1176,7 +740,7 @@ function registerCustomNodes() {
     }
   } catch (error) {
     console.error('注册自定义节点失败:', error);
-    throw new Error('注册自定义节点失败: ' + (error instanceof Error ? error.message : String(error)));
+    throw new Error(`注册自定义节点失败: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -1191,7 +755,7 @@ function toggleConnectionPoints() {
 // 控制连接桩显示
 function togglePortsVisibility(visible: boolean) {
   if (!graph) return;
-  
+
   const nodes = graph.getNodes();
   nodes.forEach(node => {
     const ports = node.getPorts();
@@ -1204,14 +768,14 @@ function togglePortsVisibility(visible: boolean) {
 // 鼠标悬停显示连接桩
 function setupPortsHoverEffect() {
   if (!graph) return;
-  
+
   graph.on('node:mouseenter', ({ node }) => {
     const ports = node.getPorts();
     ports.forEach(port => {
       node.setPortProp(port.id!, 'attrs/circle/style/visibility', 'visible');
     });
   });
-  
+
   graph.on('node:mouseleave', ({ node }) => {
     const ports = node.getPorts();
     ports.forEach(port => {
@@ -1223,7 +787,7 @@ function setupPortsHoverEffect() {
 // 设置事件监听器
 function setupEventListeners() {
   if (!graph) return;
-  
+
   // 设置连接桩悬停效果
   setupPortsHoverEffect();
 
@@ -1235,14 +799,14 @@ function setupEventListeners() {
       selectedCell.value = node;
       selectedNode.value = node;
       selectedEdge.value = null;
-      
+
       // 更新选中节点数据
       const nodeData = node.getData() || {};
       selectedNodeData.name = nodeData.name || '';
       selectedNodeData.code = nodeData.code || '';
       selectedNodeData.tableName = nodeData.tableName || '';
       selectedNodeData.description = nodeData.description || '';
-      
+
       // 更新选中节点视觉属性
       const position = node.getPosition();
       const size = node.getSize();
@@ -1250,11 +814,11 @@ function setupEventListeners() {
       selectedNodeVisual.y = position.y;
       selectedNodeVisual.width = size.width;
       selectedNodeVisual.height = size.height;
-      
+
       // 获取节点颜色
       const color = node.attr('body/fill');
       selectedNodeVisual.color = color || '#1976d2';
-      
+
       // 加载实体字段
       loadEntityFields(node.id as string);
     }
@@ -1266,7 +830,7 @@ function setupEventListeners() {
       selectedCell.value = edge;
       selectedEdge.value = edge;
       selectedNode.value = null;
-      
+
       // 更新选中边数据
       const edgeData = edge.getData() || {};
       selectedEdgeData.name = edgeData.name || '';
@@ -1279,11 +843,11 @@ function setupEventListeners() {
       selectedEdgeData.cascadeDelete = edgeData.cascadeDelete || false;
       selectedEdgeData.cascadeUpdate = edgeData.cascadeUpdate || false;
       selectedEdgeData.required = edgeData.required || false;
-      
+
       // 更新选中边视觉属性
       const lineColor = edge.attr('line/stroke');
       selectedEdgeVisual.lineColor = lineColor || '#5F95FF';
-      
+
       const dashArray = edge.attr('line/strokeDasharray');
       if (dashArray === '5,5') {
         selectedEdgeVisual.lineStyle = 'dashed';
@@ -1308,41 +872,41 @@ function setupEventListeners() {
   graph.on('scale', ({ sx }) => {
     zoomLevel.value = sx;
   });
-  
+
   // 节点移动事件
   graph.on('node:moved', ({ node }) => {
     const position = node.getPosition();
-    
+
     // 如果当前选中的是该节点，更新属性面板中的位置值
     if (selectedNode.value && selectedNode.value.id === node.id) {
       selectedNodeVisual.x = position.x;
       selectedNodeVisual.y = position.y;
     }
-    
+
     // 保存位置到实体配置
     const entityId = node.id as string;
     const entity = entities.value.find(e => e.id === entityId);
-    
+
     if (entity) {
       entity.config = entity.config || {};
       entity.config.position = position;
     }
   });
-  
+
   // 节点大小改变事件
   graph.on('node:resized', ({ node }) => {
     const size = node.getSize();
-    
+
     // 如果当前选中的是该节点，更新属性面板中的大小值
     if (selectedNode.value && selectedNode.value.id === node.id) {
       selectedNodeVisual.width = size.width;
       selectedNodeVisual.height = size.height;
     }
-    
+
     // 保存大小到实体配置
     const entityId = node.id as string;
     const entity = entities.value.find(e => e.id === entityId);
-    
+
     if (entity) {
       entity.config = entity.config || {};
       entity.config.size = size;
@@ -1355,53 +919,53 @@ async function loadData() {
   try {
     loading.value = true;
     entitiesLoading.value = true;
-    
+
     // 分别加载数据，以便更好地处理错误
     let entitiesData = [];
     let fieldsData = [];
     let relationshipsData = [];
     let hasError = false;
-    
+
     try {
       const entitiesRes = await fetchGetAllEntities(props.projectId);
       entitiesData = entitiesRes.data || [];
       console.log('加载实体数据成功:', entitiesData.length);
     } catch (error) {
       hasError = true;
-      const errorMessage = '加载实体数据失败: ' + (error instanceof Error ? error.message : String(error));
+      const errorMessage = `加载实体数据失败: ${error instanceof Error ? error.message : String(error)}`;
       console.error(errorMessage, error);
       message.error(errorMessage);
       emit('error', errorMessage);
     }
-    
+
     try {
       const fieldsRes = await fetchGetAllFields({ projectId: props.projectId });
       fieldsData = fieldsRes.data || [];
       console.log('加载字段数据成功:', fieldsData.length);
     } catch (error) {
       hasError = true;
-      const errorMessage = '加载字段数据失败: ' + (error instanceof Error ? error.message : String(error));
+      const errorMessage = `加载字段数据失败: ${error instanceof Error ? error.message : String(error)}`;
       console.error(errorMessage, error);
       message.error(errorMessage);
       emit('error', errorMessage);
     }
-    
+
     try {
       const relationshipsRes = await fetchGetAllRelationships(props.projectId);
       relationshipsData = relationshipsRes.data || [];
       console.log('加载关系数据成功:', relationshipsData.length);
     } catch (error) {
       hasError = true;
-      const errorMessage = '加载关系数据失败: ' + (error instanceof Error ? error.message : String(error));
+      const errorMessage = `加载关系数据失败: ${error instanceof Error ? error.message : String(error)}`;
       console.error(errorMessage, error);
       message.error(errorMessage);
       emit('error', errorMessage);
     }
-    
+
     entities.value = entitiesData;
     fields.value = fieldsData;
     relationships.value = relationshipsData;
-    
+
     // 只有在有实体数据的情况下才更新图形
     if (entitiesData.length > 0) {
       updateGraphData();
@@ -1413,7 +977,7 @@ async function loadData() {
       }
     }
   } catch (error) {
-    const errorMessage = '加载数据失败: ' + (error instanceof Error ? error.message : String(error));
+    const errorMessage = `加载数据失败: ${error instanceof Error ? error.message : String(error)}`;
     console.error(errorMessage, error);
     message.error(errorMessage);
     emit('error', errorMessage);
@@ -1435,7 +999,7 @@ function updateGraphData() {
   try {
     // 清除现有数据
     graph.clearCells();
-    
+
     // 添加实体节点
     let addedNodeCount = 0;
     entities.value.forEach(entity => {
@@ -1444,9 +1008,9 @@ function updateGraphData() {
           console.warn('跳过无效实体:', entity);
           return;
         }
-        
+
         const fieldCount = fields.value.filter(f => f.entityId === entity.id).length;
-        
+
         const node = graph.addNode({
           id: entity.id,
           shape: 'entity-node',
@@ -1456,7 +1020,7 @@ function updateGraphData() {
             title: { text: entity.name || '未命名实体' },
             code: { text: entity.code || '无代码' },
             fields: { text: `字段数量: ${fieldCount}` },
-            table: { text: `表名: ${entity.tableName || '无表名'}` },
+            table: { text: `表名: ${entity.tableName || '无表名'}` }
           },
           ports: {
             groups: {
@@ -1470,35 +1034,35 @@ function updateGraphData() {
                     strokeWidth: 2,
                     fill: '#fff',
                     style: {
-                      visibility: 'hidden',
-                    },
-                  },
-                },
-              },
+                      visibility: 'hidden'
+                    }
+                  }
+                }
+              }
             },
             items: [
               { id: 'top', group: 'connection-port', args: { x: '50%', y: 0 } },
               { id: 'right', group: 'connection-port', args: { x: '100%', y: '50%' } },
               { id: 'bottom', group: 'connection-port', args: { x: '50%', y: '100%' } },
-              { id: 'left', group: 'connection-port', args: { x: 0, y: '50%' } },
-            ],
+              { id: 'left', group: 'connection-port', args: { x: 0, y: '50%' } }
+            ]
           },
-          data: entity,
+          data: entity
         });
-        
+
         addedNodeCount++;
       } catch (error) {
         const errorMessage = `添加实体节点失败: ${entity?.name || '未知实体'} - ${error instanceof Error ? error.message : String(error)}`;
         console.error(errorMessage, error, entity);
       }
     });
-    
+
     if (addedNodeCount === 0 && entities.value.length > 0) {
       const errorMessage = '无法添加任何实体节点到图形中';
       console.error(errorMessage);
       emit('error', errorMessage);
     }
-    
+
     // 添加关系边
     let addedEdgeCount = 0;
     relationships.value.forEach(relationship => {
@@ -1507,22 +1071,19 @@ function updateGraphData() {
           console.warn('跳过无效关系:', relationship);
           return;
         }
-        
+
         // 检查源实体和目标实体是否存在
         const sourceNode = graph.getCellById(relationship.sourceEntityId);
         const targetNode = graph.getCellById(relationship.targetEntityId);
-        
+
         if (!sourceNode || !targetNode) {
           console.warn(`关系 ${relationship.id} 的源实体或目标实体不存在，跳过`);
           return;
         }
-        
+
         // 使用连接管理器找到最优连接点
-        const connectionPoints = connectionManager?.findOptimalConnectionPoints(
-          sourceNode as any,
-          targetNode as any
-        );
-        
+        const connectionPoints = connectionManager?.findOptimalConnectionPoints(sourceNode as any, targetNode as any);
+
         const edge = graph.addEdge({
           id: relationship.id,
           source: {
@@ -1534,7 +1095,7 @@ function updateGraphData() {
             port: connectionPoints?.target?.port || 'left'
           },
           router: {
-            name: 'orth',
+            name: 'orth'
           },
           attrs: {
             line: {
@@ -1543,39 +1104,39 @@ function updateGraphData() {
               strokeDasharray: getLineStyleDashArray(relationship.config?.lineStyle || 'solid'),
               targetMarker: {
                 name: 'classic',
-                size: 8,
-              },
-            },
+                size: 8
+              }
+            }
           },
           labels: [
             {
               attrs: {
                 text: {
-                  text: getRelationshipLabel(relationship.type),
+                  text: getRelationshipLabel(relationship.type)
                 },
                 rect: {
                   fill: '#ffffff',
                   stroke: relationship.config?.lineColor || '#5F95FF',
                   strokeWidth: 1,
                   rx: 3,
-                  ry: 3,
-                },
+                  ry: 3
+                }
               },
               position: {
-                distance: 0.5,
-              },
-            },
+                distance: 0.5
+              }
+            }
           ],
-          data: relationship,
+          data: relationship
         });
-        
+
         addedEdgeCount++;
       } catch (error) {
         const errorMessage = `添加关系边失败: ${relationship?.name || '未知关系'} - ${error instanceof Error ? error.message : String(error)}`;
         console.error(errorMessage, error, relationship);
       }
     });
-    
+
     // 自动适应视图
     setTimeout(() => {
       if (graph) {
@@ -1587,7 +1148,7 @@ function updateGraphData() {
       }
     }, 100);
   } catch (error) {
-    const errorMessage = '更新图数据失败: ' + (error instanceof Error ? error.message : String(error));
+    const errorMessage = `更新图数据失败: ${error instanceof Error ? error.message : String(error)}`;
     console.error(errorMessage, error);
     message.error(errorMessage);
     emit('error', errorMessage);
@@ -1597,20 +1158,20 @@ function updateGraphData() {
 // 工具栏操作
 async function autoLayout() {
   if (!graph) return;
-  
+
   layoutLoading.value = true;
   try {
     // 简单的力导向布局
     const nodes = graph.getNodes();
     const radius = Math.max(300, nodes.length * 50);
-    
+
     nodes.forEach((node, i) => {
       const angle = (i / nodes.length) * 2 * Math.PI;
       const x = radius * Math.cos(angle) + 400;
       const y = radius * Math.sin(angle) + 300;
       node.position(x, y);
     });
-    
+
     message.success('自动布局完成');
   } catch (error) {
     message.error('自动布局失败');
@@ -1664,66 +1225,68 @@ function zoomOut() {
 // 小地图控制
 function toggleMinimap() {
   if (!graph) return;
-  
+
   isMinimapVisible.value = !isMinimapVisible.value;
-  
+
   const minimapContainer = document.querySelector('.x6-minimap-container') as HTMLElement;
   if (minimapContainer) {
     minimapContainer.style.display = isMinimapVisible.value ? 'block' : 'none';
   }
-  
+
   message.success(isMinimapVisible.value ? '已显示小地图' : '已隐藏小地图');
 }
 
 // 网格控制
 function toggleGridVisible() {
   if (!graph) return;
-  
+
   isGridVisible.value = !isGridVisible.value;
   graph.drawGrid(isGridVisible.value);
-  
+
   message.success(isGridVisible.value ? '已显示网格' : '已隐藏网格');
 }
 
 function toggleSnapToGrid() {
   if (!graph) return;
-  
+
   isSnapToGridEnabled.value = !isSnapToGridEnabled.value;
-  
-  graph.options.translating.restrict = isSnapToGridEnabled.value ? {
-    grid: true,
-    gridSize: 10,
-  } : false;
-  
+
+  graph.options.translating.restrict = isSnapToGridEnabled.value
+    ? {
+        grid: true,
+        gridSize: 10
+      }
+    : false;
+
   message.success(isSnapToGridEnabled.value ? '已启用网格对齐' : '已禁用网格对齐');
 }
 
 // 状态保存和加载
 function saveGraphState() {
   if (!graph) return;
-  
+
   try {
     const graphData = {
       nodes: graph.getNodes().map(node => ({
         id: node.id,
         data: node.getData(),
         position: node.getPosition(),
-        size: node.getSize(),
+        size: node.getSize()
       })),
       edges: graph.getEdges().map(edge => ({
         id: edge.id,
         source: edge.getSourceCellId(),
         target: edge.getTargetCellId(),
         data: edge.getData(),
-        vertices: edge.getVertices(),
+        vertices: edge.getVertices()
       })),
       zoom: graph.zoom(),
-      transform: graph.transform.getMatrix(),
+      transform: graph.transform.getMatrix()
     };
-    
+
     // 保存到localStorage
     localStorage.setItem(`relationship-graph-state-${props.projectId}`, JSON.stringify(graphData));
-    
+
     message.success('图形状态已保存');
   } catch (error) {
     console.error('保存图形状态失败:', error);
@@ -1733,26 +1296,26 @@ function saveGraphState() {
 
 function loadGraphState() {
   if (!graph) return;
-  
+
   try {
     const savedState = localStorage.getItem(`relationship-graph-state-${props.projectId}`);
     if (!savedState) return;
-    
+
     const graphData = JSON.parse(savedState);
-    
+
     // 恢复缩放和变换
     if (graphData.zoom) {
       graph.zoom(graphData.zoom);
       zoomLevel.value = graphData.zoom;
     }
-    
+
     if (graphData.transform) {
       graph.transform.setMatrix(graphData.transform);
     }
-    
+
     // 注意：节点和边的恢复在updateGraphData中处理
     // 这里只保存位置和大小信息，供updateGraphData使用
-    
+
     // 将保存的位置信息应用到实体数据中
     graphData.nodes.forEach((nodeData: any) => {
       const entity = entities.value.find(e => e.id === nodeData.id);
@@ -1771,7 +1334,7 @@ function loadGraphState() {
 // 导出功能
 function handleExport(key: string) {
   if (!graph) return;
-  
+
   try {
     switch (key) {
       case 'png':
@@ -1784,19 +1347,23 @@ function handleExport(key: string) {
         graph.exportSVG();
         break;
       case 'json':
-        const jsonData = JSON.stringify({
-          nodes: graph.getNodes().map(node => ({
-            id: node.id,
-            data: node.getData(),
-            position: node.getPosition(),
-          })),
-          edges: graph.getEdges().map(edge => ({
-            id: edge.id,
-            source: edge.getSourceCellId(),
-            target: edge.getTargetCellId(),
-            data: edge.getData(),
-          })),
-        }, null, 2);
+        const jsonData = JSON.stringify(
+          {
+            nodes: graph.getNodes().map(node => ({
+              id: node.id,
+              data: node.getData(),
+              position: node.getPosition()
+            })),
+            edges: graph.getEdges().map(edge => ({
+              id: edge.id,
+              source: edge.getSourceCellId(),
+              target: edge.getTargetCellId(),
+              data: edge.getData()
+            }))
+          },
+          null,
+          2
+        );
         downloadFile(jsonData, 'relationship-graph.json', 'application/json');
         break;
     }
@@ -1853,15 +1420,15 @@ function handleConnectModeNodeClick(node: Node) {
 function openCreateRelationshipDialog(sourceNode: Node, targetNode: Node) {
   const sourceData = sourceNode.getData();
   const targetData = targetNode.getData();
-  
+
   sourceEntityName.value = sourceData.name;
   targetEntityName.value = targetData.name;
-  
+
   // 重置表单
   newRelationshipForm.name = `${sourceData.name}To${targetData.name}`;
   newRelationshipForm.type = 'ONE_TO_MANY';
   newRelationshipForm.description = '';
-  
+
   createRelationshipModalVisible.value = true;
 }
 
@@ -1872,13 +1439,13 @@ function cancelCreateRelationship() {
 
 async function confirmCreateRelationship() {
   if (!connectSourceNode.value || !connectTargetNode.value) return;
-  
+
   try {
     createRelationshipLoading.value = true;
-    
+
     const sourceData = connectSourceNode.value.getData();
     const targetData = connectTargetNode.value.getData();
-    
+
     const relationshipData = {
       name: newRelationshipForm.name,
       code: newRelationshipForm.name.replace(/\s+/g, ''),
@@ -1888,19 +1455,19 @@ async function confirmCreateRelationship() {
       sourceEntityId: sourceData.id,
       targetEntityId: targetData.id
     };
-    
+
     const res = await fetchAddRelationship(relationshipData);
-    
+
     if (res.code === 0) {
       message.success('创建关系成功');
       createRelationshipModalVisible.value = false;
       cancelConnect();
-      
+
       // 重新加载数据
       await loadData();
       emit('relationshipUpdated');
     } else {
-      message.error('创建关系失败: ' + res.message);
+      message.error(`创建关系失败: ${res.message}`);
     }
   } catch (error) {
     console.error('创建关系失败:', error);
@@ -1920,21 +1487,21 @@ function clearSelection() {
 
 async function handleUpdateEntity() {
   if (!selectedNode.value) return;
-  
+
   try {
     const entityId = selectedNode.value.id as string;
     const entity = entities.value.find(e => e.id === entityId);
-    
+
     if (entity) {
       // 更新实体数据
       entity.name = selectedNodeData.name;
       entity.tableName = selectedNodeData.tableName;
       entity.description = selectedNodeData.description;
-      
+
       // 更新节点显示
       selectedNode.value.attr('title/text', entity.name);
       selectedNode.value.attr('table/text', `表名: ${entity.tableName}`);
-      
+
       // 保存到后端
       await fetchUpdateEntity(entityId, entity);
       message.success('实体更新成功');
@@ -1947,16 +1514,16 @@ async function handleUpdateEntity() {
 
 function handleUpdateEntityVisual() {
   if (!selectedNode.value) return;
-  
+
   try {
     // 更新节点样式
     selectedNode.value.attr('body/fill', selectedNodeVisual.color);
     selectedNode.value.attr('body/stroke', adjustColor(selectedNodeVisual.color, -20));
-    
+
     // 保存样式到实体配置
     const entityId = selectedNode.value.id as string;
     const entity = entities.value.find(e => e.id === entityId);
-    
+
     if (entity) {
       entity.config = entity.config || {};
       entity.config.color = selectedNodeVisual.color;
@@ -1968,15 +1535,15 @@ function handleUpdateEntityVisual() {
 
 function handleUpdateEntityPosition() {
   if (!selectedNode.value) return;
-  
+
   try {
     // 更新节点位置
     selectedNode.value.position(selectedNodeVisual.x, selectedNodeVisual.y);
-    
+
     // 保存位置到实体配置
     const entityId = selectedNode.value.id as string;
     const entity = entities.value.find(e => e.id === entityId);
-    
+
     if (entity) {
       entity.config = entity.config || {};
       entity.config.position = { x: selectedNodeVisual.x, y: selectedNodeVisual.y };
@@ -1988,15 +1555,15 @@ function handleUpdateEntityPosition() {
 
 function handleUpdateEntitySize() {
   if (!selectedNode.value) return;
-  
+
   try {
     // 更新节点大小
     selectedNode.value.resize(selectedNodeVisual.width, selectedNodeVisual.height);
-    
+
     // 保存大小到实体配置
     const entityId = selectedNode.value.id as string;
     const entity = entities.value.find(e => e.id === entityId);
-    
+
     if (entity) {
       entity.config = entity.config || {};
       entity.config.size = { width: selectedNodeVisual.width, height: selectedNodeVisual.height };
@@ -2008,11 +1575,11 @@ function handleUpdateEntitySize() {
 
 async function handleUpdateRelationship() {
   if (!selectedEdge.value) return;
-  
+
   try {
     const relationshipId = selectedEdge.value.id as string;
     const relationship = relationships.value.find(r => r.id === relationshipId);
-    
+
     if (relationship) {
       // 更新关系数据
       relationship.name = selectedEdgeData.name;
@@ -2024,28 +1591,28 @@ async function handleUpdateRelationship() {
       relationship.cascadeDelete = selectedEdgeData.cascadeDelete;
       relationship.cascadeUpdate = selectedEdgeData.cascadeUpdate;
       relationship.required = selectedEdgeData.required;
-      
+
       // 更新边标签
       selectedEdge.value.setLabels([
         {
           attrs: {
             text: {
-              text: getRelationshipLabel(relationship.type),
+              text: getRelationshipLabel(relationship.type)
             },
             rect: {
               fill: '#ffffff',
               stroke: selectedEdgeVisual.lineColor,
               strokeWidth: 1,
               rx: 3,
-              ry: 3,
-            },
+              ry: 3
+            }
           },
           position: {
-            distance: 0.5,
-          },
-        },
+            distance: 0.5
+          }
+        }
       ]);
-      
+
       // 保存到后端
       await fetchUpdateRelationship(relationshipId, relationship);
       message.success('关系更新成功');
@@ -2059,19 +1626,19 @@ async function handleUpdateRelationship() {
 
 function handleUpdateEdgeVisual() {
   if (!selectedEdge.value) return;
-  
+
   try {
     // 更新边样式
     selectedEdge.value.attr('line/stroke', selectedEdgeVisual.lineColor);
     selectedEdge.value.attr('line/strokeDasharray', getLineStyleDashArray(selectedEdgeVisual.lineStyle));
-    
+
     // 更新标签样式
     selectedEdge.value.prop('labels/0/attrs/rect/stroke', selectedEdgeVisual.lineColor);
-    
+
     // 保存样式到关系配置
     const relationshipId = selectedEdge.value.id as string;
     const relationship = relationships.value.find(r => r.id === relationshipId);
-    
+
     if (relationship) {
       relationship.config = relationship.config || {};
       relationship.config.lineStyle = selectedEdgeVisual.lineStyle;
@@ -2085,7 +1652,7 @@ function handleUpdateEdgeVisual() {
 // 加载实体字段
 async function loadEntityFields(entityId: string) {
   if (!entityId) return;
-  
+
   fieldsLoading.value = true;
   try {
     const res = await fetchGetAllFields({ entityId });
@@ -2102,10 +1669,10 @@ async function loadEntityFields(entityId: string) {
 // 导航到实体字段设计页面
 function navigateToEntityFields() {
   if (!selectedNode.value) return;
-  
+
   const entityId = selectedNode.value.id as string;
   const entity = entities.value.find(e => e.id === entityId);
-  
+
   if (entity) {
     // 使用window.open打开新标签页
     const url = `/lowcode/entity/design?id=${entityId}&projectId=${props.projectId}`;
@@ -2116,16 +1683,16 @@ function navigateToEntityFields() {
 // 获取字段类型名称
 function getFieldTypeName(type: string) {
   const typeMap: Record<string, string> = {
-    'STRING': '字符串',
-    'INTEGER': '整数',
-    'DECIMAL': '小数',
-    'BOOLEAN': '布尔',
-    'DATE': '日期',
-    'DATETIME': '日期时间',
-    'TEXT': '文本',
-    'JSON': 'JSON'
+    STRING: '字符串',
+    INTEGER: '整数',
+    DECIMAL: '小数',
+    BOOLEAN: '布尔',
+    DATE: '日期',
+    DATETIME: '日期时间',
+    TEXT: '文本',
+    JSON: 'JSON'
   };
-  
+
   return typeMap[type] || type;
 }
 
@@ -2145,22 +1712,22 @@ function getLineStyleDashArray(style: string) {
 // 调整颜色亮度
 function adjustColor(color: string, amount: number) {
   let hex = color;
-  
+
   // 如果是简写形式的十六进制颜色值，转换为完整形式
   if (hex.length === 4) {
-    hex = '#' + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
+    hex = `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
   }
-  
+
   // 解析RGB值
-  const r = parseInt(hex.substring(1, 3), 16);
-  const g = parseInt(hex.substring(3, 5), 16);
-  const b = parseInt(hex.substring(5, 7), 16);
-  
+  const r = Number.parseInt(hex.substring(1, 3), 16);
+  const g = Number.parseInt(hex.substring(3, 5), 16);
+  const b = Number.parseInt(hex.substring(5, 7), 16);
+
   // 调整亮度
   const newR = Math.max(0, Math.min(255, r + amount));
   const newG = Math.max(0, Math.min(255, g + amount));
   const newB = Math.max(0, Math.min(255, b + amount));
-  
+
   // 转换回十六进制
   return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
 }
@@ -2172,7 +1739,7 @@ function isEntityInGraph(entityId: string) {
 
 function handleEntityClick(entity: any) {
   if (isConnectMode.value) return;
-  
+
   if (isEntityInGraph(entity.id)) {
     locateEntity(entity.id);
   } else {
@@ -2182,14 +1749,14 @@ function handleEntityClick(entity: any) {
 
 function addEntityToGraph(entity: any) {
   if (!graph || isEntityInGraph(entity.id)) return;
-  
+
   const fieldCount = fields.value.filter(f => f.entityId === entity.id).length;
-  
+
   // 计算新节点的位置
   const center = graph.getGraphArea();
   const x = center.x || 300;
   const y = center.y || 200;
-  
+
   // 添加节点
   const node = graph.addNode({
     id: entity.id,
@@ -2200,7 +1767,7 @@ function addEntityToGraph(entity: any) {
       title: { text: entity.name },
       code: { text: entity.code },
       fields: { text: `字段数量: ${fieldCount}` },
-      table: { text: `表名: ${entity.tableName}` },
+      table: { text: `表名: ${entity.tableName}` }
     },
     ports: {
       groups: {
@@ -2214,82 +1781,82 @@ function addEntityToGraph(entity: any) {
               strokeWidth: 2,
               fill: '#fff',
               style: {
-                visibility: 'hidden',
-              },
-            },
-          },
-        },
+                visibility: 'hidden'
+              }
+            }
+          }
+        }
       },
       items: [
         { id: 'top', group: 'connection-port', args: { x: '50%', y: 0 } },
         { id: 'right', group: 'connection-port', args: { x: '100%', y: '50%' } },
         { id: 'bottom', group: 'connection-port', args: { x: '50%', y: '100%' } },
-        { id: 'left', group: 'connection-port', args: { x: 0, y: '50%' } },
-      ],
+        { id: 'left', group: 'connection-port', args: { x: 0, y: '50%' } }
+      ]
     },
-    data: entity,
+    data: entity
   });
-  
+
   // 选中新添加的节点
   graph.cleanSelection();
   graph.select(node);
-  
+
   // 更新选中状态
   selectedCell.value = node;
   selectedNode.value = node;
   selectedEdge.value = null;
-  
+
   // 更新选中节点数据
   const nodeData = node.getData() || {};
   selectedNodeData.name = nodeData.name || '';
   selectedNodeData.code = nodeData.code || '';
   selectedNodeData.tableName = nodeData.tableName || '';
   selectedNodeData.description = nodeData.description || '';
-  
+
   message.success(`已添加实体: ${entity.name}`);
 }
 
 function removeEntityFromGraph(entityId: string) {
   if (!graph || !isEntityInGraph(entityId)) return;
-  
+
   // 查找与该实体相关的边
   const relatedEdges = graph.getEdges().filter(edge => {
     return edge.getSourceCellId() === entityId || edge.getTargetCellId() === entityId;
   });
-  
+
   // 删除相关的边
   relatedEdges.forEach(edge => {
     graph?.removeCell(edge);
   });
-  
+
   // 删除节点
   graph.removeCell(entityId);
-  
+
   // 如果当前选中的是被删除的节点，清除选中状态
   if (selectedNode.value && selectedNode.value.id === entityId) {
     clearSelection();
   }
-  
+
   message.success('已从图中移除实体');
 }
 
 function locateEntity(entityId: string) {
   if (!graph || !isEntityInGraph(entityId)) return;
-  
+
   const node = graph.getCellById(entityId);
   if (node) {
     // 居中显示节点
     graph.centerCell(node);
-    
+
     // 选中节点
     graph.cleanSelection();
     graph.select(node);
-    
+
     // 更新选中状态
     selectedCell.value = node;
     selectedNode.value = node as Node;
     selectedEdge.value = null;
-    
+
     // 更新选中节点数据
     const nodeData = node.getData() || {};
     selectedNodeData.name = nodeData.name || '';
@@ -2302,10 +1869,10 @@ function locateEntity(entityId: string) {
 // 辅助函数
 function getRelationshipLabel(type: string) {
   const labels: Record<string, string> = {
-    'ONE_TO_ONE': '1:1',
-    'ONE_TO_MANY': '1:N',
-    'MANY_TO_ONE': 'N:1',
-    'MANY_TO_MANY': 'N:N'
+    ONE_TO_ONE: '1:1',
+    ONE_TO_MANY: '1:N',
+    MANY_TO_ONE: 'N:1',
+    MANY_TO_MANY: 'N:N'
   };
   return labels[type] || type;
 }
@@ -2314,14 +1881,14 @@ function getRelationshipLabel(type: string) {
 onMounted(async () => {
   try {
     await nextTick();
-    
+
     // 等待DOM完全渲染和CSS应用
     await new Promise(resolve => setTimeout(resolve, 100));
-    
+
     // 多次尝试初始化，确保容器尺寸正确
     let retryCount = 0;
     const maxRetries = 5;
-    
+
     const tryInit = async () => {
       if (!containerRef.value) {
         if (retryCount < maxRetries) {
@@ -2330,7 +1897,7 @@ onMounted(async () => {
         }
         return;
       }
-      
+
       const rect = containerRef.value.getBoundingClientRect();
       if (rect.height < 100 && retryCount < maxRetries) {
         retryCount++;
@@ -2338,16 +1905,16 @@ onMounted(async () => {
         setTimeout(tryInit, 200);
         return;
       }
-      
+
       await initGraph();
       await loadData();
     };
-    
+
     await tryInit();
     window.addEventListener('resize', handleResize);
   } catch (error) {
     console.error('组件挂载时发生错误:', error);
-    const errorMessage = '关系设计器初始化失败: ' + (error instanceof Error ? error.message : String(error));
+    const errorMessage = `关系设计器初始化失败: ${error instanceof Error ? error.message : String(error)}`;
     message.error(errorMessage);
     emit('error', errorMessage);
   }
@@ -2355,7 +1922,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize);
-  
+
   if (graph) {
     graph.dispose();
     graph = null;
@@ -2368,9 +1935,9 @@ const handleResize = debounce(() => {
     const rect = containerRef.value.getBoundingClientRect();
     const width = Math.max(rect.width, 400);
     const height = Math.max(rect.height, 300);
-    
+
     console.log('窗口大小变化，调整图形尺寸:', { width, height });
-    
+
     try {
       graph.resize(width, height);
       // 触发重新布局
@@ -2387,6 +1954,472 @@ const handleResize = debounce(() => {
   }
 }, 200);
 </script>
+
+<template>
+  <div
+    class="x6-relationship-designer"
+    :class="{ 'connect-mode': isConnectMode, 'with-property-panel': !!selectedCell, loading: loading }"
+  >
+    <!-- 加载遮罩 -->
+    <div v-if="loading" class="loading-mask">
+      <NSpin size="large" />
+    </div>
+    <!-- 工具栏 -->
+    <div class="toolbar">
+      <NSpace>
+        <NTooltip placement="bottom">
+          <template #trigger>
+            <NButton quaternary circle :type="isConnectMode ? 'primary' : 'default'" @click="toggleConnectMode">
+              <template #icon>
+                <icon-mdi-connection class="text-16px" />
+              </template>
+            </NButton>
+          </template>
+          <span>{{ $t('page.lowcode.relationship.toolbar.connectMode') }}</span>
+        </NTooltip>
+
+        <NTooltip placement="bottom">
+          <template #trigger>
+            <NButton quaternary circle :loading="layoutLoading" @click="autoLayout">
+              <template #icon>
+                <icon-mdi-auto-fix class="text-16px" />
+              </template>
+            </NButton>
+          </template>
+          <span>{{ $t('page.lowcode.relationship.toolbar.autoLayout') }}</span>
+        </NTooltip>
+
+        <NTooltip placement="bottom">
+          <template #trigger>
+            <NButton quaternary circle @click="toggleMinimap">
+              <template #icon>
+                <icon-mdi-map class="text-16px" />
+              </template>
+            </NButton>
+          </template>
+          <span>{{ $t('page.lowcode.relationship.toolbar.minimap') || '小地图' }}</span>
+        </NTooltip>
+
+        <NTooltip placement="bottom">
+          <template #trigger>
+            <NButton
+              quaternary
+              circle
+              :type="showConnectionPoints ? 'primary' : 'default'"
+              @click="toggleConnectionPoints"
+            >
+              <template #icon>
+                <icon-mdi-circle-outline class="text-16px" />
+              </template>
+            </NButton>
+          </template>
+          <span>显示连接点</span>
+        </NTooltip>
+
+        <NDivider vertical />
+
+        <NTooltip placement="bottom">
+          <template #trigger>
+            <NButton quaternary circle @click="zoomIn">
+              <template #icon>
+                <icon-mdi-magnify-plus-outline class="text-16px" />
+              </template>
+            </NButton>
+          </template>
+          <span>{{ $t('page.lowcode.relationship.toolbar.zoomIn') }}</span>
+        </NTooltip>
+
+        <NTooltip placement="bottom">
+          <template #trigger>
+            <NButton quaternary circle @click="zoomOut">
+              <template #icon>
+                <icon-mdi-magnify-minus-outline class="text-16px" />
+              </template>
+            </NButton>
+          </template>
+          <span>{{ $t('page.lowcode.relationship.toolbar.zoomOut') }}</span>
+        </NTooltip>
+
+        <NTooltip placement="bottom">
+          <template #trigger>
+            <NButton quaternary circle @click="fitView">
+              <template #icon>
+                <icon-mdi-fit-to-page-outline class="text-16px" />
+              </template>
+            </NButton>
+          </template>
+          <span>{{ $t('page.lowcode.relationship.toolbar.fitCanvas') }}</span>
+        </NTooltip>
+
+        <NDivider vertical />
+
+        <NTooltip placement="bottom">
+          <template #trigger>
+            <NButton quaternary circle @click="toggleGridVisible">
+              <template #icon>
+                <icon-mdi-grid class="text-16px" />
+              </template>
+            </NButton>
+          </template>
+          <span>{{ $t('page.lowcode.relationship.toolbar.toggleGrid') || '显示/隐藏网格' }}</span>
+        </NTooltip>
+
+        <NTooltip placement="bottom">
+          <template #trigger>
+            <NButton quaternary circle @click="toggleSnapToGrid">
+              <template #icon>
+                <icon-mdi-magnet class="text-16px" />
+              </template>
+            </NButton>
+          </template>
+          <span>{{ $t('page.lowcode.relationship.toolbar.snapToGrid') || '对齐网格' }}</span>
+        </NTooltip>
+
+        <NDivider vertical />
+
+        <NDropdown trigger="click" :options="exportOptions" @select="handleExport">
+          <NTooltip placement="bottom">
+            <template #trigger>
+              <NButton quaternary circle>
+                <template #icon>
+                  <icon-mdi-export class="text-16px" />
+                </template>
+              </NButton>
+            </template>
+            <span>{{ $t('page.lowcode.relationship.toolbar.export') }}</span>
+          </NTooltip>
+        </NDropdown>
+
+        <NTooltip placement="bottom">
+          <template #trigger>
+            <NButton quaternary circle @click="saveGraphState">
+              <template #icon>
+                <icon-mdi-content-save class="text-16px" />
+              </template>
+            </NButton>
+          </template>
+          <span>{{ $t('page.lowcode.relationship.toolbar.saveState') || '保存状态' }}</span>
+        </NTooltip>
+      </NSpace>
+
+      <div class="zoom-display">{{ Math.round(zoomLevel * 100) }}%</div>
+    </div>
+
+    <!-- 连线提示 -->
+    <div v-if="isConnectMode" class="connect-hint">
+      <NAlert type="info" :show-icon="false">
+        <span v-if="!connectSourceNode">{{ $t('page.lowcode.relationship.selectSourceEntity') }}</span>
+        <span v-else>
+          {{ $t('page.lowcode.relationship.selectTargetEntity', { name: connectSourceNode.getData().name }) }}
+        </span>
+        <template #action>
+          <NButton size="tiny" @click="cancelConnect">{{ $t('page.lowcode.relationship.cancelConnect') }}</NButton>
+        </template>
+      </NAlert>
+    </div>
+
+    <!-- X6画布容器 -->
+    <div ref="containerRef" class="graph-container" :class="{ 'connect-mode': isConnectMode }"></div>
+
+    <!-- 实体列表 -->
+    <div class="entity-list">
+      <div class="entity-list-header">
+        <h3>{{ $t('page.lowcode.relationship.entityList') }}</h3>
+        <NInput
+          v-model:value="entitySearchKeyword"
+          :placeholder="$t('page.lowcode.common.search.placeholder')"
+          size="small"
+          clearable
+        >
+          <template #prefix>
+            <icon-mdi-magnify class="text-14px" />
+          </template>
+        </NInput>
+      </div>
+      <div class="entity-list-content">
+        <NSpin :show="entitiesLoading">
+          <NEmpty v-if="filteredEntities.length === 0" :description="$t('page.lowcode.common.messages.noData')" />
+          <div v-else class="entity-items">
+            <div
+              v-for="entity in filteredEntities"
+              :key="entity.id"
+              class="entity-item"
+              :class="{ 'is-in-graph': isEntityInGraph(entity.id) }"
+              @click="handleEntityClick(entity)"
+            >
+              <div class="entity-item-content">
+                <div class="entity-name">{{ entity.name }}</div>
+                <div class="entity-code">{{ entity.code }}</div>
+              </div>
+              <div class="entity-actions">
+                <NButton
+                  v-if="isEntityInGraph(entity.id)"
+                  quaternary
+                  circle
+                  size="small"
+                  @click.stop="locateEntity(entity.id)"
+                >
+                  <template #icon>
+                    <icon-mdi-crosshairs-gps class="text-14px" />
+                  </template>
+                </NButton>
+                <NButton
+                  v-if="isEntityInGraph(entity.id)"
+                  quaternary
+                  circle
+                  size="small"
+                  @click.stop="removeEntityFromGraph(entity.id)"
+                >
+                  <template #icon>
+                    <icon-mdi-close class="text-14px" />
+                  </template>
+                </NButton>
+                <NButton v-else quaternary circle size="small" @click.stop="addEntityToGraph(entity)">
+                  <template #icon>
+                    <icon-mdi-plus class="text-14px" />
+                  </template>
+                </NButton>
+              </div>
+            </div>
+          </div>
+        </NSpin>
+      </div>
+    </div>
+
+    <!-- 属性面板 -->
+    <div v-if="selectedCell" class="property-panel">
+      <div class="property-panel-header">
+        <h3>{{ $t('page.lowcode.relationship.propertyPanel.title') }}</h3>
+        <NButton quaternary circle size="small" @click="clearSelection">
+          <template #icon>
+            <icon-mdi-close class="text-16px" />
+          </template>
+        </NButton>
+      </div>
+
+      <div class="property-panel-content">
+        <!-- 实体属性 -->
+        <template v-if="selectedNode">
+          <NTabs type="line" animated>
+            <NTabPane name="basic" :tab="$t('page.lowcode.relationship.propertyPanel.basicInfo')">
+              <NForm label-placement="left" label-width="80px" size="small">
+                <NFormItem :label="$t('page.lowcode.entity.name')">
+                  <NInput v-model:value="selectedNodeData.name" @blur="handleUpdateEntity" />
+                </NFormItem>
+                <NFormItem :label="$t('page.lowcode.entity.code')">
+                  <NInput v-model:value="selectedNodeData.code" disabled />
+                </NFormItem>
+                <NFormItem :label="$t('page.lowcode.entity.tableName')">
+                  <NInput v-model:value="selectedNodeData.tableName" @blur="handleUpdateEntity" />
+                </NFormItem>
+                <NFormItem :label="$t('page.lowcode.entity.description')">
+                  <NInput
+                    v-model:value="selectedNodeData.description"
+                    type="textarea"
+                    rows="3"
+                    @blur="handleUpdateEntity"
+                  />
+                </NFormItem>
+              </NForm>
+            </NTabPane>
+
+            <NTabPane name="visual" :tab="$t('page.lowcode.relationship.propertyPanel.visualStyle')">
+              <NForm label-placement="left" label-width="80px" size="small">
+                <NFormItem :label="$t('page.lowcode.relationship.propertyPanel.color')">
+                  <NColorPicker v-model:value="selectedNodeVisual.color" @update:value="handleUpdateEntityVisual" />
+                </NFormItem>
+                <NFormItem :label="$t('page.lowcode.relationship.propertyPanel.position')">
+                  <div class="flex space-x-2">
+                    <NInputNumber
+                      v-model:value="selectedNodeVisual.x"
+                      size="small"
+                      @update:value="handleUpdateEntityPosition"
+                    />
+                    <NInputNumber
+                      v-model:value="selectedNodeVisual.y"
+                      size="small"
+                      @update:value="handleUpdateEntityPosition"
+                    />
+                  </div>
+                </NFormItem>
+                <NFormItem :label="$t('page.lowcode.relationship.propertyPanel.size')">
+                  <div class="flex space-x-2">
+                    <NInputNumber
+                      v-model:value="selectedNodeVisual.width"
+                      size="small"
+                      @update:value="handleUpdateEntitySize"
+                    />
+                    <NInputNumber
+                      v-model:value="selectedNodeVisual.height"
+                      size="small"
+                      @update:value="handleUpdateEntitySize"
+                    />
+                  </div>
+                </NFormItem>
+              </NForm>
+            </NTabPane>
+
+            <NTabPane name="fields" :tab="$t('page.lowcode.relationship.propertyPanel.fieldManagement')">
+              <div class="mb-2 flex items-center justify-between">
+                <span class="text-sm font-medium">{{ $t('page.lowcode.relationship.propertyPanel.fields') }}</span>
+                <NButton size="small" @click="navigateToEntityFields">
+                  {{ $t('page.lowcode.entity.designFields') }}
+                </NButton>
+              </div>
+
+              <NSpin :show="fieldsLoading">
+                <NEmpty v-if="entityFields.length === 0" :description="$t('page.lowcode.common.messages.noData')" />
+                <NList v-else size="small">
+                  <NListItem v-for="field in entityFields" :key="field.id">
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <div class="text-sm font-medium">{{ field.name }}</div>
+                        <div class="text-xs text-gray-500">
+                          {{ field.code }} ({{ getFieldTypeName(field.dataType) }})
+                        </div>
+                      </div>
+                      <div class="flex space-x-1">
+                        <NTag v-if="field.isPrimaryKey" size="small" type="success">PK</NTag>
+                        <NTag v-if="field.isRequired" size="small" type="warning">
+                          {{ $t('page.lowcode.field.required') }}
+                        </NTag>
+                        <NTag v-if="field.isUnique" size="small" type="info">
+                          {{ $t('page.lowcode.field.unique') }}
+                        </NTag>
+                      </div>
+                    </div>
+                  </NListItem>
+                </NList>
+              </NSpin>
+            </NTabPane>
+          </NTabs>
+        </template>
+
+        <!-- 关系属性 -->
+        <template v-else-if="selectedEdge">
+          <NTabs type="line" animated>
+            <NTabPane name="basic" :tab="$t('page.lowcode.relationship.propertyPanel.basicInfo')">
+              <NForm label-placement="left" label-width="80px" size="small">
+                <NFormItem :label="$t('page.lowcode.relationship.name')">
+                  <NInput v-model:value="selectedEdgeData.name" @blur="handleUpdateRelationship" />
+                </NFormItem>
+                <NFormItem :label="$t('page.lowcode.relationship.code')">
+                  <NInput v-model:value="selectedEdgeData.code" disabled />
+                </NFormItem>
+                <NFormItem :label="$t('page.lowcode.relationship.relationType')">
+                  <NSelect
+                    v-model:value="selectedEdgeData.type"
+                    :options="relationshipTypeOptions"
+                    @update:value="handleUpdateRelationship"
+                  />
+                </NFormItem>
+                <NFormItem :label="$t('page.lowcode.relationship.description')">
+                  <NInput
+                    v-model:value="selectedEdgeData.description"
+                    type="textarea"
+                    rows="3"
+                    @blur="handleUpdateRelationship"
+                  />
+                </NFormItem>
+              </NForm>
+            </NTabPane>
+
+            <NTabPane name="visual" :tab="$t('page.lowcode.relationship.propertyPanel.visualStyle')">
+              <NForm label-placement="left" label-width="80px" size="small">
+                <NFormItem :label="$t('page.lowcode.relationship.propertyPanel.lineStyle')">
+                  <NSelect
+                    v-model:value="selectedEdgeVisual.lineStyle"
+                    :options="lineStyleOptions"
+                    @update:value="handleUpdateEdgeVisual"
+                  />
+                </NFormItem>
+                <NFormItem :label="$t('page.lowcode.relationship.propertyPanel.lineColor')">
+                  <NColorPicker v-model:value="selectedEdgeVisual.lineColor" @update:value="handleUpdateEdgeVisual" />
+                </NFormItem>
+                <NFormItem :label="$t('page.lowcode.relationship.onDelete')">
+                  <NSelect
+                    v-model:value="selectedEdgeData.onDelete"
+                    :options="cascadeActionOptions"
+                    @update:value="handleUpdateRelationship"
+                  />
+                </NFormItem>
+                <NFormItem :label="$t('page.lowcode.relationship.onUpdate')">
+                  <NSelect
+                    v-model:value="selectedEdgeData.onUpdate"
+                    :options="cascadeActionOptions"
+                    @update:value="handleUpdateRelationship"
+                  />
+                </NFormItem>
+              </NForm>
+            </NTabPane>
+
+            <NTabPane name="advanced" :tab="$t('page.lowcode.project.advancedConfig')">
+              <NForm label-placement="left" label-width="80px" size="small">
+                <NFormItem :label="$t('page.lowcode.relationship.foreignKeyField')">
+                  <NInput v-model:value="selectedEdgeData.foreignKeyField" @blur="handleUpdateRelationship" />
+                </NFormItem>
+                <NFormItem :label="$t('page.lowcode.relationship.cascadeDelete')">
+                  <NSwitch v-model:value="selectedEdgeData.cascadeDelete" @update:value="handleUpdateRelationship" />
+                </NFormItem>
+                <NFormItem :label="$t('page.lowcode.relationship.cascadeUpdate')">
+                  <NSwitch v-model:value="selectedEdgeData.cascadeUpdate" @update:value="handleUpdateRelationship" />
+                </NFormItem>
+                <NFormItem :label="$t('page.lowcode.relationship.required')">
+                  <NSwitch v-model:value="selectedEdgeData.required" @update:value="handleUpdateRelationship" />
+                </NFormItem>
+              </NForm>
+            </NTabPane>
+          </NTabs>
+        </template>
+      </div>
+    </div>
+
+    <!-- 创建关系对话框 -->
+    <NModal
+      v-model:show="createRelationshipModalVisible"
+      preset="dialog"
+      :title="$t('page.lowcode.relationship.createRelationshipDialog')"
+    >
+      <div class="mb-4">
+        <span class="text-sm text-gray-600">
+          {{ $t('page.lowcode.relationship.sourceEntity') }}: {{ sourceEntityName }} →
+          {{ $t('page.lowcode.relationship.targetEntity') }}: {{ targetEntityName }}
+        </span>
+      </div>
+      <NForm :model="newRelationshipForm" label-placement="left" label-width="80px">
+        <NFormItem :label="$t('page.lowcode.relationship.name')" required>
+          <NInput
+            v-model:value="newRelationshipForm.name"
+            :placeholder="$t('page.lowcode.relationship.form.name.placeholder')"
+          />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.relationship.relationType')" required>
+          <NSelect
+            v-model:value="newRelationshipForm.type"
+            :options="relationshipTypeOptions"
+            :placeholder="$t('page.lowcode.relationship.form.relationType.placeholder')"
+          />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.relationship.description')">
+          <NInput
+            v-model:value="newRelationshipForm.description"
+            type="textarea"
+            :placeholder="$t('page.lowcode.relationship.form.description.placeholder')"
+          />
+        </NFormItem>
+      </NForm>
+
+      <template #action>
+        <NSpace>
+          <NButton @click="cancelCreateRelationship">{{ $t('page.lowcode.common.actions.cancel') }}</NButton>
+          <NButton type="primary" :loading="createRelationshipLoading" @click="confirmCreateRelationship">
+            {{ $t('page.lowcode.common.actions.confirm') }}
+          </NButton>
+        </NSpace>
+      </template>
+    </NModal>
+  </div>
+</template>
 
 <style scoped>
 .x6-relationship-designer {
@@ -2599,15 +2632,15 @@ const handleResize = debounce(() => {
   .entity-list {
     width: 200px;
   }
-  
+
   .x6-relationship-designer .graph-container {
     left: 200px;
   }
-  
+
   .property-panel {
     width: 250px;
   }
-  
+
   .x6-relationship-designer.with-property-panel .graph-container {
     right: 250px;
   }

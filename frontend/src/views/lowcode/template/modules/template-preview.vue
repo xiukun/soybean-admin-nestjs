@@ -1,167 +1,7 @@
-<template>
-  <NModal :show="visible" @update:show="(value) => emit('update:visible', value)" preset="card" :title="$t('page.lowcode.template.preview')" class="w-95vw h-90vh">
-    <template #header-extra>
-      <NSpace>
-        <NButton type="primary" @click="handlePreview" :loading="previewing">
-          {{ $t('page.lowcode.template.preview') }}
-        </NButton>
-        <NButton @click="handleValidate" :loading="validating">
-          {{ $t('page.lowcode.template.validate') }}
-        </NButton>
-        <NButton @click="handleTest" :loading="testing">
-          {{ $t('page.lowcode.template.test') }}
-        </NButton>
-        <NButton @click="handleClose">
-          {{ $t('common.close') }}
-        </NButton>
-      </NSpace>
-    </template>
-    
-    <div class="h-full flex gap-4">
-      <!-- 左侧：模板内容和变量配置 -->
-      <div class="flex-1 flex flex-col gap-4">
-        <NCard :title="$t('page.lowcode.template.content')" size="small" class="flex-1">
-          <div class="h-300px border border-gray-200 rounded">
-            <NInput
-              v-model:value="templateContent"
-              type="textarea"
-              :rows="15"
-              readonly
-              class="h-full"
-            />
-          </div>
-        </NCard>
-        
-        <NCard :title="$t('page.lowcode.template.variables')" size="small" class="flex-1">
-          <div class="h-300px overflow-auto">
-            <NSpace vertical>
-              <div v-for="(variable, index) in templateVariables" :key="index" class="border border-gray-200 rounded p-3">
-                <div class="flex items-center justify-between mb-2">
-                  <span class="font-medium">{{ variable.name }}</span>
-                  <NTag :type="getVariableTypeColor(variable.type)">{{ variable.type }}</NTag>
-                </div>
-                <div class="text-sm text-gray-600 mb-2">{{ variable.description }}</div>
-                <NFormItem :label="$t('page.lowcode.template.variableValue')" size="small">
-                  <component
-                    :is="getVariableInput(variable.type)"
-                    v-model:value="variableValues[variable.name]"
-                    :placeholder="getVariablePlaceholder(variable)"
-                    size="small"
-                  />
-                </NFormItem>
-              </div>
-            </NSpace>
-          </div>
-        </NCard>
-      </div>
-      
-      <!-- 右侧：预览结果 -->
-      <div class="flex-1 flex flex-col gap-4">
-        <NCard :title="$t('page.lowcode.template.previewResult')" size="small" class="flex-1">
-          <NTabs v-model:value="activeTab" type="line">
-            <NTabPane name="output" :tab="$t('page.lowcode.template.output')">
-              <div class="h-300px border border-gray-200 rounded">
-                <NInput
-                  v-model:value="previewOutput"
-                  type="textarea"
-                  :rows="15"
-                  readonly
-                  class="h-full"
-                />
-              </div>
-            </NTabPane>
-            
-            <NTabPane name="validation" :tab="$t('page.lowcode.template.validation')">
-              <div class="h-300px overflow-auto">
-                <NSpace vertical>
-                  <NAlert
-                    v-if="validationResult"
-                    :type="validationResult.isValid ? 'success' : 'error'"
-                    :title="validationResult.isValid ? $t('page.lowcode.template.validationSuccess') : $t('page.lowcode.template.validationFailed')"
-                  >
-                    <div v-if="validationResult.errors.length > 0">
-                      <div class="font-medium mb-2">{{ $t('page.lowcode.template.errors') }}:</div>
-                      <ul class="list-disc list-inside">
-                        <li v-for="error in validationResult.errors" :key="error" class="text-red-600">{{ error }}</li>
-                      </ul>
-                    </div>
-                    <div v-if="validationResult.warnings.length > 0" class="mt-2">
-                      <div class="font-medium mb-2">{{ $t('page.lowcode.template.warnings') }}:</div>
-                      <ul class="list-disc list-inside">
-                        <li v-for="warning in validationResult.warnings" :key="warning" class="text-orange-600">{{ warning }}</li>
-                      </ul>
-                    </div>
-                  </NAlert>
-                  
-                  <div v-if="extractedVariables.length > 0">
-                    <div class="font-medium mb-2">{{ $t('page.lowcode.template.extractedVariables') }}:</div>
-                    <NSpace>
-                      <NTag v-for="variable in extractedVariables" :key="variable" type="info">{{ variable }}</NTag>
-                    </NSpace>
-                  </div>
-                  
-                  <div v-if="suggestions.length > 0">
-                    <div class="font-medium mb-2">{{ $t('page.lowcode.template.suggestions') }}:</div>
-                    <ul class="list-disc list-inside">
-                      <li v-for="suggestion in suggestions" :key="suggestion" class="text-blue-600">{{ suggestion }}</li>
-                    </ul>
-                  </div>
-                </NSpace>
-              </div>
-            </NTabPane>
-            
-            <NTabPane name="test" :tab="$t('page.lowcode.template.testResult')">
-              <div class="h-300px overflow-auto">
-                <NSpace vertical>
-                  <NAlert
-                    v-if="testResult"
-                    :type="testResult.testPassed ? 'success' : 'error'"
-                    :title="testResult.testPassed ? $t('page.lowcode.template.testPassed') : $t('page.lowcode.template.testFailed')"
-                  >
-                    <div v-if="testResult.errors.length > 0">
-                      <div class="font-medium mb-2">{{ $t('page.lowcode.template.errors') }}:</div>
-                      <ul class="list-disc list-inside">
-                        <li v-for="error in testResult.errors" :key="error" class="text-red-600">{{ error }}</li>
-                      </ul>
-                    </div>
-                  </NAlert>
-                  
-                  <div v-if="testResult">
-                    <div class="font-medium mb-2">{{ $t('page.lowcode.template.actualOutput') }}:</div>
-                    <NCode :code="testResult.actualOutput" language="typescript" />
-                  </div>
-                </NSpace>
-              </div>
-            </NTabPane>
-          </NTabs>
-        </NCard>
-        
-        <NCard :title="$t('page.lowcode.template.variableAnalysis')" size="small">
-          <NSpace vertical>
-            <div v-if="usedVariables.length > 0">
-              <span class="font-medium">{{ $t('page.lowcode.template.usedVariables') }}:</span>
-              <NSpace class="mt-1">
-                <NTag v-for="variable in usedVariables" :key="variable" type="success">{{ variable }}</NTag>
-              </NSpace>
-            </div>
-            
-            <div v-if="unusedVariables.length > 0">
-              <span class="font-medium">{{ $t('page.lowcode.template.unusedVariables') }}:</span>
-              <NSpace class="mt-1">
-                <NTag v-for="variable in unusedVariables" :key="variable" type="warning">{{ variable }}</NTag>
-              </NSpace>
-            </div>
-          </NSpace>
-        </NCard>
-      </div>
-    </div>
-  </NModal>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import type { Component } from 'vue';
-import { NInput, NInputNumber, NSwitch, NSelect } from 'naive-ui';
+import { NInput, NInputNumber, NSelect, NSwitch } from 'naive-ui';
 // import { MonacoEditor } from '@/components/custom/monaco-editor';
 import { $t } from '@/locales';
 
@@ -222,25 +62,29 @@ const drawerVisible = computed({
 });
 
 // 监听模板数据变化
-watch(() => props.templateData, (newData) => {
-  if (newData) {
-    templateContent.value = newData.content || '';
-    templateVariables.value = newData.variables || [];
-    
-    // 初始化变量值
-    variableValues.value = {};
-    templateVariables.value.forEach(variable => {
-      variableValues.value[variable.name] = getDefaultValue(variable);
-    });
-  }
-}, { immediate: true });
+watch(
+  () => props.templateData,
+  newData => {
+    if (newData) {
+      templateContent.value = newData.content || '';
+      templateVariables.value = newData.variables || [];
+
+      // 初始化变量值
+      variableValues.value = {};
+      templateVariables.value.forEach(variable => {
+        variableValues.value[variable.name] = getDefaultValue(variable);
+      });
+    }
+  },
+  { immediate: true }
+);
 
 // 方法
 function getDefaultValue(variable: any) {
   if (variable.defaultValue !== undefined) {
     return variable.defaultValue;
   }
-  
+
   switch (variable.type) {
     case 'string':
       return 'example';
@@ -301,20 +145,20 @@ function getVariablePlaceholder(variable: any) {
 
 function getOutputLanguage() {
   if (!props.templateData) return 'text';
-  
+
   const languageMap: Record<string, string> = {
     TYPESCRIPT: 'typescript',
     JAVASCRIPT: 'javascript',
     JAVA: 'java',
     PYTHON: 'python'
   };
-  
+
   return languageMap[props.templateData.language] || 'text';
 }
 
 async function handlePreview() {
   if (!props.templateData) return;
-  
+
   previewing.value = true;
   try {
     // 调用预览API
@@ -327,7 +171,7 @@ async function handlePreview() {
         variables: variableValues.value
       })
     });
-    
+
     const result = await response.json();
     if (result.status === 0) {
       previewOutput.value = result.data.preview.output;
@@ -356,7 +200,7 @@ async function handleValidate() {
         variables: templateVariables.value
       })
     });
-    
+
     const result = await response.json();
     if (result.status === 0) {
       validationResult.value = result.data.validation;
@@ -373,7 +217,7 @@ async function handleValidate() {
 
 async function handleTest() {
   if (!props.templateData) return;
-  
+
   testing.value = true;
   try {
     // 调用测试API
@@ -386,7 +230,7 @@ async function handleTest() {
         variables: variableValues.value
       })
     });
-    
+
     const result = await response.json();
     if (result.status === 0) {
       testResult.value = result.data.test;
@@ -403,3 +247,173 @@ function handleClose() {
   emit('update:visible', false);
 }
 </script>
+
+<template>
+  <NModal
+    :show="visible"
+    preset="card"
+    :title="$t('page.lowcode.template.preview')"
+    class="h-90vh w-95vw"
+    @update:show="value => emit('update:visible', value)"
+  >
+    <template #header-extra>
+      <NSpace>
+        <NButton type="primary" :loading="previewing" @click="handlePreview">
+          {{ $t('page.lowcode.template.preview') }}
+        </NButton>
+        <NButton :loading="validating" @click="handleValidate">
+          {{ $t('page.lowcode.template.validate') }}
+        </NButton>
+        <NButton :loading="testing" @click="handleTest">
+          {{ $t('page.lowcode.template.test') }}
+        </NButton>
+        <NButton @click="handleClose">
+          {{ $t('common.close') }}
+        </NButton>
+      </NSpace>
+    </template>
+
+    <div class="h-full flex gap-4">
+      <!-- 左侧：模板内容和变量配置 -->
+      <div class="flex flex-col flex-1 gap-4">
+        <NCard :title="$t('page.lowcode.template.content')" size="small" class="flex-1">
+          <div class="h-300px border border-gray-200 rounded">
+            <NInput v-model:value="templateContent" type="textarea" :rows="15" readonly class="h-full" />
+          </div>
+        </NCard>
+
+        <NCard :title="$t('page.lowcode.template.variables')" size="small" class="flex-1">
+          <div class="h-300px overflow-auto">
+            <NSpace vertical>
+              <div
+                v-for="(variable, index) in templateVariables"
+                :key="index"
+                class="border border-gray-200 rounded p-3"
+              >
+                <div class="mb-2 flex items-center justify-between">
+                  <span class="font-medium">{{ variable.name }}</span>
+                  <NTag :type="getVariableTypeColor(variable.type)">{{ variable.type }}</NTag>
+                </div>
+                <div class="mb-2 text-sm text-gray-600">{{ variable.description }}</div>
+                <NFormItem :label="$t('page.lowcode.template.variableValue')" size="small">
+                  <component
+                    :is="getVariableInput(variable.type)"
+                    v-model:value="variableValues[variable.name]"
+                    :placeholder="getVariablePlaceholder(variable)"
+                    size="small"
+                  />
+                </NFormItem>
+              </div>
+            </NSpace>
+          </div>
+        </NCard>
+      </div>
+
+      <!-- 右侧：预览结果 -->
+      <div class="flex flex-col flex-1 gap-4">
+        <NCard :title="$t('page.lowcode.template.previewResult')" size="small" class="flex-1">
+          <NTabs v-model:value="activeTab" type="line">
+            <NTabPane name="output" :tab="$t('page.lowcode.template.output')">
+              <div class="h-300px border border-gray-200 rounded">
+                <NInput v-model:value="previewOutput" type="textarea" :rows="15" readonly class="h-full" />
+              </div>
+            </NTabPane>
+
+            <NTabPane name="validation" :tab="$t('page.lowcode.template.validation')">
+              <div class="h-300px overflow-auto">
+                <NSpace vertical>
+                  <NAlert
+                    v-if="validationResult"
+                    :type="validationResult.isValid ? 'success' : 'error'"
+                    :title="
+                      validationResult.isValid
+                        ? $t('page.lowcode.template.validationSuccess')
+                        : $t('page.lowcode.template.validationFailed')
+                    "
+                  >
+                    <div v-if="validationResult.errors.length > 0">
+                      <div class="mb-2 font-medium">{{ $t('page.lowcode.template.errors') }}:</div>
+                      <ul class="list-disc list-inside">
+                        <li v-for="error in validationResult.errors" :key="error" class="text-red-600">{{ error }}</li>
+                      </ul>
+                    </div>
+                    <div v-if="validationResult.warnings.length > 0" class="mt-2">
+                      <div class="mb-2 font-medium">{{ $t('page.lowcode.template.warnings') }}:</div>
+                      <ul class="list-disc list-inside">
+                        <li v-for="warning in validationResult.warnings" :key="warning" class="text-orange-600">
+                          {{ warning }}
+                        </li>
+                      </ul>
+                    </div>
+                  </NAlert>
+
+                  <div v-if="extractedVariables.length > 0">
+                    <div class="mb-2 font-medium">{{ $t('page.lowcode.template.extractedVariables') }}:</div>
+                    <NSpace>
+                      <NTag v-for="variable in extractedVariables" :key="variable" type="info">{{ variable }}</NTag>
+                    </NSpace>
+                  </div>
+
+                  <div v-if="suggestions.length > 0">
+                    <div class="mb-2 font-medium">{{ $t('page.lowcode.template.suggestions') }}:</div>
+                    <ul class="list-disc list-inside">
+                      <li v-for="suggestion in suggestions" :key="suggestion" class="text-blue-600">
+                        {{ suggestion }}
+                      </li>
+                    </ul>
+                  </div>
+                </NSpace>
+              </div>
+            </NTabPane>
+
+            <NTabPane name="test" :tab="$t('page.lowcode.template.testResult')">
+              <div class="h-300px overflow-auto">
+                <NSpace vertical>
+                  <NAlert
+                    v-if="testResult"
+                    :type="testResult.testPassed ? 'success' : 'error'"
+                    :title="
+                      testResult.testPassed
+                        ? $t('page.lowcode.template.testPassed')
+                        : $t('page.lowcode.template.testFailed')
+                    "
+                  >
+                    <div v-if="testResult.errors.length > 0">
+                      <div class="mb-2 font-medium">{{ $t('page.lowcode.template.errors') }}:</div>
+                      <ul class="list-disc list-inside">
+                        <li v-for="error in testResult.errors" :key="error" class="text-red-600">{{ error }}</li>
+                      </ul>
+                    </div>
+                  </NAlert>
+
+                  <div v-if="testResult">
+                    <div class="mb-2 font-medium">{{ $t('page.lowcode.template.actualOutput') }}:</div>
+                    <NCode :code="testResult.actualOutput" language="typescript" />
+                  </div>
+                </NSpace>
+              </div>
+            </NTabPane>
+          </NTabs>
+        </NCard>
+
+        <NCard :title="$t('page.lowcode.template.variableAnalysis')" size="small">
+          <NSpace vertical>
+            <div v-if="usedVariables.length > 0">
+              <span class="font-medium">{{ $t('page.lowcode.template.usedVariables') }}:</span>
+              <NSpace class="mt-1">
+                <NTag v-for="variable in usedVariables" :key="variable" type="success">{{ variable }}</NTag>
+              </NSpace>
+            </div>
+
+            <div v-if="unusedVariables.length > 0">
+              <span class="font-medium">{{ $t('page.lowcode.template.unusedVariables') }}:</span>
+              <NSpace class="mt-1">
+                <NTag v-for="variable in unusedVariables" :key="variable" type="warning">{{ variable }}</NTag>
+              </NSpace>
+            </div>
+          </NSpace>
+        </NCard>
+      </div>
+    </div>
+  </NModal>
+</template>

@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
-import GlobalProjectSelector from '../GlobalProjectSelector.vue';
 import { useProjectStore } from '@/store/modules/project';
+import GlobalProjectSelector from '../GlobalProjectSelector.vue';
 
 // Mock naive-ui components
 vi.mock('naive-ui', () => ({
@@ -11,38 +11,38 @@ vi.mock('naive-ui', () => ({
     name: 'NSelect',
     template: '<div data-testid="n-select"><slot /></div>',
     props: ['value', 'options', 'loading', 'placeholder'],
-    emits: ['update:value'],
+    emits: ['update:value']
   },
   NSpace: {
     name: 'NSpace',
-    template: '<div data-testid="n-space"><slot /></div>',
+    template: '<div data-testid="n-space"><slot /></div>'
   },
   NButton: {
     name: 'NButton',
     template: '<button data-testid="n-button"><slot /></button>',
-    props: ['size', 'type', 'loading'],
+    props: ['size', 'type', 'loading']
   },
   NIcon: {
     name: 'NIcon',
-    template: '<span data-testid="n-icon"><slot /></span>',
+    template: '<span data-testid="n-icon"><slot /></span>'
   },
   NTooltip: {
     name: 'NTooltip',
     template: '<div data-testid="n-tooltip"><slot /></div>',
-    props: ['trigger'],
-  },
+    props: ['trigger']
+  }
 }));
 
 // Mock icons
 vi.mock('@/components/icon', () => ({
   'icon-mdi-plus': {
     name: 'IconMdiPlus',
-    template: '<span data-testid="icon-plus"></span>',
+    template: '<span data-testid="icon-plus"></span>'
   },
   'icon-mdi-refresh': {
     name: 'IconMdiRefresh',
-    template: '<span data-testid="icon-refresh"></span>',
-  },
+    template: '<span data-testid="icon-refresh"></span>'
+  }
 }));
 
 // Mock API
@@ -57,7 +57,7 @@ const mockProjects = [
     language: 'typescript',
     database: 'postgresql',
     createdAt: new Date(),
-    updatedAt: new Date(),
+    updatedAt: new Date()
   },
   {
     id: 'project-2',
@@ -69,8 +69,8 @@ const mockProjects = [
     language: 'javascript',
     database: 'mysql',
     createdAt: new Date(),
-    updatedAt: new Date(),
-  },
+    updatedAt: new Date()
+  }
 ];
 
 describe('GlobalProjectSelector', () => {
@@ -80,7 +80,7 @@ describe('GlobalProjectSelector', () => {
   beforeEach(() => {
     pinia = createTestingPinia({
       createSpy: vi.fn,
-      stubActions: false,
+      stubActions: false
     });
     setActivePinia(pinia);
   });
@@ -94,8 +94,8 @@ describe('GlobalProjectSelector', () => {
   it('should render correctly', () => {
     wrapper = mount(GlobalProjectSelector, {
       global: {
-        plugins: [pinia],
-      },
+        plugins: [pinia]
+      }
     });
 
     expect(wrapper.find('[data-testid="n-select"]').exists()).toBe(true);
@@ -108,8 +108,8 @@ describe('GlobalProjectSelector', () => {
 
     wrapper = mount(GlobalProjectSelector, {
       global: {
-        plugins: [pinia],
-      },
+        plugins: [pinia]
+      }
     });
 
     await wrapper.vm.$nextTick();
@@ -124,8 +124,8 @@ describe('GlobalProjectSelector', () => {
 
     wrapper = mount(GlobalProjectSelector, {
       global: {
-        plugins: [pinia],
-      },
+        plugins: [pinia]
+      }
     });
 
     // Simulate project selection
@@ -141,8 +141,8 @@ describe('GlobalProjectSelector', () => {
 
     wrapper = mount(GlobalProjectSelector, {
       global: {
-        plugins: [pinia],
-      },
+        plugins: [pinia]
+      }
     });
 
     const refreshButton = wrapper.find('[data-testid="n-button"]');
@@ -157,8 +157,8 @@ describe('GlobalProjectSelector', () => {
 
     wrapper = mount(GlobalProjectSelector, {
       global: {
-        plugins: [pinia],
-      },
+        plugins: [pinia]
+      }
     });
 
     const select = wrapper.find('[data-testid="n-select"]');
@@ -171,8 +171,8 @@ describe('GlobalProjectSelector', () => {
 
     wrapper = mount(GlobalProjectSelector, {
       global: {
-        plugins: [pinia],
-      },
+        plugins: [pinia]
+      }
     });
 
     await wrapper.vm.$nextTick();
@@ -180,7 +180,7 @@ describe('GlobalProjectSelector', () => {
     const expectedOptions = mockProjects.map(project => ({
       label: project.name,
       value: project.id,
-      disabled: false,
+      disabled: false
     }));
 
     expect(wrapper.vm.projectOptions).toEqual(expectedOptions);
@@ -192,8 +192,8 @@ describe('GlobalProjectSelector', () => {
 
     wrapper = mount(GlobalProjectSelector, {
       global: {
-        plugins: [pinia],
-      },
+        plugins: [pinia]
+      }
     });
 
     await wrapper.vm.$nextTick();
@@ -207,8 +207,8 @@ describe('GlobalProjectSelector', () => {
 
     wrapper = mount(GlobalProjectSelector, {
       global: {
-        plugins: [pinia],
-      },
+        plugins: [pinia]
+      }
     });
 
     await wrapper.vm.$nextTick();
@@ -224,8 +224,8 @@ describe('GlobalProjectSelector', () => {
 
     wrapper = mount(GlobalProjectSelector, {
       global: {
-        plugins: [pinia],
-      },
+        plugins: [pinia]
+      }
     });
 
     await wrapper.vm.$nextTick();
@@ -240,8 +240,8 @@ describe('GlobalProjectSelector', () => {
 
     wrapper = mount(GlobalProjectSelector, {
       global: {
-        plugins: [pinia],
-      },
+        plugins: [pinia]
+      }
     });
 
     // Simulate project deletion
@@ -260,8 +260,8 @@ describe('GlobalProjectSelector', () => {
 
       wrapper = mount(GlobalProjectSelector, {
         global: {
-          plugins: [pinia],
-        },
+          plugins: [pinia]
+        }
       });
 
       const options = wrapper.vm.projectOptions;
@@ -270,12 +270,12 @@ describe('GlobalProjectSelector', () => {
       expect(options[0]).toEqual({
         label: 'Test Project 1',
         value: 'project-1',
-        disabled: false,
+        disabled: false
       });
       expect(options[1]).toEqual({
         label: 'Test Project 2',
         value: 'project-2',
-        disabled: false,
+        disabled: false
       });
     });
 
@@ -285,8 +285,8 @@ describe('GlobalProjectSelector', () => {
 
       wrapper = mount(GlobalProjectSelector, {
         global: {
-          plugins: [pinia],
-        },
+          plugins: [pinia]
+        }
       });
 
       expect(wrapper.vm.selectedProjectId).toBe('project-1');
@@ -298,8 +298,8 @@ describe('GlobalProjectSelector', () => {
 
       wrapper = mount(GlobalProjectSelector, {
         global: {
-          plugins: [pinia],
-        },
+          plugins: [pinia]
+        }
       });
 
       expect(wrapper.vm.selectedProjectId).toBe(null);
@@ -314,8 +314,8 @@ describe('GlobalProjectSelector', () => {
 
       wrapper = mount(GlobalProjectSelector, {
         global: {
-          plugins: [pinia],
-        },
+          plugins: [pinia]
+        }
       });
 
       await wrapper.vm.handleProjectChange('project-1');
@@ -330,8 +330,8 @@ describe('GlobalProjectSelector', () => {
 
       wrapper = mount(GlobalProjectSelector, {
         global: {
-          plugins: [pinia],
-        },
+          plugins: [pinia]
+        }
       });
 
       await wrapper.vm.handleRefresh();
@@ -345,8 +345,8 @@ describe('GlobalProjectSelector', () => {
 
       wrapper = mount(GlobalProjectSelector, {
         global: {
-          plugins: [pinia],
-        },
+          plugins: [pinia]
+        }
       });
 
       // Should not throw error
@@ -361,8 +361,8 @@ describe('GlobalProjectSelector', () => {
 
       wrapper = mount(GlobalProjectSelector, {
         global: {
-          plugins: [pinia],
-        },
+          plugins: [pinia]
+        }
       });
 
       // Wait for mounted hook
@@ -376,8 +376,8 @@ describe('GlobalProjectSelector', () => {
     it('should have proper ARIA attributes', () => {
       wrapper = mount(GlobalProjectSelector, {
         global: {
-          plugins: [pinia],
-        },
+          plugins: [pinia]
+        }
       });
 
       const select = wrapper.find('[data-testid="n-select"]');
@@ -390,16 +390,16 @@ describe('GlobalProjectSelector', () => {
 
       wrapper = mount(GlobalProjectSelector, {
         global: {
-          plugins: [pinia],
-        },
+          plugins: [pinia]
+        }
       });
 
       const select = wrapper.find('[data-testid="n-select"]');
-      
+
       // Simulate keyboard events
       await select.trigger('keydown.enter');
       await select.trigger('keydown.space');
-      
+
       // Should not throw errors
       expect(wrapper.exists()).toBe(true);
     });
@@ -417,22 +417,22 @@ describe('GlobalProjectSelector', () => {
         language: 'typescript',
         database: 'postgresql',
         createdAt: new Date(),
-        updatedAt: new Date(),
+        updatedAt: new Date()
       }));
 
       const projectStore = useProjectStore();
       projectStore.projects = largeProjectList;
 
       const startTime = performance.now();
-      
+
       wrapper = mount(GlobalProjectSelector, {
         global: {
-          plugins: [pinia],
-        },
+          plugins: [pinia]
+        }
       });
 
       await wrapper.vm.$nextTick();
-      
+
       const endTime = performance.now();
       const renderTime = endTime - startTime;
 

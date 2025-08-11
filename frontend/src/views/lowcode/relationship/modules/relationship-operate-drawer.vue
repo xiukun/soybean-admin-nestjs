@@ -1,96 +1,9 @@
-<template>
-  <NDrawer v-model:show="drawerVisible" display-directive="show" :width="480">
-    <NDrawerContent :title="title" :native-scrollbar="false" closable>
-      <NForm ref="formRef" :model="formModel" :rules="rules">
-        <NFormItem :label="$t('page.lowcode.relation.name')" path="name">
-          <NInput v-model:value="formModel.name" :placeholder="$t('page.lowcode.relation.form.name.placeholder')" />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.relation.code')" path="code">
-          <NInput
-            v-model:value="formModel.code"
-            :placeholder="$t('page.lowcode.relation.form.code.placeholder')"
-            :disabled="operateType === 'edit'"
-          />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.relation.relationType')" path="type">
-          <NSelect
-            v-model:value="formModel.type"
-            :placeholder="$t('page.lowcode.relation.form.relationType.placeholder')"
-            :options="typeOptions"
-            :disabled="operateType === 'edit'"
-          />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.relation.sourceEntity')" path="sourceEntityId">
-          <NSelect
-            v-model:value="formModel.sourceEntityId"
-            :placeholder="$t('page.lowcode.relation.form.sourceEntity.placeholder')"
-            :options="entityOptions"
-            :disabled="operateType === 'edit'"
-            filterable
-          />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.relation.targetEntity')" path="targetEntityId">
-          <NSelect
-            v-model:value="formModel.targetEntityId"
-            :placeholder="$t('page.lowcode.relation.form.targetEntity.placeholder')"
-            :options="entityOptions"
-            :disabled="operateType === 'edit'"
-            filterable
-          />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.relation.description')" path="description">
-          <NInput
-            v-model:value="formModel.description"
-            :placeholder="$t('page.lowcode.relation.form.description.placeholder')"
-            type="textarea"
-            :rows="3"
-          />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.relation.onDelete')" path="onDelete">
-          <NSelect
-            v-model:value="formModel.onDelete"
-            :placeholder="$t('page.lowcode.relation.form.onDelete.placeholder')"
-            :options="cascadeOptions"
-          />
-        </NFormItem>
-        <NFormItem :label="$t('page.lowcode.relation.onUpdate')" path="onUpdate">
-          <NSelect
-            v-model:value="formModel.onUpdate"
-            :placeholder="$t('page.lowcode.relation.form.onUpdate.placeholder')"
-            :options="cascadeOptions"
-          />
-        </NFormItem>
-        <NFormItem :label="$t('common.status')" path="status">
-          <NRadioGroup v-model:value="formModel.status">
-            <NSpace>
-              <NRadio value="ACTIVE">
-                {{ $t('page.lowcode.common.status.active') }}
-              </NRadio>
-              <NRadio value="INACTIVE">
-                {{ $t('page.lowcode.common.status.inactive') }}
-              </NRadio>
-            </NSpace>
-          </NRadioGroup>
-        </NFormItem>
-      </NForm>
-      <template #footer>
-        <NSpace :size="16">
-          <NButton @click="closeDrawer">{{ $t('common.cancel') }}</NButton>
-          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
-            {{ $t('common.confirm') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NDrawerContent>
-  </NDrawer>
-</template>
-
 <script setup lang="ts">
-import { computed, reactive, watch, onMounted, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import type { FormInst, FormRules } from 'naive-ui';
-import { fetchAddRelationship, fetchUpdateRelationship, fetchGetAllEntities } from '@/service/api';
-import { $t } from '@/locales';
+import { fetchAddRelationship, fetchGetAllEntities, fetchUpdateRelationship } from '@/service/api';
 import { createRequiredFormRule } from '@/utils/form/rule';
+import { $t } from '@/locales';
 
 defineOptions({
   name: 'RelationshipOperateDrawer'
@@ -289,5 +202,92 @@ onMounted(() => {
   }
 });
 </script>
+
+<template>
+  <NDrawer v-model:show="drawerVisible" display-directive="show" :width="480">
+    <NDrawerContent :title="title" :native-scrollbar="false" closable>
+      <NForm ref="formRef" :model="formModel" :rules="rules">
+        <NFormItem :label="$t('page.lowcode.relation.name')" path="name">
+          <NInput v-model:value="formModel.name" :placeholder="$t('page.lowcode.relation.form.name.placeholder')" />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.relation.code')" path="code">
+          <NInput
+            v-model:value="formModel.code"
+            :placeholder="$t('page.lowcode.relation.form.code.placeholder')"
+            :disabled="operateType === 'edit'"
+          />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.relation.relationType')" path="type">
+          <NSelect
+            v-model:value="formModel.type"
+            :placeholder="$t('page.lowcode.relation.form.relationType.placeholder')"
+            :options="typeOptions"
+            :disabled="operateType === 'edit'"
+          />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.relation.sourceEntity')" path="sourceEntityId">
+          <NSelect
+            v-model:value="formModel.sourceEntityId"
+            :placeholder="$t('page.lowcode.relation.form.sourceEntity.placeholder')"
+            :options="entityOptions"
+            :disabled="operateType === 'edit'"
+            filterable
+          />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.relation.targetEntity')" path="targetEntityId">
+          <NSelect
+            v-model:value="formModel.targetEntityId"
+            :placeholder="$t('page.lowcode.relation.form.targetEntity.placeholder')"
+            :options="entityOptions"
+            :disabled="operateType === 'edit'"
+            filterable
+          />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.relation.description')" path="description">
+          <NInput
+            v-model:value="formModel.description"
+            :placeholder="$t('page.lowcode.relation.form.description.placeholder')"
+            type="textarea"
+            :rows="3"
+          />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.relation.onDelete')" path="onDelete">
+          <NSelect
+            v-model:value="formModel.onDelete"
+            :placeholder="$t('page.lowcode.relation.form.onDelete.placeholder')"
+            :options="cascadeOptions"
+          />
+        </NFormItem>
+        <NFormItem :label="$t('page.lowcode.relation.onUpdate')" path="onUpdate">
+          <NSelect
+            v-model:value="formModel.onUpdate"
+            :placeholder="$t('page.lowcode.relation.form.onUpdate.placeholder')"
+            :options="cascadeOptions"
+          />
+        </NFormItem>
+        <NFormItem :label="$t('common.status')" path="status">
+          <NRadioGroup v-model:value="formModel.status">
+            <NSpace>
+              <NRadio value="ACTIVE">
+                {{ $t('page.lowcode.common.status.active') }}
+              </NRadio>
+              <NRadio value="INACTIVE">
+                {{ $t('page.lowcode.common.status.inactive') }}
+              </NRadio>
+            </NSpace>
+          </NRadioGroup>
+        </NFormItem>
+      </NForm>
+      <template #footer>
+        <NSpace :size="16">
+          <NButton @click="closeDrawer">{{ $t('common.cancel') }}</NButton>
+          <NButton type="primary" :loading="submitLoading" @click="handleSubmit">
+            {{ $t('common.confirm') }}
+          </NButton>
+        </NSpace>
+      </template>
+    </NDrawerContent>
+  </NDrawer>
+</template>
 
 <style scoped></style>

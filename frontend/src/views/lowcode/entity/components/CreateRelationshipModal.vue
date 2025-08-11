@@ -1,142 +1,26 @@
-<template>
-  <n-modal 
-    :show="visible" 
-    @update:show="emit('update:visible', $event)" 
-    preset="dialog" 
-    :title="$t('page.lowcode.relationship.createRelationshipDialog')"
-    style="width: 800px;"
-  >
-    <div class="mb-4 p-3 bg-blue-50 rounded-lg">
-      <span class="text-sm text-gray-700 font-medium">
-        {{ $t('page.lowcode.relationship.sourceEntity') }}: 
-        <span class="text-blue-600">{{ sourceEntityName || '未选择' }}</span> 
-        → 
-        {{ $t('page.lowcode.relationship.targetEntity') }}: 
-        <span class="text-green-600">{{ targetEntityName || '未选择' }}</span>
-      </span>
-    </div>
-    
-    <n-form 
-      ref="formRef" 
-      :model="formData" 
-      :rules="rules" 
-      label-placement="left" 
-      label-width="100px"
-    >
-      <n-form-item :label="$t('page.lowcode.relationship.name')" path="name">
-        <n-input 
-          v-model:value="formData.name" 
-          :placeholder="$t('page.lowcode.relationship.form.name.placeholder')" 
-        />
-      </n-form-item>
-      
-      <n-form-item :label="$t('page.lowcode.relationship.relationType')" path="type">
-        <n-select 
-          v-model:value="formData.type" 
-          :options="relationshipTypeOptions" 
-          :placeholder="$t('page.lowcode.relationship.form.relationType.placeholder')"
-          style="width: 100%;"
-        />
-      </n-form-item>
-      
-      <n-form-item :label="$t('page.lowcode.relationship.description')" path="description">
-        <n-input 
-          v-model:value="formData.description" 
-          type="textarea" 
-          :rows="3"
-          :placeholder="$t('page.lowcode.relationship.form.description.placeholder')" 
-        />
-      </n-form-item>
-      
-      <n-divider>高级配置</n-divider>
-      
-      <n-form-item label="源字段" path="sourceFieldName">
-        <n-input 
-          v-model:value="formData.sourceFieldName" 
-          placeholder="默认为 id"
-        />
-      </n-form-item>
-      
-      <n-form-item label="目标字段" path="targetFieldName">
-        <n-input 
-          v-model:value="formData.targetFieldName" 
-          placeholder="自动生成"
-        />
-      </n-form-item>
-      
-      <n-form-item label="级联操作" path="cascadeAction">
-        <n-select 
-          v-model:value="formData.cascadeAction" 
-          :options="cascadeOptions"
-          style="width: 100%;"
-        />
-      </n-form-item>
-      
-      <n-divider>样式配置</n-divider>
-      
-      <n-grid :cols="2" :x-gap="16" :y-gap="16">
-        <n-grid-item>
-          <n-form-item label="线条颜色">
-            <n-color-picker v-model:value="formData.lineColor" style="width: 100%;" />
-          </n-form-item>
-        </n-grid-item>
-        <n-grid-item>
-          <n-form-item label="线条宽度">
-            <n-input-number 
-              v-model:value="formData.lineWidth" 
-              :min="1" 
-              :max="10"
-              style="width: 100%;"
-            />
-          </n-form-item>
-        </n-grid-item>
-        <n-grid-item span="2">
-          <n-form-item label="线条样式">
-            <n-select 
-              v-model:value="formData.lineStyle" 
-              :options="lineStyleOptions"
-              style="width: 100%;"
-            />
-          </n-form-item>
-        </n-grid-item>
-      </n-grid>
-    </n-form>
-    
-    <template #action>
-      <n-space justify="end">
-        <n-button @click="handleCancel">取消</n-button>
-        <n-button type="primary" :loading="loading" @click="handleConfirm">确认</n-button>
-      </n-space>
-    </template>
-  </n-modal>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue';
-import { 
-  NModal, 
-  NForm, 
-  NFormItem, 
-  NInput, 
-  NSelect, 
-  NButton, 
-  NSpace, 
+import { computed, nextTick, ref, watch } from 'vue';
+import {
+  type FormInst,
+  type FormRules,
+  NButton,
+  NColorPicker,
   NDivider,
+  NForm,
+  NFormItem,
   NGrid,
   NGridItem,
-  NColorPicker,
+  NInput,
   NInputNumber,
-  useMessage,
-  type FormInst,
-  type FormRules
+  NModal,
+  NSelect,
+  NSpace,
+  useMessage
 } from 'naive-ui';
 import { useI18n } from 'vue-i18n';
 import type { Entity, EntityRelationship } from '../types';
 
-/**
- * 创建关系弹窗组件
- * 用于配置实体间的关系信息
- */
+/** 创建关系弹窗组件 用于配置实体间的关系信息 */
 
 interface Props {
   visible: boolean;
@@ -201,12 +85,15 @@ const relationshipTypeOptions = computed(() => [
 ]);
 
 // 监听关系类型变化，重新生成名称和描述
-watch(() => formData.value.type, () => {
-  if (props.visible && props.sourceEntity && props.targetEntity) {
-    generateRelationshipName();
-    generateRelationshipDescription();
+watch(
+  () => formData.value.type,
+  () => {
+    if (props.visible && props.sourceEntity && props.targetEntity) {
+      generateRelationshipName();
+      generateRelationshipDescription();
+    }
   }
-});
+);
 
 const cascadeOptions = [
   { label: '限制 (RESTRICT)', value: 'RESTRICT' },
@@ -222,51 +109,56 @@ const lineStyleOptions = [
 ];
 
 // 监听弹窗显示状态，重置表单
-watch(() => props.visible, (visible) => {
-  if (visible) {
-    // 延迟执行以确保props已更新
-    nextTick(() => {
-      if (props.sourceEntity && props.targetEntity) {
-        // 智能生成关系名称
-        generateRelationshipName();
-        // 自动生成目标字段名
-        formData.value.targetFieldName = `${props.sourceEntity.code}_id`;
-        // 根据关系类型自动生成描述
-        generateRelationshipDescription();
-      } else {
-        console.warn('源实体或目标实体未正确传递:', { 
-          sourceEntity: props.sourceEntity, 
-          targetEntity: props.targetEntity 
-        });
-      }
-    });
-  } else if (!visible) {
-    // 重置表单
-    resetForm();
+watch(
+  () => props.visible,
+  visible => {
+    if (visible) {
+      // 延迟执行以确保props已更新
+      nextTick(() => {
+        if (props.sourceEntity && props.targetEntity) {
+          // 智能生成关系名称
+          generateRelationshipName();
+          // 自动生成目标字段名
+          formData.value.targetFieldName = `${props.sourceEntity.code}_id`;
+          // 根据关系类型自动生成描述
+          generateRelationshipDescription();
+        } else {
+          console.warn('源实体或目标实体未正确传递:', {
+            sourceEntity: props.sourceEntity,
+            targetEntity: props.targetEntity
+          });
+        }
+      });
+    } else if (!visible) {
+      // 重置表单
+      resetForm();
+    }
   }
-});
+);
 
 // 监听实体变化
-watch([() => props.sourceEntity, () => props.targetEntity], ([sourceEntity, targetEntity]) => {
-  if (props.visible && sourceEntity && targetEntity) {
-    generateRelationshipName();
-    formData.value.targetFieldName = `${sourceEntity.code}_id`;
-    generateRelationshipDescription();
-  }
-}, { immediate: true });
+watch(
+  [() => props.sourceEntity, () => props.targetEntity],
+  ([sourceEntity, targetEntity]) => {
+    if (props.visible && sourceEntity && targetEntity) {
+      generateRelationshipName();
+      formData.value.targetFieldName = `${sourceEntity.code}_id`;
+      generateRelationshipDescription();
+    }
+  },
+  { immediate: true }
+);
 
-/**
- * 智能生成关系名称
- */
+/** 智能生成关系名称 */
 function generateRelationshipName() {
   if (!props.sourceEntity || !props.targetEntity) return;
-  
+
   const sourceCode = props.sourceEntity.code || props.sourceEntity.name;
   const targetCode = props.targetEntity.code || props.targetEntity.name;
   const relationType = formData.value.type;
-  
+
   let relationshipName = '';
-  
+
   switch (relationType) {
     case 'ONE_TO_ONE':
       relationshipName = `${sourceCode}To${targetCode}`;
@@ -283,22 +175,20 @@ function generateRelationshipName() {
     default:
       relationshipName = `${sourceCode}_${targetCode}`;
   }
-  
+
   formData.value.name = relationshipName;
 }
 
-/**
- * 生成关系描述
- */
+/** 生成关系描述 */
 function generateRelationshipDescription() {
   if (!props.sourceEntity || !props.targetEntity) return;
-  
+
   const sourceName = props.sourceEntity.name;
   const targetName = props.targetEntity.name;
   const relationType = formData.value.type;
-  
+
   let description = '';
-  
+
   switch (relationType) {
     case 'ONE_TO_ONE':
       description = `${sourceName}与${targetName}是一对一关系`;
@@ -313,13 +203,11 @@ function generateRelationshipDescription() {
       description = `${sourceName}与${targetName}是多对多关系`;
       break;
   }
-  
+
   formData.value.description = description;
 }
 
-/**
- * 重置表单
- */
+/** 重置表单 */
 function resetForm() {
   formData.value = {
     name: '',
@@ -334,18 +222,16 @@ function resetForm() {
   };
 }
 
-/**
- * 处理确认
- */
+/** 处理确认 */
 async function handleConfirm() {
   try {
     await formRef.value?.validate();
-    
+
     if (!props.sourceEntity || !props.targetEntity) {
       message.error('源实体或目标实体不能为空');
       return;
     }
-    
+
     const relationshipData: Partial<EntityRelationship> = {
       name: formData.value.name,
       type: formData.value.type as any,
@@ -359,21 +245,104 @@ async function handleConfirm() {
       lineWidth: formData.value.lineWidth,
       lineStyle: formData.value.lineStyle as any
     };
-    
+
     emit('confirm', relationshipData);
   } catch (error) {
     console.error('表单验证失败:', error);
   }
 }
 
-/**
- * 处理取消
- */
+/** 处理取消 */
 function handleCancel() {
   emit('cancel');
   emit('update:visible', false);
 }
 </script>
+
+<template>
+  <NModal
+    :show="visible"
+    preset="dialog"
+    :title="$t('page.lowcode.relationship.createRelationshipDialog')"
+    style="width: 800px"
+    @update:show="emit('update:visible', $event)"
+  >
+    <div class="mb-4 rounded-lg bg-blue-50 p-3">
+      <span class="text-sm text-gray-700 font-medium">
+        {{ $t('page.lowcode.relationship.sourceEntity') }}:
+        <span class="text-blue-600">{{ sourceEntityName || '未选择' }}</span>
+        →
+        {{ $t('page.lowcode.relationship.targetEntity') }}:
+        <span class="text-green-600">{{ targetEntityName || '未选择' }}</span>
+      </span>
+    </div>
+
+    <NForm ref="formRef" :model="formData" :rules="rules" label-placement="left" label-width="100px">
+      <NFormItem :label="$t('page.lowcode.relationship.name')" path="name">
+        <NInput v-model:value="formData.name" :placeholder="$t('page.lowcode.relationship.form.name.placeholder')" />
+      </NFormItem>
+
+      <NFormItem :label="$t('page.lowcode.relationship.relationType')" path="type">
+        <NSelect
+          v-model:value="formData.type"
+          :options="relationshipTypeOptions"
+          :placeholder="$t('page.lowcode.relationship.form.relationType.placeholder')"
+          style="width: 100%"
+        />
+      </NFormItem>
+
+      <NFormItem :label="$t('page.lowcode.relationship.description')" path="description">
+        <NInput
+          v-model:value="formData.description"
+          type="textarea"
+          :rows="3"
+          :placeholder="$t('page.lowcode.relationship.form.description.placeholder')"
+        />
+      </NFormItem>
+
+      <NDivider>高级配置</NDivider>
+
+      <NFormItem label="源字段" path="sourceFieldName">
+        <NInput v-model:value="formData.sourceFieldName" placeholder="默认为 id" />
+      </NFormItem>
+
+      <NFormItem label="目标字段" path="targetFieldName">
+        <NInput v-model:value="formData.targetFieldName" placeholder="自动生成" />
+      </NFormItem>
+
+      <NFormItem label="级联操作" path="cascadeAction">
+        <NSelect v-model:value="formData.cascadeAction" :options="cascadeOptions" style="width: 100%" />
+      </NFormItem>
+
+      <NDivider>样式配置</NDivider>
+
+      <NGrid :cols="2" :x-gap="16" :y-gap="16">
+        <NGridItem>
+          <NFormItem label="线条颜色">
+            <NColorPicker v-model:value="formData.lineColor" style="width: 100%" />
+          </NFormItem>
+        </NGridItem>
+        <NGridItem>
+          <NFormItem label="线条宽度">
+            <NInputNumber v-model:value="formData.lineWidth" :min="1" :max="10" style="width: 100%" />
+          </NFormItem>
+        </NGridItem>
+        <NGridItem span="2">
+          <NFormItem label="线条样式">
+            <NSelect v-model:value="formData.lineStyle" :options="lineStyleOptions" style="width: 100%" />
+          </NFormItem>
+        </NGridItem>
+      </NGrid>
+    </NForm>
+
+    <template #action>
+      <NSpace justify="end">
+        <NButton @click="handleCancel">取消</NButton>
+        <NButton type="primary" :loading="loading" @click="handleConfirm">确认</NButton>
+      </NSpace>
+    </template>
+  </NModal>
+</template>
 
 <style scoped>
 .n-divider {

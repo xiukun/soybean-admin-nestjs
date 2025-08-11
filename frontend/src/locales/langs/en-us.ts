@@ -1,4 +1,4 @@
-import lowcode from "./en-us/lowcode";
+import lowcode from './en-us/lowcode';
 
 const local: App.I18n.Schema = {
   system: {
@@ -465,7 +465,7 @@ const local: App.I18n.Schema = {
         }
       }
     },
-    lowcode,
+    lowcode
   },
   form: {
     required: 'Cannot be empty',

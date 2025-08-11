@@ -1,3 +1,195 @@
+<script setup lang="ts">
+import { onMounted, reactive, ref, watch } from 'vue';
+import type { FormInst, FormRules } from 'naive-ui';
+import { createRequiredFormRule } from '@/utils/form/rule';
+import { $t } from '@/locales';
+
+interface Props {
+  project: any;
+}
+
+const props = defineProps<Props>();
+const emit = defineEmits<{
+  update: [project: any];
+}>();
+
+// State
+const formRef = ref<FormInst | null>(null);
+const saving = ref(false);
+const testingConnection = ref(false);
+
+// Form
+const configForm = reactive({
+  name: '',
+  code: '',
+  description: '',
+  version: '1.0.0',
+  status: 'ACTIVE',
+  config: {
+    framework: 'nestjs',
+    architecture: 'base-biz',
+    language: 'typescript',
+    database: 'postgresql',
+    packageName: '',
+    basePackage: '',
+    author: '',
+    outputPath: './generated',
+    database_config: {
+      host: 'localhost',
+      port: 5432,
+      database: '',
+      username: '',
+      password: '',
+      schema: 'public'
+    },
+    generation_config: {
+      enableSwagger: true,
+      enableValidation: true,
+      enableAudit: true,
+      enableSoftDelete: true,
+      enablePagination: true,
+      enableCaching: false
+    }
+  }
+});
+
+// Options
+const statusOptions = [
+  { label: $t('page.lowcode.project.status.active'), value: 'ACTIVE' },
+  { label: $t('page.lowcode.project.status.inactive'), value: 'INACTIVE' },
+  { label: $t('page.lowcode.project.status.archived'), value: 'ARCHIVED' }
+];
+
+const frameworkOptions = [
+  { label: 'NestJS', value: 'nestjs' },
+  { label: 'Express', value: 'express' },
+  { label: 'Fastify', value: 'fastify' },
+  { label: 'Spring Boot', value: 'spring-boot' }
+];
+
+const architectureOptions = [
+  { label: 'Base-Biz', value: 'base-biz' },
+  { label: 'DDD', value: 'ddd' },
+  { label: 'Clean Architecture', value: 'clean' },
+  { label: 'Hexagonal', value: 'hexagonal' }
+];
+
+const languageOptions = [
+  { label: 'TypeScript', value: 'typescript' },
+  { label: 'JavaScript', value: 'javascript' },
+  { label: 'Java', value: 'java' },
+  { label: 'Python', value: 'python' }
+];
+
+const databaseOptions = [
+  { label: 'PostgreSQL', value: 'postgresql' },
+  { label: 'MySQL', value: 'mysql' },
+  { label: 'SQLite', value: 'sqlite' },
+  { label: 'MongoDB', value: 'mongodb' }
+];
+
+// Form rules
+const rules: FormRules = {
+  name: createRequiredFormRule($t('page.lowcode.project.nameRequired')),
+  code: createRequiredFormRule($t('page.lowcode.project.codeRequired')),
+  framework: createRequiredFormRule($t('page.lowcode.project.frameworkRequired'))
+};
+
+// Methods
+function handleBrowseOutputPath() {
+  window.$message?.info('文件浏览器功能开发中');
+}
+
+async function handleTestConnection() {
+  try {
+    testingConnection.value = true;
+
+    // Mock connection test
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    window.$message?.success($t('page.lowcode.project.connectionSuccess'));
+  } catch (error) {
+    window.$message?.error($t('page.lowcode.project.connectionFailed'));
+  } finally {
+    testingConnection.value = false;
+  }
+}
+
+async function handleSave() {
+  await formRef.value?.validate();
+
+  try {
+    saving.value = true;
+
+    // 调用真实的API保存项目配置
+    const { fetchUpdateProject } = await import('@/service/api/lowcode-project');
+
+    const projectData = {
+      ...props.project,
+      ...configForm,
+      config: {
+        ...configForm.config,
+        // 确保数据库配置格式正确
+        database_config: {
+          ...configForm.config.database_config
+        },
+        generation_config: {
+          ...configForm.config.generation_config
+        }
+      }
+    };
+
+    if (props.project?.id) {
+      await fetchUpdateProject(props.project.id, projectData);
+    }
+
+    emit('update', projectData);
+    window.$message?.success('项目配置保存成功');
+  } catch (error) {
+    console.error('Save project config error:', error);
+    window.$message?.error('项目配置保存失败');
+  } finally {
+    saving.value = false;
+  }
+}
+
+function handleReset() {
+  if (props.project) {
+    Object.assign(configForm, {
+      ...props.project,
+      config: {
+        ...configForm.config,
+        ...props.project.config
+      }
+    });
+  }
+}
+
+// Watch for project changes
+watch(
+  () => props.project,
+  newProject => {
+    if (newProject) {
+      Object.assign(configForm, {
+        ...newProject,
+        config: {
+          ...configForm.config,
+          ...newProject.config
+        }
+      });
+    }
+  },
+  { immediate: true }
+);
+
+// Lifecycle
+onMounted(() => {
+  if (props.project) {
+    handleReset();
+  }
+});
+</script>
+
 <template>
   <div class="project-configuration">
     <NForm ref="formRef" :model="configForm" :rules="rules" label-placement="left" :label-width="120">
@@ -116,7 +308,11 @@
           </NGridItem>
           <NGridItem>
             <NFormItem :label="$t('page.lowcode.project.dbPassword')" path="dbPassword">
-              <NInput v-model:value="configForm.config.database_config.password" type="password" show-password-on="click" />
+              <NInput
+                v-model:value="configForm.config.database_config.password"
+                type="password"
+                show-password-on="click"
+              />
             </NFormItem>
           </NGridItem>
           <NGridItem>
@@ -127,7 +323,7 @@
         </NGrid>
 
         <div class="mt-4">
-          <NButton @click="handleTestConnection" :loading="testingConnection">
+          <NButton :loading="testingConnection" @click="handleTestConnection">
             <template #icon>
               <NIcon><icon-mdi-database-check /></NIcon>
             </template>
@@ -182,194 +378,6 @@
     </NForm>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, reactive, watch, onMounted } from 'vue';
-import type { FormInst, FormRules } from 'naive-ui';
-import { $t } from '@/locales';
-import { createRequiredFormRule } from '@/utils/form/rule';
-
-interface Props {
-  project: any;
-}
-
-const props = defineProps<Props>();
-const emit = defineEmits<{
-  update: [project: any];
-}>();
-
-// State
-const formRef = ref<FormInst | null>(null);
-const saving = ref(false);
-const testingConnection = ref(false);
-
-// Form
-const configForm = reactive({
-  name: '',
-  code: '',
-  description: '',
-  version: '1.0.0',
-  status: 'ACTIVE',
-  config: {
-    framework: 'nestjs',
-    architecture: 'base-biz',
-    language: 'typescript',
-    database: 'postgresql',
-    packageName: '',
-    basePackage: '',
-    author: '',
-    outputPath: './generated',
-    database_config: {
-      host: 'localhost',
-      port: 5432,
-      database: '',
-      username: '',
-      password: '',
-      schema: 'public'
-    },
-    generation_config: {
-      enableSwagger: true,
-      enableValidation: true,
-      enableAudit: true,
-      enableSoftDelete: true,
-      enablePagination: true,
-      enableCaching: false
-    }
-  }
-});
-
-// Options
-const statusOptions = [
-  { label: $t('page.lowcode.project.status.active'), value: 'ACTIVE' },
-  { label: $t('page.lowcode.project.status.inactive'), value: 'INACTIVE' },
-  { label: $t('page.lowcode.project.status.archived'), value: 'ARCHIVED' }
-];
-
-const frameworkOptions = [
-  { label: 'NestJS', value: 'nestjs' },
-  { label: 'Express', value: 'express' },
-  { label: 'Fastify', value: 'fastify' },
-  { label: 'Spring Boot', value: 'spring-boot' }
-];
-
-const architectureOptions = [
-  { label: 'Base-Biz', value: 'base-biz' },
-  { label: 'DDD', value: 'ddd' },
-  { label: 'Clean Architecture', value: 'clean' },
-  { label: 'Hexagonal', value: 'hexagonal' }
-];
-
-const languageOptions = [
-  { label: 'TypeScript', value: 'typescript' },
-  { label: 'JavaScript', value: 'javascript' },
-  { label: 'Java', value: 'java' },
-  { label: 'Python', value: 'python' }
-];
-
-const databaseOptions = [
-  { label: 'PostgreSQL', value: 'postgresql' },
-  { label: 'MySQL', value: 'mysql' },
-  { label: 'SQLite', value: 'sqlite' },
-  { label: 'MongoDB', value: 'mongodb' }
-];
-
-// Form rules
-const rules: FormRules = {
-  name: createRequiredFormRule($t('page.lowcode.project.nameRequired')),
-  code: createRequiredFormRule($t('page.lowcode.project.codeRequired')),
-  framework: createRequiredFormRule($t('page.lowcode.project.frameworkRequired'))
-};
-
-// Methods
-function handleBrowseOutputPath() {
-  window.$message?.info('文件浏览器功能开发中');
-}
-
-async function handleTestConnection() {
-  try {
-    testingConnection.value = true;
-    
-    // Mock connection test
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    window.$message?.success($t('page.lowcode.project.connectionSuccess'));
-  } catch (error) {
-    window.$message?.error($t('page.lowcode.project.connectionFailed'));
-  } finally {
-    testingConnection.value = false;
-  }
-}
-
-async function handleSave() {
-  await formRef.value?.validate();
-
-  try {
-    saving.value = true;
-
-    // 调用真实的API保存项目配置
-    const { fetchUpdateProject } = await import('@/service/api/lowcode-project');
-
-    const projectData = {
-      ...props.project,
-      ...configForm,
-      config: {
-        ...configForm.config,
-        // 确保数据库配置格式正确
-        database_config: {
-          ...configForm.config.database_config
-        },
-        generation_config: {
-          ...configForm.config.generation_config
-        }
-      }
-    };
-
-    if (props.project?.id) {
-      await fetchUpdateProject(props.project.id, projectData);
-    }
-
-    emit('update', projectData);
-    window.$message?.success('项目配置保存成功');
-  } catch (error) {
-    console.error('Save project config error:', error);
-    window.$message?.error('项目配置保存失败');
-  } finally {
-    saving.value = false;
-  }
-}
-
-function handleReset() {
-  if (props.project) {
-    Object.assign(configForm, {
-      ...props.project,
-      config: {
-        ...configForm.config,
-        ...props.project.config
-      }
-    });
-  }
-}
-
-// Watch for project changes
-watch(() => props.project, (newProject) => {
-  if (newProject) {
-    Object.assign(configForm, {
-      ...newProject,
-      config: {
-        ...configForm.config,
-        ...newProject.config
-      }
-    });
-  }
-}, { immediate: true });
-
-// Lifecycle
-onMounted(() => {
-  if (props.project) {
-    handleReset();
-  }
-});
-</script>
 
 <style scoped>
 .project-configuration {

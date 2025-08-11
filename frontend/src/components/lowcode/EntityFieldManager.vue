@@ -1,225 +1,8 @@
-<template>
-  <div class="entity-field-manager">
-    <div class="mb-4">
-      <NSpace justify="space-between" align="center">
-        <NText strong>{{ $t('page.lowcode.entity.fields') }}</NText>
-        <NSpace>
-          <NButton size="small" @click="handleAddField">
-            <template #icon>
-              <NIcon><icon-mdi-plus /></NIcon>
-            </template>
-            {{ $t('page.lowcode.entity.addField') }}
-          </NButton>
-          <NButton size="small" @click="handleImportFields">
-            <template #icon>
-              <NIcon><icon-mdi-import /></NIcon>
-            </template>
-            {{ $t('page.lowcode.entity.importFields') }}
-          </NButton>
-          <NButton size="small" @click="handleExportFields">
-            <template #icon>
-              <NIcon><icon-mdi-export /></NIcon>
-            </template>
-            {{ $t('page.lowcode.entity.exportFields') }}
-          </NButton>
-        </NSpace>
-      </NSpace>
-    </div>
-
-    <!-- Field List -->
-    <NDataTable
-      :columns="columns"
-      :data="fields"
-      :pagination="false"
-      :max-height="400"
-      :scroll-x="1200"
-      size="small"
-      striped
-    />
-
-    <!-- Field Editor Modal -->
-    <NModal v-model:show="showFieldModal" preset="card" style="width: 800px">
-      <template #header>
-        {{ editingField ? $t('page.lowcode.entity.editField') : $t('page.lowcode.entity.addField') }}
-      </template>
-      
-      <NForm ref="fieldFormRef" :model="fieldForm" :rules="fieldRules" label-placement="left" :label-width="120">
-        <NGrid :cols="2" :x-gap="16">
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.entity.fieldName')" path="name">
-              <NInput v-model:value="fieldForm.name" @input="handleNameChange" />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.entity.fieldCode')" path="code">
-              <NInput v-model:value="fieldForm.code" />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.entity.fieldType')" path="type">
-              <NSelect v-model:value="fieldForm.type" :options="fieldTypeOptions" @update:value="handleTypeChange" />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.entity.fieldLength')" path="length">
-              <NInputNumber 
-                v-model:value="fieldForm.length" 
-                :disabled="!needsLength(fieldForm.type)"
-                :min="1"
-                :max="65535"
-                style="width: 100%"
-              />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.entity.nullable')">
-              <NSwitch v-model:value="fieldForm.nullable" />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.entity.primaryKey')">
-              <NSwitch v-model:value="fieldForm.primaryKey" @update:value="handlePrimaryKeyChange" />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.entity.uniqueConstraint')">
-              <NSwitch v-model:value="fieldForm.uniqueConstraint" />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.lowcode.entity.autoIncrement')">
-              <NSwitch 
-                v-model:value="fieldForm.autoIncrement" 
-                :disabled="!canAutoIncrement(fieldForm.type)"
-              />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem :span="2">
-            <NFormItem :label="$t('page.lowcode.entity.defaultValue')">
-              <NInput v-model:value="fieldForm.defaultValue" />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem :span="2">
-            <NFormItem :label="$t('page.lowcode.entity.comment')">
-              <NInput v-model:value="fieldForm.comment" type="textarea" :rows="3" />
-            </NFormItem>
-          </NGridItem>
-        </NGrid>
-
-        <!-- Advanced Options -->
-        <NCollapse>
-          <NCollapseItem :title="$t('page.lowcode.entity.advancedOptions')" name="advanced">
-            <NGrid :cols="2" :x-gap="16">
-              <NGridItem>
-                <NFormItem :label="$t('page.lowcode.entity.index')">
-                  <NSwitch v-model:value="fieldForm.index" />
-                </NFormItem>
-              </NGridItem>
-              <NGridItem>
-                <NFormItem :label="$t('page.lowcode.entity.searchable')">
-                  <NSwitch v-model:value="fieldForm.searchable" />
-                </NFormItem>
-              </NGridItem>
-              <NGridItem>
-                <NFormItem :label="$t('page.lowcode.entity.sortable')">
-                  <NSwitch v-model:value="fieldForm.sortable" />
-                </NFormItem>
-              </NGridItem>
-              <NGridItem>
-                <NFormItem :label="$t('page.lowcode.entity.filterable')">
-                  <NSwitch v-model:value="fieldForm.filterable" />
-                </NFormItem>
-              </NGridItem>
-              <NGridItem>
-                <NFormItem :label="$t('page.lowcode.entity.displayInList')">
-                  <NSwitch v-model:value="fieldForm.displayInList" />
-                </NFormItem>
-              </NGridItem>
-              <NGridItem>
-                <NFormItem :label="$t('page.lowcode.entity.displayInForm')">
-                  <NSwitch v-model:value="fieldForm.displayInForm" />
-                </NFormItem>
-              </NGridItem>
-              <NGridItem :span="2">
-                <NFormItem :label="$t('page.lowcode.entity.validationRules')">
-                  <NInput v-model:value="fieldForm.validationRules" type="textarea" :rows="2" />
-                </NFormItem>
-              </NGridItem>
-            </NGrid>
-          </NCollapseItem>
-        </NCollapse>
-      </NForm>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="showFieldModal = false">{{ $t('common.cancel') }}</NButton>
-          <NButton type="primary" @click="handleSaveField">{{ $t('page.lowcode.common.actions.save') }}</NButton>
-        </NSpace>
-      </template>
-    </NModal>
-
-    <!-- Import Fields Modal -->
-    <NModal v-model:show="showImportModal" preset="card" style="width: 600px">
-      <template #header>
-        {{ $t('page.lowcode.entity.importFields') }}
-      </template>
-      
-      <NTabs type="line">
-        <NTabPane name="json" :tab="$t('page.lowcode.entity.importFromJson')">
-          <NInput 
-            v-model:value="importJson" 
-            type="textarea" 
-            :rows="10" 
-            :placeholder="$t('page.lowcode.entity.importJsonPlaceholder')"
-          />
-        </NTabPane>
-        <NTabPane name="sql" :tab="$t('page.lowcode.entity.importFromSql')">
-          <NInput 
-            v-model:value="importSql" 
-            type="textarea" 
-            :rows="10" 
-            :placeholder="$t('page.lowcode.entity.importSqlPlaceholder')"
-          />
-        </NTabPane>
-        <NTabPane name="csv" :tab="$t('page.lowcode.entity.importFromCsv')">
-          <NUpload
-            :file-list="csvFileList"
-            :max="1"
-            accept=".csv"
-            @change="handleCsvUpload"
-          >
-            <NUploadDragger>
-              <div style="margin-bottom: 12px">
-                <NIcon size="48" :depth="3">
-                  <icon-mdi-file-upload />
-                </NIcon>
-              </div>
-              <NText style="font-size: 16px">
-                {{ $t('page.lowcode.entity.uploadCsv') }}
-              </NText>
-              <NP depth="3" style="margin: 8px 0 0 0">
-                {{ $t('page.lowcode.entity.csvFormat') }}
-              </NP>
-            </NUploadDragger>
-          </NUpload>
-        </NTabPane>
-      </NTabs>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="showImportModal = false">{{ $t('common.cancel') }}</NButton>
-          <NButton type="primary" @click="handleImport">{{ $t('common.import') }}</NButton>
-        </NSpace>
-      </template>
-    </NModal>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, reactive, computed, h } from 'vue';
-import type { FormInst, FormRules, DataTableColumns, UploadFileInfo } from 'naive-ui';
-import { $t } from '@/locales';
+import { computed, h, reactive, ref } from 'vue';
+import type { DataTableColumns, FormInst, FormRules, UploadFileInfo } from 'naive-ui';
 import { createRequiredFormRule } from '@/utils/form/rule';
+import { $t } from '@/locales';
 
 interface Field {
   id?: string;
@@ -323,23 +106,23 @@ const columns: DataTableColumns<Field> = [
   { title: $t('page.lowcode.entity.fieldCode'), key: 'code', width: 120 },
   { title: $t('page.lowcode.entity.fieldType'), key: 'type', width: 100 },
   { title: $t('page.lowcode.entity.fieldLength'), key: 'length', width: 80 },
-  { 
-    title: $t('page.lowcode.entity.nullable'), 
-    key: 'nullable', 
+  {
+    title: $t('page.lowcode.entity.nullable'),
+    key: 'nullable',
     width: 80,
-    render: (row) => row.nullable ? '✓' : '✗'
+    render: row => (row.nullable ? '✓' : '✗')
   },
-  { 
-    title: $t('page.lowcode.entity.primaryKey'), 
-    key: 'primaryKey', 
+  {
+    title: $t('page.lowcode.entity.primaryKey'),
+    key: 'primaryKey',
     width: 80,
-    render: (row) => row.primaryKey ? '✓' : '✗'
+    render: row => (row.primaryKey ? '✓' : '✗')
   },
-  { 
-    title: $t('page.lowcode.entity.uniqueConstraint'), 
-    key: 'uniqueConstraint', 
+  {
+    title: $t('page.lowcode.entity.uniqueConstraint'),
+    key: 'uniqueConstraint',
     width: 80,
-    render: (row) => row.uniqueConstraint ? '✓' : '✗'
+    render: row => (row.uniqueConstraint ? '✓' : '✗')
   },
   { title: $t('page.lowcode.entity.defaultValue'), key: 'defaultValue', width: 120 },
   { title: $t('page.lowcode.entity.comment'), key: 'comment', width: 150 },
@@ -349,20 +132,22 @@ const columns: DataTableColumns<Field> = [
     width: 120,
     fixed: 'right',
     render: (row, index) => [
-      h('NButton', 
-        { 
-          size: 'small', 
+      h(
+        'NButton',
+        {
+          size: 'small',
           onClick: () => handleEditField(row, index),
           style: { marginRight: '8px' }
-        }, 
+        },
         $t('common.edit')
       ),
-      h('NButton', 
-        { 
-          size: 'small', 
-          type: 'error', 
-          onClick: () => handleDeleteField(row, index) 
-        }, 
+      h(
+        'NButton',
+        {
+          size: 'small',
+          type: 'error',
+          onClick: () => handleDeleteField(row, index)
+        },
         $t('common.delete')
       )
     ]
@@ -463,9 +248,9 @@ function handleDeleteField(field: Field, index: number) {
 
 async function handleSaveField() {
   await fieldFormRef.value?.validate();
-  
+
   const newField = { ...fieldForm };
-  
+
   if (editingField.value) {
     // Update existing field
     const index = fields.value.findIndex(f => f === editingField.value);
@@ -481,7 +266,7 @@ async function handleSaveField() {
     emit('update:fields', newFields);
     emit('field-added', newField);
   }
-  
+
   showFieldModal.value = false;
   window.$message?.success($t('common.saveSuccess'));
 }
@@ -533,6 +318,215 @@ function handleImport() {
   }
 }
 </script>
+
+<template>
+  <div class="entity-field-manager">
+    <div class="mb-4">
+      <NSpace justify="space-between" align="center">
+        <NText strong>{{ $t('page.lowcode.entity.fields') }}</NText>
+        <NSpace>
+          <NButton size="small" @click="handleAddField">
+            <template #icon>
+              <NIcon><icon-mdi-plus /></NIcon>
+            </template>
+            {{ $t('page.lowcode.entity.addField') }}
+          </NButton>
+          <NButton size="small" @click="handleImportFields">
+            <template #icon>
+              <NIcon><icon-mdi-import /></NIcon>
+            </template>
+            {{ $t('page.lowcode.entity.importFields') }}
+          </NButton>
+          <NButton size="small" @click="handleExportFields">
+            <template #icon>
+              <NIcon><icon-mdi-export /></NIcon>
+            </template>
+            {{ $t('page.lowcode.entity.exportFields') }}
+          </NButton>
+        </NSpace>
+      </NSpace>
+    </div>
+
+    <!-- Field List -->
+    <NDataTable
+      :columns="columns"
+      :data="fields"
+      :pagination="false"
+      :max-height="400"
+      :scroll-x="1200"
+      size="small"
+      striped
+    />
+
+    <!-- Field Editor Modal -->
+    <NModal v-model:show="showFieldModal" preset="card" style="width: 800px">
+      <template #header>
+        {{ editingField ? $t('page.lowcode.entity.editField') : $t('page.lowcode.entity.addField') }}
+      </template>
+
+      <NForm ref="fieldFormRef" :model="fieldForm" :rules="fieldRules" label-placement="left" :label-width="120">
+        <NGrid :cols="2" :x-gap="16">
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.entity.fieldName')" path="name">
+              <NInput v-model:value="fieldForm.name" @input="handleNameChange" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.entity.fieldCode')" path="code">
+              <NInput v-model:value="fieldForm.code" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.entity.fieldType')" path="type">
+              <NSelect v-model:value="fieldForm.type" :options="fieldTypeOptions" @update:value="handleTypeChange" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.entity.fieldLength')" path="length">
+              <NInputNumber
+                v-model:value="fieldForm.length"
+                :disabled="!needsLength(fieldForm.type)"
+                :min="1"
+                :max="65535"
+                style="width: 100%"
+              />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.entity.nullable')">
+              <NSwitch v-model:value="fieldForm.nullable" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.entity.primaryKey')">
+              <NSwitch v-model:value="fieldForm.primaryKey" @update:value="handlePrimaryKeyChange" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.entity.uniqueConstraint')">
+              <NSwitch v-model:value="fieldForm.uniqueConstraint" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.lowcode.entity.autoIncrement')">
+              <NSwitch v-model:value="fieldForm.autoIncrement" :disabled="!canAutoIncrement(fieldForm.type)" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem :span="2">
+            <NFormItem :label="$t('page.lowcode.entity.defaultValue')">
+              <NInput v-model:value="fieldForm.defaultValue" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem :span="2">
+            <NFormItem :label="$t('page.lowcode.entity.comment')">
+              <NInput v-model:value="fieldForm.comment" type="textarea" :rows="3" />
+            </NFormItem>
+          </NGridItem>
+        </NGrid>
+
+        <!-- Advanced Options -->
+        <NCollapse>
+          <NCollapseItem :title="$t('page.lowcode.entity.advancedOptions')" name="advanced">
+            <NGrid :cols="2" :x-gap="16">
+              <NGridItem>
+                <NFormItem :label="$t('page.lowcode.entity.index')">
+                  <NSwitch v-model:value="fieldForm.index" />
+                </NFormItem>
+              </NGridItem>
+              <NGridItem>
+                <NFormItem :label="$t('page.lowcode.entity.searchable')">
+                  <NSwitch v-model:value="fieldForm.searchable" />
+                </NFormItem>
+              </NGridItem>
+              <NGridItem>
+                <NFormItem :label="$t('page.lowcode.entity.sortable')">
+                  <NSwitch v-model:value="fieldForm.sortable" />
+                </NFormItem>
+              </NGridItem>
+              <NGridItem>
+                <NFormItem :label="$t('page.lowcode.entity.filterable')">
+                  <NSwitch v-model:value="fieldForm.filterable" />
+                </NFormItem>
+              </NGridItem>
+              <NGridItem>
+                <NFormItem :label="$t('page.lowcode.entity.displayInList')">
+                  <NSwitch v-model:value="fieldForm.displayInList" />
+                </NFormItem>
+              </NGridItem>
+              <NGridItem>
+                <NFormItem :label="$t('page.lowcode.entity.displayInForm')">
+                  <NSwitch v-model:value="fieldForm.displayInForm" />
+                </NFormItem>
+              </NGridItem>
+              <NGridItem :span="2">
+                <NFormItem :label="$t('page.lowcode.entity.validationRules')">
+                  <NInput v-model:value="fieldForm.validationRules" type="textarea" :rows="2" />
+                </NFormItem>
+              </NGridItem>
+            </NGrid>
+          </NCollapseItem>
+        </NCollapse>
+      </NForm>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="showFieldModal = false">{{ $t('common.cancel') }}</NButton>
+          <NButton type="primary" @click="handleSaveField">{{ $t('page.lowcode.common.actions.save') }}</NButton>
+        </NSpace>
+      </template>
+    </NModal>
+
+    <!-- Import Fields Modal -->
+    <NModal v-model:show="showImportModal" preset="card" style="width: 600px">
+      <template #header>
+        {{ $t('page.lowcode.entity.importFields') }}
+      </template>
+
+      <NTabs type="line">
+        <NTabPane name="json" :tab="$t('page.lowcode.entity.importFromJson')">
+          <NInput
+            v-model:value="importJson"
+            type="textarea"
+            :rows="10"
+            :placeholder="$t('page.lowcode.entity.importJsonPlaceholder')"
+          />
+        </NTabPane>
+        <NTabPane name="sql" :tab="$t('page.lowcode.entity.importFromSql')">
+          <NInput
+            v-model:value="importSql"
+            type="textarea"
+            :rows="10"
+            :placeholder="$t('page.lowcode.entity.importSqlPlaceholder')"
+          />
+        </NTabPane>
+        <NTabPane name="csv" :tab="$t('page.lowcode.entity.importFromCsv')">
+          <NUpload :file-list="csvFileList" :max="1" accept=".csv" @change="handleCsvUpload">
+            <NUploadDragger>
+              <div style="margin-bottom: 12px">
+                <NIcon size="48" :depth="3">
+                  <icon-mdi-file-upload />
+                </NIcon>
+              </div>
+              <NText style="font-size: 16px">
+                {{ $t('page.lowcode.entity.uploadCsv') }}
+              </NText>
+              <NP depth="3" style="margin: 8px 0 0 0">
+                {{ $t('page.lowcode.entity.csvFormat') }}
+              </NP>
+            </NUploadDragger>
+          </NUpload>
+        </NTabPane>
+      </NTabs>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="showImportModal = false">{{ $t('common.cancel') }}</NButton>
+          <NButton type="primary" @click="handleImport">{{ $t('common.import') }}</NButton>
+        </NSpace>
+      </template>
+    </NModal>
+  </div>
+</template>
 
 <style scoped>
 .entity-field-manager {

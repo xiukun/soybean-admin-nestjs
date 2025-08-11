@@ -1,67 +1,8 @@
-<template>
-  <div class="x6-graph-canvas">
-    <!-- X6画布容器 -->
-    <div ref="graphContainer" class="graph-container"></div>
-    
-    <!-- 工具栏 -->
-    <div class="graph-toolbar">
-      <NSpace>
-        <!-- 缩放控制 -->
-        <NButtonGroup size="small">
-          <NButton @click="zoomIn">
-            <template #icon>
-              <NIcon><icon-mdi-plus /></NIcon>
-            </template>
-          </NButton>
-          <NButton @click="zoomOut">
-            <template #icon>
-              <NIcon><icon-mdi-minus /></NIcon>
-            </template>
-          </NButton>
-          <NButton @click="zoomToFit">
-            <template #icon>
-              <NIcon><icon-mdi-fit-to-page /></NIcon>
-            </template>
-          </NButton>
-          <NButton @click="zoomToOrigin">
-            <template #icon>
-              <NIcon><icon-mdi-home /></NIcon>
-            </template>
-          </NButton>
-        </NButtonGroup>
-        
-        <!-- 布局控制 -->
-        <NDropdown :options="layoutOptions" @select="handleLayoutSelect">
-          <NButton size="small">
-            <template #icon>
-              <NIcon><icon-mdi-auto-fix /></NIcon>
-            </template>
-            自动布局
-          </NButton>
-        </NDropdown>
-        
-        <!-- 显示控制 -->
-        <NCheckbox v-model:checked="showGrid" @update:checked="toggleGrid" size="small">
-          网格
-        </NCheckbox>
-        
-        <!-- 缩放显示 -->
-        <NText depth="3" class="text-xs">
-          {{ Math.round(currentZoom * 100) }}%
-        </NText>
-      </NSpace>
-    </div>
-    
-    <!-- 小地图 -->
-    <div v-if="showMinimap" class="minimap-wrapper">
-      <div ref="minimapContainer" class="minimap"></div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
-import { Graph, Node, Edge, Shape } from '@antv/x6';
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { NButton, NButtonGroup, NCheckbox, NDropdown, NIcon, NSpace, NText } from 'naive-ui';
+import type { Edge, Node } from '@antv/x6';
+import { Graph, Shape } from '@antv/x6';
 import { Selection } from '@antv/x6-plugin-selection';
 import { Snapline } from '@antv/x6-plugin-snapline';
 import { Keyboard } from '@antv/x6-plugin-keyboard';
@@ -71,8 +12,14 @@ import { Transform } from '@antv/x6-plugin-transform';
 import { MiniMap } from '@antv/x6-plugin-minimap';
 import { Scroller } from '@antv/x6-plugin-scroller';
 import { DagreLayout } from '@antv/layout';
-import { NButton, NButtonGroup, NSpace, NIcon, NDropdown, NCheckbox, NText } from 'naive-ui';
 import type { Entity, EntityRelationship } from '../types';
+
+// 图标导入
+import IconMdiPlus from '~icons/mdi/plus';
+import IconMdiMinus from '~icons/mdi/minus';
+import IconMdiFitToPage from '~icons/mdi/fit-to-page';
+import IconMdiHome from '~icons/mdi/home';
+import IconMdiAutoFix from '~icons/mdi/auto-fix';
 
 // 实体字段接口定义
 interface EntityField {
@@ -84,16 +31,10 @@ interface EntityField {
   description?: string;
 }
 
-// 图标导入
-import IconMdiPlus from '~icons/mdi/plus';
-import IconMdiMinus from '~icons/mdi/minus';
-import IconMdiFitToPage from '~icons/mdi/fit-to-page';
-import IconMdiHome from '~icons/mdi/home';
-import IconMdiAutoFix from '~icons/mdi/auto-fix';
-
 /**
  * X6图形画布组件
- * @description 基于AntV X6的实体关系图渲染引擎，支持拖拽、缩放、布局等功能
+ *
+ * 基于AntV X6的实体关系图渲染引擎，支持拖拽、缩放、布局等功能
  */
 
 interface Props {
@@ -168,9 +109,7 @@ const layoutOptions = [
   { label: '环形布局', key: 'circular' }
 ];
 
-/**
- * 注册自定义实体节点
- */
+/** 注册自定义实体节点 */
 function registerEntityNode() {
   Graph.registerNode(
     'entity-node',
@@ -212,9 +151,7 @@ function registerEntityNode() {
   );
 }
 
-/**
- * 注册自定义关系边
- */
+/** 注册自定义关系边 */
 function registerRelationshipEdge() {
   Graph.registerEdge(
     'relationship-edge',
@@ -252,16 +189,14 @@ function registerRelationshipEdge() {
   );
 }
 
-/**
- * 初始化图形实例
- */
+/** 初始化图形实例 */
 function initGraph() {
   if (!graphContainer.value) return;
-  
+
   // 注册自定义节点和边
   registerEntityNode();
   registerRelationshipEdge();
-  
+
   // 创建图形实例
   graph = new Graph({
     container: graphContainer.value,
@@ -313,7 +248,7 @@ function initGraph() {
         });
       },
       validateConnection({ targetMagnet }) {
-        return !!targetMagnet;
+        return Boolean(targetMagnet);
       }
     },
     highlighting: {
@@ -326,10 +261,10 @@ function initGraph() {
           }
         }
       }
-    },
+    }
     // resizing和rotating配置移到Transform插件中
   });
-  
+
   // 使用插件
   graph
     .use(
@@ -344,8 +279,8 @@ function initGraph() {
     .use(new History())
     .use(
       new Transform({
-        resizing: props.readonly ? false : true,
-        rotating: props.readonly ? false : true
+        resizing: !props.readonly,
+        rotating: !props.readonly
       })
     )
     .use(
@@ -355,7 +290,7 @@ function initGraph() {
         autoResize: true
       })
     );
-  
+
   // 初始化小地图
   if (props.showMinimap && (props.minimapContainer || minimapContainer.value)) {
     const container = props.minimapContainer || minimapContainer.value;
@@ -367,54 +302,52 @@ function initGraph() {
     });
     graph.use(minimap);
   }
-  
+
   // 绑定事件
   bindEvents();
-  
+
   // 渲染数据
   renderData();
-  
+
   // 通知父组件图形实例已准备就绪
   emit('graph-ready', graph);
 }
 
-/**
- * 绑定图形事件
- */
+/** 绑定图形事件 */
 function bindEvents() {
   if (!graph) return;
-  
+
   // 节点选中事件
   graph.on('node:selected', ({ node }) => {
     emit('node-selected', node);
   });
-  
+
   // 边选中事件
   graph.on('edge:selected', ({ edge }) => {
     emit('edge-selected', edge);
   });
-  
+
   // 选择清空事件
   graph.on('selection:cleared', () => {
     emit('selection-cleared');
   });
-  
+
   // 节点点击事件
   graph.on('node:click', ({ node }) => {
     emit('node-clicked', node);
   });
-  
+
   // 节点移动事件
   graph.on('node:moved', ({ node }) => {
     const position = node.getPosition();
     emit('node-moved', node, position);
   });
-  
+
   // 缩放变化事件
   graph.on('scale', ({ sx }) => {
     currentZoom.value = sx;
   });
-  
+
   // 连接创建事件
   graph.on('edge:connected', ({ edge }) => {
     const sourceNode = edge.getSourceNode();
@@ -425,32 +358,30 @@ function bindEvents() {
   });
 }
 
-/**
- * 渲染实体和关系数据
- */
+/** 渲染实体和关系数据 */
 function renderData() {
   if (!graph) return;
-  
+
   // 清空现有内容
   graph.clearCells();
-  
+
   // 渲染实体节点
   const nodes = props.entities.map((entity, index) => {
     return createEntityNode(entity, index);
   });
-  
+
   // 渲染关系边
   const edges = props.relationships.map(relationship => {
     return createRelationshipEdge(relationship);
   });
-  
+
   // 添加到图形中
   graph.addNodes(nodes);
   const validEdges = edges.filter(edge => edge !== null);
   if (validEdges.length > 0) {
     graph.addEdges(validEdges);
   }
-  
+
   // 自动布局
   nextTick(() => {
     autoLayout();
@@ -459,6 +390,7 @@ function renderData() {
 
 /**
  * 创建实体节点
+ *
  * @param entity - 实体数据
  * @param index - 索引
  */
@@ -469,16 +401,19 @@ function createEntityNode(entity: Entity, index: number) {
     { id: '2', name: 'name', type: 'varchar', isRequired: true },
     { id: '3', name: 'created_at', type: 'timestamp', isRequired: true }
   ];
-  
-  const fieldsHtml = mockFields.map(field => 
-    `<div class="field-item">
+
+  const fieldsHtml = mockFields
+    .map(
+      field =>
+        `<div class="field-item">
       <span class="field-name">${field.name}</span>
       <span class="field-type">${field.type}</span>
       ${field.isPrimaryKey ? '<span class="field-key">🔑</span>' : ''}
       ${field.isRequired ? '<span class="field-required">*</span>' : ''}
     </div>`
-  ).join('');
-  
+    )
+    .join('');
+
   const contentHtml = `
     <div class="entity-content">
       <div class="entity-header">
@@ -490,7 +425,7 @@ function createEntityNode(entity: Entity, index: number) {
       </div>
     </div>
   `;
-  
+
   return graph!.createNode({
     shape: 'entity-node',
     x: 100 + (index % 4) * 250,
@@ -572,28 +507,24 @@ function createEntityNode(entity: Entity, index: number) {
           }
         }
       },
-      items: [
-        { group: 'top' },
-        { group: 'right' },
-        { group: 'bottom' },
-        { group: 'left' }
-      ]
+      items: [{ group: 'top' }, { group: 'right' }, { group: 'bottom' }, { group: 'left' }]
     }
   });
 }
 
 /**
  * 创建关系边
+ *
  * @param relationship - 关系数据
  */
 function createRelationshipEdge(relationship: EntityRelationship) {
   const sourceEntity = props.entities.find(e => e.id === relationship.sourceEntityId);
   const targetEntity = props.entities.find(e => e.id === relationship.targetEntityId);
-  
+
   if (!sourceEntity || !targetEntity) {
     return null;
   }
-  
+
   return graph!.createEdge({
     shape: 'relationship-edge',
     source: { cell: sourceEntity.id },
@@ -641,17 +572,15 @@ function createRelationshipEdge(relationship: EntityRelationship) {
   });
 }
 
-/**
- * 自动布局
- */
+/** 自动布局 */
 function autoLayout() {
   if (!graph) return;
-  
+
   const nodes = graph.getNodes();
   const edges = graph.getEdges();
-  
+
   if (nodes.length === 0) return;
-  
+
   // 简单的网格布局
   const cols = Math.ceil(Math.sqrt(nodes.length));
   nodes.forEach((node, index) => {
@@ -663,9 +592,7 @@ function autoLayout() {
   });
 }
 
-/**
- * 缩放控制函数
- */
+/** 缩放控制函数 */
 function zoomIn() {
   if (graph) {
     graph.zoom(0.1);
@@ -691,9 +618,7 @@ function zoomToOrigin() {
   }
 }
 
-/**
- * 切换网格显示
- */
+/** 切换网格显示 */
 function toggleGrid() {
   if (graph) {
     if (showGrid.value) {
@@ -706,6 +631,7 @@ function toggleGrid() {
 
 /**
  * 处理布局选择
+ *
  * @param layoutKey - 布局类型
  */
 function handleLayoutSelect(layoutKey: string) {
@@ -715,30 +641,44 @@ function handleLayoutSelect(layoutKey: string) {
 }
 
 // 监听属性变化
-watch(() => props.entities, () => {
-  renderData();
-}, { deep: true });
+watch(
+  () => props.entities,
+  () => {
+    renderData();
+  },
+  { deep: true }
+);
 
-watch(() => props.relationships, () => {
-  renderData();
-}, { deep: true });
+watch(
+  () => props.relationships,
+  () => {
+    renderData();
+  },
+  { deep: true }
+);
 
-watch(() => props.showGrid, (newVal) => {
-  showGrid.value = newVal;
-  toggleGrid();
-});
-
-watch(() => props.showConnectionPoints, (newVal) => {
-  if (graph) {
-    const nodes = graph.getNodes();
-    nodes.forEach(node => {
-      const ports = node.getPorts();
-      ports.forEach(port => {
-        node.setPortProp(port.id!, 'attrs/circle/style/visibility', newVal ? 'visible' : 'hidden');
-      });
-    });
+watch(
+  () => props.showGrid,
+  newVal => {
+    showGrid.value = newVal;
+    toggleGrid();
   }
-});
+);
+
+watch(
+  () => props.showConnectionPoints,
+  newVal => {
+    if (graph) {
+      const nodes = graph.getNodes();
+      nodes.forEach(node => {
+        const ports = node.getPorts();
+        ports.forEach(port => {
+          node.setPortProp(port.id!, 'attrs/circle/style/visibility', newVal ? 'visible' : 'hidden');
+        });
+      });
+    }
+  }
+);
 
 // 组件挂载
 onMounted(() => {
@@ -768,6 +708,63 @@ const SimpleNodeView = Shape.Rect.define({
   }
 });
 </script>
+
+<template>
+  <div class="x6-graph-canvas">
+    <!-- X6画布容器 -->
+    <div ref="graphContainer" class="graph-container"></div>
+
+    <!-- 工具栏 -->
+    <div class="graph-toolbar">
+      <NSpace>
+        <!-- 缩放控制 -->
+        <NButtonGroup size="small">
+          <NButton @click="zoomIn">
+            <template #icon>
+              <NIcon><icon-mdi-plus /></NIcon>
+            </template>
+          </NButton>
+          <NButton @click="zoomOut">
+            <template #icon>
+              <NIcon><icon-mdi-minus /></NIcon>
+            </template>
+          </NButton>
+          <NButton @click="zoomToFit">
+            <template #icon>
+              <NIcon><icon-mdi-fit-to-page /></NIcon>
+            </template>
+          </NButton>
+          <NButton @click="zoomToOrigin">
+            <template #icon>
+              <NIcon><icon-mdi-home /></NIcon>
+            </template>
+          </NButton>
+        </NButtonGroup>
+
+        <!-- 布局控制 -->
+        <NDropdown :options="layoutOptions" @select="handleLayoutSelect">
+          <NButton size="small">
+            <template #icon>
+              <NIcon><icon-mdi-auto-fix /></NIcon>
+            </template>
+            自动布局
+          </NButton>
+        </NDropdown>
+
+        <!-- 显示控制 -->
+        <NCheckbox v-model:checked="showGrid" size="small" @update:checked="toggleGrid">网格</NCheckbox>
+
+        <!-- 缩放显示 -->
+        <NText depth="3" class="text-xs">{{ Math.round(currentZoom * 100) }}%</NText>
+      </NSpace>
+    </div>
+
+    <!-- 小地图 -->
+    <div v-if="showMinimap" class="minimap-wrapper">
+      <div ref="minimapContainer" class="minimap"></div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .x6-graph-canvas {

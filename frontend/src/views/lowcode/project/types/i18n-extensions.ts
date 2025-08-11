@@ -77,6 +77,6 @@ export function $t(key: string): string {
     'page.lowcode.project.status.inactive': '非活跃',
     'page.lowcode.project.status.archived': '已归档'
   };
-  
+
   return translations[key] || key;
 }

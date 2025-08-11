@@ -1,72 +1,14 @@
-<template>
-  <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
-    <!-- 项目选择器 (仅在没有传入projectId时显示) -->
-    <NCard v-if="!props.projectId" title="项目选择" :bordered="false" size="small">
-      <NSelect
-        v-model:value="selectedProjectId"
-        :options="projectOptions"
-        :loading="projectLoading"
-        placeholder="请选择项目"
-        clearable
-        @update:value="getDataByPage"
-      />
-    </NCard>
-
-    <QuerySearch v-model:model="searchParams" @reset="resetSearchParams" @search="getDataByPage" />
-    <NCard :title="$t('page.lowcode.query.title')" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
-      <template #header-extra>
-        <TableHeaderOperation
-          v-model:columns="columnChecks"
-          :disabled-delete="checkedRowKeys.length === 0"
-          :loading="loading"
-          @add="handleAdd"
-          @delete="handleBatchDelete"
-          @refresh="getData"
-        />
-      </template>
-      <NDataTable
-        v-model:checked-row-keys="checkedRowKeys"
-        :columns="columns"
-        :data="data"
-        size="small"
-        :flex-height="!appStore.isMobile"
-        :scroll-x="962"
-        :loading="loading"
-        remote
-        :row-key="row => row.id"
-        :pagination="mobilePagination"
-        class="sm:h-full"
-      />
-    </NCard>
-    <QueryOperateDrawer
-      v-model:visible="drawerVisible"
-      :operate-type="operateType"
-      :row-data="editingData"
-      :project-id="projectId"
-      @submitted="getDataByPage"
-    />
-    <QueryResultModal
-      v-model:visible="resultModalVisible"
-      :data="modalData"
-      :query-name="queryResult?.query?.name || ''"
-      :execute-time="queryResult?.query?.executeTime || 0"
-      :loading="resultLoading"
-      :error="queryResult?.error"
-    />
-  </div>
-</template>
-
 <script setup lang="tsx">
 import { computed, ref, watch } from 'vue';
 import { NButton, NCard, NPopconfirm, NSelect, NTag } from 'naive-ui';
-import { fetchDeleteQuery, fetchGetQueryList, fetchExecuteQuery, fetchGetAllProjects } from '@/service/api';
-import { $t } from '@/locales';
+import { fetchDeleteQuery, fetchExecuteQuery, fetchGetAllProjects, fetchGetQueryList } from '@/service/api';
 import { useAppStore } from '@/store/modules/app';
 import { useTable, useTableOperate } from '@/hooks/common/table';
+import { $t } from '@/locales';
+import TableHeaderOperation from '@/components/advanced/table-header-operation.vue';
 import QueryOperateDrawer from './modules/query-operate-drawer.vue';
 import QuerySearch from './modules/query-search.vue';
 import QueryResultModal from './modules/query-result-modal.vue';
-import TableHeaderOperation from '@/components/advanced/table-header-operation.vue';
 
 const appStore = useAppStore();
 
@@ -254,15 +196,8 @@ const {
   ]
 });
 
-const {
-  drawerVisible,
-  operateType,
-  editingData,
-  handleAdd,
-  handleEdit,
-  checkedRowKeys,
-  onBatchDeleted
-} = useTableOperate(data as any, getData);
+const { drawerVisible, operateType, editingData, handleAdd, handleEdit, checkedRowKeys, onBatchDeleted } =
+  useTableOperate(data as any, getData);
 
 async function handleDelete(id: string) {
   await fetchDeleteQuery(id);
@@ -306,8 +241,6 @@ async function handleExecute(id: string) {
   }
 }
 
-
-
 // 加载项目列表
 async function loadProjects() {
   if (props.projectId) return; // 如果已有projectId，不需要加载项目列表
@@ -332,15 +265,77 @@ async function loadProjects() {
 }
 
 // Watch for projectId changes
-watch(() => currentProjectId.value, () => {
-  if (currentProjectId.value) {
-    (searchParams as any).projectId = currentProjectId.value;
-    getDataByPage();
-  }
-}, { immediate: true });
+watch(
+  () => currentProjectId.value,
+  () => {
+    if (currentProjectId.value) {
+      (searchParams as any).projectId = currentProjectId.value;
+      getDataByPage();
+    }
+  },
+  { immediate: true }
+);
 
 // 初始化时加载项目列表
 loadProjects();
 </script>
+
+<template>
+  <div class="min-h-500px flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
+    <!-- 项目选择器 (仅在没有传入projectId时显示) -->
+    <NCard v-if="!props.projectId" title="项目选择" :bordered="false" size="small">
+      <NSelect
+        v-model:value="selectedProjectId"
+        :options="projectOptions"
+        :loading="projectLoading"
+        placeholder="请选择项目"
+        clearable
+        @update:value="getDataByPage"
+      />
+    </NCard>
+
+    <QuerySearch v-model:model="searchParams" @reset="resetSearchParams" @search="getDataByPage" />
+    <NCard :title="$t('page.lowcode.query.title')" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
+      <template #header-extra>
+        <TableHeaderOperation
+          v-model:columns="columnChecks"
+          :disabled-delete="checkedRowKeys.length === 0"
+          :loading="loading"
+          @add="handleAdd"
+          @delete="handleBatchDelete"
+          @refresh="getData"
+        />
+      </template>
+      <NDataTable
+        v-model:checked-row-keys="checkedRowKeys"
+        :columns="columns"
+        :data="data"
+        size="small"
+        :flex-height="!appStore.isMobile"
+        :scroll-x="962"
+        :loading="loading"
+        remote
+        :row-key="row => row.id"
+        :pagination="mobilePagination"
+        class="sm:h-full"
+      />
+    </NCard>
+    <QueryOperateDrawer
+      v-model:visible="drawerVisible"
+      :operate-type="operateType"
+      :row-data="editingData"
+      :project-id="projectId"
+      @submitted="getDataByPage"
+    />
+    <QueryResultModal
+      v-model:visible="resultModalVisible"
+      :data="modalData"
+      :query-name="queryResult?.query?.name || ''"
+      :execute-time="queryResult?.query?.executeTime || 0"
+      :loading="resultLoading"
+      :error="queryResult?.error"
+    />
+  </div>
+</template>
 
 <style scoped></style>

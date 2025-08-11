@@ -1,8 +1,6 @@
-/**
- * Performance optimization utilities for the low-code platform
- */
+/** Performance optimization utilities for the low-code platform */
 
-import { ref, nextTick } from 'vue';
+import { nextTick, ref } from 'vue';
 
 // Performance metrics interface
 export interface PerformanceMetric {
@@ -26,9 +24,7 @@ export class ComponentPerformanceTracker {
     return ComponentPerformanceTracker.instance;
   }
 
-  /**
-   * Start tracking component render time
-   */
+  /** Start tracking component render time */
   startRender(componentName: string): () => void {
     const startTime = performance.now();
 
@@ -41,19 +37,18 @@ export class ComponentPerformanceTracker {
         value: duration,
         unit: 'ms',
         timestamp: Date.now(),
-        metadata: { componentName, type: 'render' },
+        metadata: { componentName, type: 'render' }
       });
 
       // Log slow renders
-      if (duration > 16) { // More than one frame at 60fps
+      if (duration > 16) {
+        // More than one frame at 60fps
         console.warn(`Slow render detected: ${componentName} took ${duration.toFixed(2)}ms`);
       }
     };
   }
 
-  /**
-   * Track API call performance
-   */
+  /** Track API call performance */
   trackApiCall(url: string, method: string): () => void {
     const startTime = performance.now();
 
@@ -66,14 +61,12 @@ export class ComponentPerformanceTracker {
         value: duration,
         unit: 'ms',
         timestamp: Date.now(),
-        metadata: { url, method, type: 'api' },
+        metadata: { url, method, type: 'api' }
       });
     };
   }
 
-  /**
-   * Record a performance metric
-   */
+  /** Record a performance metric */
   recordMetric(metric: PerformanceMetric): void {
     this.metrics.push(metric);
 
@@ -83,9 +76,7 @@ export class ComponentPerformanceTracker {
     }
   }
 
-  /**
-   * Get performance metrics
-   */
+  /** Get performance metrics */
   getMetrics(filter?: { name?: string; type?: string; since?: number }): PerformanceMetric[] {
     let filtered = this.metrics;
 
@@ -104,9 +95,7 @@ export class ComponentPerformanceTracker {
     return filtered;
   }
 
-  /**
-   * Get performance summary
-   */
+  /** Get performance summary */
   getSummary(): {
     totalMetrics: number;
     averageRenderTime: number;
@@ -117,13 +106,11 @@ export class ComponentPerformanceTracker {
     const renderMetrics = this.getMetrics({ type: 'render' });
     const apiMetrics = this.getMetrics({ type: 'api' });
 
-    const averageRenderTime = renderMetrics.length > 0
-      ? renderMetrics.reduce((sum, m) => sum + m.value, 0) / renderMetrics.length
-      : 0;
+    const averageRenderTime =
+      renderMetrics.length > 0 ? renderMetrics.reduce((sum, m) => sum + m.value, 0) / renderMetrics.length : 0;
 
-    const averageApiTime = apiMetrics.length > 0
-      ? apiMetrics.reduce((sum, m) => sum + m.value, 0) / apiMetrics.length
-      : 0;
+    const averageApiTime =
+      apiMetrics.length > 0 ? apiMetrics.reduce((sum, m) => sum + m.value, 0) / apiMetrics.length : 0;
 
     const slowComponents = renderMetrics
       .filter(m => m.value > 16)
@@ -140,13 +127,11 @@ export class ComponentPerformanceTracker {
       averageRenderTime,
       averageApiTime,
       slowComponents,
-      slowApis,
+      slowApis
     };
   }
 
-  /**
-   * Initialize performance observers
-   */
+  /** Initialize performance observers */
   initializeObservers(): void {
     if (typeof window === 'undefined' || !window.PerformanceObserver) {
       return;
@@ -154,14 +139,14 @@ export class ComponentPerformanceTracker {
 
     // Observe long tasks
     try {
-      const longTaskObserver = new PerformanceObserver((list) => {
+      const longTaskObserver = new PerformanceObserver(list => {
         for (const entry of list.getEntries()) {
           this.recordMetric({
             name: 'long_task',
             value: entry.duration,
             unit: 'ms',
             timestamp: Date.now(),
-            metadata: { type: 'long_task', startTime: entry.startTime },
+            metadata: { type: 'long_task', startTime: entry.startTime }
           });
 
           if (entry.duration > 50) {
@@ -177,9 +162,7 @@ export class ComponentPerformanceTracker {
     }
   }
 
-  /**
-   * Cleanup observers
-   */
+  /** Cleanup observers */
   cleanup(): void {
     this.observers.forEach(observer => observer.disconnect());
     this.observers = [];
@@ -188,6 +171,7 @@ export class ComponentPerformanceTracker {
 
 /**
  * Debounce function to limit the rate of function execution
+ *
  * @param func - Function to debounce
  * @param delay - Delay in milliseconds
  * @returns Debounced function
@@ -197,12 +181,12 @@ export function debounce<T extends (...args: any[]) => any>(
   delay: number = 300
 ): (...args: Parameters<T>) => void {
   let timeoutId: NodeJS.Timeout | null = null;
-  
+
   return (...args: Parameters<T>) => {
     if (timeoutId) {
       clearTimeout(timeoutId);
     }
-    
+
     timeoutId = setTimeout(() => {
       func.apply(null, args);
     }, delay);
@@ -211,6 +195,7 @@ export function debounce<T extends (...args: any[]) => any>(
 
 /**
  * Throttle function to limit the rate of function execution
+ *
  * @param func - Function to throttle
  * @param delay - Delay in milliseconds
  * @returns Throttled function
@@ -221,10 +206,10 @@ export function throttle<T extends (...args: any[]) => any>(
 ): (...args: Parameters<T>) => void {
   let lastExecTime = 0;
   let timeoutId: NodeJS.Timeout | null = null;
-  
+
   return (...args: Parameters<T>) => {
     const currentTime = Date.now();
-    
+
     if (currentTime - lastExecTime > delay) {
       func.apply(null, args);
       lastExecTime = currentTime;
@@ -232,17 +217,21 @@ export function throttle<T extends (...args: any[]) => any>(
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
-      
-      timeoutId = setTimeout(() => {
-        func.apply(null, args);
-        lastExecTime = Date.now();
-      }, delay - (currentTime - lastExecTime));
+
+      timeoutId = setTimeout(
+        () => {
+          func.apply(null, args);
+          lastExecTime = Date.now();
+        },
+        delay - (currentTime - lastExecTime)
+      );
     }
   };
 }
 
 /**
  * Lazy loading hook for large datasets
+ *
  * @param loadFn - Function to load data
  * @param pageSize - Number of items per page
  * @returns Lazy loading utilities
@@ -263,13 +252,13 @@ export function useLazyLoading<T>(
     try {
       loading.value = true;
       const result = await loadFn(currentPage.value, pageSize);
-      
+
       if (currentPage.value === 1) {
         data.value = result.data;
       } else {
         data.value.push(...result.data);
       }
-      
+
       total.value = result.total;
       hasMore.value = data.value.length < result.total;
       currentPage.value++;
@@ -305,16 +294,13 @@ export function useLazyLoading<T>(
 
 /**
  * Virtual scrolling hook for large lists
+ *
  * @param items - Array of items
  * @param itemHeight - Height of each item
  * @param containerHeight - Height of the container
  * @returns Virtual scrolling utilities
  */
-export function useVirtualScrolling<T>(
-  items: T[],
-  itemHeight: number = 50,
-  containerHeight: number = 400
-) {
+export function useVirtualScrolling<T>(items: T[], itemHeight: number = 50, containerHeight: number = 400) {
   const scrollTop = ref(0);
   const visibleCount = Math.ceil(containerHeight / itemHeight);
   const bufferSize = Math.floor(visibleCount / 2);
@@ -325,7 +311,7 @@ export function useVirtualScrolling<T>(
   const updateVisibleRange = () => {
     const newStartIndex = Math.max(0, Math.floor(scrollTop.value / itemHeight) - bufferSize);
     const newEndIndex = Math.min(items.length, newStartIndex + visibleCount + bufferSize * 2);
-    
+
     startIndex.value = newStartIndex;
     endIndex.value = newEndIndex;
   };
@@ -363,6 +349,7 @@ export function useVirtualScrolling<T>(
 
 /**
  * Memory optimization hook to prevent memory leaks
+ *
  * @returns Memory optimization utilities
  */
 export function useMemoryOptimization() {
@@ -382,7 +369,7 @@ export function useMemoryOptimization() {
 
   const addEventListener = (target: EventTarget, event: string, handler: EventListener) => {
     target.addEventListener(event, handler);
-    
+
     if (!listeners.has(target)) {
       listeners.set(target, []);
     }
@@ -417,6 +404,7 @@ export function useMemoryOptimization() {
 
 /**
  * Cache hook for API responses
+ *
  * @param maxSize - Maximum cache size
  * @param ttl - Time to live in milliseconds
  * @returns Cache utilities

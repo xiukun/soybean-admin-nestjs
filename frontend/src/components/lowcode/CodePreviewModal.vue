@@ -1,189 +1,7 @@
-<template>
-  <NModal
-    v-model:show="visible"
-    :mask-closable="false"
-    preset="card"
-    :title="$t('page.lowcode.codeGeneration.preview.title')"
-    class="w-[90vw] h-[85vh]"
-    :segmented="true"
-  >
-    <template #header-extra>
-      <NSpace>
-        <NButton size="small" @click="handleRefresh" :loading="refreshing">
-          <template #icon>
-            <NIcon><icon-mdi-refresh /></NIcon>
-          </template>
-          {{ $t('common.refresh') }}
-        </NButton>
-        <NButton size="small" @click="handleDownload" :loading="downloading">
-          <template #icon>
-            <NIcon><icon-mdi-download /></NIcon>
-          </template>
-          {{ $t('common.download') }}
-        </NButton>
-      </NSpace>
-    </template>
-
-    <div class="h-full flex">
-      <!-- File Tree -->
-      <div class="w-80 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-        <div class="p-3 border-b border-gray-200 dark:border-gray-700">
-          <NSpace justify="space-between" align="center">
-            <span class="font-medium">{{ $t('page.lowcode.codeGeneration.preview.fileTree') }}</span>
-            <NSpace>
-              <NButton size="tiny" @click="expandAll">
-                <template #icon>
-                  <NIcon><icon-mdi-unfold-more-horizontal /></NIcon>
-                </template>
-              </NButton>
-              <NButton size="tiny" @click="collapseAll">
-                <template #icon>
-                  <NIcon><icon-mdi-unfold-less-horizontal /></NIcon>
-                </template>
-              </NButton>
-            </NSpace>
-          </NSpace>
-        </div>
-        
-        <div class="flex-1 overflow-auto p-2">
-          <NTree
-            v-if="fileTreeData.length > 0"
-            :data="fileTreeData"
-            :expanded-keys="expandedKeys"
-            :selected-keys="selectedKeys"
-            key-field="key"
-            label-field="label"
-            children-field="children"
-            block-line
-            @update:selected-keys="handleFileSelect"
-            @update:expanded-keys="handleExpandedKeysChange"
-          >
-            <template #prefix="{ option }">
-              <NIcon>
-                <icon-mdi-file v-if="!option.children" />
-                <icon-mdi-folder v-else />
-              </NIcon>
-            </template>
-            <template #suffix="{ option }">
-              <NTag v-if="option.size" size="small" type="info">
-                {{ formatFileSize(option.size) }}
-              </NTag>
-            </template>
-          </NTree>
-          <NEmpty v-else :description="$t('page.lowcode.codeGeneration.preview.noFiles')" />
-        </div>
-
-        <!-- File Statistics -->
-        <div class="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-          <div class="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-            <div>{{ $t('page.lowcode.codeGeneration.preview.totalFiles') }}: {{ fileStats.totalFiles }}</div>
-            <div>{{ $t('page.lowcode.codeGeneration.preview.totalSize') }}: {{ formatFileSize(fileStats.totalSize) }}</div>
-            <div>{{ $t('page.lowcode.codeGeneration.preview.totalLines') }}: {{ fileStats.totalLines }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Code Editor -->
-      <div class="flex-1 flex flex-col">
-        <!-- Editor Header -->
-        <div class="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-          <NSpace justify="space-between" align="center">
-            <div class="flex items-center space-x-2">
-              <NIcon>
-                <icon-mdi-file-code />
-              </NIcon>
-              <span class="font-medium">{{ currentFile?.label || $t('page.lowcode.codeGeneration.preview.selectFile') }}</span>
-              <NTag v-if="currentFile?.language" size="small" type="primary">
-                {{ currentFile.language }}
-              </NTag>
-            </div>
-            <NSpace>
-              <NButton size="tiny" @click="handleCopyCode" :disabled="!currentFileContent">
-                <template #icon>
-                  <NIcon><icon-mdi-content-copy /></NIcon>
-                </template>
-                {{ $t('common.copy') }}
-              </NButton>
-              <NButton size="tiny" @click="handleFormatCode" :disabled="!currentFileContent">
-                <template #icon>
-                  <NIcon><icon-mdi-code-braces /></NIcon>
-                </template>
-                {{ $t('page.lowcode.codeGeneration.preview.format') }}
-              </NButton>
-            </NSpace>
-          </NSpace>
-        </div>
-
-        <!-- Code Content -->
-        <div class="flex-1 relative">
-          <div v-if="currentFileContent" class="h-full">
-            <!-- Monaco Editor -->
-            <div ref="editorContainer" class="h-full w-full"></div>
-          </div>
-          <div v-else class="h-full flex items-center justify-center">
-            <NEmpty :description="$t('page.lowcode.codeGeneration.preview.selectFileToPreview')" />
-          </div>
-        </div>
-
-        <!-- Editor Footer -->
-        <div class="p-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-          <NSpace justify="space-between" align="center" class="text-xs text-gray-600 dark:text-gray-400">
-            <div v-if="currentFile">
-              {{ $t('page.lowcode.codeGeneration.preview.fileSize') }}: {{ formatFileSize(currentFile.size || 0) }}
-            </div>
-            <div v-if="currentFileContent">
-              {{ $t('page.lowcode.codeGeneration.preview.lines') }}: {{ currentFileContent.split('\n').length }}
-            </div>
-            <div v-if="editorCursorPosition">
-              {{ $t('page.lowcode.codeGeneration.preview.position') }}: {{ editorCursorPosition.line }}:{{ editorCursorPosition.column }}
-            </div>
-          </NSpace>
-        </div>
-      </div>
-    </div>
-
-    <!-- Validation Results -->
-    <div v-if="validationResults.length > 0" class="mt-4">
-      <NDivider title-placement="left">
-        {{ $t('page.lowcode.codeGeneration.preview.validation') }}
-      </NDivider>
-      <div class="space-y-2 max-h-32 overflow-auto">
-        <NAlert
-          v-for="(result, index) in validationResults"
-          :key="index"
-          :type="result.type"
-          :title="result.title"
-          size="small"
-          closable
-        >
-          {{ result.message }}
-          <div v-if="result.suggestion" class="mt-1 text-sm opacity-80">
-            <strong>{{ $t('page.lowcode.codeGeneration.preview.suggestion') }}:</strong> {{ result.suggestion }}
-          </div>
-        </NAlert>
-      </div>
-    </div>
-
-    <template #action>
-      <NSpace justify="end">
-        <NButton @click="handleClose">
-          {{ $t('common.close') }}
-        </NButton>
-        <NButton type="primary" @click="handleGenerate" :loading="generating">
-          <template #icon>
-            <NIcon><icon-mdi-play /></NIcon>
-          </template>
-          {{ $t('page.lowcode.codeGeneration.generateFromPreview') }}
-        </NButton>
-      </NSpace>
-    </template>
-  </NModal>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
-import { useMessage } from 'naive-ui';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useClipboard } from '@vueuse/core';
+import { useMessage } from 'naive-ui';
 import * as monaco from 'monaco-editor';
 
 interface FileNode {
@@ -230,9 +48,9 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:visible': [value: boolean];
-  'refresh': [];
-  'download': [];
-  'generate': [];
+  refresh: [];
+  download: [];
+  generate: [];
 }>();
 
 const message = useMessage();
@@ -257,13 +75,15 @@ const fileTreeData = computed(() => {
 });
 
 const fileStats = computed(() => {
-  return props.previewData?.stats || {
-    totalFiles: 0,
-    totalLines: 0,
-    totalSize: 0,
-    fileTypes: {},
-    languages: {},
-  };
+  return (
+    props.previewData?.stats || {
+      totalFiles: 0,
+      totalLines: 0,
+      totalSize: 0,
+      fileTypes: {},
+      languages: {}
+    }
+  );
 });
 
 const validationResults = computed(() => {
@@ -278,7 +98,7 @@ function buildFileTree(structure: any[]): FileNode[] {
     path: item.path,
     children: item.children ? buildFileTree(item.children) : undefined,
     size: item.isFile ? getFileSize(item.path) : undefined,
-    language: item.isFile ? getFileLanguage(item.name) : undefined,
+    language: item.isFile ? getFileLanguage(item.name) : undefined
   }));
 }
 
@@ -290,18 +110,18 @@ function getFileSize(path: string): number {
 function getFileLanguage(fileName: string): string {
   const ext = fileName.split('.').pop()?.toLowerCase();
   const languageMap: Record<string, string> = {
-    'ts': 'typescript',
-    'js': 'javascript',
-    'json': 'json',
-    'md': 'markdown',
-    'yml': 'yaml',
-    'yaml': 'yaml',
-    'sql': 'sql',
-    'prisma': 'prisma',
-    'html': 'html',
-    'css': 'css',
-    'scss': 'scss',
-    'vue': 'vue',
+    ts: 'typescript',
+    js: 'javascript',
+    json: 'json',
+    md: 'markdown',
+    yml: 'yaml',
+    yaml: 'yaml',
+    sql: 'sql',
+    prisma: 'prisma',
+    html: 'html',
+    css: 'css',
+    scss: 'scss',
+    vue: 'vue'
   };
   return languageMap[ext || ''] || 'text';
 }
@@ -311,7 +131,7 @@ function formatFileSize(bytes: number): string {
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
 }
 
 function handleFileSelect(keys: string[]) {
@@ -325,7 +145,7 @@ function handleFileSelect(keys: string[]) {
         label: file.name,
         path: file.path,
         size: file.size,
-        language: file.language,
+        language: file.language
       };
       currentFileContent.value = file.content;
       updateEditor();
@@ -374,21 +194,21 @@ async function updateEditor() {
     automaticLayout: true,
     fontSize: 14,
     lineNumbers: 'on',
-    wordWrap: 'on',
+    wordWrap: 'on'
   });
 
   // Track cursor position
-  editorInstance.value.onDidChangeCursorPosition((e) => {
+  editorInstance.value.onDidChangeCursorPosition(e => {
     editorCursorPosition.value = {
       line: e.position.lineNumber,
-      column: e.position.column,
+      column: e.position.column
     };
   });
 }
 
 async function handleCopyCode() {
   if (!currentFileContent.value) return;
-  
+
   try {
     await copy(currentFileContent.value);
     message.success($t('common.copySuccess'));
@@ -399,7 +219,7 @@ async function handleCopyCode() {
 
 function handleFormatCode() {
   if (!editorInstance.value) return;
-  
+
   editorInstance.value.getAction('editor.action.formatDocument')?.run();
   message.success($t('page.lowcode.codeGeneration.preview.formatSuccess'));
 }
@@ -433,19 +253,22 @@ function handleClose() {
 }
 
 // Watch for visibility changes
-watch(() => props.visible, (visible) => {
-  if (visible && props.previewData?.files.length) {
-    // Auto-select first file
-    nextTick(() => {
-      if (fileTreeData.value.length > 0) {
-        const firstFile = findFirstFile(fileTreeData.value);
-        if (firstFile) {
-          handleFileSelect([firstFile.key]);
+watch(
+  () => props.visible,
+  visible => {
+    if (visible && props.previewData?.files.length) {
+      // Auto-select first file
+      nextTick(() => {
+        if (fileTreeData.value.length > 0) {
+          const firstFile = findFirstFile(fileTreeData.value);
+          if (firstFile) {
+            handleFileSelect([firstFile.key]);
+          }
         }
-      }
-    });
+      });
+    }
   }
-});
+);
 
 function findFirstFile(nodes: FileNode[]): FileNode | null {
   for (const node of nodes) {
@@ -467,6 +290,195 @@ onUnmounted(() => {
   }
 });
 </script>
+
+<template>
+  <NModal
+    v-model:show="visible"
+    :mask-closable="false"
+    preset="card"
+    :title="$t('page.lowcode.codeGeneration.preview.title')"
+    class="h-[85vh] w-[90vw]"
+    :segmented="true"
+  >
+    <template #header-extra>
+      <NSpace>
+        <NButton size="small" :loading="refreshing" @click="handleRefresh">
+          <template #icon>
+            <NIcon><icon-mdi-refresh /></NIcon>
+          </template>
+          {{ $t('common.refresh') }}
+        </NButton>
+        <NButton size="small" :loading="downloading" @click="handleDownload">
+          <template #icon>
+            <NIcon><icon-mdi-download /></NIcon>
+          </template>
+          {{ $t('common.download') }}
+        </NButton>
+      </NSpace>
+    </template>
+
+    <div class="h-full flex">
+      <!-- File Tree -->
+      <div class="w-80 flex flex-col border-r border-gray-200 dark:border-gray-700">
+        <div class="border-b border-gray-200 p-3 dark:border-gray-700">
+          <NSpace justify="space-between" align="center">
+            <span class="font-medium">{{ $t('page.lowcode.codeGeneration.preview.fileTree') }}</span>
+            <NSpace>
+              <NButton size="tiny" @click="expandAll">
+                <template #icon>
+                  <NIcon><icon-mdi-unfold-more-horizontal /></NIcon>
+                </template>
+              </NButton>
+              <NButton size="tiny" @click="collapseAll">
+                <template #icon>
+                  <NIcon><icon-mdi-unfold-less-horizontal /></NIcon>
+                </template>
+              </NButton>
+            </NSpace>
+          </NSpace>
+        </div>
+
+        <div class="flex-1 overflow-auto p-2">
+          <NTree
+            v-if="fileTreeData.length > 0"
+            :data="fileTreeData"
+            :expanded-keys="expandedKeys"
+            :selected-keys="selectedKeys"
+            key-field="key"
+            label-field="label"
+            children-field="children"
+            block-line
+            @update:selected-keys="handleFileSelect"
+            @update:expanded-keys="handleExpandedKeysChange"
+          >
+            <template #prefix="{ option }">
+              <NIcon>
+                <icon-mdi-file v-if="!option.children" />
+                <icon-mdi-folder v-else />
+              </NIcon>
+            </template>
+            <template #suffix="{ option }">
+              <NTag v-if="option.size" size="small" type="info">
+                {{ formatFileSize(option.size) }}
+              </NTag>
+            </template>
+          </NTree>
+          <NEmpty v-else :description="$t('page.lowcode.codeGeneration.preview.noFiles')" />
+        </div>
+
+        <!-- File Statistics -->
+        <div class="border-t border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+          <div class="text-xs text-gray-600 space-y-1 dark:text-gray-400">
+            <div>{{ $t('page.lowcode.codeGeneration.preview.totalFiles') }}: {{ fileStats.totalFiles }}</div>
+            <div>
+              {{ $t('page.lowcode.codeGeneration.preview.totalSize') }}: {{ formatFileSize(fileStats.totalSize) }}
+            </div>
+            <div>{{ $t('page.lowcode.codeGeneration.preview.totalLines') }}: {{ fileStats.totalLines }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Code Editor -->
+      <div class="flex flex-col flex-1">
+        <!-- Editor Header -->
+        <div class="border-b border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+          <NSpace justify="space-between" align="center">
+            <div class="flex items-center space-x-2">
+              <NIcon>
+                <icon-mdi-file-code />
+              </NIcon>
+              <span class="font-medium">
+                {{ currentFile?.label || $t('page.lowcode.codeGeneration.preview.selectFile') }}
+              </span>
+              <NTag v-if="currentFile?.language" size="small" type="primary">
+                {{ currentFile.language }}
+              </NTag>
+            </div>
+            <NSpace>
+              <NButton size="tiny" :disabled="!currentFileContent" @click="handleCopyCode">
+                <template #icon>
+                  <NIcon><icon-mdi-content-copy /></NIcon>
+                </template>
+                {{ $t('common.copy') }}
+              </NButton>
+              <NButton size="tiny" :disabled="!currentFileContent" @click="handleFormatCode">
+                <template #icon>
+                  <NIcon><icon-mdi-code-braces /></NIcon>
+                </template>
+                {{ $t('page.lowcode.codeGeneration.preview.format') }}
+              </NButton>
+            </NSpace>
+          </NSpace>
+        </div>
+
+        <!-- Code Content -->
+        <div class="relative flex-1">
+          <div v-if="currentFileContent" class="h-full">
+            <!-- Monaco Editor -->
+            <div ref="editorContainer" class="h-full w-full"></div>
+          </div>
+          <div v-else class="h-full flex items-center justify-center">
+            <NEmpty :description="$t('page.lowcode.codeGeneration.preview.selectFileToPreview')" />
+          </div>
+        </div>
+
+        <!-- Editor Footer -->
+        <div class="border-t border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-800">
+          <NSpace justify="space-between" align="center" class="text-xs text-gray-600 dark:text-gray-400">
+            <div v-if="currentFile">
+              {{ $t('page.lowcode.codeGeneration.preview.fileSize') }}: {{ formatFileSize(currentFile.size || 0) }}
+            </div>
+            <div v-if="currentFileContent">
+              {{ $t('page.lowcode.codeGeneration.preview.lines') }}: {{ currentFileContent.split('\n').length }}
+            </div>
+            <div v-if="editorCursorPosition">
+              {{ $t('page.lowcode.codeGeneration.preview.position') }}: {{ editorCursorPosition.line }}:{{
+                editorCursorPosition.column
+              }}
+            </div>
+          </NSpace>
+        </div>
+      </div>
+    </div>
+
+    <!-- Validation Results -->
+    <div v-if="validationResults.length > 0" class="mt-4">
+      <NDivider title-placement="left">
+        {{ $t('page.lowcode.codeGeneration.preview.validation') }}
+      </NDivider>
+      <div class="max-h-32 overflow-auto space-y-2">
+        <NAlert
+          v-for="(result, index) in validationResults"
+          :key="index"
+          :type="result.type"
+          :title="result.title"
+          size="small"
+          closable
+        >
+          {{ result.message }}
+          <div v-if="result.suggestion" class="mt-1 text-sm opacity-80">
+            <strong>{{ $t('page.lowcode.codeGeneration.preview.suggestion') }}:</strong>
+            {{ result.suggestion }}
+          </div>
+        </NAlert>
+      </div>
+    </div>
+
+    <template #action>
+      <NSpace justify="end">
+        <NButton @click="handleClose">
+          {{ $t('common.close') }}
+        </NButton>
+        <NButton type="primary" :loading="generating" @click="handleGenerate">
+          <template #icon>
+            <NIcon><icon-mdi-play /></NIcon>
+          </template>
+          {{ $t('page.lowcode.codeGeneration.generateFromPreview') }}
+        </NButton>
+      </NSpace>
+    </template>
+  </NModal>
+</template>
 
 <style scoped>
 .monaco-editor {

@@ -1,4 +1,4 @@
-import lowcode from "./zh-cn/lowcode";
+import lowcode from './zh-cn/lowcode';
 
 const local: App.I18n.Schema = {
   system: {
@@ -9,7 +9,7 @@ const local: App.I18n.Schema = {
     updateCancel: '稍后再说'
   },
   common: {
-    status: '状态',   
+    status: '状态',
     createdAt: '创建时间',
     updatedAt: '更新时间',
     updateFailed: '更新失败',
@@ -471,7 +471,7 @@ const local: App.I18n.Schema = {
         }
       }
     },
-    lowcode,
+    lowcode
   },
   form: {
     required: '不能为空',

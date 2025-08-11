@@ -1,114 +1,13 @@
-<template>
-  <div class="entity-list-panel">
-    <!-- 头部搜索 -->
-    <div class="entity-list-header">
-      <h3 class="panel-title">{{ $t('page.lowcode.relationship.entityList') }}</h3>
-      <n-input 
-        v-model:value="searchKeyword" 
-        :placeholder="$t('page.lowcode.common.search.placeholder')" 
-        size="small"
-        clearable
-        @update:value="handleSearch"
-      >
-        <template #prefix>
-          <icon-mdi-magnify class="text-14px" />
-        </template>
-      </n-input>
-    </div>
-
-    <!-- 实体列表内容 -->
-    <div class="entity-list-content">
-      <n-spin :show="loading">
-        <n-empty 
-          v-if="filteredEntities.length === 0" 
-          :description="$t('page.lowcode.common.messages.noData')" 
-        />
-        <div v-else class="entity-items">
-          <div 
-            v-for="entity in filteredEntities" 
-            :key="entity.id" 
-            class="entity-item"
-            :class="{ 'is-in-graph': isEntityInGraph(entity.id) }"
-            @click="handleEntityClick(entity)"
-          >
-            <div class="entity-item-content">
-              <div class="entity-name">{{ entity.name }}</div>
-              <div class="entity-code">{{ entity.code }}</div>
-              <div v-if="entity.tableName" class="entity-table">{{ entity.tableName }}</div>
-            </div>
-            <div class="entity-actions">
-              <!-- 已在图中的实体操作 -->
-              <template v-if="isEntityInGraph(entity.id)">
-                <n-tooltip placement="top">
-                  <template #trigger>
-                    <n-button 
-                      quaternary 
-                      circle 
-                      size="small"
-                      @click.stop="$emit('locate-entity', entity.id)"
-                    >
-                      <template #icon>
-                        <icon-mdi-crosshairs-gps class="text-14px" />
-                      </template>
-                    </n-button>
-                  </template>
-                  <span>定位实体</span>
-                </n-tooltip>
-                
-                <n-tooltip placement="top">
-                  <template #trigger>
-                    <n-button 
-                      quaternary 
-                      circle 
-                      size="small"
-                      type="error"
-                      @click.stop="$emit('remove-entity', entity.id)"
-                    >
-                      <template #icon>
-                        <icon-mdi-close class="text-14px" />
-                      </template>
-                    </n-button>
-                  </template>
-                  <span>移除实体</span>
-                </n-tooltip>
-              </template>
-              
-              <!-- 未在图中的实体操作 -->
-              <template v-else>
-                <n-tooltip placement="top">
-                  <template #trigger>
-                    <n-button 
-                      quaternary 
-                      circle 
-                      size="small"
-                      type="primary"
-                      @click.stop="$emit('add-entity', entity)"
-                    >
-                      <template #icon>
-                        <icon-mdi-plus class="text-14px" />
-                      </template>
-                    </n-button>
-                  </template>
-                  <span>添加到图中</span>
-                </n-tooltip>
-              </template>
-            </div>
-          </div>
-        </div>
-      </n-spin>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { NInput, NSpin, NEmpty, NButton, NTooltip } from 'naive-ui';
+import { computed, ref } from 'vue';
+import { NButton, NEmpty, NInput, NSpin, NTooltip } from 'naive-ui';
 import { debounce } from 'lodash-es';
+import { useI18n } from 'vue-i18n';
 
 /**
  * 实体列表面板组件
- * @description 显示项目中的所有实体，支持搜索、添加到图中、定位和移除等操作
+ *
+ * 显示项目中的所有实体，支持搜索、添加到图中、定位和移除等操作
  */
 
 interface Entity {
@@ -140,7 +39,7 @@ const emit = defineEmits<{
   /** 定位实体 */
   'locate-entity': [entityId: string];
   /** 搜索关键词变化 */
-  'search': [keyword: string];
+  search: [keyword: string];
 }>();
 
 const { t } = useI18n();
@@ -148,6 +47,7 @@ const searchKeyword = ref('');
 
 /**
  * 检查实体是否已在图中
+ *
  * @param entityId - 实体ID
  * @returns 是否在图中
  */
@@ -157,6 +57,7 @@ function isEntityInGraph(entityId: string): boolean {
 
 /**
  * 过滤后的实体列表
+ *
  * @returns 根据搜索关键词过滤的实体列表
  */
 const filteredEntities = computed(() => {
@@ -164,15 +65,17 @@ const filteredEntities = computed(() => {
     return props.entities;
   }
   const keyword = searchKeyword.value.toLowerCase();
-  return props.entities.filter(entity => 
-    entity.name.toLowerCase().includes(keyword) || 
-    entity.code.toLowerCase().includes(keyword) || 
-    (entity.tableName && entity.tableName.toLowerCase().includes(keyword))
+  return props.entities.filter(
+    entity =>
+      entity.name.toLowerCase().includes(keyword) ||
+      entity.code.toLowerCase().includes(keyword) ||
+      (entity.tableName && entity.tableName.toLowerCase().includes(keyword))
   );
 });
 
 /**
  * 处理实体项点击事件
+ *
  * @param entity - 被点击的实体
  */
 function handleEntityClick(entity: Entity) {
@@ -181,12 +84,101 @@ function handleEntityClick(entity: Entity) {
 
 /**
  * 处理搜索输入变化（防抖）
+ *
  * @param keyword - 搜索关键词
  */
 const handleSearch = debounce((keyword: string) => {
   emit('search', keyword);
 }, 300);
 </script>
+
+<template>
+  <div class="entity-list-panel">
+    <!-- 头部搜索 -->
+    <div class="entity-list-header">
+      <h3 class="panel-title">{{ $t('page.lowcode.relationship.entityList') }}</h3>
+      <NInput
+        v-model:value="searchKeyword"
+        :placeholder="$t('page.lowcode.common.search.placeholder')"
+        size="small"
+        clearable
+        @update:value="handleSearch"
+      >
+        <template #prefix>
+          <icon-mdi-magnify class="text-14px" />
+        </template>
+      </NInput>
+    </div>
+
+    <!-- 实体列表内容 -->
+    <div class="entity-list-content">
+      <NSpin :show="loading">
+        <NEmpty v-if="filteredEntities.length === 0" :description="$t('page.lowcode.common.messages.noData')" />
+        <div v-else class="entity-items">
+          <div
+            v-for="entity in filteredEntities"
+            :key="entity.id"
+            class="entity-item"
+            :class="{ 'is-in-graph': isEntityInGraph(entity.id) }"
+            @click="handleEntityClick(entity)"
+          >
+            <div class="entity-item-content">
+              <div class="entity-name">{{ entity.name }}</div>
+              <div class="entity-code">{{ entity.code }}</div>
+              <div v-if="entity.tableName" class="entity-table">{{ entity.tableName }}</div>
+            </div>
+            <div class="entity-actions">
+              <!-- 已在图中的实体操作 -->
+              <template v-if="isEntityInGraph(entity.id)">
+                <NTooltip placement="top">
+                  <template #trigger>
+                    <NButton quaternary circle size="small" @click.stop="$emit('locate-entity', entity.id)">
+                      <template #icon>
+                        <icon-mdi-crosshairs-gps class="text-14px" />
+                      </template>
+                    </NButton>
+                  </template>
+                  <span>定位实体</span>
+                </NTooltip>
+
+                <NTooltip placement="top">
+                  <template #trigger>
+                    <NButton
+                      quaternary
+                      circle
+                      size="small"
+                      type="error"
+                      @click.stop="$emit('remove-entity', entity.id)"
+                    >
+                      <template #icon>
+                        <icon-mdi-close class="text-14px" />
+                      </template>
+                    </NButton>
+                  </template>
+                  <span>移除实体</span>
+                </NTooltip>
+              </template>
+
+              <!-- 未在图中的实体操作 -->
+              <template v-else>
+                <NTooltip placement="top">
+                  <template #trigger>
+                    <NButton quaternary circle size="small" type="primary" @click.stop="$emit('add-entity', entity)">
+                      <template #icon>
+                        <icon-mdi-plus class="text-14px" />
+                      </template>
+                    </NButton>
+                  </template>
+                  <span>添加到图中</span>
+                </NTooltip>
+              </template>
+            </div>
+          </div>
+        </div>
+      </NSpin>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .entity-list-panel {
