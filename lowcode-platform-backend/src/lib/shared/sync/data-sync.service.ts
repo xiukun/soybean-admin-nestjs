@@ -180,10 +180,10 @@ export class DataSyncService {
           name: field.name,
           code: field.code,
           type: field.type,
-          required: field.required || false,
+          required: !field.nullable, // 使用nullable字段反向映射到required
           defaultValue: field.defaultValue,
-          validation: field.validation,
-          config: field.config || {},
+          validation: field.validationRules, // 映射到正确的字段名
+          config: {}, // field没有config字段，返回空对象
         })),
         relationships: [
           ...entity.sourceRelations.map(rel => ({
@@ -431,10 +431,10 @@ datasource db {
           name: field.name,
           code: field.code,
           type: field.type,
-          required: field.required,
+          required: !field.nullable, // 使用nullable字段反向映射到required
           defaultValue: field.defaultValue,
-          validation: field.validation,
-          config: field.config,
+          validation: field.validationRules, // 映射到正确的字段名
+          config: {}, // field没有config字段，返回空对象
         })),
         relationships: [],
         config: entity.config,

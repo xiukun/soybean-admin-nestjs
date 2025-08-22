@@ -1,5 +1,15 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
+import {
+  fetchGetAllTemplates,
+  fetchAddTemplate,
+  fetchUpdateTemplate,
+  fetchDeleteTemplate,
+  fetchPublishTemplate,
+  fetchTestTemplate,
+  fetchPreviewTemplate,
+  fetchValidateTemplate
+} from '@/service/api/lowcode-template';
 
 // 响应式数据
 const templates = ref([]);
@@ -289,12 +299,16 @@ onMounted(() => {
 const loadTemplates = async () => {
   loading.value = true;
   try {
-    // const response = await api.getTemplates()
-    // templates.value = response.data.options
-    // pagination.total = response.data.total
+    // 获取当前项目ID - 这里需要根据实际情况获取
+    const currentProjectId = 'demo-project-1'; // TODO: 从路由或store获取
+    
+    const response = await fetchGetAllTemplates(currentProjectId);
+    templates.value = response.data || [];
+    pagination.total = templates.value.length;
 
-    // 模拟数据
-    templates.value = [
+    // 如果没有数据，加载模拟数据用于演示
+    if (templates.value.length === 0) {
+      templates.value = [
       {
         id: '1',
         name: 'NestJS Entity Template',
@@ -410,11 +424,14 @@ public class {{entityName}} {
     // Constructors, getters and setters
 }`
       }
-    ];
-    pagination.total = templates.value.length;
+      ];
+      pagination.total = templates.value.length;
+    }
   } catch (error) {
+    console.error('加载模板失败:', error);
     window.$message?.error('加载模板失败');
-    console.error(error);
+    // 如果API失败，使用模拟数据
+    templates.value = [];
   } finally {
     loading.value = false;
   }
@@ -876,7 +893,7 @@ const copyTemplateContent = () => {
 // 模板测试相关方法
 const runTest = async () => {
   if (!testingTemplate.value || !testData.value) {
-    message.warning('请输入测试数据');
+    window.$message?.warning('请输入测试数据');
     return;
   }
 
@@ -886,101 +903,52 @@ const runTest = async () => {
 
   try {
     // 解析测试数据
-    const data = JSON.parse(testData.value);
+    const variables = JSON.parse(testData.value);
 
-    // 模拟模板渲染
-    let result = testingTemplate.value.content;
-
-    // 简单的变量替换
-    Object.keys(data).forEach(key => {
-      const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
-      result = result.replace(regex, data[key]);
+    // 调用真实的API测试模板
+    const response = await fetchTestTemplate(testingTemplate.value.id, {
+      variables,
+      // expectedOutput: undefined // 可选的期望输出
     });
 
-    // 处理数组循环
-    const eachMatches = result.match(/\{\{#each\s+(\w+)\}\}([\s\S]*?)\{\{\/each\}\}/g);
-    if (eachMatches) {
-      eachMatches.forEach(match => {
-        const arrayMatch = match.match(/\{\{#each\s+(\w+)\}\}([\s\S]*?)\{\{\/each\}\}/);
-        if (arrayMatch) {
-          const arrayName = arrayMatch[1];
-          const template = arrayMatch[2];
-          const arrayData = data[arrayName];
-
-          if (Array.isArray(arrayData)) {
-            const renderedItems = arrayData.map(item => {
-              let itemResult = template;
-              Object.keys(item).forEach(prop => {
-                const propRegex = new RegExp(`\\{\\{${prop}\\}\\}`, 'g');
-                itemResult = itemResult.replace(propRegex, item[prop]);
-              });
-              return itemResult;
-            });
-            result = result.replace(match, renderedItems.join(''));
-          }
-        }
-      });
+    if (response.data.success) {
+      testResult.value = response.data.actualOutput;
+      
+      // 显示变量使用情况
+      if (response.data.usedVariables.length > 0) {
+        console.log('已使用变量:', response.data.usedVariables);
+      }
+      if (response.data.unusedVariables.length > 0) {
+        console.log('未使用变量:', response.data.unusedVariables);
+      }
+      
+      window.$message?.success('模板测试完成');
+    } else {
+      testError.value = response.data.errors.join('; ');
+      window.$message?.error(`测试失败：${testError.value}`);
     }
-
-    // 处理条件语句
-    const ifMatches = result.match(/\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g);
-    if (ifMatches) {
-      ifMatches.forEach(match => {
-        const conditionMatch = match.match(/\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/);
-        if (conditionMatch) {
-          const condition = conditionMatch[1];
-          const content = conditionMatch[2];
-          const conditionValue = data[condition];
-
-          result = result.replace(match, conditionValue ? content : '');
-        }
-      });
-    }
-
-    // 处理辅助函数
-    const helperMatches = result.match(/\{\{(\w+)\s+([^}]+)\}\}/g);
-    if (helperMatches) {
-      helperMatches.forEach(match => {
-        const helperMatch = match.match(/\{\{(\w+)\s+([^}]+)\}\}/);
-        if (helperMatch) {
-          const helperName = helperMatch[1];
-          const helperArg = helperMatch[2];
-
-          let helperResult = helperArg;
-          switch (helperName) {
-            case 'camelCase':
-              helperResult = helperArg.charAt(0).toLowerCase() + helperArg.slice(1);
-              break;
-            case 'pascalCase':
-              helperResult = helperArg.charAt(0).toUpperCase() + helperArg.slice(1);
-              break;
-            case 'kebabCase':
-              helperResult = helperArg.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
-              break;
-            case 'snakeCase':
-              helperResult = helperArg.replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase();
-              break;
-            case 'upperCase':
-              helperResult = helperArg.toUpperCase();
-              break;
-            case 'lowerCase':
-              helperResult = helperArg.toLowerCase();
-              break;
-            case 'pluralize':
-              helperResult = helperArg.endsWith('y') ? `${helperArg.slice(0, -1)}ies` : `${helperArg}s`;
-              break;
-          }
-
-          result = result.replace(match, helperResult);
-        }
-      });
-    }
-
-    testResult.value = result;
-    message.success('模板测试完成');
   } catch (error) {
-    testError.value = error.message;
-    message.error(`测试失败：${error.message}`);
+    console.error('模板测试失败:', error);
+    testError.value = error.message || '测试失败';
+    window.$message?.error(`测试失败：${testError.value}`);
+    
+    // 如果API失败，回退到简单的本地渲染
+    try {
+      const data = JSON.parse(testData.value);
+      let result = testingTemplate.value.content;
+
+      // 简单的变量替换（作为回退方案）
+      Object.keys(data).forEach(key => {
+        const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+        result = result.replace(regex, data[key]);
+      });
+
+      testResult.value = result;
+      window.$message?.warning('使用本地简化渲染器');
+    } catch (parseError) {
+      testError.value = '数据格式错误';
+      window.$message?.error('数据格式错误');
+    }
   } finally {
     testLoading.value = false;
   }
@@ -1006,7 +974,7 @@ const loadSampleData = () => {
 
 const loadExampleData = (example: any) => {
   testData.value = JSON.stringify(example.data, null, 2);
-  message.success(`已加载${example.name}示例数据`);
+  window.$message?.success(`已加载${example.name}示例数据`);
 };
 
 const clearTestData = () => {
@@ -1019,16 +987,16 @@ const formatTestData = () => {
   try {
     const data = JSON.parse(testData.value);
     testData.value = JSON.stringify(data, null, 2);
-    message.success('数据格式化完成');
+    window.$message?.success('数据格式化完成');
   } catch (error) {
-    message.error('数据格式错误');
+    window.$message?.error('数据格式错误');
   }
 };
 
 const copyTestResult = () => {
   if (testResult.value) {
     navigator.clipboard.writeText(testResult.value);
-    message.success('测试结果已复制到剪贴板');
+    window.$message?.success('测试结果已复制到剪贴板');
   }
 };
 
@@ -1041,7 +1009,7 @@ const downloadTestResult = () => {
     a.download = `test_result_${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
-    message.success('测试结果下载成功');
+    window.$message?.success('测试结果下载成功');
   }
 };
 </script>

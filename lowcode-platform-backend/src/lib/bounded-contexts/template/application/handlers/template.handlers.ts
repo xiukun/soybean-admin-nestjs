@@ -29,11 +29,17 @@ export class CreateTemplateHandler implements ICommandHandler<CreateTemplateComm
     // 创建模板
     const template = await (this.prisma as any).codeTemplate.create({
       data: {
-        ...data,
+        name: data.name,
+        code: data.code,
+        type: data.type,
+        language: data.language,
+        framework: data.framework || '',
+        description: data.description,
+        template: data.content, // 使用template字段存储内容
         variables: JSON.stringify(data.variables || []),
-        tags: JSON.stringify(data.tags || []),
         version: '1.0.0',
         status: 'ACTIVE',
+        createdBy: data.createdBy,
       },
     });
 
@@ -51,12 +57,10 @@ export class CreateTemplateHandler implements ICommandHandler<CreateTemplateComm
 
     return {
       ...template,
+      content: template.template, // 映射template字段到content
       variables: typeof template.variables === 'string' 
         ? JSON.parse(template.variables) 
         : template.variables,
-      tags: typeof template.tags === 'string'
-        ? JSON.parse(template.tags)
-        : template.tags,
     };
   }
 }

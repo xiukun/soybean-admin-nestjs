@@ -10,27 +10,25 @@ datasource db {
 }
 
 model Project {
-  id               String              @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
-  name             String              @db.VarChar(100)
-  code             String              @unique @db.VarChar(100)
+  id               String         @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
+  name             String         @db.VarChar(100)
+  code             String         @unique @db.VarChar(100)
   description      String?
-  version          String?             @default("1.0.0") @db.VarChar(20)
-  config           Json?               @default("{}")
-  status           String?             @default("ACTIVE") @db.VarChar(20)
-  deploymentStatus String?             @default("INACTIVE") @map("deployment_status") @db.VarChar(20)
-  deploymentPort   Int?                @map("deployment_port")
-  deploymentConfig Json?               @default("{}") @map("deployment_config")
-  lastDeployedAt   DateTime?           @map("last_deployed_at") @db.Timestamp(6)
-  deploymentLogs   String?             @map("deployment_logs")
-  createdBy        String              @map("created_by") @db.VarChar(36)
-  createdAt        DateTime?           @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedBy        String?             @map("updated_by") @db.VarChar(36)
-  updatedAt        DateTime?           @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  version          String?        @default("1.0.0") @db.VarChar(20)
+  config           Json?          @default("{}")
+  status           String?        @default("ACTIVE") @db.VarChar(20)
+  createdBy        String         @map("created_by") @db.VarChar(36)
+  createdAt        DateTime?      @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedBy        String?        @map("updated_by") @db.VarChar(36)
+  updatedAt        DateTime?      @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  deploymentStatus String?        @default("INACTIVE") @map("deployment_status") @db.VarChar(20)
+  deploymentPort   Int?           @map("deployment_port")
+  deploymentConfig Json?          @default("{}") @map("deployment_config")
+  lastDeployedAt   DateTime?      @map("last_deployed_at") @db.Timestamp(6)
+  deploymentLogs   String?        @map("deployment_logs")
   apiConfigs       ApiConfig[]
   apis             Api[]
   entities         Entity[]
-  entityLayout     EntityLayout?
-  deployments      ProjectDeployment[]
   queries          LowcodeQuery[]
   relations        Relation[]
 
@@ -80,15 +78,12 @@ model Field {
   precision        Int?
   scale            Int?
   nullable         Boolean?   @default(true)
-  required         Boolean?   @default(false)
   uniqueConstraint Boolean?   @default(false) @map("unique_constraint")
   indexed          Boolean?   @default(false)
   primaryKey       Boolean?   @default(false) @map("primary_key")
   defaultValue     String?    @map("default_value")
   validationRules  Json?      @map("validation_rules")
-  validation       Json?
   referenceConfig  Json?      @map("reference_config")
-  config           Json?
   enumOptions      Json?      @map("enum_options")
   comment          String?
   sortOrder        Int?       @default(0) @map("sort_order")
@@ -203,29 +198,30 @@ model Api {
 }
 
 model LowcodeQuery {
-  id                String    @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
-  projectId         String    @map("project_id") @db.VarChar(36)
-  name              String    @db.VarChar(100)
-  description       String?
-  baseEntityId      String    @map("base_entity_id") @db.VarChar(36)
-  baseEntityAlias   String?   @default("main") @map("base_entity_alias") @db.VarChar(50)
-  joins             Json?     @default("[]")
-  fields            Json?     @default("[]")
-  filters           Json?     @default("[]")
-  sorting           Json?     @default("[]")
-  groupBy           Json?     @default("[]") @map("group_by")
-  having_conditions Json?     @default("[]")
-  limit             Int?      @map("limit_count")
-  offset            Int?      @map("offset_count")
-  status            String?   @default("DRAFT") @db.VarChar(20)
-  sqlQuery          String?   @map("sql_query")
-  executionStats    Json?     @map("execution_stats")
-  createdBy         String    @map("created_by") @db.VarChar(36)
-  createdAt         DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedBy         String?   @map("updated_by") @db.VarChar(36)
-  updatedAt         DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
-  baseEntity        Entity    @relation(fields: [baseEntityId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  project           Project   @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                           String                         @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
+  projectId                    String                         @map("project_id") @db.VarChar(36)
+  name                         String                         @db.VarChar(100)
+  description                  String?
+  baseEntityId                 String                         @map("base_entity_id") @db.VarChar(36)
+  baseEntityAlias              String?                        @default("main") @map("base_entity_alias") @db.VarChar(50)
+  joins                        Json?                          @default("[]")
+  fields                       Json?                          @default("[]")
+  filters                      Json?                          @default("[]")
+  sorting                      Json?                          @default("[]")
+  groupBy                      Json?                          @default("[]") @map("group_by")
+  having_conditions            Json?                          @default("[]")
+  limit                        Int?                           @map("limit_count")
+  offset                       Int?                           @map("offset_count")
+  status                       String?                        @default("DRAFT") @db.VarChar(20)
+  sqlQuery                     String?                        @map("sql_query")
+  executionStats               Json?                          @map("execution_stats")
+  createdBy                    String                         @map("created_by") @db.VarChar(36)
+  createdAt                    DateTime?                      @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedBy                    String?                        @map("updated_by") @db.VarChar(36)
+  updatedAt                    DateTime?                      @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  baseEntity                   Entity                         @relation(fields: [baseEntityId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  project                      Project                        @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  lowcode_query_execution_logs lowcode_query_execution_logs[]
 
   @@unique([projectId, name])
   @@index([baseEntityId], map: "idx_lowcode_queries_base_entity_id")
@@ -257,87 +253,40 @@ model CodegenTask {
 }
 
 model CodeTemplate {
-  id          String            @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
-  name        String            @db.VarChar(100)
-  code        String            @unique @db.VarChar(100)
-  type        String            @db.VarChar(50)
-  language    String            @db.VarChar(20)
-  framework   String            @db.VarChar(50)
+  id          String    @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
+  name        String    @db.VarChar(100)
+  code        String    @unique @db.VarChar(100)
+  type        String    @db.VarChar(50)
+  language    String    @db.VarChar(20)
+  framework   String    @db.VarChar(50)
   description String?
-  content     String            @default("")
-  variables   Json?             @default("[]")
-  version     String?           @default("1.0.0") @db.VarChar(20)
-  status      String?           @default("ACTIVE") @db.VarChar(20)
-  createdBy   String            @map("created_by") @db.VarChar(36)
-  createdAt   DateTime?         @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedBy   String?           @map("updated_by") @db.VarChar(36)
-  updatedAt   DateTime?         @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
-  category    String?           @default("CONTROLLER") @db.VarChar(50)
-  tags        Json?             @default("[]")
-  isPublic    Boolean?          @default(false) @map("is_public")
-  versions    TemplateVersion[]
+  template    String
+  variables   Json?     @default("[]")
+  version     String?   @default("1.0.0") @db.VarChar(20)
+  status      String?   @default("ACTIVE") @db.VarChar(20)
+  createdBy   String    @map("created_by") @db.VarChar(36)
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedBy   String?   @map("updated_by") @db.VarChar(36)
+  updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
 
-  @@index([category], map: "idx_lowcode_code_templates_category")
-  @@index([language], map: "idx_lowcode_code_templates_language")
-  @@index([framework], map: "idx_lowcode_code_templates_framework")
-  @@index([status], map: "idx_lowcode_code_templates_status")
-  @@index([isPublic], map: "idx_lowcode_code_templates_is_public")
   @@map("lowcode_code_templates")
   @@schema("lowcode")
 }
 
-model TemplateVersion {
-  id         String       @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
-  templateId String       @map("template_id") @db.VarChar(36)
-  version    String       @db.VarChar(20)
-  content    String       @default("")
-  variables  Json?        @default("[]")
-  changelog  String?
-  createdBy  String       @map("created_by") @db.VarChar(36)
-  createdAt  DateTime?    @default(now()) @map("created_at") @db.Timestamp(6)
-  template   CodeTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model lowcode_query_execution_logs {
+  id              String       @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
+  query_id        String       @db.VarChar(36)
+  executed_by     String       @db.VarChar(36)
+  execution_time  Int
+  parameters      Json?
+  result_count    Int?
+  error_message   String?
+  executed_at     DateTime?    @default(now()) @db.Timestamp(6)
+  lowcode_queries LowcodeQuery @relation(fields: [query_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@unique([templateId, version])
-  @@index([templateId], map: "idx_lowcode_template_versions_template_id")
-  @@index([version], map: "idx_lowcode_template_versions_version")
-  @@map("lowcode_template_versions")
-  @@schema("lowcode")
-}
-
-model ProjectDeployment {
-  id          String    @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
-  projectId   String    @map("project_id") @db.VarChar(36)
-  version     String    @db.VarChar(20)
-  status      String    @db.VarChar(20)
-  port        Int?
-  config      Json?     @default("{}")
-  logs        String?
-  startedAt   DateTime? @map("started_at") @db.Timestamp(6)
-  completedAt DateTime? @map("completed_at") @db.Timestamp(6)
-  errorMsg    String?   @map("error_msg")
-  createdBy   String    @map("created_by") @db.VarChar(36)
-  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
-  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@index([projectId], map: "idx_project_deployments_project_id")
-  @@index([status], map: "idx_project_deployments_status")
-  @@map("lowcode_project_deployments")
-  @@schema("lowcode")
-}
-
-model EntityLayout {
-  id          String   @id @default(dbgenerated("(gen_random_uuid())::text")) @db.VarChar(36)
-  projectId   String   @unique @map("project_id") @db.VarChar(36)
-  layoutData  Json     @map("layout_data")
-  version     Int      @default(1)
-  description String?
-  createdBy   String   @map("created_by") @db.VarChar(36)
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedBy   String?  @map("updated_by") @db.VarChar(36)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@index([projectId], map: "idx_entity_layouts_project_id")
-  @@map("lowcode_entity_layouts")
+  @@index([executed_at], map: "idx_lowcode_query_logs_executed_at")
+  @@index([executed_by], map: "idx_lowcode_query_logs_executed_by")
+  @@index([query_id], map: "idx_lowcode_query_logs_query_id")
   @@schema("lowcode")
 }

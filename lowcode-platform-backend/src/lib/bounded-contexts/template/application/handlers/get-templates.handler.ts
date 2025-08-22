@@ -54,14 +54,13 @@ export class GetTemplatesHandler implements IQueryHandler<GetTemplatesQuery> {
           id: true,
           name: true,
           code: true,
-          category: true,
+          type: true,
           language: true,
           framework: true,
           description: true,
+          template: true,
           variables: true,
-          tags: true,
           version: true,
-          isPublic: true,
           status: true,
           createdAt: true,
           updatedAt: true,
@@ -77,12 +76,10 @@ export class GetTemplatesHandler implements IQueryHandler<GetTemplatesQuery> {
     return {
       options: options.map((template: any) => ({
         ...template,
+        content: template.template, // 映射template字段到content
         variables: typeof template.variables === 'string' 
           ? JSON.parse(template.variables) 
           : template.variables,
-        tags: typeof template.tags === 'string'
-          ? JSON.parse(template.tags)
-          : template.tags,
       })),
       total,
       page: Number(page),
@@ -113,12 +110,10 @@ export class GetTemplateByIdHandler implements IQueryHandler<GetTemplateByIdQuer
 
     return {
       ...template,
+      content: template.template, // 映射template字段到content
       variables: typeof template.variables === 'string' 
         ? JSON.parse(template.variables) 
         : template.variables,
-      tags: typeof template.tags === 'string'
-        ? JSON.parse(template.tags)
-        : template.tags,
     };
   }
 }
@@ -139,12 +134,10 @@ export class GetTemplateByCodeHandler implements IQueryHandler<GetTemplateByCode
 
     return {
       ...template,
+      content: template.template, // 映射template字段到content
       variables: typeof template.variables === 'string' 
         ? JSON.parse(template.variables) 
         : template.variables,
-      tags: typeof template.tags === 'string'
-        ? JSON.parse(template.tags)
-        : template.tags,
     };
   }
 }

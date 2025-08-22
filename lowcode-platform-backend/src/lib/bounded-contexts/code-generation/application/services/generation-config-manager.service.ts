@@ -206,8 +206,8 @@ export class GenerationConfigManagerService {
         language,
         framework,
         description,
-        content: JSON.stringify(config),
-        isPublic,
+        template: JSON.stringify(config),
+        // isPublic: template.isPublic, // 该字段不存在
         createdBy: userId,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -222,7 +222,7 @@ export class GenerationConfigManagerService {
       framework: template.framework || 'nestjs',
       language: template.language,
       config,
-      isPublic: template.isPublic,
+      isPublic: false, // 默认为false，因为该字段在模型中不存在
       usageCount: 0,
       createdBy: template.createdBy || 'system',
       createdAt: template.createdAt,
@@ -239,10 +239,10 @@ export class GenerationConfigManagerService {
     language?: string,
   ): Promise<ConfigTemplate[]> {
     const where: any = {
-      OR: [
-        { isPublic: true },
-        // TODO: 添加用户权限检查
-      ],
+      // OR: [
+      //   { isPublic: true },
+      //   // TODO: 添加用户权限检查
+      // ],
     };
 
     if (category) {
@@ -261,7 +261,7 @@ export class GenerationConfigManagerService {
     const templates = await this.prisma.codeTemplate.findMany({
       where: {
         type: 'config',
-        isPublic: true,
+        // isPublic: true, // 该字段不存在于 CodeTemplate 模型中
       },
       orderBy: [
         { createdAt: 'desc' },
@@ -293,7 +293,7 @@ export class GenerationConfigManagerService {
           generateInterfaces: true,
         },
       }, // 返回默认配置结构
-      isPublic: template.isPublic,
+      isPublic: false, // 默认为false，因为该字段在模型中不存在
       usageCount: 0, // CodeTemplate表没有这个字段
       createdBy: template.createdBy || 'system',
       createdAt: template.createdAt,

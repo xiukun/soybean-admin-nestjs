@@ -90,22 +90,72 @@ export function fetchPublishTemplate(id: string) {
 }
 
 /**
- * create template version
+ * test template with data
  *
  * @param id - template id
- * @param data - version data
+ * @param data - test data
  */
-export function fetchCreateTemplateVersion(
+export function fetchTestTemplate(
   id: string,
   data: {
-    version: string;
-    content: string;
-    variables: Api.Lowcode.TemplateVariable[];
-    changelog?: string;
+    variables: Record<string, any>;
+    expectedOutput?: string;
   }
 ) {
-  return request<Api.Lowcode.CodeTemplate>({
-    url: `/templates/${id}/versions`,
+  return request<{
+    success: boolean;
+    output: string;
+    errors: string[];
+    usedVariables: string[];
+    unusedVariables: string[];
+    testPassed: boolean;
+    expectedOutput?: string;
+    actualOutput: string;
+  }>({
+    url: `/templates/${id}/test`,
+    method: 'post',
+    data
+  });
+}
+
+/**
+ * preview template with variables
+ *
+ * @param id - template id
+ * @param variables - template variables
+ */
+export function fetchPreviewTemplate(
+  id: string,
+  variables: Record<string, any>
+) {
+  return request<{
+    success: boolean;
+    output: string;
+    errors: string[];
+    usedVariables: string[];
+    unusedVariables: string[];
+  }>({
+    url: `/templates/${id}/preview`,
+    method: 'post',
+    data: { variables }
+  });
+}
+
+/**
+ * validate template content
+ *
+ * @param data - validation data
+ */
+export function fetchValidateTemplate(data: {
+  content: string;
+  variables?: any[];
+}) {
+  return request<{
+    isValid: boolean;
+    errors: string[];
+    warnings: string[];
+  }>({
+    url: '/templates/validate',
     method: 'post',
     data
   });
