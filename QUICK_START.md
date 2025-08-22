@@ -52,8 +52,8 @@ npm run start:dev
 
 等待看到以下日志：
 ```
-🚀 Low-Code Platform Backend is running on: http://0.0.0.0:3003
-📚 API Documentation: http://0.0.0.0:3003/api-docs
+🚀 Low-Code Platform Backend is running on: http://0.0.0.0:3002
+📚 API Documentation: http://0.0.0.0:3002/api-docs
 ```
 
 ### 4. 验证系统运行 (30秒)
@@ -65,7 +65,7 @@ npm run start:dev
 ## 🌐 访问系统
 
 ### API文档
-- **lowcode-platform-backend**: http://localhost:3003/api-docs
+- **lowcode-platform-backend**: http://localhost:3002/api-docs
 - **amis-lowcode-backend**: http://localhost:9522/api/v1/docs
 
 ### 健康检查
@@ -88,14 +88,14 @@ curl "http://localhost:9522/api/v1/roles?page=1&pageSize=5"
 ### 测试项目管理API (需要JWT认证)
 ```bash
 # 获取项目列表 (会返回401，需要认证)
-curl "http://localhost:3003/api/v1/projects/paginated?current=1&size=5"
+curl "http://localhost:3002/api/v1/projects/paginated?current=1&size=5"
 ```
 
 ## 🔑 获取JWT Token (用于测试)
 
 由于lowcode-platform-backend的所有端点都需要JWT认证，您需要：
 
-1. **使用Swagger UI**: 访问 http://localhost:3003/api-docs
+1. **使用Swagger UI**: 访问 http://localhost:3002/api-docs
 2. **点击"Authorize"按钮**
 3. **输入JWT token** (需要先实现认证端点或使用测试token)
 
@@ -111,7 +111,7 @@ curl "http://localhost:3003/api/v1/projects/paginated?current=1&size=5"
 ```
 🚀 Testing Low-Code Platform System...
 
-1. Testing lowcode-platform-backend (port 3003)...
+1. Testing lowcode-platform-backend (port 3002)...
 ==================================================
 Testing Projects List... ✅ PASS (HTTP 200)
 
@@ -124,7 +124,7 @@ Testing Roles List... ✅ PASS (HTTP 200)
 
 4. System Status Summary...
 ==========================
-lowcode-platform-backend: ✅ Running on port 3003
+lowcode-platform-backend: ✅ Running on port 3002
 amis-lowcode-backend: ✅ Running on port 9522
 ```
 
@@ -133,7 +133,7 @@ amis-lowcode-backend: ✅ Running on port 9522
 ### 代码生成测试
 ```bash
 # 测试代码生成功能 (需要JWT认证)
-curl -X POST "http://localhost:3003/api/v1/code-generation/generate" \
+curl -X POST "http://localhost:3002/api/v1/code-generation/generate" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
@@ -187,12 +187,12 @@ SELECT * FROM lowcode_code_templates;
 #### 1. 端口被占用
 ```bash
 # 检查端口使用情况
-lsof -ti:3003  # lowcode-platform-backend
+lsof -ti:3002  # lowcode-platform-backend
 lsof -ti:9522  # amis-lowcode-backend
 lsof -ti:25432 # PostgreSQL
 
 # 杀死占用端口的进程
-kill -9 $(lsof -ti:3003)
+kill -9 $(lsof -ti:3002)
 ```
 
 #### 2. 数据库连接失败

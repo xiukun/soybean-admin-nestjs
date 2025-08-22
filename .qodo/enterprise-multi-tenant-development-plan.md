@@ -371,7 +371,7 @@ interface ApiGatewayConfig {
     },
     // 生成的业务服务路由
     '/api/biz/*': {
-      target: 'http://amis-lowcode-backend:3003',
+      target: 'http://amis-lowcode-backend:3002',
       auth: 'jwt',
       dynamicRouting: true
     }
@@ -508,7 +508,7 @@ services:
   amis-lowcode-backend:
     build: ./amis-lowcode-backend
     ports:
-      - "3003:3003"
+      - "3002:3002"
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/soybean_admin
       - TENANT_ISOLATION=true

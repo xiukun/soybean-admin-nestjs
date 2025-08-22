@@ -157,8 +157,8 @@ chmod +x start-lowcode-platform.sh
 
 启动后可以访问：
 - **前端界面**：http://localhost:5173 （Vue3 + Vite6）
-- **低代码平台后端**：http://localhost:3003 （NestJS）
-- **API文档**：http://localhost:3003/api-docs
+- **低代码平台后端**：http://localhost:3002 （NestJS）
+- **API文档**：http://localhost:3002/api-docs
 - **Amis动态后端**：http://localhost:9522
 - **Amis API文档**：http://localhost:9522/api/v1/docs
 

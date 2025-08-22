@@ -434,7 +434,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/soybean_admin
     ports:
-      - "3003:3003"
+      - "3002:3002"
     depends_on:
       - postgres
 
@@ -448,7 +448,7 @@ services:
     environment:
       - VITE_API_BASE_URL=http://enterprise-backend:3000
       - VITE_LOWCODE_API_URL=http://lowcode-platform:3002
-      - VITE_AMIS_API_URL=http://amis-lowcode:3003
+      - VITE_AMIS_API_URL=http://amis-lowcode:3002
 
   # Nginx反向代理
   nginx:

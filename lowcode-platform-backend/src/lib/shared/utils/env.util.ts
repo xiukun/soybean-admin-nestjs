@@ -53,7 +53,7 @@ export const getEnvArray = <T = string>(
  * Get port number from environment variable
  * 从环境变量获取端口号
  */
-export const getPort = (defaultPort: number = 3003): number => {
+export const getPort = (defaultPort: number = 3002): number => {
   return getEnvNumber('PORT', defaultPort);
 };
 

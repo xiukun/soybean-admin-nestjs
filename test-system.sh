@@ -97,21 +97,21 @@ main() {
     local total_tests=0
     local passed_tests=0
     
-    # 1. 测试 lowcode-platform-backend (端口 3003)
-    echo "1. Testing lowcode-platform-backend (port 3003)..."
+    # 1. 测试 lowcode-platform-backend (端口 3002)
+    echo "1. Testing lowcode-platform-backend (port 3002)..."
     echo "=================================================="
     
-    if check_service "lowcode-platform-backend" "3003" "/"; then
+    if check_service "lowcode-platform-backend" "3002" "/"; then
         ((passed_tests++))
     fi
     ((total_tests++))
     
-    if test_api "Projects List" "GET" "3003/api/v1/projects/paginated?current=1&size=5" "200"; then
+    if test_api "Projects List" "GET" "3002/api/v1/projects/paginated?current=1&size=5" "200"; then
         ((passed_tests++))
     fi
     ((total_tests++))
     
-    if test_api "API Documentation" "GET" "3003/api-docs" "200"; then
+    if test_api "API Documentation" "GET" "3002/api-docs" "200"; then
         ((passed_tests++))
     fi
     ((total_tests++))
@@ -178,7 +178,7 @@ main() {
         fi
     }
     
-    check_port "3003" "lowcode-platform-backend"
+    check_port "3002" "lowcode-platform-backend"
     check_port "9522" "amis-lowcode-backend"
     check_port "25432" "PostgreSQL Database"
     
@@ -196,9 +196,9 @@ main() {
         echo ""
         echo "🌐 Access URLs:"
         echo "  • Frontend: http://localhost:5173"
-        echo "  • Lowcode Platform Backend: http://localhost:3003"
+        echo "  • Lowcode Platform Backend: http://localhost:3002"
         echo "  • Amis Dynamic Backend: http://localhost:9522"
-        echo "  • API Documentation: http://localhost:3003/api-docs"
+        echo "  • API Documentation: http://localhost:3002/api-docs"
         echo "  • Amis API Documentation: http://localhost:9522/api/v1/docs"
         return 0
     else

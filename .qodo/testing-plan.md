@@ -51,7 +51,7 @@ services:
     depends_on:
       - postgres-test
     ports:
-      - "3005:3003"
+      - "3005:3002"
 ```
 
 ### 测试数据准备

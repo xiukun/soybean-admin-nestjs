@@ -238,9 +238,9 @@ cd soybean-admin-nestjs
 
 ### 访问地址
 - **前端管理系统**: http://localhost:5173
-- **低代码平台后端**: http://localhost:3003
+- **低代码平台后端**: http://localhost:3002
 - **Amis动态后端**: http://localhost:9522
-- **API文档**: http://localhost:3003/api-docs
+- **API文档**: http://localhost:3002/api-docs
 - **Amis API文档**: http://localhost:9522/api/v1/docs
 
 ## 📞 技术支持

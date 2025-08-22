@@ -9,7 +9,7 @@ export const appConfigToken = 'app';
  */
 export const AppConfig = registerAs(appConfigToken, () => ({
   // Server configuration
-  port: getPort(3003),
+  port: getPort(3002),
   host: getHost('0.0.0.0'),
   
   // Environment

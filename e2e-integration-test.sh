@@ -101,13 +101,13 @@ main() {
     echo "==================="
     
     # 获取项目列表
-    if test_json_api_with_response "获取项目列表" "GET" "3003/api/v1/projects?current=1&size=10" "" "/tmp/lowcode-test/projects.json"; then
+    if test_json_api_with_response "获取项目列表" "GET" "3002/api/v1/projects?current=1&size=10" "" "/tmp/lowcode-test/projects.json"; then
         ((passed_tests++))
     fi
     ((total_tests++))
     
     # 获取项目统计
-    if test_json_api_with_response "获取项目统计" "GET" "3003/api/v1/projects/stats" "" "/tmp/lowcode-test/stats.json"; then
+    if test_json_api_with_response "获取项目统计" "GET" "3002/api/v1/projects/stats" "" "/tmp/lowcode-test/stats.json"; then
         ((passed_tests++))
     fi
     ((total_tests++))
@@ -119,13 +119,13 @@ main() {
     echo "==================="
     
     # 获取实体列表（使用种子数据中的项目ID）
-    if test_api "获取实体列表" "GET" "3003/api/v1/entities" "200"; then
+    if test_api "获取实体列表" "GET" "3002/api/v1/entities" "200"; then
         ((passed_tests++))
     fi
     ((total_tests++))
     
     # 测试实体验证功能
-    if test_api "测试实体验证" "GET" "3003/api/v1/entities" "200"; then
+    if test_api "测试实体验证" "GET" "3002/api/v1/entities" "200"; then
         ((passed_tests++))
     fi
     ((total_tests++))
@@ -137,7 +137,7 @@ main() {
     echo "==================="
     
     # 获取字段列表
-    if test_api "获取字段列表" "GET" "3003/api/v1/fields" "200"; then
+    if test_api "获取字段列表" "GET" "3002/api/v1/fields" "200"; then
         ((passed_tests++))
     fi
     ((total_tests++))
@@ -149,13 +149,13 @@ main() {
     echo "==================="
     
     # 获取关系列表
-    if test_api "获取关系列表" "GET" "3003/api/v1/relationships" "200"; then
+    if test_api "获取关系列表" "GET" "3002/api/v1/relationships" "200"; then
         ((passed_tests++))
     fi
     ((total_tests++))
     
     # 获取关系类型
-    if test_api "获取关系类型" "GET" "3003/api/v1/relationships/meta/types" "200"; then
+    if test_api "获取关系类型" "GET" "3002/api/v1/relationships/meta/types" "200"; then
         ((passed_tests++))
     fi
     ((total_tests++))
@@ -167,7 +167,7 @@ main() {
     echo "==================="
     
     # 获取查询列表
-    if test_api "获取查询列表" "GET" "3003/api/v1/queries" "200"; then
+    if test_api "获取查询列表" "GET" "3002/api/v1/queries" "200"; then
         ((passed_tests++))
     fi
     ((total_tests++))
@@ -179,7 +179,7 @@ main() {
     echo "==================="
     
     # 获取模板列表
-    if test_api "获取模板列表" "GET" "3003/api/v1/templates" "200"; then
+    if test_api "获取模板列表" "GET" "3002/api/v1/templates" "200"; then
         ((passed_tests++))
     fi
     ((total_tests++))
@@ -191,7 +191,7 @@ main() {
     echo "==================="
     
     # 获取生成模板
-    if test_api "获取生成模板" "GET" "3003/api/v1/code-generation/templates" "200"; then
+    if test_api "获取生成模板" "GET" "3002/api/v1/code-generation/templates" "200"; then
         ((passed_tests++))
     fi
     ((total_tests++))
@@ -203,7 +203,7 @@ main() {
     echo "=================="
     
     # 测试API配置端点
-    if test_api "获取API配置" "GET" "3003/api/v1/api-configs" "200"; then
+    if test_api "获取API配置" "GET" "3002/api/v1/api-configs" "200"; then
         ((passed_tests++))
     fi
     ((total_tests++))
@@ -215,13 +215,13 @@ main() {
     echo "==================="
     
     # 测试详细健康检查
-    if test_json_api_with_response "详细健康检查" "GET" "3003/api/v1/health/detailed" "" "/tmp/lowcode-test/health.json"; then
+    if test_json_api_with_response "详细健康检查" "GET" "3002/api/v1/health/detailed" "" "/tmp/lowcode-test/health.json"; then
         ((passed_tests++))
     fi
     ((total_tests++))
     
     # 测试性能指标
-    if test_api "性能指标" "GET" "3003/api/v1/health/metrics" "200"; then
+    if test_api "性能指标" "GET" "3002/api/v1/health/metrics" "200"; then
         ((passed_tests++))
     fi
     ((total_tests++))
@@ -275,7 +275,7 @@ main() {
   "success_rate": "$(echo "scale=2; $passed_tests * 100 / $total_tests" | bc)%",
   "services": {
     "lowcode_platform_backend": {
-      "url": "http://localhost:3003",
+      "url": "http://localhost:3002",
       "status": "running"
     },
     "amis_lowcode_backend": {
@@ -316,8 +316,8 @@ EOF
         echo ""
         echo "🌐 访问地址:"
         echo "  • 前端页面: http://localhost:5173"
-        echo "  • 低代码平台后端: http://localhost:3003"
-        echo "  • API文档: http://localhost:3003/api-docs"
+        echo "  • 低代码平台后端: http://localhost:3002"
+        echo "  • API文档: http://localhost:3002/api-docs"
         echo "  • Amis动态后端: http://localhost:9522"
         echo "  • Amis API文档: http://localhost:9522/api/v1/docs"
         echo ""

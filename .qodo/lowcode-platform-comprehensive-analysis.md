@@ -404,7 +404,7 @@ services:
   amis-lowcode-backend:
     build: ./amis-lowcode-backend
     ports:
-      - "3003:3003"
+      - "3002:3002"
     depends_on:
       - postgres
     environment:
@@ -422,7 +422,7 @@ services:
 ### 服务间通信
 
 - **lowcode-platform-backend**: 核心设计服务，端口3002
-- **amis-lowcode-backend**: 业务运行时服务，端口3003
+- **amis-lowcode-backend**: 业务运行时服务，端口3002
 - **frontend**: 前端应用，端口5173
 
 ## 安全策略

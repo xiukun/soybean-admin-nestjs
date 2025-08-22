@@ -12,7 +12,7 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                    低代码平台系统                              │
 ├─────────────────────────────────────────────────────────────┤
-│  lowcode-platform-backend (端口: 3003)                      │
+│  lowcode-platform-backend (端口: 3002)                      │
 │  ├── 项目管理 (Projects)                                     │
 │  ├── 实体管理 (Entities)                                     │
 │  ├── 代码模板管理 (Code Templates)                           │
@@ -34,9 +34,9 @@
 
 ### lowcode-platform-backend
 
-**端口**: 3003  
-**API文档**: http://localhost:3003/api-docs  
-**健康检查**: http://localhost:3003/health
+**端口**: 3002  
+**API文档**: http://localhost:3002/api-docs  
+**健康检查**: http://localhost:3002/health
 
 #### 主要功能模块
 
@@ -142,7 +142,7 @@
 #### lowcode-platform-backend (.env)
 ```env
 NODE_ENV=development
-PORT=3003
+PORT=3002
 DATABASE_URL="postgresql://soybean:soybean@123.@localhost:25432/soybean-admin-nest-backend"
 JWT_SECRET=your-jwt-secret-key
 JWT_EXPIRES_IN=7d
@@ -190,14 +190,14 @@ npm run start:dev
 ```
 
 ### 4. 验证服务
-- lowcode-platform-backend: http://localhost:3003/health
+- lowcode-platform-backend: http://localhost:3002/health
 - amis-lowcode-backend: http://localhost:9522/api/v1/health
 
 ## API使用示例
 
 ### 获取项目列表
 ```bash
-curl "http://localhost:3003/api/v1/projects/paginated?current=1&size=10"
+curl "http://localhost:3002/api/v1/projects/paginated?current=1&size=10"
 ```
 
 ### 获取用户列表
@@ -207,7 +207,7 @@ curl "http://localhost:9522/api/v1/users?page=1&pageSize=10"
 
 ### 代码生成
 ```bash
-curl -X POST "http://localhost:3003/api/v1/code-generation/generate" \
+curl -X POST "http://localhost:3002/api/v1/code-generation/generate" \
   -H "Content-Type: application/json" \
   -d '{
     "projectId": "demo-project-1",
@@ -240,7 +240,7 @@ npm run test:e2e
 ### 常见问题
 
 1. **端口占用**
-   - 检查端口3003和9522是否被占用
+   - 检查端口3002和9522是否被占用
    - 使用 `lsof -ti:PORT` 查找占用进程
 
 2. **数据库连接失败**
@@ -284,7 +284,7 @@ docker build -t lowcode-platform-backend ./lowcode-platform-backend
 docker build -t amis-lowcode-backend ./amis-lowcode-backend
 
 # 运行容器
-docker run -d -p 3003:3003 --name lowcode-platform lowcode-platform-backend
+docker run -d -p 3002:3002 --name lowcode-platform lowcode-platform-backend
 docker run -d -p 9522:9522 --name amis-backend amis-lowcode-backend
 ```
 

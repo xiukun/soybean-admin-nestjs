@@ -78,7 +78,7 @@ check_env_files() {
             log_warning "No .env.example found, creating basic .env file..."
             cat > lowcode-platform-backend/.env << EOF
 NODE_ENV=development
-PORT=3003
+PORT=3002
 DATABASE_URL="postgresql://soybean:soybean@123.@localhost:25432/soybean-admin-nest-backend?schema=lowcode"
 JWT_SECRET="lowcode-platform-secret-key-change-in-production"
 JWT_EXPIRES_IN="7d"
@@ -237,7 +237,7 @@ start_services() {
     
     # 启动lowcode-platform-backend
     if [ -d "lowcode-platform-backend" ]; then
-        log_info "Starting lowcode-platform-backend on port 3003..."
+        log_info "Starting lowcode-platform-backend on port 3002..."
         cd lowcode-platform-backend
         npm run start:dev &
         cd ..
@@ -276,7 +276,7 @@ verify_system() {
         local lowcode_backend_ok=false
         local amis_backend_ok=false
         
-        if curl -s http://localhost:3003 > /dev/null; then
+        if curl -s http://localhost:3002 > /dev/null; then
             log_success "lowcode-platform-backend is responding"
             lowcode_backend_ok=true
         else
@@ -305,9 +305,9 @@ show_final_info() {
     echo -e "${CYAN}🎉 Low-Code Platform Setup Complete!${NC}"
     echo ""
     echo -e "${YELLOW}📍 Service URLs:${NC}"
-    echo "  • lowcode-platform-backend: http://localhost:3003"
+    echo "  • lowcode-platform-backend: http://localhost:3002"
     echo "  • amis-lowcode-backend: http://localhost:9522"
-    echo "  • API Documentation: http://localhost:3003/api-docs"
+    echo "  • API Documentation: http://localhost:3002/api-docs"
     echo "  • Amis API Documentation: http://localhost:9522/api/v1/docs"
     echo ""
     echo -e "${YELLOW}🚀 Next Steps:${NC}"
