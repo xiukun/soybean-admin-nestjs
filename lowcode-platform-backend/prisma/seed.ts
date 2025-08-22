@@ -2,828 +2,670 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-/**
- * 初始化代码生成器相关数据
- */
-async function initializeCodeGenerationData() {
-  try {
-    console.log('📋 代码生成器数据初始化...');
-    // 由于Prisma客户端类型问题，这里暂时跳过菜单初始化
-    // 菜单数据将通过SQL脚本在Docker部署时初始化
-    console.log('📝 代码生成器菜单将通过SQL脚本初始化');
-    console.log('✅ 代码生成器数据初始化完成');
-
-  } catch (error) {
-    console.error('❌ 代码生成器数据初始化失败:', error);
-    throw error;
-  }
-}
-
 async function main() {
-  console.log('🌱 开始低代码平台种子数据初始化...');
+  console.log('🌱 Starting seed...');
 
-  try {
-    // 检查是否已经初始化过
-    const existingProject = await prisma.project.findFirst();
-    if (existingProject) {
-      console.log('📋 数据已存在，跳过初始化');
-      return;
-    }
+  // 清理现有数据（开发环境）
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🧹 Cleaning existing data...');
+    await prisma.codegenTask.deleteMany();
+    await prisma.apiConfig.deleteMany();
+    await prisma.api.deleteMany();
+    await prisma.lowcodeQuery.deleteMany();
+    await prisma.relation.deleteMany();
+    await prisma.field.deleteMany();
+    await prisma.entity.deleteMany();
+    await prisma.templateVersion.deleteMany();
+    await prisma.codeTemplate.deleteMany();
+    await prisma.projectDeployment.deleteMany();
+    await prisma.entityLayout.deleteMany();
+    await prisma.project.deleteMany();
+  }
 
-    // 创建Mock数据中的项目
-    console.log('📁 创建Mock数据项目...');
-    const mockProjects = [
-      {
-        id: '1',
-        name: 'E-commerce Platform',
-        code: 'ecommerce',
-        description: '电商平台低代码项目，包含商品管理、订单处理、用户管理等核心功能',
-        version: '1.0.0',
-        config: {
-          framework: 'nestjs',
-          architecture: 'base-biz',
-          language: 'typescript',
-          database: 'postgresql',
-          packageName: '',
-          basePackage: '',
-          author: '',
-          outputPath: './generated'
-        },
-        status: 'ACTIVE',
-        createdBy: 'admin',
-      },
-      {
-        id: '2',
-        name: 'CRM System',
-        code: 'crm',
-        description: '客户关系管理系统，帮助企业管理客户信息、销售流程和客户服务',
-        version: '1.2.0',
-        config: {
-          framework: 'nestjs',
-          architecture: 'ddd',
-          language: 'typescript',
-          database: 'postgresql',
-          packageName: '',
-          basePackage: '',
-          author: '',
-          outputPath: './generated'
-        },
-        status: 'ACTIVE',
-        createdBy: 'admin',
-      },
-      {
-        id: '3',
-        name: 'Blog Management System',
-        code: 'blog',
-        description: '博客管理系统，支持文章发布、分类管理、评论系统等功能',
-        version: '1.0.0',
-        config: {
-          framework: 'express',
-          architecture: 'clean',
-          language: 'javascript',
-          database: 'mysql',
-          packageName: '',
-          basePackage: '',
-          author: '',
-          outputPath: './generated'
-        },
-        status: 'INACTIVE',
-        createdBy: 'user1',
-      },
-      {
-        id: '4',
-        name: 'Inventory Management',
-        code: 'inventory',
-        description: '库存管理系统，实现商品入库、出库、盘点等库存管理功能',
-        version: '2.1.0',
-        config: {
-          framework: 'nestjs',
-          architecture: 'hexagonal',
-          language: 'typescript',
-          database: 'postgresql',
-          packageName: '',
-          basePackage: '',
-          author: '',
-          outputPath: './generated'
-        },
-        status: 'ACTIVE',
-        createdBy: 'manager',
-      },
-      {
-        id: '5',
-        name: 'HR Management Portal',
-        code: 'hr-portal',
-        description: '人力资源管理门户，包含员工信息管理、考勤管理、薪资管理等模块',
-        version: '1.5.0',
-        config: {
-          framework: 'nestjs',
-          architecture: 'base-biz',
-          language: 'typescript',
-          database: 'postgresql',
-          packageName: '',
-          basePackage: '',
-          author: '',
-          outputPath: './generated'
-        },
-        status: 'ARCHIVED',
-        createdBy: 'hr-admin',
-      },
-    ];
-
-    const projects = [];
-    for (const projectData of mockProjects) {
-      const project = await prisma.project.upsert({
-        where: { id: projectData.id },
-        update: {
-          name: projectData.name,
-          description: projectData.description,
-          version: projectData.version,
-          config: projectData.config,
-          status: projectData.status,
-          updatedAt: new Date(),
-        },
-        create: {
-          ...projectData,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      });
-      projects.push(project);
-      console.log('✅ 项目创建完成:', project.name);
-    }
-
-    // 保留演示项目
-    const demoProject = await prisma.project.upsert({
-      where: { id: 'demo-project-1' },
-      update: {
-        name: '演示项目',
-        description: '用于演示和测试的项目',
-        updatedAt: new Date(),
-      },
-      create: {
-        id: 'demo-project-1',
-        name: '演示项目',
-        code: 'demo-project-1',
-        description: '用于演示和测试的项目',
-        version: '1.0.0',
-        config: {
-          database: { type: 'postgresql', host: 'localhost', port: 5432 },
-          api: { baseUrl: '/api/v1', prefix: 'demo' }
-        },
-        status: 'ACTIVE',
-        createdBy: 'system',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    });
-    projects.push(demoProject);
-
-    console.log(`✅ 总共创建了 ${projects.length} 个项目`);
-
-    // 创建代码模板
-    console.log('📝 创建代码模板...');
-    const codeTemplates = [
-      {
-        id: 'tpl-nestjs-entity-model',
-        name: 'NestJS Prisma实体模型',
-        code: 'nestjs-prisma-entity-model',
-        type: 'ENTITY_MODEL',
-        language: 'TYPESCRIPT',
-        framework: 'NESTJS',
-        description: 'NestJS Prisma实体模型代码模板',
-        template: `// Prisma Schema Model for {{entityName}}
-// This will be added to schema.prisma file
-
-model {{entityName}} {
-  id        String   @id @default(cuid())
-{{#each fields}}
-{{#unless this.isSystemField}}
-  {{this.code}}{{#if this.nullable}}?{{/if}}     {{this.prismaType}}{{#if this.unique}} @unique{{/if}}{{#if this.comment}} // {{this.comment}}{{/if}}
-{{/unless}}
-{{/each}}
-
-  // System fields
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  createdBy String?  @map("created_by")
-  updatedBy String?  @map("updated_by")
-
-  @@map("{{tableName}}")
-}`,
-        variables: [
-          { name: 'entityName', type: 'string', description: '实体类名' },
-          { name: 'tableName', type: 'string', description: '数据库表名' },
-          { name: 'fields', type: 'array', description: '字段列表' }
-        ],
-        status: 'ACTIVE',
-        createdBy: 'system',
-      },
-      {
-        id: 'tpl-nestjs-service',
-        name: 'NestJS Prisma服务类',
-        code: 'nestjs-prisma-service',
-        type: 'ENTITY_SERVICE',
-        language: 'TYPESCRIPT',
-        framework: 'NESTJS',
-        description: 'NestJS Prisma服务类代码模板',
-        template: `import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { {{entityName}}, Create{{entityName}}Input, Update{{entityName}}Input } from './interfaces/{{kebabCase entityName}}.interface';
-import { Create{{entityName}}Dto, Update{{entityName}}Dto, {{entityName}}ResponseDto } from './dto/{{kebabCase entityName}}.dto';
-import { Prisma } from '@prisma/client';
-
-@Injectable()
-export class {{entityName}}Service {
-  constructor(private readonly prisma: PrismaService) {}
-
-  async create(create{{entityName}}Dto: Create{{entityName}}Dto, userId?: string): Promise<{{entityName}}ResponseDto> {
-    try {
-      const data: Prisma.{{entityName}}CreateInput = {
-        ...create{{entityName}}Dto,
-        createdBy: userId,
-        updatedBy: userId,
-      };
-
-      const {{camelCase entityName}} = await this.prisma.{{camelCase entityName}}.create({
-        data,
-      });
-
-      return this.mapToResponseDto({{camelCase entityName}});
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-          throw new BadRequestException('{{entityName}} with this data already exists');
+  // 创建示例项目
+  const demoProject = await prisma.project.create({
+    data: {
+      name: '电商管理系统',
+      code: 'ecommerce-admin',
+      description: '一个完整的电商后台管理系统，包含商品管理、订单管理、用户管理等功能',
+      version: '1.0.0',
+      config: {
+        framework: 'nestjs',
+        architecture: 'base-biz',
+        language: 'typescript',
+        database: 'postgresql',
+        features: ['authentication', 'authorization', 'caching'],
+        settings: {
+          enableSwagger: true,
+          enableTesting: true,
+          enableDocker: true,
+          enableAudit: true,
+          enableSoftDelete: true,
+          enableVersioning: false,
+          enableTenancy: false
         }
-      }
-      throw error;
-    }
-  }
-
-  async findAll(params?: {
-    skip?: number;
-    take?: number;
-    cursor?: Prisma.{{entityName}}WhereUniqueInput;
-    where?: Prisma.{{entityName}}WhereInput;
-    orderBy?: Prisma.{{entityName}}OrderByWithRelationInput;
-  }): Promise<{{entityName}}ResponseDto[]> {
-    const { skip, take, cursor, where, orderBy } = params || {};
-
-    const {{camelCase entityName}}s = await this.prisma.{{camelCase entityName}}.findMany({
-      skip,
-      take,
-      cursor,
-      where,
-      orderBy: orderBy || { createdAt: 'desc' },
-    });
-
-    return {{camelCase entityName}}s.map(this.mapToResponseDto);
-  }
-
-  async findOne(id: string): Promise<{{entityName}}ResponseDto> {
-    const {{camelCase entityName}} = await this.prisma.{{camelCase entityName}}.findUnique({
-      where: { id },
-    });
-
-    if (!{{camelCase entityName}}) {
-      throw new NotFoundException(\`{{entityName}} with ID \${id} not found\`);
-    }
-
-    return this.mapToResponseDto({{camelCase entityName}});
-  }
-
-  async update(id: string, update{{entityName}}Dto: Update{{entityName}}Dto, userId?: string): Promise<{{entityName}}ResponseDto> {
-    await this.findOne(id); // Check if exists
-
-    try {
-      const data: Prisma.{{entityName}}UpdateInput = {
-        ...update{{entityName}}Dto,
-        updatedBy: userId,
-      };
-
-      const {{camelCase entityName}} = await this.prisma.{{camelCase entityName}}.update({
-        where: { id },
-        data,
-      });
-
-      return this.mapToResponseDto({{camelCase entityName}});
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-          throw new BadRequestException('{{entityName}} with this data already exists');
-        }
-      }
-      throw error;
-    }
-  }
-
-  async remove(id: string): Promise<void> {
-    await this.findOne(id); // Check if exists
-
-    await this.prisma.{{camelCase entityName}}.delete({
-      where: { id },
-    });
-  }
-
-  async count(where?: Prisma.{{entityName}}WhereInput): Promise<number> {
-    return this.prisma.{{camelCase entityName}}.count({ where });
-  }
-
-  private mapToResponseDto({{camelCase entityName}}: any): {{entityName}}ResponseDto {
-    return {
-      id: {{camelCase entityName}}.id,
-{{#each fields}}
-{{#unless this.isSystemField}}
-      {{this.code}}: {{camelCase ../entityName}}.{{this.code}},
-{{/unless}}
-{{/each}}
-      createdAt: {{camelCase entityName}}.createdAt,
-      updatedAt: {{camelCase entityName}}.updatedAt,
-      createdBy: {{camelCase entityName}}.createdBy,
-      updatedBy: {{camelCase entityName}}.updatedBy,
-    };
-  }
-}`,
-        variables: [
-          { name: 'entityName', type: 'string', description: '实体类名' },
-          { name: 'fields', type: 'array', description: '字段列表' }
-        ],
-        status: 'ACTIVE',
-        createdBy: 'system',
-      }
-    ];
-
-    for (const template of codeTemplates) {
-      await prisma.codeTemplate.upsert({
-        where: { code: template.code },
-        update: {
-          name: template.name,
-          type: template.type,
-          language: template.language,
-          framework: template.framework,
-          description: template.description,
-          content: template.template,
-          variables: template.variables,
-          status: template.status,
-          updatedAt: new Date(),
-        },
-        create: {
-          id: template.id,
-          name: template.name,
-          code: template.code,
-          type: template.type,
-          language: template.language,
-          framework: template.framework,
-          description: template.description,
-          content: template.template,
-          variables: template.variables,
-          status: template.status,
-          createdBy: 'system',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      });
-    }
-    console.log('✅ 代码模板创建完成');
-
-  // 创建示例API配置
-  console.log('🔌 创建示例API配置...');
-  const apiConfigs = [
-    {
-      name: '获取用户列表',
-      code: 'get-users',
-      description: '获取系统中的用户列表',
-      method: 'GET',
-      path: '/api/users',
-      parameters: [],
-      responses: {
-        '200': {
-          description: '成功获取用户列表',
-          schema: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                id: { type: 'string' },
-                name: { type: 'string' },
-                email: { type: 'string' },
-              },
-            },
-          },
-        },
       },
-      security: { type: 'none' },
-      config: {},
+      status: 'ACTIVE',
+      deploymentStatus: 'INACTIVE',
+      createdBy: 'system',
+    },
+  });
+
+  console.log(`✅ Created demo project: ${demoProject.name}`);
+
+  // 创建用户实体
+  const userEntity = await prisma.entity.create({
+    data: {
+      projectId: demoProject.id,
+      name: '用户',
+      code: 'User',
+      tableName: 'users',
+      description: '系统用户实体',
+      category: 'user',
+      diagramPosition: { x: 100, y: 100 },
+      status: 'ACTIVE',
+      createdBy: 'system',
+    },
+  });
+
+  // 创建用户实体字段
+  const userFields = [
+    {
+      entityId: userEntity.id,
+      name: '用户名',
+      code: 'username',
+      type: 'STRING',
+      length: 50,
+      nullable: false,
+      uniqueConstraint: true,
+      primaryKey: false,
+      comment: '用户登录名',
+      sortOrder: 1,
+      createdBy: 'system',
     },
     {
-      name: '创建用户',
-      code: 'create-user',
-      description: '创建新用户',
-      method: 'POST',
-      path: '/api/users',
-      parameters: [
-        {
-          name: 'name',
-          type: 'string',
-          required: true,
-          description: '用户姓名',
-        },
-        {
-          name: 'email',
-          type: 'string',
-          required: true,
-          description: '用户邮箱',
-        },
-      ],
-      responses: {
-        '201': {
-          description: '用户创建成功',
-          schema: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              name: { type: 'string' },
-              email: { type: 'string' },
-              createdAt: { type: 'string', format: 'date-time' },
-            },
-          },
-        },
-        '400': {
-          description: '请求参数错误',
-          schema: {
-            type: 'object',
-            properties: {
-              message: { type: 'string' },
-              errors: { type: 'array' },
-            },
-          },
-        },
+      entityId: userEntity.id,
+      name: '邮箱',
+      code: 'email',
+      type: 'STRING',
+      length: 255,
+      nullable: false,
+      uniqueConstraint: true,
+      comment: '用户邮箱地址',
+      validationRules: {
+        pattern: '^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$',
+        message: '请输入有效的邮箱地址'
       },
-      security: { type: 'jwt' },
-      config: { requireAuth: true },
+      sortOrder: 2,
+      createdBy: 'system',
     },
     {
-      name: '更新用户',
-      code: 'update-user',
-      description: '更新用户信息',
-      method: 'PUT',
-      path: '/api/users/{id}',
-      parameters: [
-        {
-          name: 'id',
-          type: 'string',
-          required: true,
-          in: 'path',
-          description: '用户ID',
-        },
-        {
-          name: 'name',
-          type: 'string',
-          required: false,
-          description: '用户姓名',
-        },
-        {
-          name: 'email',
-          type: 'string',
-          required: false,
-          description: '用户邮箱',
-        },
-      ],
-      responses: {
-        '200': {
-          description: '用户更新成功',
-          schema: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              name: { type: 'string' },
-              email: { type: 'string' },
-              updatedAt: { type: 'string', format: 'date-time' },
-            },
-          },
-        },
-        '404': {
-          description: '用户不存在',
-          schema: {
-            type: 'object',
-            properties: {
-              message: { type: 'string' },
-            },
-          },
-        },
+      entityId: userEntity.id,
+      name: '手机号',
+      code: 'phone',
+      type: 'STRING',
+      length: 20,
+      nullable: true,
+      uniqueConstraint: true,
+      comment: '用户手机号码',
+      validationRules: {
+        pattern: '^1[3-9]\\d{9}$',
+        message: '请输入有效的手机号码'
       },
-      security: { type: 'jwt' },
-      config: { requireAuth: true },
+      sortOrder: 3,
+      createdBy: 'system',
     },
     {
-      name: '删除用户',
-      code: 'delete-user',
-      description: '删除用户',
-      method: 'DELETE',
-      path: '/api/users/{id}',
-      parameters: [
-        {
-          name: 'id',
-          type: 'string',
-          required: true,
-          in: 'path',
-          description: '用户ID',
-        },
-      ],
-      responses: {
-        '204': {
-          description: '用户删除成功',
-        },
-        '404': {
-          description: '用户不存在',
-          schema: {
-            type: 'object',
-            properties: {
-              message: { type: 'string' },
-            },
-          },
-        },
-      },
-      security: { type: 'jwt' },
-      config: { requireAuth: true },
+      entityId: userEntity.id,
+      name: '状态',
+      code: 'status',
+      type: 'ENUM',
+      nullable: false,
+      defaultValue: 'ACTIVE',
+      enumOptions: ['ACTIVE', 'INACTIVE', 'BANNED'],
+      comment: '用户状态',
+      sortOrder: 4,
+      createdBy: 'system',
     },
     {
-      name: '获取用户详情',
-      code: 'get-user',
-      description: '根据ID获取用户详情',
-      method: 'GET',
-      path: '/api/users/{id}',
-      parameters: [
-        {
-          name: 'id',
-          type: 'string',
-          required: true,
-          in: 'path',
-          description: '用户ID',
-        },
-      ],
-      responses: {
-        '200': {
-          description: '成功获取用户详情',
-          schema: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              name: { type: 'string' },
-              email: { type: 'string' },
-              createdAt: { type: 'string', format: 'date-time' },
-              updatedAt: { type: 'string', format: 'date-time' },
-            },
-          },
-        },
-        '404': {
-          description: '用户不存在',
-          schema: {
-            type: 'object',
-            properties: {
-              message: { type: 'string' },
-            },
-          },
-        },
-      },
-      security: { type: 'none' },
-      config: {},
+      entityId: userEntity.id,
+      name: '创建时间',
+      code: 'createdAt',
+      type: 'DATETIME',
+      nullable: false,
+      defaultValue: 'CURRENT_TIMESTAMP',
+      comment: '记录创建时间',
+      sortOrder: 100,
+      createdBy: 'system',
     },
   ];
 
-  for (const apiConfig of apiConfigs) {
-    const created = await prisma.apiConfig.upsert({
-      where: {
-        projectId_code: {
-          projectId: demoProject.id,
-          code: apiConfig.code,
+  await prisma.field.createMany({
+    data: userFields,
+  });
+
+  console.log(`✅ Created user entity with ${userFields.length} fields`);
+
+  // 创建商品实体
+  const productEntity = await prisma.entity.create({
+    data: {
+      projectId: demoProject.id,
+      name: '商品',
+      code: 'Product',
+      tableName: 'products',
+      description: '商品信息实体',
+      category: 'business',
+      diagramPosition: { x: 400, y: 100 },
+      status: 'ACTIVE',
+      createdBy: 'system',
+    },
+  });
+
+  // 创建商品实体字段
+  const productFields = [
+    {
+      entityId: productEntity.id,
+      name: '商品名称',
+      code: 'name',
+      type: 'STRING',
+      length: 255,
+      nullable: false,
+      comment: '商品名称',
+      sortOrder: 1,
+      createdBy: 'system',
+    },
+    {
+      entityId: productEntity.id,
+      name: '商品编码',
+      code: 'sku',
+      type: 'STRING',
+      length: 100,
+      nullable: false,
+      uniqueConstraint: true,
+      comment: '商品SKU编码',
+      sortOrder: 2,
+      createdBy: 'system',
+    },
+    {
+      entityId: productEntity.id,
+      name: '价格',
+      code: 'price',
+      type: 'DECIMAL',
+      precision: 10,
+      scale: 2,
+      nullable: false,
+      comment: '商品价格',
+      validationRules: {
+        min: 0,
+        message: '价格必须大于等于0'
+      },
+      sortOrder: 3,
+      createdBy: 'system',
+    },
+    {
+      entityId: productEntity.id,
+      name: '库存数量',
+      code: 'stock',
+      type: 'INTEGER',
+      nullable: false,
+      defaultValue: '0',
+      comment: '库存数量',
+      validationRules: {
+        min: 0,
+        message: '库存数量不能为负数'
+      },
+      sortOrder: 4,
+      createdBy: 'system',
+    },
+    {
+      entityId: productEntity.id,
+      name: '描述',
+      code: 'description',
+      type: 'TEXT',
+      nullable: true,
+      comment: '商品描述',
+      sortOrder: 5,
+      createdBy: 'system',
+    },
+    {
+      entityId: productEntity.id,
+      name: '状态',
+      code: 'status',
+      type: 'ENUM',
+      nullable: false,
+      defaultValue: 'ACTIVE',
+      enumOptions: ['ACTIVE', 'INACTIVE', 'DISCONTINUED'],
+      comment: '商品状态',
+      sortOrder: 6,
+      createdBy: 'system',
+    },
+  ];
+
+  await prisma.field.createMany({
+    data: productFields,
+  });
+
+  console.log(`✅ Created product entity with ${productFields.length} fields`);
+
+  // 创建订单实体
+  const orderEntity = await prisma.entity.create({
+    data: {
+      projectId: demoProject.id,
+      name: '订单',
+      code: 'Order',
+      tableName: 'orders',
+      description: '订单信息实体',
+      category: 'business',
+      diagramPosition: { x: 250, y: 300 },
+      status: 'ACTIVE',
+      createdBy: 'system',
+    },
+  });
+
+  // 创建订单实体字段
+  const orderFields = [
+    {
+      entityId: orderEntity.id,
+      name: '订单号',
+      code: 'orderNumber',
+      type: 'STRING',
+      length: 50,
+      nullable: false,
+      uniqueConstraint: true,
+      comment: '订单号',
+      sortOrder: 1,
+      createdBy: 'system',
+    },
+    {
+      entityId: orderEntity.id,
+      name: '用户ID',
+      code: 'userId',
+      type: 'STRING',
+      length: 36,
+      nullable: false,
+      comment: '下单用户ID',
+      sortOrder: 2,
+      createdBy: 'system',
+    },
+    {
+      entityId: orderEntity.id,
+      name: '总金额',
+      code: 'totalAmount',
+      type: 'DECIMAL',
+      precision: 10,
+      scale: 2,
+      nullable: false,
+      comment: '订单总金额',
+      sortOrder: 3,
+      createdBy: 'system',
+    },
+    {
+      entityId: orderEntity.id,
+      name: '订单状态',
+      code: 'status',
+      type: 'ENUM',
+      nullable: false,
+      defaultValue: 'PENDING',
+      enumOptions: ['PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED'],
+      comment: '订单状态',
+      sortOrder: 4,
+      createdBy: 'system',
+    },
+    {
+      entityId: orderEntity.id,
+      name: '下单时间',
+      code: 'orderTime',
+      type: 'DATETIME',
+      nullable: false,
+      defaultValue: 'CURRENT_TIMESTAMP',
+      comment: '下单时间',
+      sortOrder: 5,
+      createdBy: 'system',
+    },
+  ];
+
+  await prisma.field.createMany({
+    data: orderFields,
+  });
+
+  console.log(`✅ Created order entity with ${orderFields.length} fields`);
+
+  // 创建实体关系
+  const relations = [
+    {
+      projectId: demoProject.id,
+      name: 'user-orders',
+      code: 'userOrders',
+      description: '用户和订单的一对多关系',
+      type: 'ONE_TO_MANY',
+      sourceEntityId: userEntity.id,
+      targetEntityId: orderEntity.id,
+      foreignKeyName: 'user_id_fk',
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
+      createdBy: 'system',
+    },
+  ];
+
+  await prisma.relation.createMany({
+    data: relations,
+  });
+
+  console.log(`✅ Created ${relations.length} entity relationships`);
+
+  // 创建代码模板
+  const templates = [
+    {
+      name: 'NestJS 实体模板',
+      code: 'nestjs-entity',
+      type: 'ENTITY',
+      language: 'typescript',
+      framework: 'nestjs',
+      description: '生成 TypeORM 实体类',
+      content: `import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+
+@Entity('{{tableName}}')
+export class {{pascalCase entityName}} {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+{{#each fields}}
+  {{#unless (eq code 'id')}}
+  @Column({{#if nullable}}{nullable: true}{{else}}{nullable: false}{{/if}})
+  {{code}}: {{mapTypeToTS type}};
+
+  {{/unless}}
+{{/each}}
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+}`,
+      variables: [
+        {
+          name: 'entityName',
+          type: 'string',
+          required: true,
+          description: '实体名称'
         },
-      },
-      update: {
-        name: apiConfig.name,
-        description: apiConfig.description,
-        method: apiConfig.method,
-        path: apiConfig.path,
-        parameters: apiConfig.parameters,
-        responses: apiConfig.responses,
-        security: apiConfig.security,
-        config: apiConfig.config,
-        updatedAt: new Date(),
-      },
-      create: {
-        projectId: demoProject.id,
-        name: apiConfig.name,
-        code: apiConfig.code,
-        description: apiConfig.description,
-        method: apiConfig.method,
-        path: apiConfig.path,
-        parameters: apiConfig.parameters,
-        responses: apiConfig.responses,
-        security: apiConfig.security,
-        config: apiConfig.config,
-        status: 'PUBLISHED',
-        version: '1.0.0',
-        createdBy: 'system',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        {
+          name: 'tableName',
+          type: 'string',
+          required: true,
+          description: '数据库表名'
+        },
+        {
+          name: 'fields',
+          type: 'array',
+          required: true,
+          description: '实体字段列表'
+        }
+      ],
+      version: '1.0.0',
+      status: 'ACTIVE',
+      category: 'ENTITY',
+      createdBy: 'system',
+    },
+    {
+      name: 'NestJS 控制器模板',
+      code: 'nestjs-controller',
+      type: 'CONTROLLER',
+      language: 'typescript',
+      framework: 'nestjs',
+      description: '生成 NestJS 控制器',
+      content: `import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { {{pascalCase entityName}}Service } from './{{kebabCase entityName}}.service';
+import { Create{{pascalCase entityName}}Dto, Update{{pascalCase entityName}}Dto } from './dto/{{kebabCase entityName}}.dto';
+
+@ApiTags('{{kebabCase entityName}}')
+@Controller('{{kebabCase entityName}}')
+export class {{pascalCase entityName}}Controller {
+  constructor(private readonly {{camelCase entityName}}Service: {{pascalCase entityName}}Service) {}
+
+  @Post()
+  @ApiOperation({ summary: 'Create {{entityName}}' })
+  create(@Body() create{{pascalCase entityName}}Dto: Create{{pascalCase entityName}}Dto) {
+    return this.{{camelCase entityName}}Service.create(create{{pascalCase entityName}}Dto);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get all {{entityName}}' })
+  findAll(@Query() query: any) {
+    return this.{{camelCase entityName}}Service.findAll(query);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get {{entityName}} by id' })
+  findOne(@Param('id') id: string) {
+    return this.{{camelCase entityName}}Service.findOne(id);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Update {{entityName}}' })
+  update(@Param('id') id: string, @Body() update{{pascalCase entityName}}Dto: Update{{pascalCase entityName}}Dto) {
+    return this.{{camelCase entityName}}Service.update(id, update{{pascalCase entityName}}Dto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete {{entityName}}' })
+  remove(@Param('id') id: string) {
+    return this.{{camelCase entityName}}Service.remove(id);
+  }
+}`,
+      variables: [
+        {
+          name: 'entityName',
+          type: 'string',
+          required: true,
+          description: '实体名称'
+        }
+      ],
+      version: '1.0.0',
+      status: 'ACTIVE',
+      category: 'CONTROLLER',
+      createdBy: 'system',
+    },
+    {
+      name: 'NestJS 服务模板',
+      code: 'nestjs-service',
+      type: 'SERVICE',
+      language: 'typescript',
+      framework: 'nestjs',
+      description: '生成 NestJS 服务类',
+      content: `import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { {{pascalCase entityName}} } from './entities/{{kebabCase entityName}}.entity';
+import { Create{{pascalCase entityName}}Dto, Update{{pascalCase entityName}}Dto } from './dto/{{kebabCase entityName}}.dto';
+
+@Injectable()
+export class {{pascalCase entityName}}Service {
+  constructor(
+    @InjectRepository({{pascalCase entityName}})
+    private readonly {{camelCase entityName}}Repository: Repository<{{pascalCase entityName}}>,
+  ) {}
+
+  async create(create{{pascalCase entityName}}Dto: Create{{pascalCase entityName}}Dto): Promise<{{pascalCase entityName}}> {
+    const {{camelCase entityName}} = this.{{camelCase entityName}}Repository.create(create{{pascalCase entityName}}Dto);
+    return this.{{camelCase entityName}}Repository.save({{camelCase entityName}});
+  }
+
+  async findAll(query?: any): Promise<{{pascalCase entityName}}[]> {
+    return this.{{camelCase entityName}}Repository.find(query);
+  }
+
+  async findOne(id: string): Promise<{{pascalCase entityName}}> {
+    const {{camelCase entityName}} = await this.{{camelCase entityName}}Repository.findOne({ where: { id } });
+    if (!{{camelCase entityName}}) {
+      throw new NotFoundException(\`{{entityName}} with ID \${id} not found\`);
+    }
+    return {{camelCase entityName}};
+  }
+
+  async update(id: string, update{{pascalCase entityName}}Dto: Update{{pascalCase entityName}}Dto): Promise<{{pascalCase entityName}}> {
+    await this.{{camelCase entityName}}Repository.update(id, update{{pascalCase entityName}}Dto);
+    return this.findOne(id);
+  }
+
+  async remove(id: string): Promise<void> {
+    const result = await this.{{camelCase entityName}}Repository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(\`{{entityName}} with ID \${id} not found\`);
+    }
+  }
+}`,
+      variables: [
+        {
+          name: 'entityName',
+          type: 'string',
+          required: true,
+          description: '实体名称'
+        }
+      ],
+      version: '1.0.0',
+      status: 'ACTIVE',
+      category: 'SERVICE',
+      createdBy: 'system',
+    },
+  ];
+
+  for (const template of templates) {
+    await prisma.codeTemplate.create({
+      data: {
+        ...template,
+        variables: template.variables,
       },
     });
-
-    console.log('✅ API配置创建完成:', created.name);
   }
 
-    // 创建示例实体
-    console.log('🏗️ 创建示例实体...');
-    const entities = [
-      {
-        id: 'demo-entity-user',
-        projectId: demoProject.id,
-        name: '用户',
-        code: 'User',
-        tableName: 'demo_users',
-        description: '用户实体，包含基本的用户信息',
-        category: '用户管理',
-        config: { displayName: '用户', icon: 'user', color: '#1890ff' },
-        status: 'ACTIVE',
-        createdBy: 'system',
+  console.log(`✅ Created ${templates.length} code templates`);
+
+  // 创建示例查询
+  const queries = [
+    {
+      projectId: demoProject.id,
+      name: '活跃用户查询',
+      description: '查询所有活跃状态的用户',
+      baseEntityId: userEntity.id,
+      baseEntityAlias: 'user',
+      fields: [
+        { field: 'user.id', alias: 'userId' },
+        { field: 'user.username', alias: 'username' },
+        { field: 'user.email', alias: 'email' },
+        { field: 'user.createdAt', alias: 'createdAt' }
+      ],
+      filters: [
+        {
+          field: 'user.status',
+          operator: 'EQUALS',
+          value: 'ACTIVE'
+        }
+      ],
+      sorting: [
+        {
+          field: 'user.createdAt',
+          direction: 'DESC'
+        }
+      ],
+      status: 'ACTIVE',
+      createdBy: 'system',
+    },
+    {
+      projectId: demoProject.id,
+      name: '用户订单统计',
+      description: '查询用户的订单数量和总金额',
+      baseEntityId: userEntity.id,
+      baseEntityAlias: 'user',
+      joins: [
+        {
+          type: 'LEFT',
+          entity: 'Order',
+          alias: 'order',
+          condition: 'user.id = order.userId'
+        }
+      ],
+      fields: [
+        { field: 'user.id', alias: 'userId' },
+        { field: 'user.username', alias: 'username' },
+        { field: 'COUNT(order.id)', alias: 'orderCount' },
+        { field: 'SUM(order.totalAmount)', alias: 'totalAmount' }
+      ],
+      groupBy: [
+        { field: 'user.id' },
+        { field: 'user.username' }
+      ],
+      sorting: [
+        {
+          field: 'totalAmount',
+          direction: 'DESC'
+        }
+      ],
+      status: 'ACTIVE',
+      createdBy: 'system',
+    },
+  ];
+
+  for (const query of queries) {
+    await prisma.lowcodeQuery.create({
+      data: {
+        ...query,
+        joins: query.joins || [],
+        fields: query.fields || [],
+        filters: query.filters || [],
+        sorting: query.sorting || [],
+        groupBy: query.groupBy || [],
       },
-      {
-        id: 'demo-entity-role',
-        projectId: demoProject.id,
-        name: '角色',
-        code: 'Role',
-        tableName: 'demo_roles',
-        description: '角色实体，用于权限管理',
-        category: '权限管理',
-        config: { displayName: '角色', icon: 'crown', color: '#52c41a' },
-        status: 'ACTIVE',
-        createdBy: 'system',
-      }
-    ];
-
-    for (const entity of entities) {
-      await prisma.entity.upsert({
-        where: { id: entity.id },
-        update: {
-          name: entity.name,
-          code: entity.code,
-          tableName: entity.tableName,
-          description: entity.description,
-          category: entity.category,
-          config: entity.config,
-          status: entity.status,
-          updatedAt: new Date(),
-        },
-        create: {
-          ...entity,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      });
-    }
-    console.log('✅ 示例实体创建完成');
-
-    // 创建示例字段
-    console.log('📋 创建示例字段...');
-    const fields = [
-      // 用户实体字段
-      {
-        id: 'field-user-id',
-        entityId: 'demo-entity-user',
-        name: 'ID',
-        code: 'id',
-        type: 'UUID',
-        nullable: false,
-        uniqueConstraint: true,
-        primaryKey: true,
-        comment: '用户唯一标识',
-        sortOrder: 1,
-        createdBy: 'system',
-      },
-      {
-        id: 'field-user-username',
-        entityId: 'demo-entity-user',
-        name: '用户名',
-        code: 'username',
-        type: 'STRING',
-        length: 50,
-        nullable: false,
-        uniqueConstraint: true,
-        primaryKey: false,
-        comment: '用户登录名',
-        sortOrder: 2,
-        createdBy: 'system',
-      },
-      {
-        id: 'field-user-email',
-        entityId: 'demo-entity-user',
-        name: '邮箱',
-        code: 'email',
-        type: 'STRING',
-        length: 100,
-        nullable: false,
-        uniqueConstraint: true,
-        primaryKey: false,
-        comment: '用户邮箱地址',
-        sortOrder: 3,
-        createdBy: 'system',
-      },
-      {
-        id: 'field-user-nickname',
-        entityId: 'demo-entity-user',
-        name: '昵称',
-        code: 'nickname',
-        type: 'STRING',
-        length: 50,
-        nullable: true,
-        uniqueConstraint: false,
-        primaryKey: false,
-        comment: '用户昵称',
-        sortOrder: 4,
-        createdBy: 'system',
-      },
-      // 角色实体字段
-      {
-        id: 'field-role-id',
-        entityId: 'demo-entity-role',
-        name: 'ID',
-        code: 'id',
-        type: 'UUID',
-        nullable: false,
-        uniqueConstraint: true,
-        primaryKey: true,
-        comment: '角色唯一标识',
-        sortOrder: 1,
-        createdBy: 'system',
-      },
-      {
-        id: 'field-role-name',
-        entityId: 'demo-entity-role',
-        name: '角色名',
-        code: 'name',
-        type: 'STRING',
-        length: 50,
-        nullable: false,
-        uniqueConstraint: true,
-        primaryKey: false,
-        comment: '角色名称',
-        sortOrder: 2,
-        createdBy: 'system',
-      }
-    ];
-
-    for (const field of fields) {
-      await prisma.field.upsert({
-        where: { id: field.id },
-        update: {
-          name: field.name,
-          code: field.code,
-          type: field.type,
-          length: field.length,
-          nullable: field.nullable,
-          uniqueConstraint: field.uniqueConstraint,
-          primaryKey: field.primaryKey,
-          comment: field.comment,
-          sortOrder: field.sortOrder,
-          updatedAt: new Date(),
-        },
-        create: {
-          ...field,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      });
-    }
-    console.log('✅ 示例字段创建完成');
-
-  // 统计数据
-  const projectCount = await prisma.project.count();
-  const apiConfigCount = await prisma.apiConfig.count();
-  const entityCount = await prisma.entity.count();
-  const fieldCount = await prisma.field.count();
-  const templateCount = await prisma.codeTemplate.count();
-
-  console.log('📊 种子数据统计:');
-  console.log(`   项目数量: ${projectCount}`);
-  console.log(`   API配置数量: ${apiConfigCount}`);
-  console.log(`   实体数量: ${entityCount}`);
-  console.log(`   字段数量: ${fieldCount}`);
-  console.log(`   代码模板数量: ${templateCount}`);
-
-  // 初始化代码生成器相关数据
-  console.log('🚀 初始化代码生成器数据...');
-  await initializeCodeGenerationData();
-
-  console.log('🎉 低代码平台种子数据初始化完成!');
-
-  } catch (error) {
-    console.error('❌ 种子数据初始化失败:', error);
-    throw error;
+    });
   }
+
+  console.log(`✅ Created ${queries.length} sample queries`);
+
+  // 创建一个简单的第二个项目
+  const blogProject = await prisma.project.create({
+    data: {
+      name: '博客管理系统',
+      code: 'blog-admin',
+      description: '简单的博客管理系统，包含文章管理、分类管理等功能',
+      version: '1.0.0',
+      config: {
+        framework: 'nestjs',
+        architecture: 'base-biz',
+        language: 'typescript',
+        database: 'postgresql',
+        features: ['authentication'],
+        settings: {
+          enableSwagger: true,
+          enableTesting: false,
+          enableDocker: true,
+          enableAudit: false,
+          enableSoftDelete: true,
+        }
+      },
+      status: 'ACTIVE',
+      deploymentStatus: 'INACTIVE',
+      createdBy: 'system',
+    },
+  });
+
+  console.log(`✅ Created blog project: ${blogProject.name}`);
+
+  console.log('🎉 Seed completed successfully!');
+  console.log(`
+📊 Summary:
+- Projects: 2
+- Entities: 3 (User, Product, Order)
+- Fields: ${userFields.length + productFields.length + orderFields.length}
+- Relationships: 1
+- Code Templates: ${templates.length}
+- Queries: ${queries.length}
+  `);
 }
 
 main()
   .catch((e) => {
-    console.error('❌ 种子数据初始化失败:', e);
+    console.error('❌ Seed failed:', e);
     process.exit(1);
   })
   .finally(async () => {

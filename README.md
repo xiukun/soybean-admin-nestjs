@@ -137,7 +137,42 @@ soybean-admin-nestjs/
 
 ### 快速开始（推荐方式）
 
-#### 🐳 Docker 部署（一键启动）
+#### 🚀 低代码平台快速启动
+
+为了更简单的体验低代码平台，我们提供了一键启动脚本：
+
+```bash
+# 给予执行权限
+chmod +x start-lowcode-platform.sh
+
+# 一键启动所有服务（数据库 + 后端 + 前端）
+./start-lowcode-platform.sh
+
+# 运行系统测试
+./test-system.sh
+
+# 运行端到端集成测试
+./e2e-integration-test.sh
+```
+
+启动后可以访问：
+- **前端界面**：http://localhost:5173 （Vue3 + Vite6）
+- **低代码平台后端**：http://localhost:3003 （NestJS）
+- **API文档**：http://localhost:3003/api-docs
+- **Amis动态后端**：http://localhost:9522
+- **Amis API文档**：http://localhost:9522/api/v1/docs
+
+**低代码平台功能**：
+- 🎨 可视化实体建模和关系设计
+- 🔧 智能代码生成（支持多种架构模式）
+- 📊 动态查询构建器
+- 🚀 一键项目部署和服务生成
+- 📝 完整的API文档自动生成
+- 🔄 实时代码预览和热更新
+
+> 📖 **完整使用指南**：请查看 [.qodo/10-完整部署使用指南.md](.qodo/10-完整部署使用指南.md)
+
+### 🐳 Docker 部署（传统方式）
 
 使用 Docker Compose 一键启动所有服务（包含 PostgreSQL、Redis 等依赖）：
 

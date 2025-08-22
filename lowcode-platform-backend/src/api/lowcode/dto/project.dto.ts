@@ -212,4 +212,16 @@ export class ProjectStatsResponseDto {
 
   @ApiProperty({ description: 'Archived projects' })
   archived: number;
+
+  @ApiProperty({ description: 'Deployed projects' })
+  deployed: number;
+
+  @ApiProperty({ description: 'Projects created today' })
+  createdToday: number;
+
+  @ApiProperty({ description: 'Projects created this week' })
+  createdThisWeek: number;
+
+  @ApiProperty({ description: 'Projects created this month' })
+  createdThisMonth: number;
 }

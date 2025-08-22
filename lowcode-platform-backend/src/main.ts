@@ -135,7 +135,7 @@ async function bootstrap() {
       },
     });
 
-    const port = parseInt(process.env.APP_PORT || process.env.PORT || '3002');
+    const port = parseInt(process.env.APP_PORT || process.env.PORT || '3003');
     logger.log(`Swagger documentation available at: http://localhost:${port}/api-docs`);
   }
 

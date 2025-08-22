@@ -164,6 +164,7 @@ export class ProjectController {
   }
 
   @Get('stats')
+  @Public()
   @ApiOperation({ summary: 'Get project statistics' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -171,12 +172,24 @@ export class ProjectController {
     type: ProjectStatsResponseDto,
   })
   async getProjectStats(): Promise<ProjectStatsResponseDto> {
-    // TODO: Implement project statistics query
+    // 执行查询获取统计信息
+    const allProjects = await this.queryBus.execute(new GetProjectsQuery());
+
+    const total = allProjects.length;
+    const active = allProjects.filter((p: any) => p.status === 'ACTIVE').length;
+    const inactive = allProjects.filter((p: any) => p.status === 'INACTIVE').length;
+    const archived = allProjects.filter((p: any) => p.status === 'ARCHIVED').length;
+    const deployed = allProjects.filter((p: any) => p.deploymentStatus === 'DEPLOYED').length;
+
     return {
-      total: 0,
-      active: 0,
-      inactive: 0,
-      archived: 0,
+      total,
+      active,
+      inactive,
+      archived,
+      deployed,
+      createdToday: 0, // TODO: 实现今日创建数量统计
+      createdThisWeek: 0, // TODO: 实现本周创建数量统计
+      createdThisMonth: 0, // TODO: 实现本月创建数量统计
     };
   }
 

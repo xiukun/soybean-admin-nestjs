@@ -46,7 +46,7 @@ fi
 
 # 设置环境变量默认值
 export NODE_ENV=${NODE_ENV:-production}
-export PORT=${APP_PORT:-${PORT:-3002}}
+export PORT=${APP_PORT:-${PORT:-3003}}
 export AUTO_INIT_DATA=${AUTO_INIT_DATA:-true}
 export DOCKER_ENV=${DOCKER_ENV:-true}
 
