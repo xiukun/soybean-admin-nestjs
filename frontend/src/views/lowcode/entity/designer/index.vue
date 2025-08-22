@@ -83,6 +83,7 @@ const zoomLevel = ref(1);
 // 面板状态
 const leftPanelCollapsed = ref(false);
 const rightPanelCollapsed = ref(false);
+const rightPanelWidth = ref(400); // 右侧面板宽度
 
 // 显示选项
 const showGrid = ref(true);
@@ -306,11 +307,16 @@ function addEntityToGraph(entity: Entity) {
     (existing as Node).setData(entity);
     return;
   }
+  
+  // 修复实体位置计算逻辑 - 优先使用实体已保存的坐标，如果没有则使用合理的默认布局
+  const defaultX = entity.x ?? Math.random() * 400 + 100;
+  const defaultY = entity.y ?? Math.random() * 300 + 100;
+  
   const node = graph.addNode({
     id: entity.id,
     shape: 'entity-node',
-    x: entity.x ?? Math.random() * 400 + 100,
-    y: entity.y ?? Math.random() * 300 + 100,
+    x: defaultX,
+    y: defaultY,
     width: entity.width ?? 200,
     height: entity.height ?? 120,
     data: entity,
@@ -453,7 +459,7 @@ function handleEntityUpdate(entity: Entity) {
         nodeInstance.resize(entity.width, entity.height);
       }
 
-      // 更新节点位置
+      // 更新节点位置 - 仅在实体对象中包含位置信息时才更新
       if (entity.x !== undefined && entity.y !== undefined) {
         nodeInstance.setPosition(entity.x, entity.y);
       }
@@ -493,8 +499,63 @@ function handleFieldDelete(index: number) {
   console.log('Field deleted at index:', index);
 }
 
+/** 面板宽度调整相关函数 */
+function startResize(event: MouseEvent) {
+  console.log('开始拖拽调整面板宽度');
+  event.preventDefault();
+  event.stopPropagation(); // 阻止事件冒泡
+  isResizingPanel.value = true;
+  
+  const startX = event.clientX;
+  const startWidth = rightPanelWidth.value;
+  
+  // 添加视觉反馈
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+  
+  function onMouseMove(e: MouseEvent) {
+    if (!isResizingPanel.value) return;
+    
+    const deltaX = e.clientX - startX; // 正确的计算方式，向右拖动增加宽度
+    const newWidth = Math.max(minPanelWidth, Math.min(maxPanelWidth, startWidth + deltaX));
+    rightPanelWidth.value = newWidth;
+    console.log('调整面板宽度:', newWidth);
+  }
+  
+  function onMouseUp() {
+    console.log('结束拖拽调整面板宽度');
+    isResizingPanel.value = false;
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    
+    // 移除视觉反馈
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    
+    // 保存面板宽度到本地存储
+    localStorage.setItem('entity-designer-panel-width', rightPanelWidth.value.toString());
+  }
+  
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+}
+
+// 初始化时读取保存的面板宽度
+function initPanelWidth() {
+  const savedWidth = localStorage.getItem('entity-designer-panel-width');
+  if (savedWidth) {
+    const width = parseInt(savedWidth, 10);
+    if (width >= minPanelWidth && width <= maxPanelWidth) {
+      rightPanelWidth.value = width;
+    }
+  }
+}
+
 // 组件挂载时初始化
 onMounted(() => {
+  // 初始化面板宽度
+  initPanelWidth();
+  
   // 进入全屏模式
   if (canvasContainer.value) {
     canvasContainer.value.requestFullscreen?.();
@@ -723,44 +784,56 @@ onUnmounted(() => {
       </div>
 
       <!-- 右侧属性面板 -->
-      <div class="right-panel" :class="{ collapsed: rightPanelCollapsed }">
-        <div class="panel-header">
-          <NText class="font-medium">属性面板</NText>
-          <NButton text size="tiny" @click="rightPanelCollapsed = !rightPanelCollapsed">
-            <NIcon>
-              <icon-mdi-chevron-right v-if="!rightPanelCollapsed" />
-              <icon-mdi-chevron-left v-else />
-            </NIcon>
-          </NButton>
-        </div>
+      <div 
+        class="right-panel-container"
+        :style="{ width: rightPanelCollapsed ? '48px' : `${rightPanelWidth}px` }"
+      >
+        <div 
+          class="right-panel"
+          :class="{ collapsed: rightPanelCollapsed }"
+        >
+          <div class="panel-header">
+            <NText class="font-medium">属性面板</NText>
+            <div class="panel-controls">
+              <!-- 宽度显示 -->
+              <span v-if="!rightPanelCollapsed" class="panel-width-display">{{ rightPanelWidth }}px</span>
+              <NButton text size="tiny" @click="rightPanelCollapsed = !rightPanelCollapsed">
+                <NIcon>
+                  <icon-mdi-chevron-right v-if="!rightPanelCollapsed" />
+                  <icon-mdi-chevron-left v-else />
+                </NIcon>
+              </NButton>
+            </div>
+          </div>
 
-        <div v-if="!rightPanelCollapsed" class="panel-content">
-          <!-- 实体属性编辑 -->
-          <EntityPropertyPanel
-            v-if="selectedEntity"
-            :entity="selectedEntity"
-            @update="handleEntityUpdate"
-            @close="handleClosePropertyPanel"
-            @fields-update="handleFieldsUpdate"
-            @field-add="handleFieldAdd"
-            @field-update="handleFieldUpdate"
-            @field-delete="handleFieldDelete"
-          />
+          <div v-if="!rightPanelCollapsed" class="panel-content">
+            <!-- 实体属性编辑 -->
+            <EntityPropertyPanel
+              v-if="selectedEntity"
+              :entity="selectedEntity"
+              @update="handleEntityUpdate"
+              @close="handleClosePropertyPanel"
+              @fields-update="handleFieldsUpdate"
+              @field-add="handleFieldAdd"
+              @field-update="handleFieldUpdate"
+              @field-delete="handleFieldDelete"
+            />
 
-          <!-- 关系属性编辑 -->
-          <RelationshipPropertyPanel
-            v-else-if="selectedRelationship"
-            :relationship="selectedRelationship"
-            @update="handleRelationshipUpdate"
-            @close="handleClosePropertyPanel"
-          />
+            <!-- 关系属性编辑 -->
+            <RelationshipPropertyPanel
+              v-else-if="selectedRelationship"
+              :relationship="selectedRelationship"
+              @update="handleRelationshipUpdate"
+              @close="handleClosePropertyPanel"
+            />
 
-          <!-- 空状态 -->
-          <div v-else class="empty-selection">
-            <NIcon size="48" class="text-gray-300">
-              <icon-mdi-cursor-default />
-            </NIcon>
-            <NText depth="3" class="mt-2 text-center">选择实体或关系以编辑属性</NText>
+            <!-- 空状态 -->
+            <div v-else class="empty-selection">
+              <NIcon size="48" class="text-gray-300">
+                <icon-mdi-cursor-default />
+              </NIcon>
+              <NText depth="3" class="mt-2 text-center">选择实体或关系以编辑属性</NText>
+            </div>
           </div>
         </div>
       </div>
@@ -807,17 +880,30 @@ onUnmounted(() => {
   width: 48px;
 }
 
+.right-panel-container {
+  @apply relative transition-all duration-300;
+  min-width: 48px;
+}
+
 .right-panel {
-  @apply bg-white border-l border-gray-200 transition-all duration-300;
-  width: 320px;
+  @apply bg-white border-l border-gray-200 transition-all duration-300 relative h-full;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
 }
 
 .right-panel.collapsed {
-  width: 48px;
+  width: 48px !important;
 }
 
 .panel-header {
   @apply flex items-center justify-between p-3 border-b border-gray-100;
+}
+
+.panel-controls {
+  @apply flex items-center space-x-2;
+}
+
+.panel-width-display {
+  @apply text-xs text-gray-500 font-mono;
 }
 
 .panel-content {
@@ -876,4 +962,32 @@ onUnmounted(() => {
 .empty-selection {
   @apply flex flex-col items-center justify-center h-64 text-center;
 }
-</style>
+
+.debug-info {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 1001;
+}
+
+.debug-item {
+  margin-bottom: 4px;
+}
+
+.debug-item:last-child {
+  margin-bottom: 0;
+}
+
+.debug-label {
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.debug-value {
+  font-family: monospace;
+}

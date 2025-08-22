@@ -145,7 +145,60 @@ function registerEntityNode() {
           tagName: 'foreignObject',
           selector: 'content'
         }
-      ]
+      ],
+      ports: {
+        groups: {
+          top: {
+            position: 'top',
+            attrs: {
+              circle: {
+                r: 4,
+                magnet: true,
+                stroke: '#5F95FF',
+                strokeWidth: 1,
+                fill: '#fff'
+              }
+            }
+          },
+          right: {
+            position: 'right',
+            attrs: {
+              circle: {
+                r: 4,
+                magnet: true,
+                stroke: '#5F95FF',
+                strokeWidth: 1,
+                fill: '#fff'
+              }
+            }
+          },
+          bottom: {
+            position: 'bottom',
+            attrs: {
+              circle: {
+                r: 4,
+                magnet: true,
+                stroke: '#5F95FF',
+                strokeWidth: 1,
+                fill: '#fff'
+              }
+            }
+          },
+          left: {
+            position: 'left',
+            attrs: {
+              circle: {
+                r: 4,
+                magnet: true,
+                stroke: '#5F95FF',
+                strokeWidth: 1,
+                fill: '#fff'
+              }
+            }
+          }
+        },
+        items: [{ group: 'top' }, { group: 'right' }, { group: 'bottom' }, { group: 'left' }]
+      }
     },
     true
   );
@@ -339,8 +392,20 @@ function bindEvents() {
 
   // 节点移动事件
   graph.on('node:moved', ({ node }) => {
+    // 当节点被移动时，更新实体的位置信息
     const position = node.getPosition();
-    emit('node-moved', node, position);
+    const data = node.getData();
+    
+    if (data && data.entity) {
+      const updatedEntity = {
+        ...data.entity,
+        x: position.x,
+        y: position.y
+      };
+      
+      // 发送实体更新事件，包含新的位置信息
+      emit('entity-updated', updatedEntity);
+    }
   });
 
   // 缩放变化事件
@@ -394,122 +459,145 @@ function renderData() {
  * @param entity - 实体数据
  * @param index - 索引
  */
-function createEntityNode(entity: Entity, index: number) {
-  // 模拟字段数据，实际应从API获取
-  const mockFields: EntityField[] = [
-    { id: '1', name: 'id', type: 'bigint', isPrimaryKey: true, isRequired: true },
-    { id: '2', name: 'name', type: 'varchar', isRequired: true },
-    { id: '3', name: 'created_at', type: 'timestamp', isRequired: true }
-  ];
+async function createEntityNode(entity: Entity, index: number) {
+  // 从API获取真实字段数据
+  let fields: any[] = [];
+  try {
+    // 这里应该调用字段API，暂时使用模拟数据
+    const response = await import('@/service/api/lowcode-field').then(module => 
+      module.fetchGetFieldList(entity.id)
+    );
+    fields = response.data || [];
+  } catch (error) {
+    console.warn('获取字段数据失败，使用默认字段:', error);
+    // 提供默认字段结构
+    fields = [
+      { id: '1', name: 'id', code: 'id', dataType: 'BIGINT', isPrimaryKey: true, isRequired: true, description: '主键' },
+      { id: '2', name: '名称', code: 'name', dataType: 'STRING', isRequired: true, description: '实体名称' },
+      { id: '3', name: '创建时间', code: 'created_at', dataType: 'DATETIME', isRequired: true, description: '创建时间' },
+      { id: '4', name: '更新时间', code: 'updated_at', dataType: 'DATETIME', isRequired: true, description: '更新时间' }
+    ];
+  }
 
-  const fieldsHtml = mockFields
+  // 如果没有字段，提供基本字段
+  if (!fields || fields.length === 0) {
+    fields = [
+      { id: 'default_id', name: 'ID', code: 'id', dataType: 'BIGINT', isPrimaryKey: true, isRequired: true, description: '主键标识' }
+    ];
+  }
+
+  // 限制显示的字段数量，避免节点过高
+  const maxFields = 8;
+  const displayFields = fields.slice(0, maxFields);
+  const hasMoreFields = fields.length > maxFields;
+
+  // 生成字段HTML
+  const fieldsHtml = displayFields
     .map(
-      field =>
-        `<div class="field-item">
-      <span class="field-name">${field.name}</span>
-      <span class="field-type">${field.type}</span>
-      ${field.isPrimaryKey ? '<span class="field-key">🔑</span>' : ''}
-      ${field.isRequired ? '<span class="field-required">*</span>' : ''}
-    </div>`
+      field => {
+        const typeLabel = getFieldTypeLabel(field.dataType);
+        const keyIcon = field.isPrimaryKey ? '<span class="field-key" title="主键">🔑</span>' : '';
+        const requiredIcon = field.isRequired ? '<span class="field-required" title="必填">*</span>' : '';
+        const foreignKeyIcon = field.isForeignKey ? '<span class="field-foreign" title="外键">🔗</span>' : '';
+        
+        return `<div class="field-item ${field.isPrimaryKey ? 'primary-key' : ''}">
+          <div class="field-info">
+            <span class="field-name">${field.name}</span>
+            <span class="field-code">(${field.code})</span>
+          </div>
+          <div class="field-meta">
+            <span class="field-type">${typeLabel}</span>
+            ${keyIcon}${foreignKeyIcon}${requiredIcon}
+          </div>
+        </div>`;
+      }
     )
     .join('');
 
+  // 如果有更多字段，显示省略信息
+  const moreFieldsHtml = hasMoreFields 
+    ? `<div class="field-item more-fields">
+        <span class="more-text">...还有 ${fields.length - maxFields} 个字段</span>
+      </div>` 
+    : '';
+
+  // 生成实体内容HTML
   const contentHtml = `
     <div class="entity-content">
       <div class="entity-header">
-        <h3 class="entity-title">${entity.name}</h3>
-        <p class="entity-description">${entity.description || ''}</p>
+        <div class="entity-title-area">
+          <h3 class="entity-title">${entity.name}</h3>
+          <span class="entity-code">${entity.code || ''}</span>
+        </div>
+        ${entity.description ? `<p class="entity-description">${entity.description}</p>` : ''}
+        <div class="entity-stats">
+          <span class="stat-item">表: ${entity.tableName || 'N/A'}</span>
+          <span class="stat-item">字段: ${fields.length}</span>
+        </div>
       </div>
       <div class="entity-fields">
-        ${fieldsHtml}
+        <div class="fields-header">
+          <span class="fields-title">字段列表</span>
+        </div>
+        <div class="fields-list">
+          ${fieldsHtml}
+          ${moreFieldsHtml}
+        </div>
       </div>
     </div>
   `;
 
+  // 根据内容动态计算节点高度
+  const baseHeight = 140; // 头部基础高度
+  const fieldHeight = 24; // 每个字段的高度
+  const actualFieldCount = Math.min(displayFields.length + (hasMoreFields ? 1 : 0), maxFields + 1);
+  const calculatedHeight = Math.max(baseHeight + actualFieldCount * fieldHeight, 180);
+
+  // 修复实体位置计算逻辑 - 优先使用实体已保存的坐标，如果没有则使用合理的默认布局
+  const defaultX = 100 + (index % 4) * 300;
+  const defaultY = 100 + Math.floor(index / 4) * 250;
+  
   return graph!.createNode({
     shape: 'entity-node',
-    x: 100 + (index % 4) * 250,
-    y: 100 + Math.floor(index / 4) * 200,
-    width: 220,
-    height: Math.max(120, 80 + mockFields.length * 24),
+    x: entity.x ?? defaultX,
+    y: entity.y ?? defaultY,
+    width: 260,
+    height: calculatedHeight,
     data: {
       id: entity.id,
       type: 'entity',
-      entity
+      entity,
+      fields // 保存字段数据以供其他组件使用
     },
     attrs: {
       content: {
-        width: 220,
-        height: Math.max(120, 80 + mockFields.length * 24),
+        width: 260,
+        height: calculatedHeight,
         html: contentHtml
       }
-    },
-    ports: {
-      groups: {
-        top: {
-          position: 'top',
-          attrs: {
-            circle: {
-              r: 4,
-              magnet: true,
-              stroke: '#5F95FF',
-              strokeWidth: 1,
-              fill: '#fff',
-              style: {
-                visibility: props.showConnectionPoints ? 'visible' : 'hidden'
-              }
-            }
-          }
-        },
-        right: {
-          position: 'right',
-          attrs: {
-            circle: {
-              r: 4,
-              magnet: true,
-              stroke: '#5F95FF',
-              strokeWidth: 1,
-              fill: '#fff',
-              style: {
-                visibility: props.showConnectionPoints ? 'visible' : 'hidden'
-              }
-            }
-          }
-        },
-        bottom: {
-          position: 'bottom',
-          attrs: {
-            circle: {
-              r: 4,
-              magnet: true,
-              stroke: '#5F95FF',
-              strokeWidth: 1,
-              fill: '#fff',
-              style: {
-                visibility: props.showConnectionPoints ? 'visible' : 'hidden'
-              }
-            }
-          }
-        },
-        left: {
-          position: 'left',
-          attrs: {
-            circle: {
-              r: 4,
-              magnet: true,
-              stroke: '#5F95FF',
-              strokeWidth: 1,
-              fill: '#fff',
-              style: {
-                visibility: props.showConnectionPoints ? 'visible' : 'hidden'
-              }
-            }
-          }
-        }
-      },
-      items: [{ group: 'top' }, { group: 'right' }, { group: 'bottom' }, { group: 'left' }]
     }
   });
+}
+
+/**
+ * 获取字段类型显示标签
+ */
+function getFieldTypeLabel(dataType: string): string {
+  const typeMap: Record<string, string> = {
+    'STRING': '字符串',
+    'TEXT': '文本',
+    'INTEGER': '整数',
+    'BIGINT': '长整数',
+    'DECIMAL': '小数',
+    'FLOAT': '浮点数',
+    'BOOLEAN': '布尔值',
+    'DATE': '日期',
+    'DATETIME': '日期时间',
+    'TIMESTAMP': '时间戳',
+    'JSON': 'JSON',
+    'UUID': 'UUID'
+  };
+  return typeMap[dataType] || dataType;
 }
 
 /**
@@ -789,43 +877,99 @@ const SimpleNodeView = Shape.Rect.define({
 
 /* 实体节点样式 */
 :deep(.entity-content) {
-  @apply p-3 h-full;
+  @apply p-0 h-full bg-white border border-gray-200 rounded-lg shadow-sm;
 }
 
 :deep(.entity-header) {
-  @apply border-b border-gray-200 pb-2 mb-2;
+  @apply bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200 p-3;
+}
+
+:deep(.entity-title-area) {
+  @apply flex items-center justify-between mb-1;
 }
 
 :deep(.entity-title) {
   @apply text-sm font-semibold text-gray-900 m-0;
 }
 
+:deep(.entity-code) {
+  @apply text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded;
+}
+
 :deep(.entity-description) {
-  @apply text-xs text-gray-500 mt-1 m-0;
+  @apply text-xs text-gray-600 mt-1 mb-2 m-0 line-clamp-2;
+}
+
+:deep(.entity-stats) {
+  @apply flex items-center space-x-3 text-xs text-gray-500;
+}
+
+:deep(.stat-item) {
+  @apply flex items-center;
 }
 
 :deep(.entity-fields) {
-  @apply space-y-1;
+  @apply flex flex-col h-full;
+}
+
+:deep(.fields-header) {
+  @apply bg-gray-50 border-b border-gray-200 px-3 py-2;
+}
+
+:deep(.fields-title) {
+  @apply text-xs font-medium text-gray-700;
+}
+
+:deep(.fields-list) {
+  @apply flex-1 p-2 space-y-1 overflow-hidden;
 }
 
 :deep(.field-item) {
-  @apply flex items-center justify-between text-xs;
+  @apply flex items-center justify-between p-2 rounded text-xs hover:bg-gray-50 transition-colors;
+}
+
+:deep(.field-item.primary-key) {
+  @apply bg-yellow-50 border border-yellow-200;
+}
+
+:deep(.field-info) {
+  @apply flex-1 min-w-0;
 }
 
 :deep(.field-name) {
-  @apply font-medium text-gray-700;
+  @apply font-medium text-gray-900 truncate;
+}
+
+:deep(.field-code) {
+  @apply text-gray-500 ml-1;
+}
+
+:deep(.field-meta) {
+  @apply flex items-center space-x-1 flex-shrink-0;
 }
 
 :deep(.field-type) {
-  @apply text-gray-500 text-xs;
+  @apply bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs;
 }
 
 :deep(.field-key) {
-  @apply text-yellow-500;
+  @apply text-yellow-600;
+}
+
+:deep(.field-foreign) {
+  @apply text-blue-600;
 }
 
 :deep(.field-required) {
   @apply text-red-500 font-bold;
+}
+
+:deep(.more-fields) {
+  @apply text-center py-2 text-gray-500 italic;
+}
+
+:deep(.more-text) {
+  @apply text-xs;
 }
 
 /* 修复X6图形容器的触摸事件问题 */

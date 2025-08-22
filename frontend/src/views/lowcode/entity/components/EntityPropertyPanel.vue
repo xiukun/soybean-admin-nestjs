@@ -78,6 +78,11 @@ const emit = defineEmits<Emits>();
 const router = useRouter();
 const message = useMessage();
 
+// 拖拽相关状态
+const isResizingPanel = ref(false);
+const minPanelWidth = 300;
+const maxPanelWidth = 600;
+
 // 表单引用
 const formRef = ref<FormInst>();
 const saving = ref(false);
@@ -238,6 +243,52 @@ function handleReset() {
   positionY.value = props.entity.y || 0;
 }
 
+/** 面板宽度调整相关函数 */
+function startResize(event: MouseEvent) {
+  event.preventDefault();
+  event.stopPropagation(); // 阻止事件冒泡
+  isResizingPanel.value = true;
+  
+  // 获取面板元素
+  const panelElement = event.currentTarget?.parentElement?.parentElement;
+  if (!panelElement) return;
+  
+  const startX = event.clientX;
+  const startWidth = panelElement.offsetWidth;
+  
+  // 添加视觉反馈
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+  
+  function onMouseMove(e: MouseEvent) {
+    if (!isResizingPanel.value) return;
+    
+    const deltaX = e.clientX - startX; // 正确的计算方式，向右拖动增加宽度
+    const newWidth = Math.max(minPanelWidth, Math.min(maxPanelWidth, startWidth - deltaX)); // 向左拖动增加宽度
+    panelElement.style.width = `${newWidth}px`;
+  }
+  
+  function onMouseUp() {
+    isResizingPanel.value = false;
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    
+    // 移除视觉反馈
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    
+    // 保存面板宽度到本地存储
+    const panelElement = document.querySelector('.entity-property-panel');
+    if (panelElement) {
+      const currentWidth = panelElement.offsetWidth;
+      localStorage.setItem('entity-designer-panel-width', currentWidth.toString());
+    }
+  }
+  
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+}
+
 function handleSave() {
   formRef.value?.validate(errors => {
     if (!errors) {
@@ -255,23 +306,69 @@ function handleSave() {
 
 /** 处理字段相关事件 */
 function handleFieldsUpdate(fields: any[]) {
+  // 创建更新后的实体对象
   const updatedEntity: EntityWithFields = {
     ...props.entity,
     fields
   };
+  
+  // 发送更新事件
   emit('update', updatedEntity);
   emit('fields-update', fields);
 }
 
 function handleFieldAdd(field: any) {
+  // 获取当前字段列表
+  const currentFields = props.entity.fields || [];
+  
+  // 添加新字段到列表
+  const updatedFields = [...currentFields, field];
+  
+  // 创建更新后的实体对象
+  const updatedEntity: EntityWithFields = {
+    ...props.entity,
+    fields: updatedFields
+  };
+  
+  // 发送更新事件
+  emit('update', updatedEntity);
   emit('field-add', field);
 }
 
 function handleFieldUpdate(field: any, index: number) {
+  // 获取当前字段列表
+  const currentFields = props.entity.fields || [];
+  
+  // 更新字段
+  const updatedFields = [...currentFields];
+  updatedFields[index] = field;
+  
+  // 创建更新后的实体对象
+  const updatedEntity: EntityWithFields = {
+    ...props.entity,
+    fields: updatedFields
+  };
+  
+  // 发送更新事件
+  emit('update', updatedEntity);
   emit('field-update', field, index);
 }
 
 function handleFieldDelete(index: number) {
+  // 获取当前字段列表
+  const currentFields = props.entity.fields || [];
+  
+  // 删除字段
+  const updatedFields = currentFields.filter((_, i) => i !== index);
+  
+  // 创建更新后的实体对象
+  const updatedEntity: EntityWithFields = {
+    ...props.entity,
+    fields: updatedFields
+  };
+  
+  // 发送更新事件
+  emit('update', updatedEntity);
   emit('field-delete', index);
 }
 
@@ -302,6 +399,15 @@ watch(
 
 <template>
   <div class="entity-property-panel">
+    <!-- 面板调整手柄 -->
+    <div 
+      class="panel-resize-handle"
+      @mousedown="startResize"
+      title="拖拽调整宽度 ←→"
+    >
+      <div class="resize-indicator">⋮⋮</div>
+    </div>
+    
     <!-- 面板头部 -->
     <div class="panel-header">
       <div class="header-title">
@@ -538,7 +644,7 @@ watch(
 
 <style scoped>
 .entity-property-panel {
-  @apply h-full flex flex-col bg-white;
+  @apply h-full flex flex-col bg-white relative;
 }
 
 .panel-header {
@@ -595,5 +701,68 @@ watch(
 
 .stat-value {
   @apply text-sm font-medium text-gray-900 block;
+}
+
+.panel-resize-handle {
+  position: absolute;
+  top: 0;
+  left: -8px;
+  bottom: 0;
+  width: 16px;
+  cursor: col-resize;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(148, 163, 184, 0.3);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+}
+
+.panel-resize-handle::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 7px;
+  width: 2px;
+  height: 100%;
+  background-color: rgba(148, 163, 184, 0.5);
+}
+
+.resize-indicator {
+  width: 20px;
+  height: 60px;
+  background-color: #94a3b8;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #64748b;
+}
+
+.panel-resize-handle:hover .resize-indicator {
+  background-color: #3b82f6;
+  width: 24px;
+  height: 70px;
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.panel-resize-handle:hover {
+  background-color: rgba(59, 130, 246, 0.3);
+}
+
+.panel-resize-handle:active {
+  background-color: rgba(59, 130, 246, 0.5);
+}
+
+.panel-resize-handle:active .resize-indicator {
+  background-color: #2563eb;
+  transform: scale(1.05);
 }
 </style>
