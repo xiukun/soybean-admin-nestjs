@@ -13,7 +13,7 @@ interface Props {
     name: string;
     code: string;
     description?: string;
-    status: 'active' | 'inactive' | 'archived';
+    status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED' | 'active' | 'inactive' | 'archived';
     deploymentStatus?: 'INACTIVE' | 'DEPLOYING' | 'DEPLOYED' | 'FAILED';
     deploymentPort?: number;
     lastDeployedAt?: string;
@@ -44,8 +44,11 @@ const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 // 计算属性
-const statusType = computed(() => {
-  const statusMap = {
+const statusType = computed<'success' | 'warning' | 'error' | 'info' | 'default'>(() => {
+  const statusMap: Record<string, 'success' | 'warning' | 'error' | 'info' | 'default'> = {
+    ACTIVE: 'success',
+    INACTIVE: 'warning', 
+    ARCHIVED: 'error',
     active: 'success',
     inactive: 'warning',
     archived: 'error'
@@ -54,29 +57,59 @@ const statusType = computed(() => {
 });
 
 const statusText = computed(() => {
-  const statusMap = {
-    active: $t('page.lowcode.project.status.active'),
-    inactive: $t('page.lowcode.project.status.inactive'),
-    archived: $t('page.lowcode.project.status.archived')
+  const statusMap: Record<string, string> = {
+    ACTIVE: '活跃',
+    INACTIVE: '非活跃',
+    ARCHIVED: '已归档',
+    active: '活跃',
+    inactive: '非活跃',
+    archived: '已归档'
   };
-  return statusMap[props.project.status] || '';
+  return statusMap[props.project.status] || '未知状态';
 });
 
-const lastUpdated = computed(() => {
-  const date = new Date(props.project.updatedAt);
-  const now = new Date();
-  const diffTime = Math.abs(now.getTime() - date.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+// 调试：打印项目数据
+console.log('Project data:', props.project);
+console.log('Status type:', statusType.value);
+console.log('Status text:', statusText.value);
 
-  if (diffDays === 1) {
-    return $t('page.lowcode.project.yesterday');
-  } else if (diffDays < 7) {
-    return $t('page.lowcode.project.daysAgo', { days: diffDays });
+const lastUpdated = computed(() => {
+  if (!props.project?.updatedAt) return '-';
+  
+  try {
+    const now = new Date();
+    const updateTime = new Date(props.project.updatedAt);
+    
+    // 检查日期是否有效
+    if (isNaN(updateTime.getTime())) {
+      return '-';
+    }
+    
+    const diffMs = now.getTime() - updateTime.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 1) {
+      return '刚刚更新';
+    } else if (diffMins < 60) {
+      return `${diffMins}分钟前更新`;
+    } else if (diffHours < 24) {
+      return `${diffHours}小时前更新`;
+    } else if (diffDays < 7) {
+      return `${diffDays}天前更新`;
+    } else {
+      return updateTime.toLocaleDateString('zh-CN');
+    }
+  } catch (error) {
+    console.warn('Error parsing date:', error);
+    return '-';
   }
-  return date.toLocaleDateString();
 });
 
 const progressPercentage = computed(() => {
+  if (!props.project) return 0;
+  
   const { entityCount = 0, relationshipCount = 0, generatedFiles = 0 } = props.project;
 
   // 简单的进度计算逻辑
@@ -96,8 +129,8 @@ const progressColor = computed(() => {
 });
 
 // 部署状态相关计算属性
-const deploymentStatusType = computed(() => {
-  const statusMap = {
+const deploymentStatusType = computed<'success' | 'warning' | 'error' | 'info' | 'default'>(() => {
+  const statusMap: Record<string, 'success' | 'warning' | 'error' | 'info' | 'default'> = {
     INACTIVE: 'default',
     DEPLOYING: 'warning',
     DEPLOYED: 'success',
@@ -108,18 +141,27 @@ const deploymentStatusType = computed(() => {
 
 const deploymentStatusText = computed(() => {
   const statusMap = {
-    INACTIVE: $t('page.lowcode.project.deploymentStatus.inactive'),
-    DEPLOYING: $t('page.lowcode.project.deploymentStatus.deploying'),
-    DEPLOYED: $t('page.lowcode.project.deploymentStatus.deployed'),
-    FAILED: $t('page.lowcode.project.deploymentStatus.failed')
+    INACTIVE: '未部署',
+    DEPLOYING: '部署中',
+    DEPLOYED: '已部署',
+    FAILED: '部署失败'
   };
   return statusMap[props.project.deploymentStatus || 'INACTIVE'];
 });
 
 const lastDeployedTime = computed(() => {
-  if (!props.project.lastDeployedAt) return '';
-  const date = new Date(props.project.lastDeployedAt);
-  return date.toLocaleString();
+  if (!props.project?.lastDeployedAt) return '';
+  
+  try {
+    const date = new Date(props.project.lastDeployedAt);
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+    return date.toLocaleString();
+  } catch (error) {
+    console.warn('Error parsing deployment date:', error);
+    return '';
+  }
 });
 
 const isDeploying = computed(() => {
@@ -127,10 +169,9 @@ const isDeploying = computed(() => {
 });
 
 const canDeploy = computed(() => {
-  return (
-    props.project.status === 'active' &&
-    (props.project.deploymentStatus === 'INACTIVE' || props.project.deploymentStatus === 'FAILED')
-  );
+  const activeStatus = props.project.status === 'active' || props.project.status === 'ACTIVE';
+  const canDeployStatus = props.project.deploymentStatus === 'INACTIVE' || props.project.deploymentStatus === 'FAILED';
+  return activeStatus && canDeployStatus;
 });
 
 const canStopDeployment = computed(() => {
@@ -213,11 +254,21 @@ const handleMoreAction = (key: string) => {
     <template #header>
       <div class="card-header">
         <div class="project-info">
-          <NText class="project-name" strong>{{ project.name }}</NText>
-          <NText class="project-code" depth="3">{{ project.code }}</NText>
+          <NText class="project-name" strong>{{ project?.name || '未命名项目' }}</NText>
+          <NText class="project-code" depth="3">{{ project?.code || '无代码' }}</NText>
         </div>
-        <div class="project-status">
-          <NTag :type="statusType" size="small">{{ statusText }}</NTag>
+        <div class="header-actions">
+          <div class="project-status">
+            <NTag :type="statusType" size="small">{{ statusText }}</NTag>
+          </div>
+          <!-- 更多操作 - 移动到头部右上角 -->
+          <NDropdown :options="moreActions" @select="handleMoreAction">
+            <NButton size="small" quaternary circle>
+              <template #icon>
+                <NIcon><icon-mdi-dots-vertical /></NIcon>
+              </template>
+            </NButton>
+          </NDropdown>
         </div>
       </div>
     </template>
@@ -226,7 +277,7 @@ const handleMoreAction = (key: string) => {
     <div class="card-content">
       <!-- 项目描述 -->
       <div class="project-description mb-3">
-        <NText depth="2">{{ project.description || $t('page.lowcode.project.noDescription') }}</NText>
+        <NText depth="2">{{ project?.description || '暂无描述' }}</NText>
       </div>
 
       <!-- 项目统计 -->
@@ -237,7 +288,7 @@ const handleMoreAction = (key: string) => {
               <NIcon class="stat-icon" color="#2080f0"><icon-mdi-database /></NIcon>
               <div class="stat-content">
                 <NText class="stat-value">{{ project.entityCount || 0 }}</NText>
-                <NText class="stat-label" depth="3">{{ $t('page.lowcode.project.entities') }}</NText>
+                <NText class="stat-label" depth="3">实体</NText>
               </div>
             </div>
           </NGridItem>
@@ -246,7 +297,7 @@ const handleMoreAction = (key: string) => {
               <NIcon class="stat-icon" color="#18a058"><icon-mdi-relation-many-to-many /></NIcon>
               <div class="stat-content">
                 <NText class="stat-value">{{ project.relationshipCount || 0 }}</NText>
-                <NText class="stat-label" depth="3">{{ $t('page.lowcode.project.relationships') }}</NText>
+                <NText class="stat-label" depth="3">关系</NText>
               </div>
             </div>
           </NGridItem>
@@ -255,7 +306,7 @@ const handleMoreAction = (key: string) => {
               <NIcon class="stat-icon" color="#f0a020"><icon-mdi-code-braces /></NIcon>
               <div class="stat-content">
                 <NText class="stat-value">{{ project.generatedFiles || 0 }}</NText>
-                <NText class="stat-label" depth="3">{{ $t('page.lowcode.project.generatedFiles') }}</NText>
+                <NText class="stat-label" depth="3">生成文件</NText>
               </div>
             </div>
           </NGridItem>
@@ -264,7 +315,7 @@ const handleMoreAction = (key: string) => {
               <NIcon class="stat-icon" color="#d03050"><icon-mdi-clock-outline /></NIcon>
               <div class="stat-content">
                 <NText class="stat-value">{{ lastUpdated }}</NText>
-                <NText class="stat-label" depth="3">{{ $t('page.lowcode.project.lastUpdated') }}</NText>
+                <NText class="stat-label" depth="3">最后更新</NText>
               </div>
             </div>
           </NGridItem>
@@ -284,14 +335,23 @@ const handleMoreAction = (key: string) => {
       <!-- 部署状态 -->
       <div class="deployment-status mb-4">
         <div class="deployment-header mb-2">
-          <NText depth="3">{{ $t('page.lowcode.project.deploymentStatusLabel') }}</NText>
-          <NTag :type="deploymentStatusType" size="small">{{ deploymentStatusText }}</NTag>
+          <div class="deployment-title">
+            <NIcon class="deployment-icon" :color="deploymentStatusType === 'success' ? '#18a058' : deploymentStatusType === 'warning' ? '#f0a020' : '#d03050'">
+              <icon-mdi-rocket-launch />
+            </NIcon>
+            <NText depth="3">{{ $t('page.lowcode.project.deploymentStatusLabel') }}</NText>
+          </div>
+          <NTag :type="deploymentStatusType" size="small" :loading="isDeploying">
+            {{ deploymentStatusText }}
+          </NTag>
         </div>
         <div v-if="project.deploymentPort" class="deployment-info">
+          <NIcon class="info-icon" size="12"><icon-mdi-lan /></NIcon>
           <NText depth="3" class="mr-2">{{ $t('page.lowcode.project.port') }}:</NText>
           <NText>{{ project.deploymentPort }}</NText>
         </div>
         <div v-if="project.lastDeployedAt" class="deployment-info">
+          <NIcon class="info-icon" size="12"><icon-mdi-clock-outline /></NIcon>
           <NText depth="3" class="mr-2">{{ $t('page.lowcode.project.lastDeployed') }}:</NText>
           <NText>{{ lastDeployedTime }}</NText>
         </div>
@@ -377,14 +437,18 @@ const handleMoreAction = (key: string) => {
             </NTooltip>
           </NSpace>
 
-          <!-- 更多操作 -->
-          <NDropdown :options="moreActions" @select="handleMoreAction">
-            <NButton size="small" quaternary>
-              <template #icon>
-                <NIcon><icon-mdi-dots-vertical /></NIcon>
-              </template>
-            </NButton>
-          </NDropdown>
+          <!-- 快速访问按钮 -->
+          <NTooltip>
+            <template #trigger>
+              <NButton type="info" size="small" @click="$emit('view', project)">
+                <template #icon>
+                  <NIcon><icon-mdi-eye /></NIcon>
+                </template>
+                {{ $t('common.view') }}
+              </NButton>
+            </template>
+            {{ $t('page.lowcode.project.viewProject') }}
+          </NTooltip>
         </NSpace>
       </div>
     </template>
@@ -415,6 +479,7 @@ const handleMoreAction = (key: string) => {
 
 .project-info {
   flex: 1;
+  min-width: 0;
 }
 
 .project-name {
@@ -429,8 +494,15 @@ const handleMoreAction = (key: string) => {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 }
 
-.project-status {
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-left: 12px;
+}
+
+.project-status {
+  flex-shrink: 0;
 }
 
 .card-content {
@@ -513,15 +585,30 @@ const handleMoreAction = (key: string) => {
   align-items: center;
 }
 
+.deployment-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.deployment-icon {
+  font-size: 14px;
+}
+
 .deployment-info {
   display: flex;
   align-items: center;
   font-size: 12px;
   margin-bottom: 4px;
+  gap: 4px;
 }
 
 .deployment-info:last-child {
   margin-bottom: 0;
+}
+
+.info-icon {
+  color: #999;
 }
 
 .project-progress {

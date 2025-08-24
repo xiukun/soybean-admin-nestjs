@@ -79,6 +79,7 @@ declare module 'vue' {
     IconMdiKey: typeof import('~icons/mdi/key')['default']
     IconMdiKeyboardEsc: typeof import('~icons/mdi/keyboard-esc')['default']
     IconMdiKeyboardReturn: typeof import('~icons/mdi/keyboard-return')['default']
+    IconMdiLan: typeof import('~icons/mdi/lan')['default']
     IconMdiLayers: typeof import('~icons/mdi/layers')['default']
     IconMdiLightningBolt: typeof import('~icons/mdi/lightning-bolt')['default']
     IconMdiLink: typeof import('~icons/mdi/link')['default']

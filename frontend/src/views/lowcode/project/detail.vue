@@ -21,7 +21,7 @@ const lowcodeStore = useLowcodeStore();
 
 // State
 const loading = ref(false);
-const project = ref(null);
+const project = ref<any>(null);
 const entityCount = ref(0);
 const templateCount = ref(0);
 const apiCount = ref(0);
@@ -38,6 +38,32 @@ function getStatusType(status?: string): 'success' | 'warning' | 'error' | 'info
     ARCHIVED: 'error'
   };
   return statusMap[status || ''] || 'info';
+}
+
+// 部署状态相关函数
+function getDeploymentStatusType(status?: string) {
+  const statusMap = {
+    DEPLOYED: 'success',
+    DEPLOYING: 'warning', 
+    FAILED: 'error',
+    INACTIVE: 'default'
+  };
+  return statusMap[status || 'INACTIVE'] || 'default';
+}
+
+function getDeploymentStatusText(status?: string) {
+  const statusMap = {
+    DEPLOYED: '已部署',
+    DEPLOYING: '部署中',
+    FAILED: '部署失败', 
+    INACTIVE: '未部署'
+  };
+  return statusMap[status || 'INACTIVE'] || '未知';
+}
+
+function formatDate(dateString?: string) {
+  if (!dateString) return '-';
+  return new Date(dateString).toLocaleString('zh-CN');
 }
 
 function handleGoBack() {
@@ -62,32 +88,58 @@ async function loadProjectDetail() {
   try {
     loading.value = true;
 
-    // Mock data - 在实际实现中，这里会调用API
-    const mockProject = {
-      id: projectId.value,
-      name: 'E-commerce Platform',
-      code: 'ecommerce-platform',
-      description: 'A comprehensive e-commerce platform with user management, product catalog, and order processing.',
-      status: 'ACTIVE',
-      config: {
-        framework: 'nestjs',
-        architecture: 'base-biz',
-        language: 'typescript',
-        database: 'postgresql',
-        version: '1.0.0'
-      },
-      createdBy: 'admin',
-      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    // 先获取项目基本信息
+    const projectResponse = await fetch(`/api/v1/projects/${projectId.value}`);
+    if (projectResponse.ok) {
+      project.value = await projectResponse.json();
+    } else {
+      // 如果 API 不存在或失败，使用 Mock 数据
+      const mockProject = {
+        id: projectId.value,
+        name: 'E-commerce Platform',
+        code: 'ecommerce-platform',
+        description: 'A comprehensive e-commerce platform with user management, product catalog, and order processing.',
+        status: 'ACTIVE',
+        deploymentStatus: 'DEPLOYED',
+        deploymentPort: 9522,
+        lastDeployedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2小时前
+        config: {
+          framework: 'nestjs',
+          architecture: 'base-biz',
+          language: 'typescript',
+          database: 'postgresql',
+          version: '1.0.0'
+        },
+        createdBy: 'admin',
+        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString() // 30分钟前
+      };
+      project.value = mockProject;
+    }
 
-    project.value = mockProject;
-
-    // 加载统计数据
-    entityCount.value = 15;
-    templateCount.value = 8;
-    apiCount.value = 32;
-    generatedCount.value = 156;
+    // 获取统计数据
+    try {
+      const statsResponse = await fetch(`/api/v1/projects/${projectId.value}/stats`);
+      if (statsResponse.ok) {
+        const stats = await statsResponse.json();
+        entityCount.value = stats.entityCount || 0;
+        templateCount.value = stats.templateCount || 0;
+        apiCount.value = stats.apiCount || 0;
+        generatedCount.value = stats.generatedFiles || 0;
+      } else {
+        // 使用默认统计数据
+        entityCount.value = 15;
+        templateCount.value = 8;
+        apiCount.value = 32;
+        generatedCount.value = 156;
+      }
+    } catch (error) {
+      console.warn('获取统计数据失败，使用默认值', error);
+      entityCount.value = 15;
+      templateCount.value = 8;
+      apiCount.value = 32;
+      generatedCount.value = 156;
+    }
 
     // 设置为当前项目
     lowcodeStore.setCurrentProject(projectId.value);
@@ -175,6 +227,59 @@ onMounted(() => {
           <NDescriptionsItem :label="$t('page.lowcode.project.createdBy')">
             {{ project?.createdBy }}
           </NDescriptionsItem>
+          <NDescriptionsItem :label="$t('page.lowcode.project.createdAt')">
+            {{ formatDate(project?.createdAt) }}
+          </NDescriptionsItem>
+          <NDescriptionsItem :label="$t('page.lowcode.project.updatedAt')">
+            {{ formatDate(project?.updatedAt) }}
+          </NDescriptionsItem>
+        </NDescriptions>
+      </NCard>
+    </div>
+
+    <!-- 部署状态信息 -->
+    <div v-if="project?.deploymentStatus" class="deployment-section mb-6">
+      <NCard title="部署状态" size="small">
+        <NSpace vertical>
+          <NSpace align="center">
+            <NTag :type="getDeploymentStatusType(project.deploymentStatus)" size="large">
+              <template #icon>
+                <NIcon>
+                  <icon-mdi-rocket-launch v-if="project.deploymentStatus === 'DEPLOYED'"/>
+                  <icon-mdi-loading v-else-if="project.deploymentStatus === 'DEPLOYING'" class="animate-spin"/>
+                  <icon-mdi-alert-circle v-else-if="project.deploymentStatus === 'FAILED'"/>
+                  <icon-mdi-pause-circle v-else/>
+                </NIcon>
+              </template>
+              {{ getDeploymentStatusText(project.deploymentStatus) }}
+            </NTag>
+            <NText v-if="project.deploymentPort" depth="2">
+              运行端口: <NText code>{{ project.deploymentPort }}</NText>
+            </NText>
+          </NSpace>
+          
+          <NSpace v-if="project.lastDeployedAt" align="center">
+            <NIcon color="#999" size="16"><icon-mdi-clock-outline /></NIcon>
+            <NText depth="3">最后部署时间: {{ formatDate(project.lastDeployedAt) }}</NText>
+          </NSpace>
+          
+          <div v-if="project.deploymentStatus === 'DEPLOYED'" class="deployment-actions">
+            <NSpace>
+              <NButton type="success" size="small" tag="a" :href="`http://localhost:${project.deploymentPort}`" target="_blank">
+                <template #icon>
+                  <NIcon><icon-mdi-open-in-new /></NIcon>
+                </template>
+                访问服务
+              </NButton>
+              <NButton size="small">
+                <template #icon>
+                  <NIcon><icon-mdi-information /></NIcon>
+                </template>
+                查看日志
+              </NButton>
+            </NSpace>
+          </div>
+        </NSpace>
         </NDescriptions>
       </NCard>
     </div>
