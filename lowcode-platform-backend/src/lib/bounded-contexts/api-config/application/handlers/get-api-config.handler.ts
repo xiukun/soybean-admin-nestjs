@@ -6,10 +6,10 @@ import {
   GetApiConfigsByProjectQuery,
   GetApiConfigsPaginatedQuery,
   GetApiConfigsByEntityQuery,
-  GetApiConfigStatsQuery,
   GetPublishedApiConfigsQuery,
   GetApiConfigVersionsQuery
 } from '@lib/bounded-contexts/api-config/application/queries/get-api-config.query';
+import { GetApiConfigStatsQuery } from '@api-config/application/queries/get-api-config-stats.query';
 import { ApiConfig } from '@lib/bounded-contexts/api-config/domain/api-config.model';
 import { ApiConfigRepository } from '@lib/bounded-contexts/api-config/domain/api-config.repository';
 

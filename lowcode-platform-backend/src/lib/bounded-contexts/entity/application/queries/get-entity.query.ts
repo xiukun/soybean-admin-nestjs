@@ -26,8 +26,3 @@ export class GetEntitiesPaginatedQuery {
   ) {}
 }
 
-export class GetEntityStatsQuery {
-  constructor(
-    public readonly projectId: string,
-  ) {}
-}

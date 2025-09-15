@@ -19,8 +19,3 @@ export class GetQueriesPaginatedQuery {
   ) {}
 }
 
-export class GetQueryStatsQuery {
-  constructor(
-    public readonly projectId: string,
-  ) {}
-}

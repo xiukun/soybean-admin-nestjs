@@ -17,9 +17,9 @@ import {
   GetRelationshipSQLQuery,
   GetRelationshipGraphQuery,
   SearchRelationshipsQuery,
-  GetRelationshipStatsQuery,
   GetRelationshipConflictsQuery,
 } from '../queries/relationship.queries';
+import { GetRelationshipStatsQuery } from '../queries/get-relationship-stats.query';
 import { RelationshipManagerService } from '../services/relationship-manager.service';
 import { PrismaService } from '@lib/shared/prisma/prisma.service';
 

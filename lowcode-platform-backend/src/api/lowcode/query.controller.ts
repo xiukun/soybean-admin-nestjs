@@ -35,8 +35,8 @@ import {
   GetQueryQuery,
   GetQueriesByProjectQuery,
   GetQueriesPaginatedQuery,
-  GetQueryStatsQuery,
 } from '@lib/bounded-contexts/query/application/queries/get-query.query';
+import { GetQueryStatsQuery } from '@query/application/queries/get-query-stats.query';
 
 @ApiTags('queries')
 @ApiBearerAuth()

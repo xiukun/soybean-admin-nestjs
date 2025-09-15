@@ -42,10 +42,10 @@ import {
   ValidateRelationshipConfigQuery,
   GetRelationshipSQLQuery,
   GetRelationshipGraphQuery,
-  GetRelationshipStatsQuery,
   RelationshipListFilter,
   RelationshipListOptions,
 } from '@lib/bounded-contexts/relationship/application/queries/relationship.queries';
+import { GetRelationshipStatsQuery } from '@relationship/application/queries/get-relationship-stats.query';
 
 @ApiTags('关系管理')
 @Controller({ path: 'relationships', version: '1' })

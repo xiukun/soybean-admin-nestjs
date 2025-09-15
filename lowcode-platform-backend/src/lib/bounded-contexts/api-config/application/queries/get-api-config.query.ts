@@ -32,11 +32,6 @@ export class GetApiConfigsByEntityQuery {
   ) {}
 }
 
-export class GetApiConfigStatsQuery {
-  constructor(
-    public readonly projectId: string,
-  ) {}
-}
 
 export class GetPublishedApiConfigsQuery {
   constructor(

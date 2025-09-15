@@ -79,11 +79,6 @@ export class SearchRelationshipsQuery {
   ) {}
 }
 
-export class GetRelationshipStatsQuery {
-  constructor(
-    public readonly projectId: string,
-  ) {}
-}
 
 export class GetRelationshipConflictsQuery {
   constructor(

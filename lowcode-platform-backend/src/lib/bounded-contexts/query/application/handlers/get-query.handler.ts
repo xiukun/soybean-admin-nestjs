@@ -7,8 +7,8 @@ import {
   GetQueryQuery,
   GetQueriesByProjectQuery,
   GetQueriesPaginatedQuery,
-  GetQueryStatsQuery,
 } from '../queries/get-query.query';
+import { GetQueryStatsQuery } from '@query/application/queries/get-query-stats.query';
 
 @QueryHandler(GetQueryQuery)
 export class GetQueryHandler implements IQueryHandler<GetQueryQuery> {

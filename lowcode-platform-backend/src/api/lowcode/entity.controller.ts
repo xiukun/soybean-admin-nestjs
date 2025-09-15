@@ -46,8 +46,8 @@ import {
   GetEntityByCodeQuery,
   GetEntitiesByProjectQuery,
   GetEntitiesPaginatedQuery,
-  GetEntityStatsQuery,
 } from '@entity/application/queries/get-entity.query';
+import { GetEntityStatsQuery } from '@entity/application/queries/get-entity-stats.query';
 import * as path from 'path';
 
 @ApiTags('entities')

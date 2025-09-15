@@ -4,9 +4,9 @@ import {
   GetEntityQuery,
   GetEntityByCodeQuery,
   GetEntitiesByProjectQuery,
-  GetEntitiesPaginatedQuery,
-  GetEntityStatsQuery
+  GetEntitiesPaginatedQuery
 } from '@entity/application/queries/get-entity.query';
+import { GetEntityStatsQuery } from '@entity/application/queries/get-entity-stats.query';
 import { Entity } from '@entity/domain/entity.model';
 import { EntityRepository } from '@entity/domain/entity.repository';
 
