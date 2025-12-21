@@ -21,21 +21,15 @@ export function initDocSwagger(
   if (!docSwaggerEnable) return;
 
   const documentBuilder = new DocumentBuilder()
-    .setTitle('Soybean Admin NestJS Backend API')
+    .setTitle('Damai Lowcode Admin Backend API')
     .setDescription(
       'This API serves as the backend service for Soybean Admin, providing a comprehensive set of functionalities for system management and operations.',
     )
     .setVersion(packageJson.version)
     .setTermsOfService('Soybean Terms of Service')
     .setContact(
-      packageJson.author.name,
-      packageJson.author.url,
-      packageJson.author.email,
+      packageJson.author.name
     )
-    .setLicense(
-      packageJson.license,
-      'https://github.com/soybeanjs/soybean-admin-nestjs/blob/main/LICENSE',
-    );
 
   documentBuilder.addBearerAuth(
     {

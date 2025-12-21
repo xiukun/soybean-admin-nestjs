@@ -1,7 +1,7 @@
 {
-  "name": "soybean-admin-nestjs",
+  "name": "damai-lowcode-admin",
   "version": "1.0.0",
-  "description": "Soybean Admin NestJS Full Stack Project",
+  "description": "Damai Lowcode Admin Full Stack Project",
   "private": true,
   "scripts": {
     "typecheck": "echo 'Typecheck passed'",

@@ -1,6 +1,6 @@
-# Soybean Admin NestJS Docker 部署指南
+# Damai Lowcode Admin Docker 部署指南
 
-本文档介绍如何使用 Docker 部署 Soybean Admin NestJS 项目，包括前端、后端和低代码设计器。
+本文档介绍如何使用 Docker 部署 Damai Lowcode Admin 项目，包括前端、后端和低代码设计器。
 
 ## 🏗️ 架构概览
 

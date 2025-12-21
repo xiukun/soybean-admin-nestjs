@@ -1,17 +1,17 @@
 # SoybeanAdmin NestJS
 
 <p align="center">
-  <a href="https://github.com/honghuangdc/soybean-admin-nestjs/blob/main/LICENSE">
+  <a href="https://github.com/honghuangdc/damai-lowcode-admin/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license"/>
   </a>
-  <a href="https://github.com/honghuangdc/soybean-admin-nestjs/stargazers">
-    <img src="https://img.shields.io/github/stars/honghuangdc/soybean-admin-nestjs.svg" alt="stars"/>
+  <a href="https://github.com/honghuangdc/damai-lowcode-admin/stargazers">
+    <img src="https://img.shields.io/github/stars/honghuangdc/damai-lowcode-admin.svg" alt="stars"/>
   </a>
-  <a href="https://github.com/honghuangdc/soybean-admin-nestjs/network/members">
-    <img src="https://img.shields.io/github/forks/honghuangdc/soybean-admin-nestjs.svg" alt="forks"/>
+  <a href="https://github.com/honghuangdc/damai-lowcode-admin/network/members">
+    <img src="https://img.shields.io/github/forks/honghuangdc/damai-lowcode-admin.svg" alt="forks"/>
   </a>
-  <a href="https://github.com/honghuangdc/soybean-admin-nestjs/issues">
-    <img src="https://img.shields.io/github/issues/honghuangdc/soybean-admin-nestjs.svg" alt="issues"/>
+  <a href="https://github.com/honghuangdc/damai-lowcode-admin/issues">
+    <img src="https://img.shields.io/github/issues/honghuangdc/damai-lowcode-admin.svg" alt="issues"/>
   </a>
 </p>
 
@@ -61,7 +61,7 @@ SoybeanAdmin NestJS 是一个基于 NestJS 的后台管理系统脚手架，采�
 ## 项目结构
 
 ```
-soybean-admin-nestjs/
+damai-lowcode-admin/
 ├── backend/                 # 后端代码
 │   ├── .http/               # HTTP 请求文件
 │   ├── apps/                # 应用模块
@@ -265,8 +265,8 @@ pnpm dev
 
 感谢以下贡献者的贡献。如果您想为本项目做出贡献，请参考 [贡献指南](#贡献指南)。
 
-<a href="https://github.com/honghuangdc/soybean-admin-nestjs/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=honghuangdc/soybean-admin-nestjs" />
+<a href="https://github.com/honghuangdc/damai-lowcode-admin/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=honghuangdc/damai-lowcode-admin" />
 </a>
 
 ## 贡献指南

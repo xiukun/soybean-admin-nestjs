@@ -25,7 +25,7 @@ Docker Build → 安装 Node.js → 安装依赖 → 编译项目 → 复制到 
 ### 2. 文件结构调整
 
 ```
-soybean-admin-nestjs/
+damai-lowcode-admin/
 ├── lowcode-designer/          # 源代码目录
 │   ├── src/                   # 源代码
 │   ├── Dockerfile             # 轻量级 Dockerfile

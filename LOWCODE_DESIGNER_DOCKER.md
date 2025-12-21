@@ -2,7 +2,7 @@
 
 ## 📋 完成概览
 
-已成功为 `soybean-admin-nestjs` 项目的 `lowcode-designer` 创建了完整的 Docker 配置，实现了与主项目的无缝集成。
+已成功为 `damai-lowcode-admin` 项目的 `lowcode-designer` 创建了完整的 Docker 配置，实现了与主项目的无缝集成。
 
 ## 🎯 实现目标
 
@@ -26,7 +26,7 @@ lowcode-designer/
 
 ### 管理脚本
 ```
-soybean-admin-nestjs/
+damai-lowcode-admin/
 ├── start-services.sh           # 一键启动脚本
 ├── test-docker-deployment.sh   # 部署测试脚本
 ├── docker-compose.designer-only.yml  # 仅设计器服务
@@ -36,7 +36,7 @@ soybean-admin-nestjs/
 
 ### 更新文件
 ```
-soybean-admin-nestjs/
+damai-lowcode-admin/
 ├── docker-compose.yml      # 添加了 lowcode-designer 服务
 └── README.md              # 更新了 Docker 部署说明
 ```
@@ -196,7 +196,7 @@ docker-compose build --no-cache lowcode-designer
 
 ## 🎉 总结
 
-低代码设计器已成功 Docker 化并集成到 soybean-admin-nestjs 项目中。现在可以通过一个命令启动包含前端、后端、设计器和所有依赖服务的完整系统。
+低代码设计器已成功 Docker 化并集成到 damai-lowcode-admin 项目中。现在可以通过一个命令启动包含前端、后端、设计器和所有依赖服务的完整系统。
 
 **主要优势**：
 - 🚀 一键部署，简化运维

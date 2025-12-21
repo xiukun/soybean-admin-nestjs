@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Soybean Admin NestJS 服务启动脚本
+# Damai Lowcode Admin 服务启动脚本
 # 包含前端、后端和低代码设计器
 
 set -e
 
-echo "🚀 启动 Soybean Admin NestJS 服务..."
+echo "🚀 启动 Damai Lowcode Admin 服务..."
 
 # 检查 Docker 和 Docker Compose 是否安装
 if ! command -v docker &> /dev/null; then
