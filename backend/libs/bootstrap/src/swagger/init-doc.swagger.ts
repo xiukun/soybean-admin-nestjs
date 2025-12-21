@@ -28,7 +28,9 @@ export function initDocSwagger(
     .setVersion(packageJson.version)
     .setTermsOfService('Soybean Terms of Service')
     .setContact(
-      packageJson.author.name
+      packageJson.author.name,
+      '',
+      ''
     )
 
   documentBuilder.addBearerAuth(
