@@ -40,6 +40,9 @@ services:
       APP_PORT: 9528
       DOC_SWAGGER_ENABLE: 'true'
       DOC_SWAGGER_PATH: 'api-docs'
+      # 可选项：使用pgbouncer连接池或直接连接postgres
+      # 使用pgbouncer: postgresql://soybean:soybean@123.@pgbouncer:6432/soybean-admin-nest-backend?schema=public
+      # 直接连接: postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend?schema=public
       DATABASE_URL: 'postgresql://soybean:soybean@123.@postgres:5432/soybean-admin-nest-backend?schema=public'
       REDIS_HOST: 'redis'
       REDIS_PORT: 6379
@@ -93,21 +96,19 @@ services:
       retries: 5
 
   pgbouncer:
-    image: pgbouncer/pgbouncer:latest
+    image: edoburu/pgbouncer:latest
     container_name: pgbouncer
     hostname: pgbouncer
     restart: always
-    environment:
-      - PGBOUNCER_DATABASE=*
-      - POSTGRESQL_USERNAME=soybean
-      - POSTGRESQL_PASSWORD=soybean@123.
-      - POSTGRESQL_DATABASE=soybean-admin-nest-backend
-      - POSTGRESQL_HOST=postgres
-      - POSTGRESQL_PORT=5432
+    volumes:
+      - ./deploy/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./deploy/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
     ports:
       - 6432:6432
     networks:
       - soybean-admin
+    depends_on:
+      - postgres
 
   redis:
     image: redis/redis-stack:7.2.0-v11

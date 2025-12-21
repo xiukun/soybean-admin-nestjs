@@ -261,17 +261,6 @@ pnpm dev
 - Pinia
 - UnoCSS
 
-## 贡献者
-
-感谢以下贡献者的贡献。如果您想为本项目做出贡献，请参考 [贡献指南](#贡献指南)。
-
-<a href="https://github.com/honghuangdc/damai-lowcode-admin/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=honghuangdc/damai-lowcode-admin" />
-</a>
-
-## 贡献指南
-
-我们非常欢迎您的贡献！如果您有任何改进意见或功能建议，请在 GitHub 上给我们一个 ⭐️，这是对我们持续改进和添加新功能的最大动力！
 
 1. Fork 本仓库
 2. 创建您的特性分支 (`git checkout -b feature/AmazingFeature`)
