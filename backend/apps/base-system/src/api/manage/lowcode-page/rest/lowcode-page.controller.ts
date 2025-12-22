@@ -36,6 +36,7 @@ import { GetLowcodePageByIdQuery } from '@lowcode/page/queries/get-lowcode-page-
 import { GetLowcodePageByCodeQuery } from '@lowcode/page/queries/get-lowcode-page-by-code.query';
 import { GetLowcodePageByMenuQuery } from '@lowcode/page/queries/get-lowcode-page-by-menu.query';
 import { GetLowcodePageVersionsQuery } from '@lowcode/page/queries/get-lowcode-page-versions.query';
+import { GetLowcodePageVersionByIdQuery } from '@lowcode/page/queries/get-lowcode-page-version-by-id.query';
 
 import { Status } from '@prisma/client';
 
@@ -242,6 +243,21 @@ export class LowcodePageController {
     );
 
     return ApiRes.success({ versions: result });
+  }
+
+  @Get(':id/versions/:versionId')
+  @ApiOperation({ summary: 'Get specific page version by ID' })
+  @ApiResponse({ status: 200, description: 'Success' })
+  @ApiResponse({ status: 404, description: 'Version not found' })
+  async getPageVersionById(
+    @Param('id') pageId: string,
+    @Param('versionId') versionId: string,
+  ): Promise<ApiRes<any>> {
+    const result = await this.queryBus.execute(
+      new GetLowcodePageVersionByIdQuery(pageId, versionId),
+    );
+
+    return ApiRes.success(result);
   }
 
   @Post(':id/versions')

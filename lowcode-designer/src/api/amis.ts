@@ -15,12 +15,27 @@ export const amisPageSave = (data: { id: string; content: string; unitType?: str
   })
 }
 
-export const amisPageFindHistoryListById = (data: object) => {
-  return agHttp.post('/system/amisPage/findHistory', data)
+/**
+ * 获取低代码页面历史版本列表
+ * @param data 
+ * @returns 
+ */
+export const amisPageFindHistoryListById = (data: {
+  mainId?: string
+  versionNum?: string
+  pageNum?: number
+  pageSize?: number
+}) => {
+  return agHttp.post('/v1/lowcode/history/list', data)
 }
 
-export const amisPageFindPageById = (data: object) => {
-  return agHttp.post('/system/amisPage/findByPageId', data)
+/**
+ * 根据版本ID获取历史版本详情
+ * @param versionId 版本ID
+ * @returns 
+ */
+export const amisPageFindVersionById = (versionId: string) => {
+  return agHttp.get(`/v1/lowcode/pages/versions/${versionId}`)
 }
 /**
  * 按钮菜单 绑定权限时使用

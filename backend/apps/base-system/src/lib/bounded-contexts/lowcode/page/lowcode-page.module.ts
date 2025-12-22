@@ -15,6 +15,7 @@ import { GetLowcodePageByIdQueryHandler } from './application/query-handlers/get
 import { GetLowcodePageByCodeQueryHandler } from './application/query-handlers/get-lowcode-page-by-code.query.handler';
 import { GetLowcodePageByMenuQueryHandler } from './application/query-handlers/get-lowcode-page-by-menu.query.handler';
 import { GetLowcodePageVersionsQueryHandler } from './application/query-handlers/get-lowcode-page-versions.query.handler';
+import { GetLowcodePageVersionByIdQueryHandler } from './application/query-handlers/get-lowcode-page-version-by-id.query.handler';
 
 // Repository
 import { ILowcodePageRepository } from '@lowcode/page/domain/lowcode-page.repository';
@@ -36,6 +37,7 @@ const QueryHandlers = [
   GetLowcodePageByCodeQueryHandler,
   GetLowcodePageByMenuQueryHandler,
   GetLowcodePageVersionsQueryHandler,
+  GetLowcodePageVersionByIdQueryHandler,
 ];
 
 @Module({

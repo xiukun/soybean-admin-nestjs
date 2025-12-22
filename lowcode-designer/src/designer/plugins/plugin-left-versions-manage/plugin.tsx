@@ -77,29 +77,35 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<any[]>([])
   const [page, setPage] = useState<number>(1)
-  const [hasMore, setHasMore] = useState<boolean>(true) // 控制列表是否加载完成，默认true能下拉刷新
-  let perPage = 15 // 每页10条数据
+  const [hasMore, setHasMore] = useState<boolean>(true)
+  const perPage = 15 // 每页15条数据
 
   const loadMoreData = () => {
     if (loading) {
       return
     }
-    setPage(page + 1)
     setLoading(true)
+    
     amisPageFindHistoryListById({
       mainId: window.AG_NEPTUNE_LOWCODE_PAGE_ID,
-      page,
-      perPage,
+      pageNum: page,
+      pageSize: perPage,
     })
       .then(body => {
-        if (body.data.options && body.data.options.length < perPage) {
+        const newData = body.data?.options || []
+        const total = body.data?.total || 0
+        
+        // 判断是否还有更多数据
+        if (data.length + newData.length >= total) {
           setHasMore(false)
         }
-        setData([...data, ...body.data.options])
+        
+        setData([...data, ...newData])
+        setPage(page + 1)
         setLoading(false)
       })
-      .catch(() => {
-        setPage(page - 1)
+      .catch((error) => {
+        console.error('加载历史版本失败:', error)
         setLoading(false)
       })
   }
@@ -109,19 +115,33 @@ const App: React.FC = () => {
   }, [])
 
   /**
-   * 根据ID获取历史页面的schema JSON
-   * @param id
+   * 根据版本ID获取历史页面的schema JSON并替换当前页面
+   * @param versionId 版本ID
    */
-  const getHistorySchemaById = async (id: string) => {
-    const [err, body] = await to<any>(agHttp.post('/system/amisPage/findByPageId', { id }))
-    if (err) return
-    if (body.data) {
-      useCtx.onChange(body.data.content ? JSON.parse(body.data.content) : undefined)
+  const replaceWithHistoryVersion = async (versionId: string) => {
+    try {
+      const [err, body] = await to<any>(
+        agHttp.get(`/v1/lowcode/pages/${window.AG_NEPTUNE_LOWCODE_PAGE_ID}/versions/${versionId}`)
+      )
+      
+      if (err) {
+        console.error('获取历史版本失败:', err)
+        return
+      }
+      
+      if (body.data?.schema) {
+        // 替换当前设计器的schema
+        useCtx.onChange(body.data.schema)
+        console.log('已替换为历史版本:', versionId)
+      }
+    } catch (error) {
+      console.error('替换历史版本时出错:', error)
     }
   }
 
   // 格式化日期时间
   const getDateTime = (date: string) => dayjs(date).format('YYYY-MM-DD HH:mm:ss')
+  
   return (
     <div
       id="scrollableDiv"
@@ -144,13 +164,25 @@ const App: React.FC = () => {
           itemLayout="horizontal"
           dataSource={data}
           renderItem={item => (
-            <List.Item key={getDateTime(item.createdOn)}>
+            <List.Item key={item.id}>
               <List.Item.Meta
-                title={getDateTime(item.createdOn)}
-                description={`${item.menuName} 版本:${item.versionNum} 修改人：${item.createdBy}`}
+                title={getDateTime(item.createdAt)}
+                description={
+                  <>
+                    <div>{item.menuPage}</div>
+                    <div>版本: {item.pageVersion}</div>
+                    <div>修改人: {item.creator}</div>
+                    {item.changelog && <div className="text-gray-500 text-xs mt-1">{item.changelog}</div>}
+                  </>
+                }
               />
               <div className="pt-5">
-                <Button type="link" block onClick={() => getHistorySchemaById(item.id)}>
+                <Button 
+                  type="link" 
+                  block 
+                  onClick={() => replaceWithHistoryVersion(item.id)}
+                  title="将当前页面替换为此历史版本"
+                >
                   替换
                 </Button>
               </div>
