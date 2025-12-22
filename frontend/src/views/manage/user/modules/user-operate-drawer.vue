@@ -62,7 +62,7 @@ type RuleKey = Extract<keyof UserFormModel, 'username' | 'nickName' | 'status' |
 const rules: Record<RuleKey, App.Global.FormRule> = {
   username: defaultRequiredRule,
   nickName: defaultRequiredRule,
-  domain: defaultRequiredRule, 
+  domain: defaultRequiredRule,
   status: defaultRequiredRule
 };
 

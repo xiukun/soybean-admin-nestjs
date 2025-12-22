@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
-
 import { useAuthStore } from '@/store/modules/auth';
 
 defineOptions({
@@ -23,7 +22,7 @@ const isLoading = ref(false);
 
 // 动态计算设计器参数
 const designerParams = computed(() => {
-  const menuId = props.menuId || (route.meta?.menuId ? parseInt(route.meta.menuId, 10) : null);
+  const menuId = props.menuId || (route.meta?.menuId ? Number.parseInt(route.meta.menuId, 10) : null);
   const pageInfo = props.lowcodePageInfo;
 
   return {
