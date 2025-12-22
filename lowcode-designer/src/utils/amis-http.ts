@@ -15,7 +15,7 @@ class Http {
     Object.assign({
       baseURL:
         import.meta.env.DEV && import.meta.env.VITE_OPEN_PROXY === 'true'
-          ? '/api/'
+          ? '/proxy-amisService/'
           : getServiceAddress(),
       withCredentials: false,
       timeout: 10000,
@@ -43,7 +43,7 @@ class Http {
           }
           $config.data = JSON.stringify(params)
         }
-        $config.headers.Token = getToken()
+        $config.headers.authorization = 'Bearer '+getToken()
         $config.headers['Page-Auth'] = searchParams.get('pageKey') // 功能页面标识，后端需要用到
         return $config
       },

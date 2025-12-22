@@ -25,19 +25,14 @@ export const request = createFlatRequest<App.Service.Response, RequestInstanceSt
       return config;
     },
     isBackendSuccess(response) {
-      // when the backend response code is "0000"(default), it means the request is success
-      // to change this logic by yourself, you can modify the `VITE_SERVICE_SUCCESS_CODE` in `.env` file
+      // 后端返回 status: 0 表示成功
       const successFlags = import.meta.env.VITE_SERVICE_SUCCESS_CODE?.split(',') || [];
-      if (successFlags.includes(String(response.data.code))) {
-        return true;
-      }
-      return false;
-
-      // return String(response.data.code) === import.meta.env.VITE_SERVICE_SUCCESS_CODE;
+      const status = String(response.data.status ?? response.data.code ?? '');
+      return successFlags.includes(status);
     },
     async onBackendFail(response, instance) {
       const authStore = useAuthStore();
-      const responseCode = String(response.data.code);
+      const responseCode = String(response.data.status ?? response.data.code ?? '');
 
       function handleLogout() {
         authStore.resetStore();

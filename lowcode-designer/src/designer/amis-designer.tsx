@@ -10,7 +10,7 @@ import agHttp from '@/utils/amis-http'
 
 import '@/styles/amis-desiginer.scss'
 import { isEmpty } from 'lodash'
-import { amisPageFindDetail, amisPageFindPageById, amisPageSave } from '@/api/amis'
+import { amisPageFindDetail, amisPageFindVersionById, amisPageSave } from '@/api/amis'
 import { getToken } from '@/utils/token'
 import LayoutList from '@/components/layout'
 import { cacheDictionary } from '@/utils/dictionary'
@@ -68,7 +68,8 @@ export function AmisDesigner(props: { title: string; editorType: string }) {
   })
   const getSchemaData = (id: string) => {
     if (window.AG_NEPTUNE_LOWCODE_PAGE_HISTORY_ID) {
-      amisPageFindPageById({ id: window.AG_NEPTUNE_LOWCODE_PAGE_HISTORY_ID }).then((res: any) => {
+      // 获取历史版本详情
+      amisPageFindVersionById(id, window.AG_NEPTUNE_LOWCODE_PAGE_HISTORY_ID).then((res: any) => {
         commonSetSchema(res)
       })
     } else {
@@ -84,7 +85,10 @@ export function AmisDesigner(props: { title: string; editorType: string }) {
    * @param res
    */
   function commonSetSchema(res: any) {
-    if (isEmpty(res.data) || !res.data) {
+    // 处理新的响应格式：{ status: 0, msg: "...", data: {...} }
+    const schemaData = res.data || res.schema;
+    
+    if (isEmpty(schemaData)) {
       appState.schema = {
         type: 'page',
         body: [],
@@ -94,11 +98,14 @@ export function AmisDesigner(props: { title: string; editorType: string }) {
         }
       }
     } else {
-      // 新的API返回格式：res.data 包含 schema 字段
-      if (res.data.schema) {
-        appState.schema = res.data.schema
+      // 如果 schemaData 本身就是 schema 对象
+      if (schemaData.type === 'page' || schemaData.body) {
+        appState.schema = schemaData
+      } else if (schemaData.schema) {
+        // 如果 schemaData 包含 schema 字段
+        appState.schema = schemaData.schema
       } else {
-        // 兼容旧格式
+        // 默认空 schema
         appState.schema = {
           type: 'page',
           body: [],

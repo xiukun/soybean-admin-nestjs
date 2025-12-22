@@ -125,21 +125,18 @@ export function amisRequest() {
         return config;
       },
       isBackendSuccess(response) {
-        // when the backend response code is "200", it means the request is success
-        // you can change this logic by yourself
-        // return response.data.status === '200';
-        const successFlags = import.meta.env.VITE_SERVICE_SUCCESS_CODE?.split(',') || [];
-        if (successFlags.includes(String(response.data.status))) {
-          return true;
-        }
-        return false;
+        // AMIS 需要 status: 0 表示成功
+        const status = String(response.data.status ?? '');
+        return status === '0';
       },
       async onBackendFail(_response) {
         // when the backend response code is not "200", it means the request is fail
         // for example: the token is expired, refresh token and retry request
       },
       transformBackendResponse(response) {
-        return response.data.result;
+        // 后端返回数据结构：{ status: 0, msg: "...", data: {...} }
+        // 提取 data 字段作为实际响应数据
+        return response.data.data || response.data.result;
       }
       // ,
       // onError(error) {

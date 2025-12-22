@@ -144,15 +144,17 @@ export default defineConfig(({ mode, command }) => {
       open: true,
       port: 9555,
       proxy: {
-        '/api': {
+        // 统一使用 /proxy-amisService 代理模式，与 frontend 保持一致
+        '/proxy-amisService': {
           target: env.VITE_APP_API_BASEURL,
           changeOrigin: true,
           secure: false,
           timeout: 30000,
           rewrite: path => {
-            const newPath = path.replace(/^\/api/, '')
-            console.log(`Proxy rewrite: ${path} -> ${newPath}`)
-            console.log(`Target: ${env.VITE_APP_API_BASEURL}${newPath}`)
+            // 去掉 /proxy-amisService 前缀
+            // /proxy-amisService/lowcode/pages/menu/81 -> /lowcode/pages/menu/81
+            const newPath = path.replace(/^\/proxy-amisService/, '')
+            console.log(`Proxy: ${path} -> ${env.VITE_APP_API_BASEURL}${newPath}`)
             return newPath
           },
           configure: (proxy, options) => {
@@ -162,7 +164,12 @@ export default defineConfig(({ mode, command }) => {
             })
             proxy.on('proxyReq', (proxyReq, req, res) => {
               console.log('Proxy request:', req.method, req.url)
+              console.log('Authorization:', req.headers.authorization)
               console.log('Target URL:', `${options.target}${req.url}`)
+              // 确保 Authorization header 被正确转发
+              if (req.headers.authorization) {
+                proxyReq.setHeader('Authorization', req.headers.authorization)
+              }
             })
             proxy.on('proxyRes', (proxyRes, req, res) => {
               console.log('Proxy response:', proxyRes.statusCode, req.url)

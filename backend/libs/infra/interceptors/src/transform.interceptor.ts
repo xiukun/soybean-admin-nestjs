@@ -39,8 +39,8 @@ export class TransformInterceptor<T>
     return next.handle().pipe(
       timeout(3000),
       map((data) => ({
-        code: RESPONSE_SUCCESS_CODE,
-        message: RESPONSE_SUCCESS_MSG,
+        status: RESPONSE_SUCCESS_CODE,
+        msg: RESPONSE_SUCCESS_MSG,
         data: data ?? null,
       })),
       catchError((err) => {

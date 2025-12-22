@@ -18,7 +18,7 @@ const schema = ref({
       syncLocation: false,
       api: {
         method: 'post',
-        url: '/api/version/list',
+        url: '/version/list',
         data: {
           '&': '$$',
           versionNum: '${versionNum}'
@@ -44,7 +44,8 @@ const schema = ref({
               type: 'form',
               api: {
                 method: 'post',
-                url: '/api/version/create'
+                url: '/version/create',
+                requestAdaptor: 'return { ...payload, url: payload.url };'
               },
               body: [
                 {
@@ -176,7 +177,8 @@ const schema = ref({
                   type: 'form',
                   api: {
                     method: 'post',
-                    url: '/api/version/update'
+                    url: '/version/update',
+                    requestAdaptor: 'return { ...payload, url: payload.url };'
                   },
                   body: [
                     {
@@ -216,7 +218,7 @@ const schema = ref({
               confirmText: '启用此版本将关闭其他版本，确认启用吗？',
               api: {
                 method: 'post',
-                url: '/api/version/enable',
+                url: '/version/enable',
                 data: {
                   id: '${id}'
                 }

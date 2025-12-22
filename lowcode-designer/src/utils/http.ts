@@ -51,7 +51,7 @@ class Http {
     Object.assign({
       baseURL:
         import.meta.env.DEV && import.meta.env.VITE_OPEN_PROXY === 'true'
-          ? '/api/'
+          ? '/proxy-amisService/'
           : getServiceAddress(),
       withCredentials: true,
       timeout: 10000,

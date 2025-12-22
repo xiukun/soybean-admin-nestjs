@@ -2,13 +2,13 @@ import agHttp from '@/utils/http'
 
 export const amisPageFindDetail = (data: { id: string }) => {
   // 根据菜单ID获取低代码页面
-  return agHttp.get(`/v1/lowcode/pages/menu/${data.id}`)
+  return agHttp.get(`/lowcode/pages/menu/${data.id}`)
 }
 
 export const amisPageSave = (data: { id: string; content: string; unitType?: string }) => {
   // 保存低代码页面到后端
   const schema = JSON.parse(data.content)
-  return agHttp.post(`/v1/lowcode/pages/menu/${data.id}/save`, {
+  return agHttp.post(`/lowcode/pages/menu/${data.id}/save`, {
     schema,
     title: undefined, // 可以从URL参数中获取
     changelog: `设计器保存 - ${new Date().toLocaleString()}`
@@ -26,16 +26,17 @@ export const amisPageFindHistoryListById = (data: {
   pageNum?: number
   pageSize?: number
 }) => {
-  return agHttp.post('/v1/lowcode/history/list', data)
+  return agHttp.post('/lowcode/history/list', data)
 }
 
 /**
  * 根据版本ID获取历史版本详情
+ * @param pageId 页面ID
  * @param versionId 版本ID
  * @returns 
  */
-export const amisPageFindVersionById = (versionId: string) => {
-  return agHttp.get(`/v1/lowcode/pages/versions/${versionId}`)
+export const amisPageFindVersionById = (pageId: string, versionId: string) => {
+  return agHttp.get(`/lowcode/pages/${pageId}/versions/${versionId}`)
 }
 /**
  * 按钮菜单 绑定权限时使用

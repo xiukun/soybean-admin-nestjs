@@ -87,7 +87,7 @@ const App: React.FC = () => {
     setLoading(true)
     
     amisPageFindHistoryListById({
-      mainId: window.AG_NEPTUNE_LOWCODE_PAGE_ID,
+      mainId: window.AG_NEPTUNE_LOWCODE_PAGE_ID || undefined,
       pageNum: page,
       pageSize: perPage,
     })

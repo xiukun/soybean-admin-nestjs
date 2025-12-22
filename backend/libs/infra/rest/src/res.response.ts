@@ -12,43 +12,43 @@ export class ApiRes<T> {
   @ApiProperty({
     type: 'number',
     default: RESPONSE_SUCCESS_CODE,
-    description: 'code',
+    description: 'status',
   })
-  code: number;
+  status: number;
 
   @ApiProperty({
     type: 'string',
     default: RESPONSE_SUCCESS_MSG,
-    description: 'message',
+    description: 'msg',
   })
-  message: string;
+  msg: string;
 
   private constructor(
-    code: number,
+    status: number,
     data: any,
-    message: string = RESPONSE_SUCCESS_MSG,
+    msg: string = RESPONSE_SUCCESS_MSG,
   ) {
-    this.code = code;
+    this.status = status;
     this.data = data;
-    this.message = message;
+    this.msg = msg;
   }
 
   static success<T>(
     data: T,
-    message: string = RESPONSE_SUCCESS_MSG,
+    msg: string = RESPONSE_SUCCESS_MSG,
   ): ApiRes<T> {
-    return new ApiRes(RESPONSE_SUCCESS_CODE, data, message);
+    return new ApiRes(RESPONSE_SUCCESS_CODE, data, msg);
   }
 
   static ok(): ApiRes<null> {
     return new ApiRes(RESPONSE_SUCCESS_CODE, null, RESPONSE_SUCCESS_MSG);
   }
 
-  static error<T = null>(code: number, message: string): ApiRes<T> {
-    return new ApiRes(code, null, message);
+  static error<T = null>(status: number, msg: string): ApiRes<T> {
+    return new ApiRes(status, null, msg);
   }
 
-  static custom<T>(code: number, data: T, message: string): ApiRes<T> {
-    return new ApiRes(code, data, message);
+  static custom<T>(status: number, data: T, msg: string): ApiRes<T> {
+    return new ApiRes(status, data, msg);
   }
 }
