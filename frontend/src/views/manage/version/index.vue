@@ -22,8 +22,7 @@ const schema = ref({
         data: {
           '&': '$$',
           versionNum: '${versionNum}'
-        },
-        adaptor: 'return { ...payload, data: payload.options || [] };'
+        }
       },
       headerToolbar: [
         {
