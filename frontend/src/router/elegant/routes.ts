@@ -155,6 +155,15 @@ export const generatedRoutes: GeneratedRoute[] = [
     },
     children: [
       {
+        name: 'manage_history',
+        path: '/manage/history',
+        component: 'view.manage_history',
+        meta: {
+          title: 'manage_history',
+          i18nKey: 'route.manage_history'
+        }
+      },
+      {
         name: 'manage_menu',
         path: '/manage/menu',
         component: 'view.manage_menu',
@@ -188,6 +197,15 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: 'manage_user-detail',
           i18nKey: 'route.manage_user-detail'
+        }
+      },
+      {
+        name: 'manage_version',
+        path: '/manage/version',
+        component: 'view.manage_version',
+        meta: {
+          title: 'manage_version',
+          i18nKey: 'route.manage_version'
         }
       }
     ]
