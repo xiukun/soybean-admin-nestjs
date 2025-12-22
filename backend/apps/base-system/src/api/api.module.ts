@@ -15,8 +15,9 @@ import { Controllers as EndpointRest } from './endpoint/rest';
 import { Controllers as IamRest } from './iam/rest';
 import { Controllers as LoginLogRest } from './log-audit/login-log/rest';
 import { Controllers as OperationLogRest } from './log-audit/operation-log/rest';
-import { Controllers as SystemManageRest } from './system-manage/rest';
 import { LowcodePageApiModule } from './manage/lowcode-page/lowcode-page-api.module';
+import { VersionApiModule } from './manage/version/version-api.module';
+import { Controllers as SystemManageRest } from './system-manage/rest';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { LowcodePageApiModule } from './manage/lowcode-page/lowcode-page-api.mod
     TokensInfraModule,
     AccessKeyInfraModule,
     LowcodePageApiModule,
+    VersionApiModule,
   ],
   controllers: [
     ...IamRest,

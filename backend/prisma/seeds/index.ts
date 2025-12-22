@@ -2,6 +2,7 @@ import { prisma } from './helper';
 import { initCasbinRule } from './sys/casbinRule';
 import { initSysDomain } from './sys/sysDomain';
 import { initSysMenu } from './sys/sysMenu';
+import { initSysProductVersion } from './sys/sysProductVersion.seed';
 import { initSysRole } from './sys/sysRole';
 import { initSysRoleMenu } from './sys/sysRoleMenu';
 import { initSysUser } from './sys/sysUser';
@@ -15,6 +16,7 @@ const run = async () => {
   await initSysUserRole();
   await initSysRoleMenu();
   await initCasbinRule();
+  await initSysProductVersion();
 };
 
 (async () => {

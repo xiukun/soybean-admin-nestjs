@@ -294,3 +294,22 @@ ALTER TABLE "sys_menu" ADD CONSTRAINT "sys_menu_lowcode_page_id_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "sys_lowcode_page_version" ADD CONSTRAINT "sys_lowcode_page_version_page_id_fkey" FOREIGN KEY ("page_id") REFERENCES "sys_lowcode_page"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+
+-- CreateTable
+CREATE TABLE "sys_product_version" (
+    "id" TEXT NOT NULL,
+    "version_name" VARCHAR(100) NOT NULL,
+    "version_num" VARCHAR(20) NOT NULL,
+    "description" TEXT,
+    "status" "Status" NOT NULL DEFAULT 'DISABLED',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_by" TEXT NOT NULL,
+    "updated_at" TIMESTAMP(3),
+    "updated_by" TEXT,
+
+    CONSTRAINT "sys_product_version_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "sys_product_version_version_num_key" ON "sys_product_version"("version_num");

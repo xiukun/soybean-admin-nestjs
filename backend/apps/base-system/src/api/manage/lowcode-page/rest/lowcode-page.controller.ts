@@ -87,6 +87,22 @@ export class LowcodePageController {
     return ApiRes.success(result);
   }
 
+  @Get('list')
+  @ApiOperation({ summary: 'Get lowcode pages list for select' })
+  @ApiResponse({ status: 200, description: 'Success' })
+  async getPagesList(): Promise<ApiRes<any>> {
+    const result = await this.queryBus.execute(
+      new GetLowcodePagesQuery(1, 1000, undefined),
+    );
+
+    const options = result.items.map((item: any) => ({
+      label: item.title,
+      value: item.id,
+    }));
+
+    return ApiRes.success(options);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get lowcode page by ID' })
   @ApiResponse({ status: 200, description: 'Success' })

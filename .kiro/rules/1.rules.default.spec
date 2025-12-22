@@ -1,0 +1,12 @@
+# backend项目遵循规范：
+1. 我们在开发阶段直接调整SQL和seed数据，不需要创建迁移文件，确保本地与docker中的数据一致性。
+2. 目录使用 kebab-case 命名
+3. TypeScript 类型安全
+
+# forntend项目遵循规范：
+1. 使用 kebab-case 命名
+2. 使用 iconify 图标系统
+3. 正确的父子关系和排序
+4. 完整的国际化支持
+5. Vue 3 Composition API
+6. TypeScript 类型安全
