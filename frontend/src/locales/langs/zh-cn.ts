@@ -172,6 +172,8 @@ const local: App.I18n.Schema = {
     'manage_user-detail': '用户详情',
     manage_role: '角色管理',
     manage_menu: '菜单管理',
+    manage_version: '版本管理',
+    manage_history: '历史页面',
     'access-key': '访问密钥',
     log: '日志',
     log_login: '登录日志',
@@ -426,6 +428,34 @@ const local: App.I18n.Schema = {
           male: '男',
           female: '女'
         }
+      },
+      version: {
+        title: '产品版本列表',
+        versionName: '版本名称',
+        versionNum: '版本号',
+        status: '状态',
+        publisher: '发布人',
+        publishTime: '发布时间',
+        description: '描述',
+        form: {
+          versionName: '请输入版本名称',
+          versionNum: '请输入版本号',
+          description: '请输入描述',
+          status: '请选择状态'
+        },
+        addVersion: '新增版本',
+        editVersion: '编辑版本',
+        enableVersion: '启用版本',
+        confirmEnable: '启用此版本将关闭其他版本，确认启用吗？'
+      },
+      history: {
+        title: '历史页面列表',
+        menuPage: '菜单页面',
+        pageVersion: '页面版本',
+        createTime: '创建时间',
+        creator: '创建人',
+        viewPage: '查看页面',
+        confirmDelete: '确认删除此历史版本吗？'
       }
     }
   },

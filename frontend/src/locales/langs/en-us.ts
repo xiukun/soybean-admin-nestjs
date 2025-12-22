@@ -172,6 +172,8 @@ const local: App.I18n.Schema = {
     'manage_user-detail': 'User Detail',
     manage_role: 'Role Manage',
     manage_menu: 'Menu Manage',
+    manage_version: 'Version Management',
+    manage_history: 'History Pages',
     'access-key': 'Access Key',
     log: 'Log',
     log_login: 'Login Log',
@@ -426,6 +428,34 @@ const local: App.I18n.Schema = {
           male: 'Male',
           female: 'Female'
         }
+      },
+      version: {
+        title: 'Product Version List',
+        versionName: 'Version Name',
+        versionNum: 'Version Number',
+        status: 'Status',
+        publisher: 'Publisher',
+        publishTime: 'Publish Time',
+        description: 'Description',
+        form: {
+          versionName: 'Please enter version name',
+          versionNum: 'Please enter version number',
+          description: 'Please enter description',
+          status: 'Please select status'
+        },
+        addVersion: 'Add Version',
+        editVersion: 'Edit Version',
+        enableVersion: 'Enable Version',
+        confirmEnable: 'Enabling this version will disable others. Confirm?'
+      },
+      history: {
+        title: 'History Pages List',
+        menuPage: 'Menu Page',
+        pageVersion: 'Page Version',
+        createTime: 'Create Time',
+        creator: 'Creator',
+        viewPage: 'View Page',
+        confirmDelete: 'Confirm delete this history version?'
       }
     }
   },
