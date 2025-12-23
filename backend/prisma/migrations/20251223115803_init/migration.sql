@@ -273,7 +273,19 @@ CREATE TABLE "sys_product_version" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "sys_user_username_domain_key" ON "sys_user"("username", "domain");
+CREATE UNIQUE INDEX "sys_tokens_access_token_key" ON "sys_tokens"("access_token");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "sys_tokens_refresh_token_key" ON "sys_tokens"("refresh_token");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "sys_user_username_key" ON "sys_user"("username");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "sys_user_email_key" ON "sys_user"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "sys_user_phone_number_key" ON "sys_user"("phone_number");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "sys_domain_code_key" ON "sys_domain"("code");
@@ -282,31 +294,28 @@ CREATE UNIQUE INDEX "sys_domain_code_key" ON "sys_domain"("code");
 CREATE UNIQUE INDEX "sys_role_code_key" ON "sys_role"("code");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "sys_endpoint_path_method_key" ON "sys_endpoint"("path", "method");
+CREATE UNIQUE INDEX "sys_organization_code_key" ON "sys_organization"("code");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "sys_organization_code_key" ON "sys_organization"("code");
+CREATE UNIQUE INDEX "sys_menu_route_name_key" ON "sys_menu"("route_name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "sys_lowcode_page_code_key" ON "sys_lowcode_page"("code");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "sys_access_key_access_key_id_key" ON "sys_access_key"("access_key_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "sys_access_key_access_key_secret_key" ON "sys_access_key"("access_key_secret");
 
--- AddForeignKey
-ALTER TABLE "sys_user_role" ADD CONSTRAINT "sys_user_role_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "sys_user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "sys_user_role" ADD CONSTRAINT "sys_user_role_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "sys_role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "sys_role_menu" ADD CONSTRAINT "sys_role_menu_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "sys_role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "sys_role_menu" ADD CONSTRAINT "sys_role_menu_menu_id_fkey" FOREIGN KEY ("menu_id") REFERENCES "sys_menu"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+-- CreateIndex
+CREATE UNIQUE INDEX "sys_product_version_version_num_key" ON "sys_product_version"("version_num");
 
 -- AddForeignKey
 ALTER TABLE "sys_menu" ADD CONSTRAINT "sys_menu_lowcode_page_id_fkey" FOREIGN KEY ("lowcode_page_id") REFERENCES "sys_lowcode_page"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "sys_lowcode_page_version" ADD CONSTRAINT "sys_lowcode_page_version_page_id_fkey" FOREIGN KEY ("page_id") REFERENCES "sys_lowcode_page"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "sys_lowcode_page_version" ADD CONSTRAINT "sys_lowcode_page_version_product_version_id_fkey" FOREIGN KEY ("product_version_id") REFERENCES "sys_product_version"("id") ON DELETE SET NULL ON UPDATE CASCADE;
