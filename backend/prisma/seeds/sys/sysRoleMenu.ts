@@ -79,7 +79,19 @@ export const initSysRoleMenu = async () => {
       menuId: 67,
       domain: 'built-in',
     },
+    {
+      roleId: '2',
+      menuId: 66,
+      domain: 'built-in',
+    },
+    {
+      roleId: '2',
+      menuId: 67,
+      domain: 'built-in',
+    },
   ];
 
+  // 先删除所有已存在的角色菜单关系，然后重新创建，确保数据一致性
+  await prisma.sysRoleMenu.deleteMany();
   return prisma.sysRoleMenu.createMany({ data });
 };
