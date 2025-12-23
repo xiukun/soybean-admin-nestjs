@@ -13,7 +13,7 @@ const authStore = useAuthStore();
 // 计算AMIS locals，包含token和其他全局变量
 const amisLocals = computed(() => ({
   token: authStore.token || '',
-  designerBaseUrl: 'http://localhost:9555/#/'
+  designerBaseUrl: import.meta.env.VITE_APP_AMIS_EDITOR_URL
 }));
 
 // AMIS Schema for history pages management
@@ -191,7 +191,7 @@ const schema = ref({
         {
           "ignoreError": false,
           "actionType": "custom",
-          "script": "// 生成设计器URL\nconst params = new URLSearchParams();\nconsole.log(event,context,'eeeeee')\nparams.append('pageKey', event.data.pageId);\nparams.append('historyId', event.data.id);\nif (event.data.token) {\n  params.append('token', event.data.token);\n}\nif (event.data.menuPage) {\n  params.append('objtitle', event.data.menuPage);\n}\nconst designerUrl = `${event.data.designerBaseUrl}?${params.toString()}`;\nwindow.open(designerUrl, '_blank');",
+          "script": "// 生成设计器URL\nconst params = new URLSearchParams();\nparams.append('pageKey', event.data.menuId);\nparams.append('versionId', event.data.id);\nparams.append('token', event.data.token || '');\nif (event.data.menuPage) {\n  params.append('objtitle', event.data.menuPage);\n}\nconst designerUrl = `${event.data.designerBaseUrl}?${params.toString()}`;\nwindow.open(designerUrl, '_blank');",
           "args": {}
         }
       ]

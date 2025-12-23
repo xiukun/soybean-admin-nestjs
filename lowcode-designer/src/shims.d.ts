@@ -10,7 +10,6 @@ export declare global {
     saveAmis?: any
     MonacoEnvironment: any
     AG_NEPTUNE_LOWCODE_PAGE_ID?: string | null
-    AG_NEPTUNE_LOWCODE_PAGE_HISTORY_ID?: string | null
     performance: any
     __PRODUCTION__APP__CONF__: any
   }

@@ -65,14 +65,23 @@ export class HistoryController {
     ]);
 
     // 转换数据格式以匹配前端需求
-    const options = items.map((item: any) => ({
-      id: item.id,
-      pageId: item.pageId,
-      menuPage: item.page.title,
-      pageVersion: item.version,
-      createdAt: item.createdAt,
-      creator: item.createdBy,
-      changelog: item.changelog,
+    const options = await Promise.all(items.map(async (item: any) => {
+      // 查询关联的菜单ID
+      const menu = await this.prisma.sysMenu.findFirst({
+        where: { lowcodePageId: item.pageId },
+        select: { id: true }
+      });
+      
+      return {
+        id: item.id,
+        pageId: item.pageId,
+        menuId: menu?.id,
+        menuPage: item.page.title,
+        pageVersion: item.version,
+        createdAt: item.createdAt,
+        creator: item.createdBy,
+        changelog: item.changelog,
+      };
     }));
 
     return ApiRes.success({

@@ -61,24 +61,16 @@ export function AmisDesigner(props: { title: string; editorType: string }) {
 
   const searchParams = getSearchParams()
   window.AG_NEPTUNE_LOWCODE_PAGE_ID = searchParams.get('pageKey')
-  window.AG_NEPTUNE_LOWCODE_PAGE_HISTORY_ID = searchParams.get('historyId')
   const store = useAmisStore()
   const appState = useReactive<{ schema: any }>({
     schema: { ...store.defaultSchema }
   })
   const getSchemaData = (id: string) => {
-    if (window.AG_NEPTUNE_LOWCODE_PAGE_HISTORY_ID) {
-      // 获取历史版本详情
-      amisPageFindVersionById(id, window.AG_NEPTUNE_LOWCODE_PAGE_HISTORY_ID).then((res: any) => {
-        commonSetSchema(res)
-      })
-    } else {
-      amisPageFindDetail({ id }).then((res: any) => {
+    amisPageFindDetail({ id }).then((res: any) => {
         commonSetSchema(res)
       }).catch((error: any) => {
         console.error('amisPageFindDetail error:', error)
       })
-    }
   }
   /**
    * 设置页面 schema
@@ -323,7 +315,7 @@ export function AmisDesigner(props: { title: string; editorType: string }) {
       <div className="amis-desiginer-layout">
         <DesignerHeader
           title={`${props.title}(${searchParams.get('objtitle') || searchParams.get('title') || '空'})`}
-          editorType={window.AG_NEPTUNE_LOWCODE_PAGE_HISTORY_ID ? 'view' : props.editorType}
+          editorType={props.editorType}
         />
         <div className="context">
           <Editor
