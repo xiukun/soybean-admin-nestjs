@@ -1,5 +1,5 @@
 import { memo, useEffect, useState } from 'react'
-import { Icon } from 'amis'
+import { Icon, toast } from 'amis'
 import { BuildPanelEventContext, BasePlugin, BasicPanelItem } from 'amis-editor'
 import useAmisStore, { useAmisStoreContext } from '@/store/amis-store'
 import { Button, Divider, List, Skeleton } from 'antd'
@@ -7,7 +7,7 @@ import InfiniteScroll from 'react-infinite-scroll-component'
 import agHttp from '@/utils/http'
 import to from 'await-to-js'
 import dayjs from 'dayjs'
-import { amisPageFindHistoryListById } from '@/api/amis'
+import { amisPageFindHistoryListById, amisPageFindVersionById } from '@/api/amis'
 
 const baseTitle = '历史版本'
 
@@ -142,10 +142,15 @@ const App: React.FC = () => {
    */
   const replaceWithHistoryVersion = async (versionId: string) => {
     try {
+      if (!lowcodePageId) {
+        console.error('lowcodePageId为空，无法获取历史版本')
+        return
+      }
       
       const [err, body] = await to<any>(
-        agHttp.get(`/v1/lowcode/pages/${lowcodePageId}/versions/${versionId}`)
+        amisPageFindVersionById(lowcodePageId, versionId)
       )
+      toast.success('历史版本替换成功')
       
       if (err) {
         console.error('获取历史版本失败:', err)
@@ -155,7 +160,6 @@ const App: React.FC = () => {
       if (body.data?.schema) {
         // 替换当前设计器的schema
         useCtx.onChange(body.data.schema)
-        console.log('已替换为历史版本:', versionId)
       }
     } catch (error) {
       console.error('替换历史版本时出错:', error)
