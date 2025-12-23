@@ -236,6 +236,7 @@ CREATE TABLE "sys_lowcode_page_version" (
     "version" VARCHAR(20) NOT NULL,
     "schema" JSONB NOT NULL,
     "changelog" TEXT,
+    "product_version_id" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by" TEXT NOT NULL,
 
@@ -313,3 +314,6 @@ CREATE TABLE "sys_product_version" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "sys_product_version_version_num_key" ON "sys_product_version"("version_num");
+
+-- AddForeignKey
+ALTER TABLE "sys_lowcode_page_version" ADD CONSTRAINT "sys_lowcode_page_version_product_version_id_fkey" FOREIGN KEY ("product_version_id") REFERENCES "sys_product_version"("id") ON DELETE SET NULL ON UPDATE CASCADE;
