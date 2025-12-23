@@ -110,6 +110,12 @@ export class LowcodePageVersionDto {
   @ValidateIf((o) => o.changelog !== null)
   @IsString({ message: 'changelog must be a string' })
   changelog?: string | null;
+
+  @ApiProperty({ required: false, description: 'Product version ID', nullable: true })
+  @IsOptional()
+  @ValidateIf((o) => o.productVersionId !== null)
+  @IsString({ message: 'productVersionId must be a string' })
+  productVersionId?: string | null;
 }
 
 export class PaginationQueryDto {

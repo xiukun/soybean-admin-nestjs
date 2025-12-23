@@ -24,6 +24,7 @@ export class LowcodePageVersionCreateCommandHandler implements ICommandHandler<L
       version: command.version,
       schema: command.schema,
       changelog: command.changelog,
+      productVersionId: command.productVersionId,
       createdAt: new Date(),
       createdBy: command.uid,
     });

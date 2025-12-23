@@ -263,16 +263,19 @@ model SysLowcodePage {
 
 // 低代码页面版本表
 model SysLowcodePageVersion {
-  id          String   @id @default(uuid())
-  pageId      String   @map("page_id")
-  version     String   @map("version") @db.VarChar(20)
-  schema      Json     @map("schema") // AMIS JSON Schema
-  changelog   String?  @map("changelog") @db.Text
-  createdAt   DateTime @default(now()) @map("created_at")
-  createdBy   String   @map("created_by")
+  id              String           @id @default(uuid())
+  pageId          String           @map("page_id")
+  version         String           @map("version") @db.VarChar(20)
+  schema          Json             @map("schema") // AMIS JSON Schema
+  changelog       String?          @map("changelog") @db.Text
+  productVersionId String?          @map("product_version_id")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  createdBy       String           @map("created_by")
 
   // 关联到页面
-  page SysLowcodePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  page            SysLowcodePage   @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  // 关联到产品版本
+  productVersion  SysProductVersion? @relation(fields: [productVersionId], references: [id], onDelete: SetNull)
 
   @@map("sys_lowcode_page_version")
 }
@@ -301,6 +304,9 @@ model SysProductVersion {
   createdBy   String    @map("created_by")
   updatedAt   DateTime? @updatedAt @map("updated_at")
   updatedBy   String?   @map("updated_by")
+
+  // 关联到低代码页面版本
+  lowcodePageVersions SysLowcodePageVersion[]
 
   @@map("sys_product_version")
 }

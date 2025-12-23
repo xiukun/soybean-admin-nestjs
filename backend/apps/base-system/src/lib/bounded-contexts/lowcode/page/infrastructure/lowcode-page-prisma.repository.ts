@@ -199,6 +199,7 @@ export class LowcodePagePrismaRepository implements ILowcodePageRepository {
         version: versionData.version,
         schema: versionData.schema,
         changelog: versionData.changelog,
+        productVersionId: versionData.productVersionId,
         createdAt: versionData.createdAt,
         createdBy: versionData.createdBy,
       },
@@ -210,6 +211,7 @@ export class LowcodePagePrismaRepository implements ILowcodePageRepository {
       version: createdVersion.version,
       schema: createdVersion.schema,
       changelog: createdVersion.changelog,
+      productVersionId: createdVersion.productVersionId,
       createdAt: createdVersion.createdAt,
       createdBy: createdVersion.createdBy,
     });

@@ -18,6 +18,11 @@ export class HistoryListQueryDto {
   @IsString()
   versionNum?: string;
 
+  @ApiProperty({ required: false, description: 'Product version ID filter' })
+  @IsOptional()
+  @IsString()
+  productVersionId?: string;
+
   @ApiProperty({ required: false, description: 'Current page', default: 1 })
   @IsOptional()
   pageNum?: number = 1;

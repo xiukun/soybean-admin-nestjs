@@ -44,6 +44,11 @@ export class HistoryController {
         mode: 'insensitive',
       };
     }
+    
+    // 如果有产品版本ID筛选
+    if (query.productVersionId) {
+      where.productVersionId = query.productVersionId;
+    }
 
     const [items, total] = await Promise.all([
       this.prisma.sysLowcodePageVersion.findMany({

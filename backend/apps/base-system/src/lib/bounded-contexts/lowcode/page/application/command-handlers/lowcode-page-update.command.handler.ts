@@ -3,12 +3,15 @@ import { NotFoundException, Inject } from '@nestjs/common';
 import { LowcodePageUpdateCommand } from '@lowcode/page/commands/lowcode-page-update.command';
 import { ILowcodePageRepository } from '@lowcode/page/domain/lowcode-page.repository';
 import { LOWCODE_PAGE_REPOSITORY } from '@lowcode/page/lowcode-page.tokens';
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
+import { Status } from '@prisma/client';
 
 @CommandHandler(LowcodePageUpdateCommand)
 export class LowcodePageUpdateCommandHandler implements ICommandHandler<LowcodePageUpdateCommand> {
   constructor(
     @Inject(LOWCODE_PAGE_REPOSITORY)
-    private readonly lowcodePageRepository: ILowcodePageRepository
+    private readonly lowcodePageRepository: ILowcodePageRepository,
+    private readonly prismaService: PrismaService
   ) {}
 
   async execute(command: LowcodePageUpdateCommand): Promise<{ pageId: string; versionId?: string }> {
@@ -55,7 +58,12 @@ export class LowcodePageUpdateCommandHandler implements ICommandHandler<LowcodeP
         }
       }
 
-      // Create new version record
+      // 获取当前启用的产品版本
+      const currentProductVersion = await this.prismaService.sysProductVersion.findFirst({
+        where: { status: Status.ENABLED },
+      });
+
+      // 创建新版本记录
       const version = await this.lowcodePageRepository.createVersion({
         pageId: command.id,
         version: newVersion,
@@ -63,6 +71,7 @@ export class LowcodePageUpdateCommandHandler implements ICommandHandler<LowcodeP
         changelog: command.changelog || `设计器保存 - ${new Date().toLocaleString()}`,
         createdAt: new Date(),
         createdBy: command.uid!,
+        productVersionId: currentProductVersion?.id || null,
       });
 
       versionId = version.id;

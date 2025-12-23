@@ -12,6 +12,7 @@ export type LowcodePageVersionOptionalProperties = Readonly<
   Partial<{
     id: string;
     changelog: string | null;
+    productVersionId: string | null;
   }>
 >;
 
@@ -29,6 +30,7 @@ export class LowcodePageVersion {
   version: string;
   schema: any;
   changelog?: string;
+  productVersionId?: string | null;
   createdAt: Date;
   createdBy: string;
 
@@ -47,6 +49,7 @@ export class LowcodePageVersion {
       version: this.version,
       schema: this.schema,
       changelog: this.changelog,
+      productVersionId: this.productVersionId,
       createdAt: this.createdAt,
       createdBy: this.createdBy,
     };

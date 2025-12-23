@@ -280,6 +280,7 @@ export class LowcodePageController {
         JSON.parse(dto.schema),
         dto.changelog || null,
         req.user.uid,
+        dto.productVersionId,
       ),
     );
 

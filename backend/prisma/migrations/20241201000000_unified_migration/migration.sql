@@ -236,6 +236,7 @@ CREATE TABLE "sys_lowcode_page_version" (
     "version" VARCHAR(20) NOT NULL,
     "schema" JSONB NOT NULL,
     "changelog" TEXT,
+    "product_version_id" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by" TEXT NOT NULL,
 
@@ -254,6 +255,21 @@ CREATE TABLE "sys_access_key" (
     "created_by" TEXT NOT NULL,
 
     CONSTRAINT "sys_access_key_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "sys_product_version" (
+    "id" TEXT NOT NULL,
+    "version_name" VARCHAR(100) NOT NULL,
+    "version_num" VARCHAR(20) NOT NULL,
+    "description" TEXT,
+    "status" "Status" NOT NULL DEFAULT 'DISABLED',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_by" TEXT NOT NULL,
+    "updated_at" TIMESTAMP(3),
+    "updated_by" TEXT,
+
+    CONSTRAINT "sys_product_version_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex

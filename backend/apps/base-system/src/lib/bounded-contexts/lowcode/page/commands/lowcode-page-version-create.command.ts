@@ -7,5 +7,6 @@ export class LowcodePageVersionCreateCommand implements ICommand {
     readonly schema: any,
     readonly changelog: string | null,
     readonly uid: string,
+    readonly productVersionId?: string | null,
   ) {}
 }
