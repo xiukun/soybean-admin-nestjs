@@ -21,38 +21,44 @@ const defaultSchema =
 /**
  * amis设计器 状态管理
  */
-/* @ts-ignore */
-const useAmisStore = create<State & Action>((set: any) => ({
+// 使用zustand推荐的最优性能结构创建store
+const useAmisStore = create<State & Action>((set) => ({
+  // 基础主题和配置
   theme: 'antd',
-  title: 'ag amis设计器',
+  title: 'amis设计器',
   isMobile: false,
   isProview: false,
-  language: localStorage.getItem('suda-i18n-locale') || currentLocale() || 'zh-CN', // 当前语言类型
+  language: localStorage.getItem('suda-i18n-locale') || currentLocale() || 'zh-CN',
   shortcutKey: '',
+  
+  // Schema相关
   defaultSchema,
   emptySchema: {
     type: 'page',
     body: [],
     regions: ['body'],
-    config:{
-      globalVals:[]
+    config: {
+      globalVals: []
     }
   },
-
-  /**
-   * 设置数据
-   * @param key 变更的属性名称
-   * @param value 变更的属性值
-   */
-  setData: (key: DataKey, value: any) => {
-    set(() => ({ [key]: value }))
-  },
-
-  /**
-   * 切换语言，local storage保存
-   * @param value zh-CN | en-US
-   */
-  onChangeLocale: (value: string) => {
+  
+  // 页面信息相关状态
+  pageKey: '',
+  lowcodePageId: '',
+  lowcodePageInfo: null,
+  
+  // Action: 设置单个状态
+  setData: (key, value) => set({ [key]: value }),
+  
+  // Action: 设置页面信息
+  setPageInfo: (pageInfo) => set({
+    pageKey: pageInfo.pageKey || '',
+    lowcodePageId: pageInfo.lowcodePageId || '',
+    title: pageInfo.title || ''
+  }),
+  
+  // Action: 切换语言
+  onChangeLocale: (value) => {
     localStorage.setItem('suda-i18n-locale', value)
     window.location.reload()
   },

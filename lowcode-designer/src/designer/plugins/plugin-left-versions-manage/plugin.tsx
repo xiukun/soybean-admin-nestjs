@@ -1,7 +1,7 @@
 import { memo, useEffect, useState } from 'react'
 import { Icon } from 'amis'
 import { BuildPanelEventContext, BasePlugin, BasicPanelItem } from 'amis-editor'
-import { useAmisStoreContext } from '@/store/amis-store'
+import useAmisStore, { useAmisStoreContext } from '@/store/amis-store'
 import { Button, Divider, List, Skeleton } from 'antd'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import agHttp from '@/utils/http'
@@ -48,19 +48,6 @@ function VersionsManage(_props: any) {
     setRenderKey(currentKey => currentKey + 1)
   }
 
-  // 监听页面保存事件，自动刷新历史版本列表
-  useEffect(() => {
-    const handlePageSaved = (event: any) => {
-      console.log('页面已保存，刷新历史版本列表', event.detail)
-      forceChildRender()
-    }
-
-    window.addEventListener('lowcode-page-saved', handlePageSaved)
-
-    return () => {
-      window.removeEventListener('lowcode-page-saved', handlePageSaved)
-    }
-  }, [])
 
   return (
     <>
@@ -95,14 +82,29 @@ const App: React.FC = () => {
   const [hasMore, setHasMore] = useState<boolean>(true)
   const perPage = 15 // 每页15条数据
 
-  const loadMoreData = () => {
-    if (loading) {
+  const {lowcodePageId} = useAmisStore()
+  
+  // 初始化或lowcodePageId变化时重新加载数据
+  useEffect(() => {
+    // 重置状态
+    setData([])
+    setPage(1)
+    setHasMore(true)
+    
+    // 加载数据
+    loadData()
+  }, [lowcodePageId])
+  
+  // 加载数据函数
+  const loadData = () => {
+    if (loading || !lowcodePageId) {
       return
     }
+    
     setLoading(true)
     
     amisPageFindHistoryListById({
-      mainId: window.AG_NEPTUNE_LOWCODE_PAGE_ID || undefined,
+      mainId: lowcodePageId,
       pageNum: page,
       pageSize: perPage,
     })
@@ -115,8 +117,9 @@ const App: React.FC = () => {
           setHasMore(false)
         }
         
-        setData([...data, ...newData])
-        setPage(page + 1)
+        // 追加数据
+        setData(prevData => [...prevData, ...newData])
+        setPage(prevPage => prevPage + 1)
         setLoading(false)
       })
       .catch((error) => {
@@ -124,10 +127,14 @@ const App: React.FC = () => {
         setLoading(false)
       })
   }
-
-  useEffect(() => {
-    loadMoreData()
-  }, [])
+  
+  // 无限滚动加载更多数据
+  const loadMoreData = () => {
+    if (!hasMore || !lowcodePageId) {
+      return
+    }
+    loadData()
+  }
 
   /**
    * 根据版本ID获取历史页面的schema JSON并替换当前页面
@@ -135,8 +142,9 @@ const App: React.FC = () => {
    */
   const replaceWithHistoryVersion = async (versionId: string) => {
     try {
+      
       const [err, body] = await to<any>(
-        agHttp.get(`/v1/lowcode/pages/${window.AG_NEPTUNE_LOWCODE_PAGE_ID}/versions/${versionId}`)
+        agHttp.get(`/v1/lowcode/pages/${lowcodePageId}/versions/${versionId}`)
       )
       
       if (err) {

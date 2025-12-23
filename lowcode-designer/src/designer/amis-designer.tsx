@@ -60,14 +60,24 @@ export function AmisDesigner(props: { title: string; editorType: string }) {
   }
 
   const searchParams = getSearchParams()
-  window.AG_NEPTUNE_LOWCODE_PAGE_ID = searchParams.get('pageKey')
   const store = useAmisStore()
   const appState = useReactive<{ schema: any }>({
     schema: { ...store.defaultSchema }
   })
+  
+  const pageKey = searchParams.get('pageKey')
+  
   const getSchemaData = (id: string) => {
     amisPageFindDetail({ id }).then((res: any) => {
         commonSetSchema(res)
+        // 将页面信息保存到store
+        if (res.data) {
+          store.setPageInfo({
+            pageKey: pageKey,
+            lowcodePageId: res.data.id,
+            title: res.data.title
+          })
+        }
       }).catch((error: any) => {
         console.error('amisPageFindDetail error:', error)
       })
@@ -109,16 +119,18 @@ export function AmisDesigner(props: { title: string; editorType: string }) {
       }
     }
   }
-  useEffect(() => {
-    const pageKey = searchParams.get('pageKey')
-    const token = searchParams.get('token')
   
+  // 将状态更新移到useEffect中，避免无限渲染循环
+  useEffect(() => {
     if (pageKey) {
+      // 保存pageKey到store
+      store.setData('pageKey', pageKey)
+      // 获取页面数据
       getSchemaData(pageKey)
     } else {
       console.error('pageKey is null or empty, cannot load schema')
     }
-  }, [])
+  }, [pageKey])
 
   // AmisStoreProvider的事件
   function providerActions() {
@@ -129,28 +141,25 @@ export function AmisDesigner(props: { title: string; editorType: string }) {
       },
       // 页面  页面模板保存
       onSave: () => {
-        const pageKey = searchParams.get('pageKey')
-        if (!pageKey) {
+        // 使用store中的lowcodePageId而不是pageKey
+        const lowcodePageId = searchParams.get('pageKey')
+        if (!lowcodePageId) {
           toast.error('页面ID不能为空')
           return
         }
         amisPageSave({
-          id: pageKey,
+          id: lowcodePageId,
           content: JSON.stringify(appState.schema),
         }).then((res: any) => {
           if (res.status > 0) {
             toast.error(res.msg || '保存失败')
           } else {
             toast.success(res.msg || '保存成功')
-            // 触发历史版本面板刷新事件
-            const saveEvent = new CustomEvent('lowcode-page-saved', {
-              detail: {
-                pageId: res.data?.pageId || pageKey,
-                versionId: res.data?.versionId,
-                timestamp: new Date().toISOString()
-              }
-            })
-            window.dispatchEvent(saveEvent)
+            // 更新store中的页面信息
+            if (res.data?.pageId) {
+              store.setData('lowcodePageId', res.data.pageId)
+            }
+            
           }
         }).catch((error: any) => {
           toast.error('保存失败，请检查网络连接')
@@ -158,8 +167,9 @@ export function AmisDesigner(props: { title: string; editorType: string }) {
       },
       // 组件 保存
       onSavePlugin: () => {
-        const pageKey = searchParams.get('pageKey')
-        if (!pageKey) {
+        // 使用store中的lowcodePageId而不是pageKey
+        const lowcodePageId = searchParams.get('pageKey')
+        if (!lowcodePageId) {
           toast.error('页面ID不能为空')
           return
         }
@@ -168,13 +178,17 @@ export function AmisDesigner(props: { title: string; editorType: string }) {
           pluginSchema = _.isEmpty(appState.schema.body) ? undefined : appState.schema.body
         }
         amisPageSave({
-          id: pageKey,
+          id: lowcodePageId,
           content: JSON.stringify(pluginSchema),
         }).then((res: any) => {
           if (res.status > 0) {
             toast.error(res.msg || '保存失败')
           } else {
             toast.success(res.msg || '保存成功')
+            // 更新store中的页面信息
+            if (res.data?.pageId) {
+              store.setData('lowcodePageId', res.data.pageId)
+            }
           }
         }).catch((error: any) => {
           toast.error('保存失败，请检查网络连接')

@@ -7,11 +7,15 @@ export interface State {
   shortcutKey?: string // 快捷键
   defaultSchema?: any // schema
   emptySchema?: any // 空 schema
+  // 新增页面信息相关状态
+  pageKey: string // URL中的pageKey参数（menuId）
+  lowcodePageId: string // 实际的lowcode页面ID
 }
 
 export interface Action {
   setData: (_key: DataKey, _value: any) => void
   onChangeLocale: (_e: any) => void
+  setPageInfo: (_pageInfo: any) => void // 新增：设置页面信息
 }
 
 export type DataKey =
@@ -22,3 +26,5 @@ export type DataKey =
   | 'language'
   | 'shortcutKey'
   | 'defaultSchema'
+  | 'pageKey'
+  | 'lowcodePageId'
