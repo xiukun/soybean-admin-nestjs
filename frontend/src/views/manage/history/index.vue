@@ -1,12 +1,20 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import AmisRenderer from '@/components/amis-renderer/amis.vue';
+import { useAuthStore } from '@/store/modules/auth';
 
 defineOptions({
   name: 'ManageHistoryPage'
 });
 
 const amisRef = ref();
+const authStore = useAuthStore();
+
+// 计算AMIS locals，包含token和其他全局变量
+const amisLocals = computed(() => ({
+  token: authStore.token || '',
+  designerBaseUrl: 'http://localhost:9555/#/'
+}));
 
 // AMIS Schema for history pages management
 const schema = ref({
@@ -171,14 +179,25 @@ const schema = ref({
           "type": "operation",
           "buttons": [
             {
-              "type": "button",
-              "label": "查看页面",
-              "level": "link",
-              "actionType": "url",
-              "url": "/lowcode-designer?pageId=${pageId}&versionId=${id}",
-              "blank": true,
-              "id": "u:eaa20bfc6e2d"
-            },
+  "type": "button",
+  "label": "查看页面",
+  "level": "link",
+  "id": "u:eaa20bfc6e2d",
+  "disabledOnAction": false,
+  "onEvent": {
+    "click": {
+      "weight": 0,
+      "actions": [
+        {
+          "ignoreError": false,
+          "actionType": "custom",
+          "script": "// 生成设计器URL\nconst params = new URLSearchParams();\nconsole.log(event,context,'eeeeee')\nparams.append('pageKey', event.data.pageId);\nparams.append('historyId', event.data.id);\nif (event.data.token) {\n  params.append('token', event.data.token);\n}\nif (event.data.menuPage) {\n  params.append('objtitle', event.data.menuPage);\n}\nconst designerUrl = `${event.data.designerBaseUrl}?${params.toString()}`;\nwindow.open(designerUrl, '_blank');",
+          "args": {}
+        }
+      ]
+    }
+  }
+},
             {
               "type": "button",
               "label": "删除",
@@ -215,7 +234,7 @@ const schema = ref({
 
 <template>
   <div class="maita-amis-container">
-    <AmisRenderer ref="amisRef" :schema="schema" />
+    <AmisRenderer ref="amisRef" :schema="schema" :locals="amisLocals" />
   </div>
 </template>
 
