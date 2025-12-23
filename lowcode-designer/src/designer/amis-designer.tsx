@@ -142,6 +142,15 @@ export function AmisDesigner(props: { title: string; editorType: string }) {
             toast.error(res.msg || '保存失败')
           } else {
             toast.success(res.msg || '保存成功')
+            // 触发历史版本面板刷新事件
+            const saveEvent = new CustomEvent('lowcode-page-saved', {
+              detail: {
+                pageId: res.data?.pageId || pageKey,
+                versionId: res.data?.versionId,
+                timestamp: new Date().toISOString()
+              }
+            })
+            window.dispatchEvent(saveEvent)
           }
         }).catch((error: any) => {
           toast.error('保存失败，请检查网络连接')

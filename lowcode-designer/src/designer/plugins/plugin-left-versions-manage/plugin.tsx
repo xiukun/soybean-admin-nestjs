@@ -47,6 +47,21 @@ function VersionsManage(_props: any) {
   const forceChildRender = () => {
     setRenderKey(currentKey => currentKey + 1)
   }
+
+  // 监听页面保存事件，自动刷新历史版本列表
+  useEffect(() => {
+    const handlePageSaved = (event: any) => {
+      console.log('页面已保存，刷新历史版本列表', event.detail)
+      forceChildRender()
+    }
+
+    window.addEventListener('lowcode-page-saved', handlePageSaved)
+
+    return () => {
+      window.removeEventListener('lowcode-page-saved', handlePageSaved)
+    }
+  }, [])
+
   return (
     <>
       <div className="ae-CodePanel">

@@ -45,16 +45,22 @@ export class LowcodePageUpdateCommandHandler implements ICommandHandler<LowcodeP
       const versions = await this.lowcodePageRepository.findVersionsByPageId(command.id);
       const latestVersion = versions[0]; // Versions are ordered by createdAt desc
       
-      // Simple version increment logic (you might want to make this more sophisticated)
-      const versionParts = latestVersion ? latestVersion.version.split('.').map(Number) : [0, 0, 0];
-      versionParts[2]++; // Increment patch version
-      const newVersion = versionParts.join('.');
+      // Calculate new version number
+      let newVersion = '1.0.0'; // Default initial version
+      if (latestVersion) {
+        const versionParts = latestVersion.version.split('.').map(Number);
+        if (versionParts.length === 3) {
+          versionParts[2]++; // Increment patch version
+          newVersion = versionParts.join('.');
+        }
+      }
 
+      // Create new version record
       const version = await this.lowcodePageRepository.createVersion({
         pageId: command.id,
         version: newVersion,
         schema: command.schema,
-        changelog: command.changelog || `Updated to version ${newVersion}`,
+        changelog: command.changelog || `设计器保存 - ${new Date().toLocaleString()}`,
         createdAt: new Date(),
         createdBy: command.uid!,
       });
