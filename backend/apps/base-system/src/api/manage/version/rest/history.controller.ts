@@ -72,6 +72,18 @@ export class HistoryController {
         select: { id: true }
       });
       
+      // 查询创建者信息，将用户ID转换为用户名
+      let creatorName = item.createdBy;
+      if (item.createdBy !== 'system') {
+        const user = await this.prisma.sysUser.findUnique({
+          where: { id: item.createdBy },
+          select: { username: true }
+        });
+        if (user) {
+          creatorName = user.username;
+        }
+      }
+      
       return {
         id: item.id,
         pageId: item.pageId,
@@ -79,7 +91,7 @@ export class HistoryController {
         menuPage: item.page.title,
         pageVersion: item.version,
         createdAt: item.createdAt,
-        creator: item.createdBy,
+        creator: creatorName,
         changelog: item.changelog,
       };
     }));
