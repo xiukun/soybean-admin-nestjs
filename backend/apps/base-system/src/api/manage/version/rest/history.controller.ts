@@ -37,9 +37,9 @@ export class HistoryController {
       where.pageId = query.mainId;
     }
     
-    // 如果有版本号筛选
+    // todo 版本号筛选 调整为 产品版本ID筛选
     if (query.versionNum) {
-      where.version = {
+      where.productVersionId = {
         contains: query.versionNum,
         mode: 'insensitive',
       };

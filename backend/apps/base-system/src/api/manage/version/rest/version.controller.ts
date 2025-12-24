@@ -75,7 +75,7 @@ export class VersionController {
 
     const options = items.map((item: any) => ({
       label: `${item.versionName} (${item.versionNum})`,
-      value: item.versionNum,
+      value: item.id,
     }));
 
     return ApiRes.success(options);
