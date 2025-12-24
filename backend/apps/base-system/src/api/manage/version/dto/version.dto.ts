@@ -28,7 +28,7 @@ export class CreateVersionDto {
 
 export class UpdateVersionDto {
   @ApiProperty({ required: true, description: 'Version ID' })
-  @IsUUID('4', { message: 'id must be a valid UUID' })
+  @IsString({ message: 'id must be a string' })
   @IsNotEmpty({ message: 'id cannot be empty' })
   id: string;
 
@@ -51,7 +51,7 @@ export class UpdateVersionDto {
 
 export class EnableVersionDto {
   @ApiProperty({ required: true, description: 'Version ID' })
-  @IsUUID('4', { message: 'id must be a valid UUID' })
+  @IsString({ message: 'id must be a string' })
   @IsNotEmpty({ message: 'id cannot be empty' })
   id: string;
 }
