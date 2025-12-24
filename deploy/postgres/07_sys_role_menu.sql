@@ -11,3 +11,8 @@ INSERT INTO public.sys_role_menu (role_id, menu_id, domain) VALUES ('1', 51, 'bu
 INSERT INTO public.sys_role_menu (role_id, menu_id, domain) VALUES ('1', 52, 'built-in');
 INSERT INTO public.sys_role_menu (role_id, menu_id, domain) VALUES ('1', 71, 'built-in');
 INSERT INTO public.sys_role_menu (role_id, menu_id, domain) VALUES ('1', 72, 'built-in');
+
+INSERT INTO public.sys_role_menu (role_id, menu_id, domain) VALUES ('1', 66, 'built-in');
+INSERT INTO public.sys_role_menu (role_id, menu_id, domain) VALUES ('1', 67, 'built-in');
+INSERT INTO public.sys_role_menu (role_id, menu_id, domain) VALUES ('2', 66, 'built-in');
+INSERT INTO public.sys_role_menu (role_id, menu_id, domain) VALUES ('2', 67, 'built-in');
