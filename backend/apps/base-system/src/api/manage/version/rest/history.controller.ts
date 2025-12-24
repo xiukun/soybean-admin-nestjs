@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Post,
-  Request,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
@@ -16,19 +15,29 @@ import {
   BatchDeleteHistoryDto,
 } from '../dto/history.dto';
 
+/**
+ * 低代码页面版本历史管理控制器
+ * 提供低代码页面版本的列表查询、删除等操作
+ */
 @ApiTags('Lowcode History Management')
 @ApiJwtAuth()
 @Controller('lowcode/history')
 export class HistoryController {
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * 获取低代码页面版本历史列表
+   * 支持按页面ID、产品版本ID、版本号进行筛选，采用分页查询
+   * @param query - 查询参数，包含分页和筛选条件
+   * @returns 分页结果，包含版本列表、总数、当前页、每页数量
+   */
   @Post('list')
   @ApiOperation({ summary: 'Get lowcode page version history list' })
   @ApiResponse({ status: 200, description: 'Success' })
   async list(@Body() query: HistoryListQueryDto): Promise<ApiRes<any>> {
-    const pageNum = query.pageNum || 1;
-    const pageSize = query.pageSize || 10;
-    const skip = (pageNum - 1) * pageSize;
+    const page = query.page || 1;
+    const perPage = query.perPage || 10;
+    const skip = (page - 1) * perPage;
 
     const where: any = {};
     
@@ -45,7 +54,6 @@ export class HistoryController {
       };
     }
     
-    // 如果有产品版本ID筛选
     if (query.productVersionId) {
       where.productVersionId = query.productVersionId;
     }
@@ -54,7 +62,7 @@ export class HistoryController {
       this.prisma.sysLowcodePageVersion.findMany({
         where,
         skip,
-        take: pageSize,
+        take: perPage,
         orderBy: { createdAt: 'desc' },
         include: {
           page: {
@@ -64,51 +72,65 @@ export class HistoryController {
               title: true,
             },
           },
+          productVersion: {
+            select: {
+              id: true,
+              versionNum: true,
+            },
+          },
         },
       }),
       this.prisma.sysLowcodePageVersion.count({ where }),
     ]);
 
-    // 转换数据格式以匹配前端需求
-    const options = await Promise.all(items.map(async (item: any) => {
-      // 查询关联的菜单ID
-      const menu = await this.prisma.sysMenu.findFirst({
-        where: { lowcodePageId: item.pageId },
-        select: { id: true }
-      });
-      
-      // 查询创建者信息，将用户ID转换为用户名
-      let creatorName = item.createdBy;
-      if (item.createdBy !== 'system') {
-        const user = await this.prisma.sysUser.findUnique({
-          where: { id: item.createdBy },
-          select: { username: true }
-        });
-        if (user) {
-          creatorName = user.username;
-        }
-      }
-      
-      return {
-        id: item.id,
-        pageId: item.pageId,
-        menuId: menu?.id,
-        menuPage: item.page.title,
-        pageVersion: item.version,
-        createdAt: item.createdAt,
-        creator: creatorName,
-        changelog: item.changelog,
-      };
+    const pageIds = items.map(item => item.pageId);
+    const creatorIds = items
+      .filter(item => item.createdBy !== 'system')
+      .map(item => item.createdBy);
+
+    const [menus, users] = await Promise.all([
+      this.prisma.sysMenu.findMany({
+        where: { lowcodePageId: { in: pageIds } },
+        select: { id: true, lowcodePageId: true },
+      }),
+      creatorIds.length > 0
+        ? this.prisma.sysUser.findMany({
+            where: { id: { in: creatorIds } },
+            select: { id: true, username: true },
+          })
+        : Promise.resolve([]),
+    ]);
+
+    const menuMap = new Map(menus.map(m => [m.lowcodePageId, m.id]));
+    const userMap = new Map(users.map(u => [u.id, u.username]));
+
+    const options = items.map(item => ({
+      id: item.id,
+      pageId: item.pageId,
+      menuId: menuMap.get(item.pageId),
+      menuPage: item.page.title,
+      productVersion: item.productVersion
+        ? { id: item.productVersion.id, versionNum: item.productVersion.versionNum }
+        : null,
+      pageVersion: item.version,
+      createdAt: item.createdAt,
+      creator: item.createdBy === 'system' ? 'system' : userMap.get(item.createdBy) || item.createdBy,
+      changelog: item.changelog,
     }));
 
     return ApiRes.success({
       options,
       total,
-      current: pageNum,
-      size: pageSize,
+      pageNum: page,
+      pageSize: perPage,
     });
   }
 
+  /**
+   * 删除单个低代码页面版本
+   * @param dto - 删除参数，包含版本ID
+   * @returns 操作结果
+   */
   @Post('delete')
   @ApiOperation({ summary: 'Delete a lowcode page version' })
   @ApiResponse({
@@ -124,6 +146,11 @@ export class HistoryController {
     return ApiRes.ok();
   }
 
+  /**
+   * 批量删除低代码页面版本
+   * @param dto - 批量删除参数，包含版本ID数组
+   * @returns 操作结果
+   */
   @Post('batch-delete')
   @ApiOperation({ summary: 'Batch delete lowcode page versions' })
   @ApiResponse({

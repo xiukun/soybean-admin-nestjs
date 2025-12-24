@@ -1,10 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
   IsUUID,
+  Max,
+  Min,
 } from 'class-validator';
 
 export class HistoryListQueryDto {
@@ -25,11 +28,16 @@ export class HistoryListQueryDto {
 
   @ApiProperty({ required: false, description: 'Current page', default: 1 })
   @IsOptional()
-  pageNum?: number = 1;
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
 
   @ApiProperty({ required: false, description: 'Page size', default: 10 })
   @IsOptional()
-  pageSize?: number = 10;
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  perPage?: number = 10;
 }
 
 export class DeleteHistoryDto {

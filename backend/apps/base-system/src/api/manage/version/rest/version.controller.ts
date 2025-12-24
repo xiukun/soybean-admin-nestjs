@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   Post,
-  Query,
   Request,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -20,12 +19,22 @@ import {
   VersionListQueryDto,
 } from '../dto/version.dto';
 
+/**
+ * 产品版本管理控制器
+ * 提供产品版本的创建、查询、更新、启用等操作
+ */
 @ApiTags('Product Version Management')
 @ApiJwtAuth()
 @Controller('version')
 export class VersionController {
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * 获取产品版本列表（分页查询）
+   * 支持按版本号进行筛选，采用分页查询
+   * @param query - 查询参数，包含分页和筛选条件
+   * @returns 分页结果，包含版本列表、总数、当前页、每页数量
+   */
   @Post('list')
   @ApiOperation({ summary: 'Get product version list' })
   @ApiResponse({ status: 200, description: 'Success' })
@@ -55,11 +64,16 @@ export class VersionController {
     return ApiRes.success({
       options: items,
       total,
-      current: page,
-      size: perPage,
+      pageNum: page,
+      pageSize: perPage,
     });
   }
 
+  /**
+   * 获取产品版本列表（下拉选择用）
+   * 返回格式化的下拉选项数据
+   * @returns 版本选项列表，格式为 [{ label, value }]
+   */
   @Get('list')
   @ApiOperation({ summary: 'Get product version list for select' })
   @ApiResponse({ status: 200, description: 'Success' })
@@ -81,6 +95,12 @@ export class VersionController {
     return ApiRes.success(options);
   }
 
+  /**
+   * 创建新产品版本
+   * @param dto - 版本创建数据
+   * @param req - 请求对象，包含用户信息
+   * @returns 创建的版本ID
+   */
   @Post('create')
   @ApiOperation({ summary: 'Create a new product version' })
   @ApiResponse({
@@ -105,6 +125,12 @@ export class VersionController {
     return ApiRes.success({ id: version.id });
   }
 
+  /**
+   * 更新产品版本信息
+   * @param dto - 版本更新数据
+   * @param req - 请求对象，包含用户信息
+   * @returns 操作结果
+   */
   @Post('update')
   @ApiOperation({ summary: 'Update product version' })
   @ApiResponse({
@@ -130,6 +156,13 @@ export class VersionController {
     return ApiRes.ok();
   }
 
+  /**
+   * 启用指定的产品版本
+   * 启用操作会自动禁用其他所有版本，确保同一时间只有一个启用的版本
+   * @param dto - 启用参数，包含版本ID
+   * @param req - 请求对象，包含用户信息
+   * @returns 操作结果
+   */
   @Post('enable')
   @ApiOperation({ summary: 'Enable product version' })
   @ApiResponse({
