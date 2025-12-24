@@ -171,7 +171,6 @@ const schema = ref({
                   api: {
                     method: 'post',
                     url: '/version/update',
-                    requestAdaptor: 'return { ...payload, url: payload.url };'
                   },
                   body: [
                     {
