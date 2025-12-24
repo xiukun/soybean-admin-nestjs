@@ -42,7 +42,7 @@ export class HistoryListQueryDto {
 
 export class DeleteHistoryDto {
   @ApiProperty({ required: true, description: 'History version ID' })
-  @IsUUID('4', { message: 'id must be a valid UUID' })
+  @IsString({ message: 'id must be a string' })
   @IsNotEmpty({ message: 'id cannot be empty' })
   id: string;
 }
