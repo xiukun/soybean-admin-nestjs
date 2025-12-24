@@ -11,7 +11,6 @@ const amisRef = ref();
 // AMIS Schema for version management
 const schema = ref({
   type: 'page',
-  title: '产品版本管理',
   body: [
     {
       type: 'crud',
@@ -43,8 +42,7 @@ const schema = ref({
               type: 'form',
               api: {
                 method: 'post',
-                url: '/version/create',
-                requestAdaptor: 'return { ...payload, url: payload.url };'
+                url: '/version/create'
               },
               body: [
                 {
@@ -97,10 +95,6 @@ const schema = ref({
             ENABLED: "<span class='label label-success'>启用</span>",
             DISABLED: "<span class='label label-default'>关闭</span>"
           }
-        },
-        {
-          name: 'createdBy',
-          label: '发布人'
         },
         {
           name: 'createdAt',
