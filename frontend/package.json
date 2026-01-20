@@ -89,7 +89,7 @@
     "@unocss/vite": "66.1.4",
     "@vitejs/plugin-vue": "5.2.4",
     "@vitejs/plugin-vue-jsx": "4.2.0",
-    "amis": "6.11.0",
+    "amis": "6.13.0-maita.1",
     "consola": "3.4.2",
     "eslint": "9.28.0",
     "eslint-plugin-vue": "10.2.0",

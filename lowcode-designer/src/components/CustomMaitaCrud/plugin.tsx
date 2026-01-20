@@ -1,4 +1,4 @@
-import { AgCRUDPlugin, ScaffoldForm, defaultValue, getI18nEnabled, getSchemaTpl } from 'amis-editor'
+import { MaitaCRUDPlugin, ScaffoldForm, getI18nEnabled, getSchemaTpl } from 'amis-editor'
 
 import { getEnv } from 'mobx-state-tree'
 import { normalizeApi, normalizeApiResponseData, uuidv4, guid } from 'amis-core'
@@ -6,24 +6,16 @@ import { toast } from 'amis-ui'
 import { dataModelTablePlugin } from '@/components/common/json/data-model-table-plugin'
 import findLastIndex from 'lodash/findLastIndex'
 import cloneDeep from 'lodash/cloneDeep'
-import { bulkDeleteBtnSchema, generateApiUrl } from './utils'
+import { bulkDeleteBtnSchema, generateApiUrl, viewTypeToEditType } from './utils'
 import { openapiPlugin } from '../common/json/openapi-plugin'
+
 interface ColumnItem {
   label: string
   type: string
   name: string
 }
 
-// 将展现控件转成编辑控件
-const viewTypeToEditType = (type: string) => {
-  return type === 'tpl'
-    ? 'input-text'
-    : type === 'status' || type === 'mapping'
-      ? 'select'
-      : `input-${type}`
-}
-
-export class AgCrudPluginRefactor extends AgCRUDPlugin {
+export class MaitaCrudPluginRefactor extends MaitaCRUDPlugin {
   constructor(props: any) {
     super(props)
     this.events.push({
@@ -44,25 +36,25 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
                 },
                 rows: {
                   type: 'array',
-                  title: '修改了的行集合',
+                  title: '修改了的行集合'
                 },
                 rowsDiff: {
                   type: 'array',
-                  title: '与 rows 不同的地方时，对象中只有修改的部分和主键字段',
+                  title: '与 rows 不同的地方时，对象中只有修改的部分和主键字段'
                 },
                 indexes: {
                   type: 'array',
-                  title: '修改的行索引，如果是树形模式，下标是字符串路劲如 0.1',
+                  title: '修改的行索引，如果是树形模式，下标是字符串路劲如 0.1'
                 },
                 rowsOrigin: {
                   type: 'array',
-                  title: '原始数据',
+                  title: '原始数据'
                 }
-              },
-            },
-          },
-        },
-      ],
+              }
+            }
+          }
+        }
+      ]
     })
   }
   // tags = ['重构组件']
@@ -83,9 +75,9 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
                   name: 'enableDynimicColumn',
                   label: '是否开启动态列',
                   clearValueOnHidden: true,
-                  labelRemark: `指定表格是否开启动态列功能，动态列功能会根据数据源自动生成显示的表格列，通过列选择器进行设置显示/隐藏及排序。`,
-                }),
-              ],
+                  labelRemark: `指定表格是否开启动态列功能，动态列功能会根据数据源自动生成显示的表格列，通过列选择器进行设置显示/隐藏及排序。`
+                })
+              ]
             },
             {
               body: [
@@ -93,11 +85,11 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
                   name: 'dynimicColumnKey',
                   type: i18nEnabled ? 'input-text-i18n' : 'input-text',
                   label: '',
-                  readOnly: true,
-                },
-              ],
-            },
-          ],
+                  readOnly: true
+                }
+              ]
+            }
+          ]
         },
 
         getSchemaTpl('apiControl', {
@@ -109,12 +101,12 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
                 msg: '',
                 data: {
                   items: [{ id: 1, engine: 'Webkit' }],
-                  total: 1,
-                },
+                  total: 1
+                }
               },
               null,
-              2,
-            ),
+              2
+            )
         }),
         {
           type: 'button',
@@ -122,52 +114,47 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
           className: 'm-b-sm',
           visibleOn: '${api.url || api && ISTYPE(api, "string")}',
           onClick: async (e: Event, props: any) => {
-            const data = props.data;
-            const schemaFilter = getEnv(
-              (window as any).editorStore
-            ).schemaFilter;
-            let api: any = data.api;
+            const data = props.data
+            const schemaFilter = getEnv((window as any).editorStore).schemaFilter
+            let api: any = data.api
             // 主要是给爱速搭中替换 url
             if (schemaFilter) {
               api = schemaFilter({
                 api: data.api
-              }).api;
+              }).api
             }
-            const response = await props.env.fetcher(api, data);
-            const result = normalizeApiResponseData(response.data);
-            let autoFillKeyValues: Array<any> = [];
-            let items = result?.items ?? result?.rows;
+            const response = await props.env.fetcher(api, data)
+            const result = normalizeApiResponseData(response.data)
+            const autoFillKeyValues: Array<any> = []
+            let items = result?.items ?? result?.rows
 
             /** 非标返回，取data中的第一个数组作为返回值，和AMIS中处理逻辑同步 */
             if (!Array.isArray(items)) {
               for (const key of Object.keys(result)) {
                 if (result.hasOwnProperty(key) && Array.isArray(result[key])) {
-                  items = result[key];
-                  break;
+                  items = result[key]
+                  break
                 }
               }
             }
 
             if (Array.isArray(items) && items[0]) {
               Object.keys(items[0]).forEach((key: any) => {
-                const value = items[0][key];
+                const value = items[0][key]
                 autoFillKeyValues.push({
                   label: key,
                   type: 'text',
                   name: key
-                });
-              });
+                })
+              })
               props.formStore.setValues({
                 columns: autoFillKeyValues
-              });
+              })
             } else {
-              toast.warning(
-                'API返回格式不正确，请点击接口地址右侧示例查看CRUD数据接口结构要求'
-              );
+              toast.warning('API返回格式不正确，请点击接口地址右侧示例查看CRUD数据接口结构要求')
             }
           }
         },
-        dataModelTablePlugin,
         openapiPlugin(),
         {
           name: '__features',
@@ -183,8 +170,8 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
             { label: '批量修改', value: 'bulkUpdate' },
             { label: '操作栏-编辑', value: 'update' },
             { label: '操作栏-查看详情', value: 'view' },
-            { label: '操作栏-删除', value: 'delete' },
-          ],
+            { label: '操作栏-删除', value: 'delete' }
+          ]
         },
         {
           type: 'group',
@@ -203,10 +190,10 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
               type: 'input-number',
               label: '每列显示几个字段',
               value: 3,
-              name: '__filterColumnCount',
-            },
+              name: '__filterColumnCount'
+            }
           ],
-          visibleOn: "${__features && CONTAINS(__features, 'filter')}",
+          visibleOn: "${__features && CONTAINS(__features, 'filter')}"
         },
         {
           type: 'button',
@@ -216,11 +203,11 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
               actions: [
                 {
                   componentId: 'drag-input-table',
-                  actionType: 'initDrag',
-                },
-              ],
-            },
-          },
+                  actionType: 'initDrag'
+                }
+              ]
+            }
+          }
         },
         {
           id: 'drag-input-table',
@@ -235,12 +222,12 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
             {
               type: i18nEnabled ? 'input-text-i18n' : 'input-text',
               name: 'label',
-              label: '标题',
+              label: '标题'
             },
             {
               type: 'input-text',
               name: 'name',
-              label: '绑定字段名',
+              label: '绑定字段名'
             },
             {
               type: 'select',
@@ -250,58 +237,57 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
               options: [
                 {
                   value: 'text',
-                  label: '纯文本',
+                  label: '纯文本'
                 },
                 {
                   value: 'tpl',
-                  label: '模板',
+                  label: '模板'
                 },
                 {
                   value: 'image',
-                  label: '图片',
+                  label: '图片'
                 },
                 {
                   value: 'date',
-                  label: '日期',
+                  label: '日期'
                 },
                 {
                   value: 'datetime',
-                  label: '日期时间',
+                  label: '日期时间'
                 },
                 {
                   value: 'time',
-                  label: '时间',
+                  label: '时间'
                 },
                 {
                   value: 'progress',
-                  label: '进度',
+                  label: '进度'
                 },
                 {
                   value: 'status',
-                  label: '状态',
+                  label: '状态'
                 },
                 {
                   value: 'mapping',
-                  label: '映射',
+                  label: '映射'
                 },
                 {
                   value: 'operation',
-                  label: '操作栏',
-                },
-              ],
-            },
-          ],
-        },
+                  label: '操作栏'
+                }
+              ]
+            }
+          ]
+        }
       ],
       pipeIn: (value: any) => {
         if (!value.dynimicColumnKey) {
           value.dynimicColumnKey = uuidv4().substring(0, 8)
         }
-        if(value.alwaysShowPagination === undefined) {
+        if (value.alwaysShowPagination === undefined) {
           value.alwaysShowPagination = true
         }
-
-        const __features = []
+        const __features = [] as any[]
         // 收集 filter
         if (value.filter) {
           __features.push('filter')
@@ -309,15 +295,15 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
         // 收集 列操作
         const lastIndex = findLastIndex(
           value.columns || [],
-          (item: any) => item.type === 'operation',
+          (item: any) => item.type === 'operation'
         )
         if (lastIndex !== -1) {
           const operBtns: Array<string> = ['update', 'view', 'delete']
-          ;(value.columns[lastIndex].buttons || []).forEach((btn: any) => {
-            if (operBtns.includes(btn.editorSetting?.behavior || '')) {
-              __features.push(btn.editorSetting?.behavior)
-            }
-          })
+            ; (value.columns[lastIndex].buttons || []).forEach((btn: any) => {
+              if (operBtns.includes(btn.editorSetting?.behavior || '')) {
+                __features.push(btn.editorSetting?.behavior)
+              }
+            })
         }
         // 收集批量操作
         if (Array.isArray(value.bulkActions)) {
@@ -338,24 +324,24 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
           ...value,
           ...(value.mode !== 'table'
             ? {
-                columns:
-                  value.columns ||
-                  this.transformByMode({
-                    from: value.mode,
-                    to: 'table',
-                    schema: value,
-                  }),
-              }
+              columns:
+                value.columns ||
+                this.transformByMode({
+                  from: value.mode,
+                  to: 'table',
+                  schema: value
+                })
+            }
             : {}),
           __filterColumnCount: value?.filter?.columnCount || 3,
           __features: __features,
-          __LastFeatures: [...__features],
+          __LastFeatures: [...__features]
         }
       },
       pipeOut: (value: any) => {
-        let valueSchema = cloneDeep(value)
+        const valueSchema = cloneDeep(value)
         // 初始化生成表格ID，给批量删除的刷新事件使用
-        if(!valueSchema.id) {
+        if (!valueSchema.id) {
           valueSchema.id = `u:${guid()}`
         }
         /** 统一api格式 */
@@ -364,8 +350,8 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
 
         const features: string[] = valueSchema.__features
         const lastFeatures: string[] = valueSchema.__LastFeatures
-        const willAddedList = features.filter(item => !lastFeatures.includes(item))
-        const willRemoveList = lastFeatures.filter(item => !features.includes(item))
+        const willAddedList = features.filter((item) => !lastFeatures.includes(item))
+        const willRemoveList = lastFeatures.filter((item) => !features.includes(item))
 
         const operButtons: any[] = []
         const operBtns: string[] = ['update', 'view', 'delete']
@@ -375,7 +361,7 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
         } else {
           // 删除 未勾选的批量操作
           valueSchema.bulkActions = valueSchema.bulkActions.filter(
-            (item: any) => !willRemoveList.includes(item.editorSetting?.behavior),
+            (item: any) => !willRemoveList.includes(item.editorSetting?.behavior)
           )
         }
 
@@ -387,7 +373,7 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
         // 删除 未勾选的 新增
         if (willRemoveList.includes('create') && Array.isArray(valueSchema.headerToolbar)) {
           valueSchema.headerToolbar = valueSchema.headerToolbar.filter(
-            (item: any) => item.editorSetting?.behavior !== 'create',
+            (item: any) => item.editorSetting?.behavior !== 'create'
           )
         }
 
@@ -403,13 +389,13 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
                   .filter(({ type }: any) => type !== 'progress' && type !== 'operation')
                   .map(({ type, ...rest }: any) => ({
                     ...rest,
-                    type: viewTypeToEditType(type),
+                    type: viewTypeToEditType(type)
                   }))
               } else if (item === 'view') {
                 schema = cloneDeep(this.btnSchemas.view)
                 schema.dialog.body.body = value.columns.map(({ type, ...rest }: any) => ({
                   ...rest,
-                  type: 'static',
+                  type: 'static'
                 }))
               } else if (item === 'delete') {
                 schema = cloneDeep(this.btnSchemas.delete)
@@ -429,18 +415,20 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
 
               if (item === 'bulkDelete') {
                 // const bulkDeleteSchema = cloneDeep(this.btnSchemas.bulkDelete)
-                const bulkDeleteSchema: any = cloneDeep(bulkDeleteBtnSchema({
-                  method: 'post',
-                  url: generateApiUrl(valueSchema.api, 'bulkDelete'),
-                  data: {
-                    ids: '${ids}',
-                  },
-                }))
+                const bulkDeleteSchema: any = cloneDeep(
+                  bulkDeleteBtnSchema({
+                    method: 'post',
+                    url: generateApiUrl(valueSchema.api, 'bulkDelete'),
+                    data: {
+                      ids: '${ids}'
+                    }
+                  })
+                )
                 bulkDeleteSchema.onEvent.click.actions.push({
-                  "componentId": valueSchema.id,
-                  "groupType": "component",
-                  "actionType": "reload",
-                  "description": "重新加载表格数据"
+                  componentId: valueSchema.id,
+                  groupType: 'component',
+                  actionType: 'reload',
+                  description: '重新加载表格数据'
                 })
                 // @ts-ignore
                 // bulkDeleteSchema.api = {
@@ -450,7 +438,7 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
                 //     ids: '${ids}',
                 //   },
                 // }
-                
+
                 this.addItem(valueSchema.bulkActions, bulkDeleteSchema)
               }
 
@@ -473,20 +461,20 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
                       return {
                         type: viewTypeToEditType(type),
                         name: column.name,
-                        label: column.label,
+                        label: column.label
                       }
-                    }),
+                    })
                 }
                 valueSchema.headerToolbar = [createSchemaBase, 'bulkActions']
 
                 console.log(valueSchema.headerToolbar, valueSchema)
               }
               // 查询
-              let keysFilter = Object.keys(valueSchema.filter || {})
+              const keysFilter = Object.keys(valueSchema.filter || {})
               if (item === 'filter' && !keysFilter.length) {
                 if (valueSchema.filterEnabledList) {
                   valueSchema.filter = {
-                    title: '',
+                    title: ''
                     // title: '查询条件',
                   }
                   valueSchema.filter.columnCount = value.__filterColumnCount
@@ -496,7 +484,7 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
                     return {
                       type: columnType ? viewTypeToEditType(columnType.type) : 'input-text',
                       label: columnType ? columnType.label : item.label,
-                      name: item.value,
+                      name: item.value
                     }
                   })
                   // 开启搜索栏默认增加重置，查询按钮
@@ -505,66 +493,66 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
                       {
                         type: 'submit',
                         label: '查询',
-                        primary: true,
+                        primary: true
                       },
                       {
                         type: 'reset',
-                        label: '重置',
-                      },
-                      {
-                        type: 'button',
-                        label: '全部导出',
-                        onEvent: {
-                          click: {
-                            actions: [
-                              {
-                                ignoreError: false,
-                                actionType: 'download',
-                                api: {
-                                  url: '/system/ExcelExport/exportCsv',
-                                  method: 'post',
-                                  requestAdaptor: '',
-                                  adaptor: '',
-                                  messages: {},
-                                  data: {
-                                    '&': '$$',
-                                    perPage: 30000,
-                                    page: 1,
-                                    headerInfo:
-                                      "${getExportColumnsConfig({\nkey:'" +
-                                      valueSchema.dynimicColumnKey +
-                                      "',\nsourceUrl:'" +
-                                      valueSchema.api?.url +
-                                      "'\n})}",
-                                  },
-                                  responseType: 'blob',
-                                },
-                              },
-                            ],
-                          },
-                        },
-                      },
-                      {
-                        type: 'button',
-                        label: '清空动态列',
-                        onEvent: {
-                          click: {
-                            actions: [
-                              {
-                                ignoreError: false,
-                                script:
-                                  '// 清空动态列（接口+浏览器缓存），第三个参数为true，则清空\nwindow.__JSFunc.dynimicColumnSave(context, event, true)',
-                                actionType: 'custom',
-                              },
-                            ],
-                          },
-                        },
-                        visibleOn: '${dynimicColumnKey}',
-                      },
+                        label: '重置'
+                      }
+                      // {
+                      //   type: 'button',
+                      //   label: '全部导出',
+                      //   onEvent: {
+                      //     click: {
+                      //       actions: [
+                      //         {
+                      //           ignoreError: false,
+                      //           actionType: 'download',
+                      //           api: {
+                      //             url: '/system/ExcelExport/exportCsv',
+                      //             method: 'post',
+                      //             requestAdaptor: '',
+                      //             adaptor: '',
+                      //             messages: {},
+                      //             data: {
+                      //               '&': '$$',
+                      //               perPage: 30000,
+                      //               page: 1,
+                      //               headerInfo:
+                      //                 "${getExportColumnsConfig({\nkey:'" +
+                      //                 valueSchema.dynimicColumnKey +
+                      //                 "',\nsourceUrl:'" +
+                      //                 valueSchema.api?.url +
+                      //                 "'\n})}",
+                      //             },
+                      //             responseType: 'blob',
+                      //           },
+                      //         },
+                      //       ],
+                      //     },
+                      //   },
+                      // },
+                      // {
+                      //   type: 'button',
+                      //   label: '清空动态列',
+                      //   onEvent: {
+                      //     click: {
+                      //       actions: [
+                      //         {
+                      //           ignoreError: false,
+                      //           script:
+                      //             '// 清空动态列（接口+浏览器缓存），第三个参数为true，则清空\nwindow.__JSFunc.dynimicColumnSave(context, event, true)',
+                      //           actionType: 'custom',
+                      //         },
+                      //       ],
+                      //     },
+                      //   },
+                      //   visibleOn: '${dynimicColumnKey}',
+                      // },
                     ]
-                    valueSchema.filter.bodyClassName = 'ag-bg-light antd-Panel-body'
-                    valueSchema.filter.actionsClassName =
-                      'ag-bg-light-important antd-Panel-btnToolbar antd-Panel-footer'
+                    // valueSchema.filter.bodyClassName = 'ag-bg-light antd-Panel-body'
+                    // valueSchema.filter.actionsClassName =
+                    //   'ag-bg-light-important antd-Panel-btnToolbar antd-Panel-footer'
                   }
                 }
               }
@@ -574,14 +562,14 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
         // 处理列操作按钮
         const lastIndex = findLastIndex(
           value.columns || [],
-          (item: any) => item.type === 'operation',
+          (item: any) => item.type === 'operation'
         )
         if (lastIndex === -1) {
           if (operButtons.length) {
             valueSchema.columns.push({
               type: 'operation',
               label: '操作',
-              buttons: operButtons,
+              buttons: operButtons
             })
           }
         } else {
@@ -612,15 +600,15 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
         const columnsTogglerItem = {
           type: 'columns-toggler',
           align: 'right',
-          draggable: true,
+          draggable: true
         }
         if (!Array.isArray(headerToolbar)) {
           headerToolbar = [
             {
               type: 'bulk-actions',
-              tpl: '操作栏',
+              tpl: '操作栏'
             },
-            columnsTogglerItem,
+            columnsTogglerItem
           ]
         } else if (!headerToolbar.some((item: any) => item.type == 'columns-toggler')) {
           headerToolbar.push(columnsTogglerItem)
@@ -632,15 +620,15 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
           // 增加分页逻辑
           footerToolbar = [
             {
-              type: 'statistics',
+              type: 'statistics'
             },
             {
               type: 'pagination',
               align: 'right',
               behavior: 'Pagination',
               layout: ['perPage', 'pager'],
-              perPage: 10,
-            },
+              perPage: 10
+            }
           ]
         }
         // 增加行样式逻辑
@@ -665,69 +653,69 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
             ignoreError: false,
             script: '// 动态列保存\nwindow.__JSFunc.dynimicColumnSave(context, event)',
             actionType: 'custom',
-            args: {},
+            args: {}
           }
-          // 动态列保存事件，需要手动添加
-          if (rest.onEvent && rest.onEvent.columnToggled) {
-            if (rest.onEvent.columnToggled.actions?.length > 0) {
-              if (
-                !rest.onEvent.columnToggled.actions.find((item: any) =>
-                  item?.script.includes('window.__JSFunc.dynimicColumnSave'),
-                )
-              ) {
-                rest.onEvent.columnToggled.actions.unshfit(customColumnToggled)
-              }
-            } else {
-              rest.onEvent.columnToggled.actions = [customColumnToggled]
-            }
-          } else if (rest.onEvent) {
-            rest.onEvent.columnToggled = {
-              weight: 0,
-              actions: [customColumnToggled],
-            }
-          } else if (!rest.onEvent) {
-            rest.onEvent = {
-              columnToggled: {
-                weight: 0,
-                actions: [customColumnToggled],
-              },
-            }
-          }
+          // // 动态列保存事件，需要手动添加
+          // if (rest.onEvent && rest.onEvent.columnToggled) {
+          //   if (rest.onEvent.columnToggled.actions?.length > 0) {
+          //     if (
+          //       !rest.onEvent.columnToggled.actions.find((item: any) =>
+          //         item?.script.includes('window.__JSFunc.dynimicColumnSave'),
+          //       )
+          //     ) {
+          //       rest.onEvent.columnToggled.actions.unshfit(customColumnToggled)
+          //     }
+          //   } else {
+          //     rest.onEvent.columnToggled.actions = [customColumnToggled]
+          //   }
+          // } else if (rest.onEvent) {
+          //   rest.onEvent.columnToggled = {
+          //     weight: 0,
+          //     actions: [customColumnToggled],
+          //   }
+          // } else if (!rest.onEvent) {
+          //   rest.onEvent = {
+          //     columnToggled: {
+          //       weight: 0,
+          //       actions: [customColumnToggled],
+          //     },
+          //   }
+          // }
         }
-        // 动态列浏览器缓存事件，需要手动添加
-        const customColumnCache = {
-          ignoreError: false,
-          script: '// 动态列浏览器缓存 导出用\nwindow.__JSFunc.dynimicColumnCache(context, event);',
-          actionType: 'custom',
-        }
-        if (rest.onEvent && rest.onEvent.fetchInited) {
-          if (rest.onEvent.fetchInited.actions?.length > 0) {
-            if (
-              !rest.onEvent.fetchInited.actions.find((item: any) =>
-                item?.script.includes('window.__JSFunc.dynimicColumnCache'),
-              )
-            ) {
-              rest.onEvent.fetchInited.actions.unshfit({
-                weight: 0,
-                actions: [customColumnCache],
-              })
-            }
-          } else {
-            rest.onEvent.fetchInited.actions = [customColumnCache]
-          }
-        } else if (rest.onEvent) {
-          rest.onEvent.fetchInited = {
-            weight: 0,
-            actions: [customColumnCache],
-          }
-        } else if (!rest.onEvent) {
-          rest.onEvent = {
-            fetchInited: {
-              weight: 0,
-              actions: [customColumnCache],
-            },
-          }
-        }
+        // // 动态列浏览器缓存事件，需要手动添加
+        // const customColumnCache = {
+        //   ignoreError: false,
+        //   script: '// 动态列浏览器缓存 导出用\nwindow.__JSFunc.dynimicColumnCache(context, event);',
+        //   actionType: 'custom',
+        // }
+        // if (rest.onEvent && rest.onEvent.fetchInited) {
+        //   if (rest.onEvent.fetchInited.actions?.length > 0) {
+        //     if (
+        //       !rest.onEvent.fetchInited.actions.find((item: any) =>
+        //         item?.script.includes('window.__JSFunc.dynimicColumnCache'),
+        //       )
+        //     ) {
+        //       rest.onEvent.fetchInited.actions.unshfit({
+        //         weight: 0,
+        //         actions: [customColumnCache],
+        //       })
+        //     }
+        //   } else {
+        //     rest.onEvent.fetchInited.actions = [customColumnCache]
+        //   }
+        // } else if (rest.onEvent) {
+        //   rest.onEvent.fetchInited = {
+        //     weight: 0,
+        //     actions: [customColumnCache],
+        //   }
+        // } else if (!rest.onEvent) {
+        //   rest.onEvent = {
+        //     fetchInited: {
+        //       weight: 0,
+        //       actions: [customColumnCache],
+        //     },
+        //   }
+        // }
 
         // rest.api
         return {
@@ -740,29 +728,29 @@ export class AgCrudPluginRefactor extends AgCRUDPlugin {
           dynimicColumnKey,
           ...(valueSchema.mode === 'cards'
             ? {
-                card: this.transformByMode({
-                  from: 'table',
-                  to: 'cards',
-                  schema: valueSchema,
-                }),
-              }
+              card: this.transformByMode({
+                from: 'table',
+                to: 'cards',
+                schema: valueSchema
+              })
+            }
             : valueSchema.mode === 'list'
               ? {
-                  listItem: this.transformByMode({
-                    from: 'table',
-                    to: 'list',
-                    schema: valueSchema,
-                  }),
-                }
+                listItem: this.transformByMode({
+                  from: 'table',
+                  to: 'list',
+                  schema: valueSchema
+                })
+              }
               : columns
                 ? { columns }
                 : {}),
-          __origin: 'scaffold', // 无需重新生成 ID，避免破坏事件动作
+          __origin: 'scaffold' // 无需重新生成 ID，避免破坏事件动作
         }
       },
-      canRebuild: true,
+      canRebuild: true
     }
   }
 }
 
-export const id = AgCrudPluginRefactor.id
+export const id = MaitaCrudPluginRefactor.id

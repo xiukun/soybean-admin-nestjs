@@ -15,7 +15,6 @@ import LeftDatabaseApi from './plugins/plugin-left-database-api/plugin'
 // import CrudRendererRefactor from '@/components/CustomCrud/renderer'
 
 import setTplApi from './refactor/tpl-api'
-import { AgCrudPluginRefactor } from '@/components/CustomAgCrud/plugin'
 import { CrudPluginRefactor } from '@/components/CustomCrud/plugin'
 import { FormPluginRefactor } from '@/components/CustomForm/plugin'
 import { id as textID, TextPluginRefactor } from '@/components/CustomInputText/plugin'
@@ -72,6 +71,7 @@ import { DialogPluginRefactor } from '@/components/CustomDialog/plugin'
 import LeftVersionsManage from './plugins/plugin-left-versions-manage/plugin'
 import RightCommonProperties from './plugins/plugin-right-common-properties/plugin'
 import { GlobalVarPlugin } from 'amis-editor'
+import { MaitaCrudPluginRefactor } from '@/components/CustomMaitaCrud/plugin'
 
 const registerCompoments = () => {
   initRefactorBasePlugin()
@@ -87,8 +87,8 @@ const registerCompoments = () => {
   
 
   // base component
-  unRegisterEditorPlugin(AgCrudPluginRefactor.id)
-  registerEditorPlugin(AgCrudPluginRefactor)
+  unRegisterEditorPlugin(MaitaCrudPluginRefactor.id)
+  registerEditorPlugin(MaitaCrudPluginRefactor)
   unRegisterEditorPlugin(CrudPluginRefactor.id)
   registerEditorPlugin(CrudPluginRefactor)
   //crud2 table

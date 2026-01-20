@@ -11,7 +11,7 @@ import 'amis/lib/helper.css'
 import 'amis-editor-core/lib/style.css'
 import 'amis/sdk/iconfont.css'
 // import 'amis-ui/lib/themes/cxd.css'
-import 'amis-ui/lib/themes/antd.css'
+import 'amis/lib/themes/antd.css'
 
 import './styles/main.css'
 import './styles/amis.scss'
