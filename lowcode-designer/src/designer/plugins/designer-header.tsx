@@ -5,12 +5,17 @@ import useAmisStore, { useAmisStoreContext } from '@/store/amis-store'
 import { languagesList } from '@/utils/amis'
 import { getI18N, i18nExtendEnum } from '@/components/common/utils'
 import useMenusStore from '@/store/menus-store'
+import { fetchDesignerButtonsTree, fetchUserButtonCodes, hasButtonAuth } from '@/utils/button-auth'
 import { memo, useEffect } from 'react'
 import { replaceUrlParam } from '@/utils/utils'
 import serviceUrlSchema from './service-url-schema.json'
 import hotkeys from 'hotkeys-js'
 function DesignerHeader(props: any) {
   useEffect(() => {
+    // 初始化按钮权限缓存（设计器自身操作权限）
+    fetchUserButtonCodes()
+    // 初始化“绑定权限”按钮树（供 schemaTpl 使用）
+    fetchDesignerButtonsTree()
     // 绑定快捷键 Ctrl+S 触发 save 函数
     hotkeys('ctrl+s,command+s', function(event){
       // 阻止事件的默认动作，避免页面保存
@@ -35,6 +40,7 @@ function DesignerHeader(props: any) {
     location.href = replaceUrlParam(location.href, 't', new Date().getTime() + '')
   }
   const onDictionarySave = () => {
+    // 无权限直接隐藏入口，这里做双保险
     useCtx.onDictionarySave()
     menusCtx.cacheMenus()
     toast.success('数据字典缓存成功')

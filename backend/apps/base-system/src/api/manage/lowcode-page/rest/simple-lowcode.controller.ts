@@ -9,8 +9,9 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ApiRes } from '@lib/infra/rest/res.response';
+
 import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
+import { ApiRes } from '@lib/infra/rest/res.response';
 
 // 简化的低代码页面控制器，用于测试基本功能
 @ApiTags('Simple Lowcode Pages')

@@ -19,10 +19,10 @@ import {
   RoleProperties,
   RoleReadModel,
 } from '@app/base-system/lib/bounded-contexts/iam/role/domain/role.read.model';
-import { PageRolesQuery } from '@app/base-system/lib/bounded-contexts/iam/role/queries/page-roles.query';
 import { AllRolesQuery } from '@app/base-system/lib/bounded-contexts/iam/role/queries/all-roles.query';
-import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
+import { PageRolesQuery } from '@app/base-system/lib/bounded-contexts/iam/role/queries/page-roles.query';
 
+import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
 import { ApiResponseDoc } from '@lib/infra/decorators/api-result.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
 import { PaginationResult } from '@lib/shared/prisma/pagination';

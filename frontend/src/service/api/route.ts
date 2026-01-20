@@ -10,6 +10,11 @@ export function fetchGetUserRoutes() {
   return request<Api.Route.UserRoute>({ url: '/authorization/getUserRoutes' });
 }
 
+/** get user button codes */
+export function fetchGetUserButtons() {
+  return request<string[]>({ url: '/authorization/getUserButtons' });
+}
+
 /**
  * whether the route is exist
  *

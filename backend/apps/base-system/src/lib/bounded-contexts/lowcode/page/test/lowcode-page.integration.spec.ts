@@ -1,20 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Status } from '@prisma/client';
-import { LowcodePageCreateCommand } from '../commands/lowcode-page-create.command';
-import { LowcodePageUpdateCommand } from '../commands/lowcode-page-update.command';
-import { LowcodePageDeleteCommand } from '../commands/lowcode-page-delete.command';
-import { GetLowcodePagesQuery } from '../queries/get-lowcode-pages.query';
-import { GetLowcodePageByIdQuery } from '../queries/get-lowcode-page-by-id.query';
-import { GetLowcodePageByCodeQuery } from '../queries/get-lowcode-page-by-code.query';
+
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
+
 import { LowcodePageCreateCommandHandler } from '../application/command-handlers/lowcode-page-create.command.handler';
-import { LowcodePageUpdateCommandHandler } from '../application/command-handlers/lowcode-page-update.command.handler';
 import { LowcodePageDeleteCommandHandler } from '../application/command-handlers/lowcode-page-delete.command.handler';
-import { GetLowcodePagesQueryHandler } from '../application/query-handlers/get-lowcode-pages.query.handler';
-import { GetLowcodePageByIdQueryHandler } from '../application/query-handlers/get-lowcode-page-by-id.query.handler';
+import { LowcodePageUpdateCommandHandler } from '../application/command-handlers/lowcode-page-update.command.handler';
 import { GetLowcodePageByCodeQueryHandler } from '../application/query-handlers/get-lowcode-page-by-code.query.handler';
+import { GetLowcodePageByIdQueryHandler } from '../application/query-handlers/get-lowcode-page-by-id.query.handler';
+import { GetLowcodePagesQueryHandler } from '../application/query-handlers/get-lowcode-pages.query.handler';
+import { LowcodePageCreateCommand } from '../commands/lowcode-page-create.command';
+import { LowcodePageDeleteCommand } from '../commands/lowcode-page-delete.command';
+import { LowcodePageUpdateCommand } from '../commands/lowcode-page-update.command';
 import { ILowcodePageRepository } from '../domain/lowcode-page.repository';
 import { LowcodePagePrismaRepository } from '../infrastructure/lowcode-page-prisma.repository';
-import { PrismaService } from '@lib/shared/prisma/prisma.service';
+import { GetLowcodePageByCodeQuery } from '../queries/get-lowcode-page-by-code.query';
+import { GetLowcodePageByIdQuery } from '../queries/get-lowcode-page-by-id.query';
+import { GetLowcodePagesQuery } from '../queries/get-lowcode-pages.query';
 
 describe('LowcodePage Integration Tests', () => {
   let module: TestingModule;

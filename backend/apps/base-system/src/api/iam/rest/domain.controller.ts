@@ -21,8 +21,8 @@ import {
 } from '@app/base-system/lib/bounded-contexts/iam/domain/domain/domain.read.model';
 import { PageDomainsQuery } from '@app/base-system/lib/bounded-contexts/iam/domain/queries/page-domains.query';
 
-import { ApiResponseDoc } from '@lib/infra/decorators/api-result.decorator';
 import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
+import { ApiResponseDoc } from '@lib/infra/decorators/api-result.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
 import { PaginationResult } from '@lib/shared/prisma/pagination';
 

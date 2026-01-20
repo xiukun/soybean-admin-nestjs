@@ -7,8 +7,9 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ApiRes } from '@lib/infra/rest/res.response';
+
 import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
+import { ApiRes } from '@lib/infra/rest/res.response';
 
 // 简化的设计器控制器，用于测试设计器集成功能
 @ApiTags('Simple Designer')

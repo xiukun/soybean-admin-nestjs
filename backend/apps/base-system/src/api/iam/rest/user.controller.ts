@@ -21,8 +21,8 @@ import {
 } from '@app/base-system/lib/bounded-contexts/iam/authentication/domain/user.read.model';
 import { PageUsersQuery } from '@app/base-system/lib/bounded-contexts/iam/authentication/queries/page-users.query';
 
-import { ApiResponseDoc } from '@lib/infra/decorators/api-result.decorator';
 import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
+import { ApiResponseDoc } from '@lib/infra/decorators/api-result.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
 import { PaginationResult } from '@lib/shared/prisma/pagination';
 

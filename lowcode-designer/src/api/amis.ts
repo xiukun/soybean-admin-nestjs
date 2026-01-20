@@ -43,8 +43,11 @@ export const amisPageFindVersionById = (pageId: string, versionId: string) => {
  * @param data
  * @returns
  */
-export const getButtonMenusTreeApi = () => {
-  return agHttp.post('/system/WbMenuRes/findVueMenuBtn')
+export const getButtonMenusTreeApi = (menuId?: string | number) => {
+  // 设计器专用接口：返回 lowcode 菜单树 + 当前菜单按钮列表（稳定契约）
+  return agHttp.get('/lowcode/designer/tree', {
+    params: { menuId }
+  })
 }
 
 /**

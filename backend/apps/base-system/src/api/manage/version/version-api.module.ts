@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
-import { VersionController } from './rest/version.controller';
-import { HistoryController } from './rest/history.controller';
+
 import { PrismaModule } from '@lib/shared/prisma/prisma.module';
+
+import { HistoryController } from './rest/history.controller';
+import { VersionController } from './rest/version.controller';
 
 @Module({
   imports: [PrismaModule],

@@ -11,11 +11,13 @@ import RoleOperateDrawer from './modules/role-operate-drawer.vue';
 import RoleSearch from './modules/role-search.vue';
 import MenuAuthModal from './modules/menu-auth-modal.vue';
 import ApiEndpointAuthModal from './modules/api-endpoint-auth-modal.vue';
+import ButtonAuthModal from './modules/button-auth-modal.vue';
 
 const appStore = useAppStore();
 
 const { bool: menuAuthVisible, setTrue: openMenuAuthModal } = useBoolean();
 const { bool: apiEndpointAuthVisible, setTrue: openApiEndpointAuthModal } = useBoolean();
+const { bool: buttonAuthVisible, setTrue: openButtonAuthModal } = useBoolean();
 
 const {
   columns,
@@ -100,6 +102,7 @@ const {
       render: row => (
         <div class="flex-center gap-8px">
           <NButton
+            v-button-auth="'manage_role:menu_auth'"
             type="primary"
             quaternary
             size="small"
@@ -108,6 +111,7 @@ const {
             {$t('page.manage.role.menuAuth')}
           </NButton>
           <NButton
+            v-button-auth="'manage_role:api_auth'"
             type="primary"
             quaternary
             size="small"
@@ -115,14 +119,23 @@ const {
           >
             {$t('page.manage.role.permissionAuth')}
           </NButton>
-          <NButton type="primary" ghost size="small" onClick={() => edit(String(row.id))}>
+          <NButton
+            v-button-auth="'manage_role:button_auth'"
+            type="primary"
+            quaternary
+            size="small"
+            onClick={() => handleRoleAction(String(row.id), row.code, openButtonAuthModal)}
+          >
+            {$t('page.manage.role.buttonAuth')}
+          </NButton>
+          <NButton v-button-auth="'manage_role:edit'" type="primary" ghost size="small" onClick={() => edit(String(row.id))}>
             {$t('common.edit')}
           </NButton>
           <NPopconfirm onPositiveClick={() => handleDelete(String(row.id))}>
             {{
               default: () => $t('common.confirmDelete'),
               trigger: () => (
-                <NButton type="error" ghost size="small">
+                <NButton v-button-auth="'manage_role:delete'" type="error" ghost size="small">
                   {$t('common.delete')}
                 </NButton>
               )
@@ -210,6 +223,7 @@ function handleRoleAction(id: string, code: string, action: () => void): void {
     </NCard>
     <MenuAuthModal v-model:visible="menuAuthVisible" :role-id="roleId" />
     <ApiEndpointAuthModal v-model:visible="apiEndpointAuthVisible" :role-id="roleId" :role-code="roleCode" />
+    <ButtonAuthModal v-model:visible="buttonAuthVisible" :role-id="roleId" />
   </div>
 </template>
 

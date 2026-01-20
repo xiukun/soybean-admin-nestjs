@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Post,
@@ -11,9 +12,27 @@ import {
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Status } from '@prisma/client';
 
-import { ApiRes } from '@lib/infra/rest/res.response';
+// Commands
+import { LowcodePageCreateCommand } from '@lowcode/page/commands/lowcode-page-create.command';
+import { LowcodePageDeleteCommand } from '@lowcode/page/commands/lowcode-page-delete.command';
+import { LowcodePageUpdateCommand } from '@lowcode/page/commands/lowcode-page-update.command';
+import { LowcodePageVersionCreateCommand } from '@lowcode/page/commands/lowcode-page-version-create.command';
+// Queries
+import { GetLowcodePageByCodeQuery } from '@lowcode/page/queries/get-lowcode-page-by-code.query';
+import { GetLowcodePageByIdQuery } from '@lowcode/page/queries/get-lowcode-page-by-id.query';
+import { GetLowcodePageByMenuQuery } from '@lowcode/page/queries/get-lowcode-page-by-menu.query';
+import { GetLowcodePageVersionByIdQuery } from '@lowcode/page/queries/get-lowcode-page-version-by-id.query';
+import { GetLowcodePageVersionsQuery } from '@lowcode/page/queries/get-lowcode-page-versions.query';
+import { GetLowcodePagesQuery } from '@lowcode/page/queries/get-lowcode-pages.query';
+
+import { AuthorizationService } from '@app/base-system/lib/bounded-contexts/iam/authentication/application/service/authorization.service';
+
+import { CacheConstant } from '@lib/constants/cache.constant';
 import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
+import { ApiRes } from '@lib/infra/rest/res.response';
+import { RedisUtility } from '@lib/shared/redis/redis.util';
 
 import {
   CreateLowcodePageDto,
@@ -24,22 +43,6 @@ import {
   PaginationQueryDto,
 } from '../dto/lowcode-page.dto';
 
-// Commands
-import { LowcodePageCreateCommand } from '@lowcode/page/commands/lowcode-page-create.command';
-import { LowcodePageUpdateCommand } from '@lowcode/page/commands/lowcode-page-update.command';
-import { LowcodePageDeleteCommand } from '@lowcode/page/commands/lowcode-page-delete.command';
-import { LowcodePageVersionCreateCommand } from '@lowcode/page/commands/lowcode-page-version-create.command';
-
-// Queries
-import { GetLowcodePagesQuery } from '@lowcode/page/queries/get-lowcode-pages.query';
-import { GetLowcodePageByIdQuery } from '@lowcode/page/queries/get-lowcode-page-by-id.query';
-import { GetLowcodePageByCodeQuery } from '@lowcode/page/queries/get-lowcode-page-by-code.query';
-import { GetLowcodePageByMenuQuery } from '@lowcode/page/queries/get-lowcode-page-by-menu.query';
-import { GetLowcodePageVersionsQuery } from '@lowcode/page/queries/get-lowcode-page-versions.query';
-import { GetLowcodePageVersionByIdQuery } from '@lowcode/page/queries/get-lowcode-page-version-by-id.query';
-
-import { Status } from '@prisma/client';
-
 @ApiTags('Lowcode Page Management')
 @ApiJwtAuth() // 添加Bearer认证装饰器
 @Controller('lowcode/pages')
@@ -47,7 +50,22 @@ export class LowcodePageController {
   constructor(
     private readonly queryBus: QueryBus,
     private readonly commandBus: CommandBus,
+    private readonly authorizationService: AuthorizationService,
   ) {}
+
+  private async assertButtonAllowed(req: any, code: string) {
+    const user = req.user;
+    const roleCodes = await RedisUtility.instance.smembers(
+      `${CacheConstant.AUTH_TOKEN_PREFIX}${user.uid}`,
+    );
+    const codes = await this.authorizationService.getUserButtonCodes(
+      roleCodes,
+      user.domain,
+    );
+    if (!codes.includes(code)) {
+      throw new ForbiddenException(`No permission: ${code}`);
+    }
+  }
 
   @Post()
   @ApiOperation({ summary: 'Create a new lowcode page' })
@@ -61,6 +79,8 @@ export class LowcodePageController {
     @Body() dto: CreateLowcodePageDto,
     @Request() req: any,
   ): Promise<ApiRes<{ id: string }>> {
+    await this.assertButtonAllowed(req, 'lowcode:save');
+
     const result = await this.commandBus.execute(
       new LowcodePageCreateCommand(
         dto.name,
@@ -149,6 +169,8 @@ export class LowcodePageController {
     @Body() dto: { schema: any; title?: string; changelog?: string },
     @Request() req: any,
   ): Promise<ApiRes<any>> {
+    await this.assertButtonAllowed(req, 'lowcode:save');
+
     // 首先检查菜单是否已有低代码页面
     const existingPage = await this.queryBus.execute(
       new GetLowcodePageByMenuQuery(parseInt(menuId, 10)),
@@ -204,6 +226,8 @@ export class LowcodePageController {
     @Body() dto: UpdateLowcodePageDto,
     @Request() req: any,
   ): Promise<ApiRes<null>> {
+    await this.assertButtonAllowed(req, 'lowcode:save');
+
     await this.commandBus.execute(
       new LowcodePageUpdateCommand(
         params.id,

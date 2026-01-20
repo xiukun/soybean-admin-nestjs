@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
 import { randomBytes } from 'crypto';
+
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class LowcodePageIdGenerator {

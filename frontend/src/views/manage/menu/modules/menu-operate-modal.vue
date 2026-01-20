@@ -1,6 +1,7 @@
 <script setup lang="tsx">
 import { computed, reactive, ref, watch } from 'vue';
 import type { SelectOption } from 'naive-ui';
+import { NDrawer, NDrawerContent } from 'naive-ui';
 import { enableStatusOptions, menuIconTypeOptions, menuTypeOptions } from '@/constants/business';
 import type { RouteCreateModel, RouteModel, RouteUpdateModel } from '@/service/api';
 import { createRoute, fetchGetAllRoles, updateRoute } from '@/service/api';
@@ -35,6 +36,7 @@ const props = defineProps<Props>();
 
 interface Emits {
   (e: 'submitted'): void;
+  (e: 'openButtons', menu: { id: number; menuType: Api.SystemManage.MenuType }): void;
 }
 
 const emit = defineEmits<Emits>();
@@ -186,11 +188,7 @@ function handleInitModel() {
 
   if (!model.query) {
     model.query = [];
-  }
-  if (!model.buttons) {
-    model.buttons = [];
-  }
-}
+  }}
 
 function closeDrawer() {
   visible.value = false;
@@ -212,13 +210,12 @@ function handleUpdateI18nKeyByRouteName() {
   }
 }
 
-function handleCreateButton() {
-  const buttonItem: Api.SystemManage.MenuButton = {
-    code: '',
-    desc: ''
-  };
-
-  return buttonItem;
+function handleOpenButtons() {
+  if (props.operateType !== 'edit' || !props.rowData?.id) {
+    window.$message?.warning('请先保存菜单后再管理按钮');
+    return;
+  }
+  emit('openButtons', { id: props.rowData.id, menuType: props.rowData.menuType });
 }
 
 function getSubmitParams() {
@@ -277,7 +274,11 @@ watch(
 </script>
 
 <template>
-  <NModal v-model:show="visible" :title="title" preset="card" class="w-800px">
+  <NDrawer v-model:show="visible" :width="720" placement="right">
+    <NDrawerContent :title="title" closable>
+      <template #header-extra>
+        <NButton type="info" ghost @click="handleOpenButtons">按钮管理</NButton>
+      </template>
     <NScrollbar class="h-480px pr-20px">
       <NForm ref="formRef" :model="model" :rules="rules" label-placement="left" :label-width="100">
         <NGrid responsive="screen" item-responsive>
@@ -429,34 +430,7 @@ watch(
               </template>
             </NDynamicInput>
           </NFormItemGi>
-          <NFormItemGi span="24" :label="$t('page.manage.menu.button')">
-            <NDynamicInput v-model:value="model.buttons" :on-create="handleCreateButton">
-              <template #default="{ value }">
-                <div class="ml-8px flex-y-center flex-1 gap-12px">
-                  <NInput
-                    v-model:value="value.code"
-                    :placeholder="$t('page.manage.menu.form.buttonCode')"
-                    class="flex-1"
-                  />
-                  <NInput
-                    v-model:value="value.desc"
-                    :placeholder="$t('page.manage.menu.form.buttonDesc')"
-                    class="flex-1"
-                  />
-                </div>
-              </template>
-              <template #action="{ index, create, remove }">
-                <NSpace class="ml-12px">
-                  <NButton size="medium" @click="() => create(index)">
-                    <icon-ic:round-plus class="text-icon" />
-                  </NButton>
-                  <NButton size="medium" @click="() => remove(index)">
-                    <icon-ic-round-remove class="text-icon" />
-                  </NButton>
-                </NSpace>
-              </template>
-            </NDynamicInput>
-          </NFormItemGi>
+          <!-- buttons 已改为通过“按钮管理”抽屉单独维护，表单内不再编辑 -->
         </NGrid>
       </NForm>
     </NScrollbar>
@@ -466,7 +440,8 @@ watch(
         <NButton type="primary" @click="handleSubmit">{{ $t('common.confirm') }}</NButton>
       </NSpace>
     </template>
-  </NModal>
+    </NDrawerContent>
+  </NDrawer>
 </template>
 
 <style scoped></style>

@@ -12,10 +12,10 @@ import {
   ApiKeyAuthSource,
   ApiKeyAuthStrategy,
 } from '@lib/constants/api-key.constant';
+import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
 import { ApiKeyAuth } from '@lib/infra/decorators/api-key.decorator';
 import { BypassTransform } from '@lib/infra/decorators/bypass-transform.decorator';
 import { Public } from '@lib/infra/decorators/public.decorator';
-import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
 import {
   ComplexApiKeyServiceToken,
   SimpleApiKeyServiceToken,

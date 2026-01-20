@@ -22,6 +22,11 @@ export type MenuEssentialProperties = Readonly<
   }>
 >;
 
+export type MenuButton = Readonly<{
+  code: string;
+  desc: string;
+}>;
+
 export type MenuOptionalProperties = Readonly<
   Partial<{
     iconType: number | null;
@@ -34,11 +39,13 @@ export type MenuOptionalProperties = Readonly<
     href: string | null;
     multiTab: boolean | null;
     lowcodePageId: string | null;
+    buttons: MenuButton[] | null;
   }>
 >;
 
-export type MenuProperties = MenuEssentialProperties &
-  Required<MenuOptionalProperties>;
+export type MenuProperties = MenuEssentialProperties & Required<Omit<MenuOptionalProperties, 'buttons'>> & {
+  buttons?: MenuButton[] | null;
+};
 
 export type MenuTreeProperties = MenuProperties & {
   children?: MenuTreeProperties[];

@@ -19,8 +19,8 @@ import {
 } from '@app/base-system/lib/bounded-contexts/access-key/domain/access_key.read.model';
 import { PageAccessKeysQuery } from '@app/base-system/lib/bounded-contexts/access-key/queries/page-access_key.query';
 
-import { ApiResponseDoc } from '@lib/infra/decorators/api-result.decorator';
 import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
+import { ApiResponseDoc } from '@lib/infra/decorators/api-result.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
 import { BUILT_IN } from '@lib/shared/prisma/db.constant';
 import { PaginationResult } from '@lib/shared/prisma/pagination';

@@ -23,8 +23,8 @@ import { MenusByIdsQuery } from '@app/base-system/lib/bounded-contexts/iam/menu/
 import { MenusQuery } from '@app/base-system/lib/bounded-contexts/iam/menu/queries/menus.query';
 import { MenusTreeQuery } from '@app/base-system/lib/bounded-contexts/iam/menu/queries/menus.tree.query';
 
-import { Public } from '@lib/infra/decorators/public.decorator';
 import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
+import { Public } from '@lib/infra/decorators/public.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
 
 import { RouteCreateDto, RouteUpdateDto } from '../dto/route.dto';
@@ -85,30 +85,10 @@ export class MenuController {
     @Body() dto: RouteCreateDto,
     @Request() req: any,
   ): Promise<ApiRes<null>> {
-    await this.commandBus.execute(
-      new MenuCreateCommand(
-        dto.menuName,
-        dto.menuType,
-        dto.iconType,
-        dto.icon,
-        dto.routeName,
-        dto.routePath,
-        dto.component,
-        dto.pathParam ?? null,
-        dto.status,
-        dto.activeMenu,
-        dto.hideInMenu,
-        dto.pid,
-        dto.order,
-        dto.i18nKey,
-        dto.keepAlive,
-        dto.constant,
-        dto.href,
-        dto.multiTab,
-        null, // lowcodePageId 将由系统自动生成
-        req.user.uid,
-      ),
-    );
+    await this.menuService.createRoute({
+      dto,
+      uid: req.user.uid,
+    });
     return ApiRes.ok();
   }
 
@@ -123,31 +103,10 @@ export class MenuController {
     @Body() dto: RouteUpdateDto,
     @Request() req: any,
   ): Promise<ApiRes<null>> {
-    await this.commandBus.execute(
-      new MenuUpdateCommand(
-        dto.id,
-        dto.menuName,
-        dto.menuType,
-        dto.iconType,
-        dto.icon,
-        dto.routeName,
-        dto.routePath,
-        dto.component,
-        dto.pathParam ?? null,
-        dto.status,
-        dto.activeMenu,
-        dto.hideInMenu,
-        dto.pid,
-        dto.order,
-        dto.i18nKey,
-        dto.keepAlive,
-        dto.constant,
-        dto.href,
-        dto.multiTab,
-        null, // lowcodePageId 不允许修改，将使用现有值
-        req.user.uid,
-      ),
-    );
+    await this.menuService.updateRoute({
+      dto,
+      uid: req.user.uid,
+    });
     return ApiRes.ok();
   }
 

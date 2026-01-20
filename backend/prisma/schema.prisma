@@ -238,6 +238,36 @@ model SysRoleMenu {
   @@map("sys_role_menu")
 }
 
+model SysButton {
+  id          String   @id @default(uuid())
+  code        String   @unique @db.VarChar(128)
+  description String?  @db.VarChar(255)
+
+  /** if null, it is a global button; otherwise it belongs to a menu */
+  menuId      Int?     @map("menu_id")
+
+  status      Status   @default(ENABLED)
+  order       Int      @default(0) @map("sequence")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdBy   String   @map("created_by")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+  updatedBy   String?  @map("updated_by")
+
+  @@index([menuId])
+  @@map("sys_button")
+}
+
+model SysRoleButton {
+  roleId   String @map("role_id")
+  buttonId String @map("button_id")
+  domain   String
+
+  @@id([roleId, buttonId, domain])
+  @@index([buttonId])
+  @@map("sys_role_button")
+}
+
 // 低代码页面表
 model SysLowcodePage {
   id          String    @id @default(uuid())

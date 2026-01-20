@@ -5,6 +5,7 @@ import { setupStore } from './store';
 import { setupRouter } from './router';
 import { setupI18n } from './locales';
 import App from './App.vue';
+import { setupDirectives } from './directives';
 
 async function setupApp() {
   setupLoading();
@@ -22,6 +23,8 @@ async function setupApp() {
   await setupRouter(app);
 
   setupI18n(app);
+
+  setupDirectives(app);
 
   setupAppVersionNotification();
 

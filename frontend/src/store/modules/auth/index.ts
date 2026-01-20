@@ -2,7 +2,7 @@ import { computed, reactive, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { defineStore } from 'pinia';
 import { useLoading } from '@sa/hooks';
-import { fetchGetUserInfo, fetchLogin } from '@/service/api';
+import { fetchGetUserInfo, fetchLogin, fetchGetUserButtons } from '@/service/api';
 import { useRouterPush } from '@/hooks/common/router';
 import { localStg } from '@/utils/storage';
 import { SetupStoreId } from '@/enum';
@@ -151,6 +151,16 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
     if (!error) {
       // update store
       Object.assign(userInfo, info);
+
+      // buttons: 后端 getUserInfo 可能不包含 buttons，这里用专用接口兜底
+      try {
+        const { data: buttons, error: btnError } = await fetchGetUserButtons();
+        if (!btnError) {
+          userInfo.buttons = buttons || [];
+        }
+      } catch {
+        // ignore
+      }
 
       return true;
     }

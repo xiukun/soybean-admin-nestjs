@@ -1,5 +1,6 @@
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { ConflictException, Inject } from '@nestjs/common';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+
 import { LowcodePageCreateCommand } from '@lowcode/page/commands/lowcode-page-create.command';
 import { ILowcodePageRepository } from '@lowcode/page/domain/lowcode-page.repository';
 import { LOWCODE_PAGE_REPOSITORY } from '@lowcode/page/lowcode-page.tokens';

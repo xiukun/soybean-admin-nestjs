@@ -24,6 +24,7 @@ import { ApiRes } from '@lib/infra/rest/res.response';
 import { RedisUtility } from '@lib/shared/redis/redis.util';
 import { IAuthentication } from '@lib/typings/global';
 
+import { AssignButtonDto } from '../dto/assign-button.dto';
 import { AssignPermissionDto } from '../dto/assign-permission.dto';
 import { AssignRouteDto } from '../dto/assign-route.dto';
 import { AssignUserDto } from '../dto/assign-user.dto';
@@ -102,5 +103,33 @@ export class AuthorizationController {
       user.domain,
     );
     return ApiRes.success(routes);
+  }
+
+  @Post('assign-buttons')
+  @UsePermissions({ resource: 'authorization', action: 'assign-buttons' })
+  @ApiOperation({
+    summary: 'Assign Buttons to Role',
+    description: 'Assigns a set of buttons to a specified role within a domain.',
+  })
+  async assignButtons(@Body() dto: AssignButtonDto): Promise<ApiRes<null>> {
+    await this.authorizationService.assignButtons(dto.domain, dto.roleId, dto.buttonIds);
+    return ApiRes.ok();
+  }
+
+  @Get('getUserButtons')
+  @ApiOperation({
+    summary: 'Get user buttons',
+    description: 'Retrieve user button codes based on their roles and domain.',
+  })
+  async getUserButtons(@Request() req: any): Promise<ApiRes<string[]>> {
+    const user: IAuthentication = req.user;
+    const userRoleCode = await RedisUtility.instance.smembers(
+      `${CacheConstant.AUTH_TOKEN_PREFIX}${user.uid}`,
+    );
+    if (!userRoleCode || userRoleCode.length === 0) {
+      throw new HttpException('No roles found for the user', HttpStatus.NOT_FOUND);
+    }
+    const codes = await this.authorizationService.getUserButtonCodes(userRoleCode, user.domain);
+    return ApiRes.success(codes);
   }
 }

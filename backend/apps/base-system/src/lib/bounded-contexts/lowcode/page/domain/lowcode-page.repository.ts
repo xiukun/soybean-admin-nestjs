@@ -1,5 +1,5 @@
-import { LowcodePage, LowcodePageCreateProperties, LowcodePageUpdateProperties } from './lowcode-page.model';
 import { LowcodePageVersion, LowcodePageVersionCreateProperties } from './lowcode-page-version.model';
+import { LowcodePage, LowcodePageCreateProperties, LowcodePageUpdateProperties } from './lowcode-page.model';
 
 export interface ILowcodePageRepository {
   create(page: LowcodePageCreateProperties): Promise<LowcodePage>;

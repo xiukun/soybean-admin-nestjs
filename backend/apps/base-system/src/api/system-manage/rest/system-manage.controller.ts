@@ -5,8 +5,8 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RoleProperties } from '@app/base-system/lib/bounded-contexts/iam/role/domain/role.read.model';
 import { AllRolesQuery } from '@app/base-system/lib/bounded-contexts/iam/role/queries/all-roles.query';
 
-import { ApiResponseDoc } from '@lib/infra/decorators/api-result.decorator';
 import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
+import { ApiResponseDoc } from '@lib/infra/decorators/api-result.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
 
 @ApiTags('System Manage - Module')

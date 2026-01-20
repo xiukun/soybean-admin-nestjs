@@ -1,7 +1,7 @@
 <script setup lang="tsx">
 import { ref } from 'vue';
 import type { Ref } from 'vue';
-import { NButton, NPopconfirm, NTag } from 'naive-ui';
+import { NButton, NDropdown, NTag } from 'naive-ui';
 import { useBoolean } from '@sa/hooks';
 import { yesOrNoRecord } from '@/constants/common';
 import { enableStatusRecord, menuTypeRecord } from '@/constants/business';
@@ -11,10 +11,20 @@ import { useTable, useTableOperate } from '@/hooks/common/table';
 import { $t } from '@/locales';
 import SvgIcon from '@/components/custom/svg-icon.vue';
 import MenuOperateModal, { type OperateType } from './modules/menu-operate-modal.vue';
+import MenuButtonDrawer from './modules/menu-button-drawer.vue';
 
 const appStore = useAppStore();
 
 const { bool: visible, setTrue: openModal } = useBoolean();
+
+const { bool: buttonDrawerVisible, setTrue: openButtonDrawer, setFalse: closeButtonDrawer } = useBoolean();
+const buttonDrawerMenuId = ref<number | null>(null);
+const buttonDrawerMenuType = ref<Api.SystemManage.MenuType | null>(null);
+function handleManageButtons(row: Api.SystemManage.Menu) {
+  buttonDrawerMenuId.value = row.id;
+  buttonDrawerMenuType.value = row.menuType;
+  openButtonDrawer();
+}
 
 const wrapperRef = ref<HTMLElement | null>(null);
 
@@ -148,29 +158,53 @@ const { columns, columnChecks, data, loading, getData, getDataByPage } = useTabl
       key: 'operate',
       title: $t('common.operate'),
       align: 'center',
-      width: 230,
-      render: row => (
-        <div class="flex-center justify-end gap-8px">
-          {row.menuType === 'directory' && (
-            <NButton type="primary" ghost size="small" onClick={() => handleAddChildMenu(row)}>
-              {$t('page.manage.menu.addChildMenu')}
+      width: 260,
+      render: row => {
+        const options = [
+          {
+            label: '按钮管理',
+            key: 'buttons'
+          },
+          {
+            label: $t('common.delete'),
+            key: 'delete'
+          }
+        ];
+
+        return (
+          <div class="flex-center justify-end gap-12px">
+            {row.menuType === 'directory' && (
+              <NButton
+                v-button-auth="'manage_menu:add_child'"
+                type="primary"
+                ghost
+                size="small"
+                onClick={() => handleAddChildMenu(row)}
+              >
+                {$t('page.manage.menu.addChildMenu')}
+              </NButton>
+            )}
+            <NButton v-button-auth="'manage_menu:edit'" type="primary" ghost size="small" onClick={() => handleEdit(row)}>
+              {$t('common.edit')}
             </NButton>
-          )}
-          <NButton type="primary" ghost size="small" onClick={() => handleEdit(row)}>
-            {$t('common.edit')}
-          </NButton>
-          <NPopconfirm onPositiveClick={() => handleDelete(row.id)}>
-            {{
-              default: () => $t('common.confirmDelete'),
-              trigger: () => (
-                <NButton type="error" ghost size="small">
-                  {$t('common.delete')}
-                </NButton>
-              )
-            }}
-          </NPopconfirm>
-        </div>
-      )
+            <NDropdown
+              options={options}
+              trigger="click"
+              onSelect={(key: string) => {
+                if (key === 'buttons') {
+                  handleManageButtons(row);
+                } else if (key === 'delete') {
+                  confirmDelete(row.id);
+                }
+              }}
+            >
+              <NButton size="small" type="default" ghost>
+                更多
+              </NButton>
+            </NDropdown>
+          </div>
+        );
+      }
     }
   ]
 });
@@ -196,6 +230,18 @@ async function handleDelete(id: number) {
   const { error } = await deleteRoute(id);
   if (error) return;
   await onDeleted();
+}
+
+function confirmDelete(id: number) {
+  window.$dialog?.warning({
+    title: $t('common.warning'),
+    content: $t('common.confirmDelete'),
+    positiveText: $t('common.confirm'),
+    negativeText: $t('common.cancel'),
+    onPositiveClick: async () => {
+      await handleDelete(id);
+    }
+  });
 }
 
 /** the edit menu data or the parent menu data when adding a child menu */
@@ -233,16 +279,30 @@ const allPages = ref<string[]>([]);
 
 <template>
   <div ref="wrapperRef" class="flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
+    <MenuButtonDrawer
+      v-model:show="buttonDrawerVisible"
+      :menu-id="buttonDrawerMenuId"
+      :menu-type="buttonDrawerMenuType"
+    />
+
+    <MenuOperateModal
+      v-model:visible="visible"
+      :operate-type="operateType"
+      :row-data="editingData"
+      :all-pages="allPages"
+      @submitted="getData"
+      @open-buttons="({ id, menuType }) => { buttonDrawerMenuId.value = id; buttonDrawerMenuType.value = menuType; openButtonDrawer(); }"
+    />
     <NCard :title="$t('page.manage.menu.title')" :bordered="false" size="small" class="sm:flex-1-hidden card-wrapper">
-      <template #header-extra>
-        <TableHeaderOperation
-          v-model:columns="columnChecks"
-          :disabled-delete="checkedRowKeys.length === 0"
-          :loading="loading"
-          @add="handleAdd"
-          @delete="handleBatchDelete"
-          @refresh="getData"
-        />
+      <template #header-extra>          <TableHeaderOperation
+            v-model:columns="columnChecks"
+            :disabled-delete="checkedRowKeys.length === 0"
+            :loading="loading"
+            @add="handleAdd"
+            @delete="handleBatchDelete"
+            @refresh="getData"
+          />
+          <!-- 注意：TableHeaderOperation 内部按钮无法直接加指令，这里仅对表格行内操作按钮做权限隐藏 -->
       </template>
       <NDataTable
         v-model:checked-row-keys="checkedRowKeys"
@@ -256,13 +316,7 @@ const allPages = ref<string[]>([]);
         remote
         class="sm:h-full"
       />
-      <MenuOperateModal
-        v-model:visible="visible"
-        :operate-type="operateType"
-        :row-data="editingData"
-        :all-pages="allPages"
-        @submitted="getDataByPage"
-      />
+
     </NCard>
   </div>
 </template>

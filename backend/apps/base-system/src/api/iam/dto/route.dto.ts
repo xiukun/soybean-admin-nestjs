@@ -10,6 +10,14 @@ import {
 } from 'class-validator';
 
 export class RouteCreateDto {
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    description: 'Buttons bound to this menu, used for button permission control.',
+    type: 'array',
+  })
+  buttons?: { code: string; desc: string }[] | null;
+
   @ApiProperty({ required: true })
   @IsString({ message: 'menuName must be a string' })
   @IsNotEmpty({ message: 'menuName cannot be empty' })
@@ -109,6 +117,14 @@ export class RouteCreateDto {
 }
 
 export class RouteUpdateDto {
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    description: 'Buttons bound to this menu, used for button permission control.',
+    type: 'array',
+  })
+  buttons?: { code: string; desc: string }[] | null;
+
   @ApiProperty({ required: true })
   @IsInt({ message: 'id must be an integer' })
   @IsNotEmpty({ message: 'id cannot be empty' })

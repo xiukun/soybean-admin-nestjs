@@ -19,8 +19,8 @@ import { EndpointsQuery } from '@app/base-system/lib/bounded-contexts/api-endpoi
 import { PageEndpointsQuery } from '@app/base-system/lib/bounded-contexts/api-endpoint/api-endpoint/queries/page-endpoints.query';
 
 import { AuthActionVerb, AuthZGuard, UsePermissions } from '@lib/infra/casbin';
-import { ApiResponseDoc } from '@lib/infra/decorators/api-result.decorator';
 import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
+import { ApiResponseDoc } from '@lib/infra/decorators/api-result.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
 import { PaginationResult } from '@lib/shared/prisma/pagination';
 

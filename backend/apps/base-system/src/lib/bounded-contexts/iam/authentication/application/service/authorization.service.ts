@@ -29,6 +29,79 @@ export class AuthorizationService {
     private readonly prisma: PrismaService,
   ) {}
 
+  async assignButtons(domain: string, roleId: string, buttonIds: string[]): Promise<void> {
+    const { domainCode, roleId: checkedRoleId } = await this.checkDomainAndRole(domain, roleId);
+
+    const existingButtonIds = await this.prisma.sysRoleButton
+      .findMany({
+        where: { roleId: checkedRoleId, domain: domainCode },
+        select: { buttonId: true },
+      })
+      .then((rows) => rows.map((r) => r.buttonId));
+
+    const newButtonIds = buttonIds.filter((id) => !existingButtonIds.includes(id));
+    const buttonIdsToDelete = existingButtonIds.filter((id) => !buttonIds.includes(id));
+
+    const operations = [
+      ...newButtonIds.map((buttonId) =>
+        this.prisma.sysRoleButton.create({
+          data: {
+            roleId: checkedRoleId,
+            buttonId,
+            domain: domainCode,
+          },
+        }),
+      ),
+      ...buttonIdsToDelete.map((buttonId) =>
+        this.prisma.sysRoleButton.deleteMany({
+          where: { roleId: checkedRoleId, buttonId, domain: domainCode },
+        }),
+      ),
+    ];
+
+    await this.prisma.$transaction(operations);
+  }
+
+  async getUserButtonCodes(roleCodes: string[], domain: string): Promise<string[]> {
+    const domainEntity = await this.queryBus.execute<
+      FindDomainByCodeQuery,
+      Readonly<DomainProperties> | null
+    >(new FindDomainByCodeQuery(domain));
+    if (!domainEntity) {
+      throw new NotFoundException('Domain not found.');
+    }
+
+    const roles = await this.prisma.sysRole.findMany({
+      where: { code: { in: roleCodes } },
+      select: { id: true },
+    });
+
+    const roleIds = roles.map((r) => r.id);
+    if (roleIds.length === 0) return [];
+
+    const bindings = await this.prisma.sysRoleButton.findMany({
+      where: {
+        roleId: { in: roleIds },
+        domain: domainEntity.code,
+      },
+      select: { buttonId: true },
+      distinct: ['buttonId'],
+    });
+
+    const buttonIds = bindings.map((b) => b.buttonId);
+    if (buttonIds.length === 0) return [];
+
+    const buttons = await this.prisma.sysButton.findMany({
+      where: {
+        id: { in: buttonIds },
+        status: 'ENABLED',
+      },
+      select: { code: true },
+    });
+
+    return buttons.map((b) => b.code);
+  }
+
   async assignPermission(command: RoleAssignPermissionCommand) {
     const { domainCode, roleCode } = await this.checkDomainAndRole(
       command.domain,

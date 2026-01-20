@@ -46,6 +46,7 @@ export class MenuUpdateHandler
 
     const menuUpdateProperties: MenuUpdateProperties = {
       id: command.id,
+      buttons: null,
       menuName: command.menuName,
       menuType: command.menuType,
       routeName: command.routeName,

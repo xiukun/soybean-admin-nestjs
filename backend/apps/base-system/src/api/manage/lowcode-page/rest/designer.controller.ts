@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Param,
   Post,
@@ -9,18 +10,21 @@ import {
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Status } from '@prisma/client';
+
+import { LowcodePageCreateCommand } from '@lowcode/page/commands/lowcode-page-create.command';
+import { LowcodePageUpdateCommand } from '@lowcode/page/commands/lowcode-page-update.command';
+import { GetLowcodePageByCodeQuery } from '@lowcode/page/queries/get-lowcode-page-by-code.query';
+import { GetLowcodePageByIdQuery } from '@lowcode/page/queries/get-lowcode-page-by-id.query';
+
+import { AuthorizationService } from '@app/base-system/lib/bounded-contexts/iam/authentication/application/service/authorization.service';
 
 import { ApiRes } from '@lib/infra/rest/res.response';
 
 // Queries
-import { GetLowcodePageByIdQuery } from '@lowcode/page/queries/get-lowcode-page-by-id.query';
-import { GetLowcodePageByCodeQuery } from '@lowcode/page/queries/get-lowcode-page-by-code.query';
 
 // Commands
-import { LowcodePageCreateCommand } from '@lowcode/page/commands/lowcode-page-create.command';
-import { LowcodePageUpdateCommand } from '@lowcode/page/commands/lowcode-page-update.command';
 
-import { Status } from '@prisma/client';
 
 @ApiTags('Lowcode Designer')
 @Controller('designer')
@@ -28,7 +32,17 @@ export class DesignerController {
   constructor(
     private readonly queryBus: QueryBus,
     private readonly commandBus: CommandBus,
+    private readonly authorizationService: AuthorizationService,
   ) {}
+
+  private async assertButtonAllowed(req: any, code: string) {
+    const roleCodes: string[] = req.user?.roles || [];
+    // 兼容：如果没注入 roles，则退化为只允许超级管理员
+    const codes = await this.authorizationService.getUserButtonCodes(roleCodes, req.user.domain);
+    if (!codes.includes(code)) {
+      throw new ForbiddenException(`No permission: ${code}`);
+    }
+  }
 
   @Get('page/:id/url')
   @ApiOperation({ summary: 'Get designer URL for editing an existing page' })
@@ -66,15 +80,13 @@ export class DesignerController {
     }
     
     return ApiRes.success({ url: designerUrl });
-  }
-
-  @Post('page/save')
+  }  @Post('page/save')
   @ApiOperation({ summary: 'Save page from designer' })
   @ApiResponse({ status: 200, description: 'Page saved successfully' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
   async savePageFromDesigner(
     @Body() dto: {
-      pageId?: string;
+pageId?: string;
       name: string;
       title: string;
       code: string;
@@ -84,6 +96,8 @@ export class DesignerController {
     },
     @Request() req: any,
   ): Promise<ApiRes<{ pageId: string; versionId?: string }>> {
+    await this.assertButtonAllowed(req, 'lowcode:save');
+
     if (dto.pageId) {
       // Update existing page
       const result = await this.commandBus.execute(

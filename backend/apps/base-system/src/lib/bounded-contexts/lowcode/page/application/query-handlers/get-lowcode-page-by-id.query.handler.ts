@@ -1,9 +1,10 @@
-import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { NotFoundException, Inject } from '@nestjs/common';
-import { GetLowcodePageByIdQuery } from '@lowcode/page/queries/get-lowcode-page-by-id.query';
-import { ILowcodePageRepository } from '@lowcode/page/domain/lowcode-page.repository';
+import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
+
 import { LowcodePageReadModel } from '@lowcode/page/domain/lowcode-page.read.model';
+import { ILowcodePageRepository } from '@lowcode/page/domain/lowcode-page.repository';
 import { LOWCODE_PAGE_REPOSITORY } from '@lowcode/page/lowcode-page.tokens';
+import { GetLowcodePageByIdQuery } from '@lowcode/page/queries/get-lowcode-page-by-id.query';
 
 @QueryHandler(GetLowcodePageByIdQuery)
 export class GetLowcodePageByIdQueryHandler implements IQueryHandler<GetLowcodePageByIdQuery> {

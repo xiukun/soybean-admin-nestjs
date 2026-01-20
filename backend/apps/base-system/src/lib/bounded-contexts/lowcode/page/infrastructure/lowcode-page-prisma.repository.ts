@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@lib/shared/prisma/prisma.service';
-import { ILowcodePageRepository } from '@lowcode/page/domain/lowcode-page.repository';
-import { LowcodePage, LowcodePageCreateProperties, LowcodePageUpdateProperties } from '@lowcode/page/domain/lowcode-page.model';
+
 import { LowcodePageVersion, LowcodePageVersionCreateProperties } from '@lowcode/page/domain/lowcode-page-version.model';
+import { LowcodePage, LowcodePageCreateProperties, LowcodePageUpdateProperties } from '@lowcode/page/domain/lowcode-page.model';
+import { ILowcodePageRepository } from '@lowcode/page/domain/lowcode-page.repository';
+
+import { PrismaService } from '@lib/shared/prisma/prisma.service';
 
 @Injectable()
 export class LowcodePagePrismaRepository implements ILowcodePageRepository {

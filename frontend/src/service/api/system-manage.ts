@@ -103,6 +103,38 @@ export function fetchAssignRoutes(req: Api.SystemManage.RoleMenu) {
   });
 }
 
+export type ButtonTreeNode = {
+  id: string;
+  key: string;
+  label: string;
+  children?: ButtonTreeNode[];
+};
+
+export function fetchGetButtonTree() {
+  return request<ButtonTreeNode[]>({
+    url: '/button/tree',
+    method: 'get'
+  });
+}
+
+export function fetchGetRoleButtonIds(roleId: string) {
+  return request<string[]>({
+    url: `/button/auth-buttons/${roleId}`,
+    method: 'get'
+  });
+}
+
+export function fetchAssignButtons(req: { roleId: string; buttonIds: string[] }) {
+  return request<boolean>({
+    url: '/authorization/assign-buttons',
+    method: 'post',
+    data: {
+      ...req,
+      domain: 'built-in'
+    }
+  });
+}
+
 /**
  * 创建路由
  *

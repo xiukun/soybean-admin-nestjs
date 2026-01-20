@@ -5,9 +5,11 @@ import { FastifyRequest } from 'fastify';
 import { PasswordIdentifierDTO } from '@app/base-system/lib/bounded-contexts/iam/authentication/application/dto/password-identifier.dto';
 import { RefreshTokenDTO } from '@app/base-system/lib/bounded-contexts/iam/authentication/application/dto/refresh-token.dto';
 import { AuthenticationService } from '@app/base-system/lib/bounded-contexts/iam/authentication/application/service/authentication.service';
+import { AuthorizationService } from '@app/base-system/lib/bounded-contexts/iam/authentication/application/service/authorization.service';
 
 import { CacheConstant } from '@lib/constants/cache.constant';
 import { USER_AGENT } from '@lib/constants/rest.constant';
+import { ApiJwtAuth } from '@lib/infra/decorators';
 import { Public } from '@lib/infra/decorators/public.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
 import { Ip2regionService } from '@lib/shared/ip2region/ip2region.service';
@@ -16,12 +18,14 @@ import { IAuthentication } from '@lib/typings/global';
 import { getClientIpAndPort } from '@lib/utils/ip.util';
 
 import { PasswordLoginDto } from '../dto/password-login.dto';
-import { ApiJwtAuth } from '@lib/infra/decorators';
 
 @ApiTags('Authentication - Module')
 @Controller('auth')
 export class AuthenticationController {
-  constructor(private readonly authenticationService: AuthenticationService) {}
+  constructor(
+    private readonly authenticationService: AuthenticationService,
+    private readonly authorizationService: AuthorizationService,
+  ) {}
 
   @Public()
   @Post('login')
@@ -90,10 +94,16 @@ export class AuthenticationController {
     const userRoles = await RedisUtility.instance.smembers(
       `${CacheConstant.AUTH_TOKEN_PREFIX}${user.uid}`,
     );
+    const buttons = await this.authorizationService.getUserButtonCodes(
+      userRoles,
+      user.domain,
+    );
+
     return ApiRes.success({
       userId: user.uid,
       userName: user.username,
       roles: userRoles,
+      buttons,
     });
   }
 }
