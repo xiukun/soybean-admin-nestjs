@@ -102,7 +102,6 @@ const {
       render: row => (
         <div class="flex-center gap-8px">
           <NButton
-            v-button-auth="'manage_role:menu_auth'"
             type="primary"
             quaternary
             size="small"
@@ -111,7 +110,6 @@ const {
             {$t('page.manage.role.menuAuth')}
           </NButton>
           <NButton
-            v-button-auth="'manage_role:api_auth'"
             type="primary"
             quaternary
             size="small"
@@ -120,7 +118,6 @@ const {
             {$t('page.manage.role.permissionAuth')}
           </NButton>
           <NButton
-            v-button-auth="'manage_role:button_auth'"
             type="primary"
             quaternary
             size="small"
@@ -128,14 +125,14 @@ const {
           >
             {$t('page.manage.role.buttonAuth')}
           </NButton>
-          <NButton v-button-auth="'manage_role:edit'" type="primary" ghost size="small" onClick={() => edit(String(row.id))}>
+          <NButton type="primary" ghost size="small" onClick={() => edit(String(row.id))}>
             {$t('common.edit')}
           </NButton>
           <NPopconfirm onPositiveClick={() => handleDelete(String(row.id))}>
             {{
               default: () => $t('common.confirmDelete'),
               trigger: () => (
-                <NButton v-button-auth="'manage_role:delete'" type="error" ghost size="small">
+                <NButton type="error" ghost size="small">
                   {$t('common.delete')}
                 </NButton>
               )

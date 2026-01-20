@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineOptions, onActivated, onBeforeMount, onDeactivated, ref } from 'vue';
+import { computed, onActivated, onBeforeMount, onDeactivated, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { fetchGetLowcodePageByMenuId } from '@/service/api/lowcode';
 import { useThemeStore } from '@/store/modules/theme';

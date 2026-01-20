@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref, toRefs, watch } from 'vue';
 import type { MessageType } from 'naive-ui';
 import { nanoid } from '@sa/utils';
 import { loadAmisSDK, normalizeLinkRefactor } from '@maita/amis-tools';
+import { registerCustomFilters } from '@/utils/amisFilters';
 import json5 from 'json5';
 import { router } from '@/router';
 import { amisRequest } from '@/service/request/amis-request';
@@ -60,6 +61,12 @@ const themeMode = computed(() => (themeStore.darkMode ? 'dark' : 'antd'));
 const mountAmis = async () => {
   if (!(window as any).amisRequire) {
     await loadAmisSDK();
+  }
+
+  // 确保 SDK 已加载后再注册自定义 filters（如 getPermissionById）
+  if (!(window as any).__amisFiltersRegistered) {
+    registerCustomFilters();
+    (window as any).__amisFiltersRegistered = true;
   }
 
   const amisRequire = (window as any).amisRequire;

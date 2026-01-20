@@ -38,7 +38,10 @@ export function registerCustomFilters() {
       }
     }
   }
+  const amisRequire = (window as any).amisRequire
+  if (typeof amisRequire !== 'function') return
+
   Object.keys(filtersObj).forEach((key) => {
-    ;(window as any).amisRequire('amis-core').registerFilter(key, (filtersObj as any)[key])
+    amisRequire('amis-core').registerFilter(key, (filtersObj as any)[key])
   })
 }

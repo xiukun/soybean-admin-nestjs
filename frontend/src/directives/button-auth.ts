@@ -9,23 +9,25 @@ import { useAuthStore } from '@/store/modules/auth';
  */
 export const buttonAuthDirective: Directive = {
   mounted(el, binding) {
+    // 通过环境变量控制是否启用按钮权限隐藏
+    const enabled = import.meta.env.VITE_ENABLE_BUTTON_AUTH === 'Y';
+    if (!enabled) return;
+
     const auth = useAuthStore();
 
     const value = binding.value as string | string[] | undefined;
-
     if (!value) return;
 
-    // 1) 静态路由 super 角色：直接放行
+    // 静态路由 super 角色：直接放行
     if (auth.isStaticSuper) return;
 
     const required = Array.isArray(value) ? value : [value];
     const owned = auth.userInfo.buttons || [];
 
-    // 2) fail-open：当 buttons 为空（未下发/接口失败/尚未刷新）时，默认不隐藏，保证可操作性
+    // fail-open：当 buttons 为空时默认不隐藏，避免锁死
     if (!owned.length) return;
 
     const pass = required.some((code) => owned.includes(code));
-
     if (!pass) {
       el.parentNode?.removeChild(el);
     }

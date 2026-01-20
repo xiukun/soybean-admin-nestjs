@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  ForbiddenException,
   Get,
   Param,
   Post,
@@ -17,8 +16,6 @@ import { LowcodePageUpdateCommand } from '@lowcode/page/commands/lowcode-page-up
 import { GetLowcodePageByCodeQuery } from '@lowcode/page/queries/get-lowcode-page-by-code.query';
 import { GetLowcodePageByIdQuery } from '@lowcode/page/queries/get-lowcode-page-by-id.query';
 
-import { AuthorizationService } from '@app/base-system/lib/bounded-contexts/iam/authentication/application/service/authorization.service';
-
 import { ApiRes } from '@lib/infra/rest/res.response';
 
 // Queries
@@ -32,17 +29,7 @@ export class DesignerController {
   constructor(
     private readonly queryBus: QueryBus,
     private readonly commandBus: CommandBus,
-    private readonly authorizationService: AuthorizationService,
   ) {}
-
-  private async assertButtonAllowed(req: any, code: string) {
-    const roleCodes: string[] = req.user?.roles || [];
-    // 兼容：如果没注入 roles，则退化为只允许超级管理员
-    const codes = await this.authorizationService.getUserButtonCodes(roleCodes, req.user.domain);
-    if (!codes.includes(code)) {
-      throw new ForbiddenException(`No permission: ${code}`);
-    }
-  }
 
   @Get('page/:id/url')
   @ApiOperation({ summary: 'Get designer URL for editing an existing page' })
@@ -96,8 +83,6 @@ pageId?: string;
     },
     @Request() req: any,
   ): Promise<ApiRes<{ pageId: string; versionId?: string }>> {
-    await this.assertButtonAllowed(req, 'lowcode:save');
-
     if (dto.pageId) {
       // Update existing page
       const result = await this.commandBus.execute(

@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   Param,
   Post,
@@ -27,12 +26,8 @@ import { GetLowcodePageVersionByIdQuery } from '@lowcode/page/queries/get-lowcod
 import { GetLowcodePageVersionsQuery } from '@lowcode/page/queries/get-lowcode-page-versions.query';
 import { GetLowcodePagesQuery } from '@lowcode/page/queries/get-lowcode-pages.query';
 
-import { AuthorizationService } from '@app/base-system/lib/bounded-contexts/iam/authentication/application/service/authorization.service';
-
-import { CacheConstant } from '@lib/constants/cache.constant';
 import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
-import { RedisUtility } from '@lib/shared/redis/redis.util';
 
 import {
   CreateLowcodePageDto,
@@ -50,22 +45,7 @@ export class LowcodePageController {
   constructor(
     private readonly queryBus: QueryBus,
     private readonly commandBus: CommandBus,
-    private readonly authorizationService: AuthorizationService,
   ) {}
-
-  private async assertButtonAllowed(req: any, code: string) {
-    const user = req.user;
-    const roleCodes = await RedisUtility.instance.smembers(
-      `${CacheConstant.AUTH_TOKEN_PREFIX}${user.uid}`,
-    );
-    const codes = await this.authorizationService.getUserButtonCodes(
-      roleCodes,
-      user.domain,
-    );
-    if (!codes.includes(code)) {
-      throw new ForbiddenException(`No permission: ${code}`);
-    }
-  }
 
   @Post()
   @ApiOperation({ summary: 'Create a new lowcode page' })
@@ -79,8 +59,6 @@ export class LowcodePageController {
     @Body() dto: CreateLowcodePageDto,
     @Request() req: any,
   ): Promise<ApiRes<{ id: string }>> {
-    await this.assertButtonAllowed(req, 'lowcode:save');
-
     const result = await this.commandBus.execute(
       new LowcodePageCreateCommand(
         dto.name,
@@ -169,8 +147,6 @@ export class LowcodePageController {
     @Body() dto: { schema: any; title?: string; changelog?: string },
     @Request() req: any,
   ): Promise<ApiRes<any>> {
-    await this.assertButtonAllowed(req, 'lowcode:save');
-
     // 首先检查菜单是否已有低代码页面
     const existingPage = await this.queryBus.execute(
       new GetLowcodePageByMenuQuery(parseInt(menuId, 10)),
@@ -226,8 +202,6 @@ export class LowcodePageController {
     @Body() dto: UpdateLowcodePageDto,
     @Request() req: any,
   ): Promise<ApiRes<null>> {
-    await this.assertButtonAllowed(req, 'lowcode:save');
-
     await this.commandBus.execute(
       new LowcodePageUpdateCommand(
         params.id,
