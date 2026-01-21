@@ -166,10 +166,14 @@ const { columns, columnChecks, data, loading, getData, getDataByPage } = useTabl
       width: 260,
       render: row => {
         const options = [
-          {
-            label: '按钮管理',
-            key: 'buttons'
-          },
+          ...(row.menuType === 'directory'
+            ? []
+            : [
+                {
+                  label: '按钮管理',
+                  key: 'buttons'
+                }
+              ]),
           {
             label: $t('common.delete'),
             key: 'delete'
@@ -178,6 +182,7 @@ const { columns, columnChecks, data, loading, getData, getDataByPage } = useTabl
 
         return (
           <div class="flex-center justify-end gap-12px">
+          
             {row.menuType === 'directory' && (
               <NButton
                 
