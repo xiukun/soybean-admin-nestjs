@@ -59,7 +59,6 @@ const title = computed(() => {
 
 type Model = RouteModel & {
   query: NonNullable<Api.SystemManage.Menu['query']>;
-  buttons: NonNullable<Api.SystemManage.Menu['buttons']>;
   layout: string;
   page: string;
   pathParam: string;
@@ -91,8 +90,7 @@ function createDefaultModel(): Model {
     multiTab: false,
     fixedIndexInTab: null,
     lowcodePageId: null,
-    query: [],
-    buttons: []
+    query: []
   };
 }
 
@@ -215,7 +213,7 @@ function handleOpenButtons() {
     window.$message?.warning('请先保存菜单后再管理按钮');
     return;
   }
-  emit('openButtons', { id: props.rowData.id, menuType: props.rowData.menuType });
+  emit('openButtons', { id: Number(props.rowData.id), menuType: props.rowData.menuType });
 }
 
 function getSubmitParams() {
@@ -276,9 +274,9 @@ watch(
 <template>
   <NDrawer v-model:show="visible" :width="720" placement="right">
     <NDrawerContent :title="title" closable>
-      <template #header-extra>
+      <div class="mb-12px flex justify-end">
         <NButton type="info" ghost @click="handleOpenButtons">按钮管理</NButton>
-      </template>
+      </div>
     <NScrollbar class="h-full pr-20px">
       <NForm ref="formRef" :model="model" :rules="rules" label-placement="left" :label-width="100">
         <NGrid responsive="screen" item-responsive>

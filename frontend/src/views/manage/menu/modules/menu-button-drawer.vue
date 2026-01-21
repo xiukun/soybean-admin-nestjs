@@ -8,6 +8,7 @@ const props = defineProps<{
   show: boolean;
   menuId: number | null;
   menuType?: Api.SystemManage.MenuType | null;
+  routeName?: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -191,8 +192,8 @@ async function create() {
 </script>
 
 <template>
-  <NDrawer v-model:show="visible" :width="720" placement="right">
-    <NDrawerContent :title="`按钮管理（${menuType || ''}#${menuId ?? '-'}）`" closable>
+  <NDrawer v-model:show="visible" :width="800" placement="right">
+    <NDrawerContent :title="`按钮管理（${routeName || ''}#${menuId ?? '-'}）`" closable>
       <div class="flex-col gap-12px">
         <NForm ref="formRef" :model="createForm" label-placement="left" label-width="90">
           <div class="flex gap-12px">

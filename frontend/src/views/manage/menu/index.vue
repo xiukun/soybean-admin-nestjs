@@ -22,10 +22,13 @@ const { bool: visible, setTrue: openModal } = useBoolean();
 const { bool: buttonDrawerVisible, setTrue: openButtonDrawer, setFalse: closeButtonDrawer } = useBoolean();
 const buttonDrawerMenuId = ref<number | null>(null);
 const buttonDrawerMenuType = ref<Api.SystemManage.MenuType | null>(null);
+const buttonDrawerRouteName = ref<Api.SystemManage.Menu.routeName | null>(null);
+
 function handleManageButtons(row: Api.SystemManage.Menu) {
   // Api typings: id 为 string，这里统一转 number
   buttonDrawerMenuId.value = Number(row.id);
   buttonDrawerMenuType.value = row.menuType;
+  buttonDrawerRouteName.value = row.routeName;
   openButtonDrawer();
 }
 
@@ -293,6 +296,7 @@ const allPages = ref<string[]>([]);
       v-model:show="buttonDrawerVisible"
       :menu-id="buttonDrawerMenuId"
       :menu-type="buttonDrawerMenuType"
+      :route-name="buttonDrawerRouteName"
     />
 
     <MenuOperateModal
