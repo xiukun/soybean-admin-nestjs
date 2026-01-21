@@ -279,7 +279,7 @@ watch(
       <template #header-extra>
         <NButton type="info" ghost @click="handleOpenButtons">按钮管理</NButton>
       </template>
-    <NScrollbar class="h-480px pr-20px">
+    <NScrollbar class="h-full pr-20px">
       <NForm ref="formRef" :model="model" :rules="rules" label-placement="left" :label-width="100">
         <NGrid responsive="screen" item-responsive>
           <NFormItemGi span="24 m:12" :label="$t('page.manage.menu.menuType')" path="menuType">
