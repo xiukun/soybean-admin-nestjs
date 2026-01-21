@@ -12,28 +12,28 @@ import {
   tipedLabel,
   defaultValue,
   BaseEventContext,
+  getI18nEnabled
 } from 'amis-editor'
-import { dataModelFormPlugin } from '@/components/common/json/data-model-form-plugin'
 import flatten from 'lodash/flatten'
 import cloneDeep from 'lodash/cloneDeep'
-import { i18n } from 'i18n-runtime'
 import { type IFormStore, type IFormItemStore, setVariable, getRendererByName } from 'amis-core'
 import { FieldSetting } from 'amis-editor/lib/renderer/FieldSetting'
 import { _isModelComp } from 'amis-editor/lib/util'
-import { getEventControlConfig } from 'amis-editor'
+import { getEventControlConfig } from 'amis-editor/lib/renderer/event-control/helper'
 import { getI18N, i18nExtendEnum } from '../common/utils'
+import { dataModelFormPlugin } from '../common/json/data-model-form-plugin'
 export class FormPluginRefactor extends FormPlugin {
   /** 表单脚手架 */
   get scaffoldForm(): ScaffoldForm {
-    const features = this.Features.filter(f => !f.disabled)
+    const features = this.Features.filter((f) => !f.disabled)
 
     return {
       title: '表单创建向导',
       mode: {
         mode: 'horizontal',
         horizontal: {
-          leftFixed: 'sm',
-        },
+          leftFixed: 'sm'
+        }
       },
       canRebuild: true,
       className: 'ae-Scaffold-Modal ae-Scaffold-Modal-content :AMISCSSWrapper',
@@ -48,12 +48,12 @@ export class FormPluginRefactor extends FormPlugin {
             value: FormPluginFeat,
             oldValue: FormPluginFeat,
             model: IFormItemStore,
-            form: IFormStore,
+            form: IFormStore
           ) => {
             if (value !== oldValue) {
               const data = form.data
 
-              Object.keys(data).forEach(key => {
+              Object.keys(data).forEach((key) => {
                 if (
                   /^(insert|edit|bulkEdit|view)Fields$/i.test(key) ||
                   /^(insert|edit|bulkEdit|view)Api$/i.test(key)
@@ -68,10 +68,10 @@ export class FormPluginRefactor extends FormPlugin {
                 initApi:
                   DSFeatureEnum.Insert === value || DSFeatureEnum.BulkEdit === value
                     ? undefined
-                    : '',
+                    : ''
               })
             }
-          },
+          }
         },
         dataModelFormPlugin,
         /** 数据源选择器 */
@@ -80,7 +80,7 @@ export class FormPluginRefactor extends FormPlugin {
             if (value !== oldValue) {
               const data = form.data
 
-              Object.keys(data).forEach(key => {
+              Object.keys(data).forEach((key) => {
                 if (
                   /^(insert|edit|bulkEdit|view)Fields$/i.test(key) ||
                   /^(insert|edit|bulkEdit|view)Api$/i.test(key)
@@ -94,16 +94,16 @@ export class FormPluginRefactor extends FormPlugin {
                 initApi:
                   DSFeatureEnum.Insert === value || DSFeatureEnum.BulkEdit === value
                     ? undefined
-                    : '',
+                    : ''
               })
             }
 
             return value
-          },
+          }
         }),
         /** 数据源相关配置 */
         ...flatten(
-          features.map(feat =>
+          features.map((feat) =>
             this.dsManager.buildCollectionFromBuilders((builder, builderKey) => {
               return {
                 type: 'container',
@@ -115,18 +115,18 @@ export class FormPluginRefactor extends FormPlugin {
                     renderer: 'form',
                     inScaffold: true,
                     sourceSettings: {
-                      userOrders: false,
-                    },
+                      userOrders: false
+                    }
                   }),
                   builder.makeFieldsSettingForm({
                     feat: feat.value,
                     renderer: 'form',
-                    inScaffold: true,
-                  }),
-                ]),
+                    inScaffold: true
+                  })
+                ])
               }
-            }),
-          ),
+            })
+          )
         ),
         {
           name: 'operators',
@@ -141,30 +141,30 @@ export class FormPluginRefactor extends FormPlugin {
               value: 'reset',
               order: 1,
               schema: {
-                level: 'default',
-              },
+                level: 'default'
+              }
             },
             {
               label: getI18N(i18nExtendEnum.取消),
               value: 'cancel',
               order: 0,
               schema: {
-                level: 'default',
-              },
+                level: 'default'
+              }
             },
             {
               label: getI18N(i18nExtendEnum.提交),
               value: 'submit',
               order: 2,
               schema: {
-                level: 'primary',
-              },
-            },
+                level: 'primary'
+              }
+            }
             // FormOperatorMap['reset'],
             // FormOperatorMap['submit'],
             // FormOperatorMap['cancel'],
-          ],
-        },
+          ]
+        }
       ],
       pipeIn: async (schema: any) => {
         /** 数据源类型 */
@@ -178,8 +178,8 @@ export class FormPluginRefactor extends FormPlugin {
           schema,
           include: {
             dataModelEntity: schema?.dataModelEntity,
-            mode: schema?.mode,
-          },
+            mode: schema?.mode
+          }
         })
 
         return { ...config }
@@ -198,7 +198,7 @@ export class FormPluginRefactor extends FormPlugin {
           inScaffold: true,
           entitySource: config?.entitySource,
           fallbackSchema: scaffold,
-          scaffoldConfig: config,
+          scaffoldConfig: config
         })
 
         /** 脚手架构建的 Schema 加个标识符，避免addChild替换 Schema ID */
@@ -239,7 +239,7 @@ export class FormPluginRefactor extends FormPlugin {
         }
 
         return errors
-      },
+      }
     }
   }
 
@@ -249,21 +249,20 @@ export class FormPluginRefactor extends FormPlugin {
       /\/crud\/filter\/form$/.test(context.path) ||
       /\/crud2\/filter\/\d\/form$/.test(context.path) ||
       /\/crud2\/filter\/form$/.test(context.path) ||
-      /body\/0\/filter$/.test(context.schemaPath);
+      /body\/0\/filter$/.test(context.schemaPath)
     /** 表单是否位于Dialog内 */
     const isInDialog: boolean =
-      context.path?.includes?.('dialog/') ||
-      context.path?.includes?.('drawer/');
+      context.path?.includes?.('dialog/') || context.path?.includes?.('drawer/')
     /** 是否使用Panel包裹 */
-    const isWrapped = 'this.wrapWithPanel !== false';
+    const isWrapped = 'this.wrapWithPanel !== false'
     const justifyLayout = (left: number = 2) => ({
       mode: 'horizontal',
       horizontal: {
         left,
         justify: true
       }
-    });
-    const schema = context?.node?.schema ?? context?.schema;
+    })
+    const schema = context?.node?.schema ?? context?.schema
     /** 新版数据源控件 */
     const generateDSControls = () => {
       const dsTypeSelector = this.dsManager.getDSSelectorSchema(
@@ -274,7 +273,7 @@ export class FormPluginRefactor extends FormPlugin {
             if (value !== oldValue) {
               const data = form.data
 
-              Object.keys(data).forEach(key => {
+              Object.keys(data).forEach((key) => {
                 if (
                   /^(insert|edit|bulkEdit|view)Fields$/i.test(key) ||
                   /^(insert|edit|bulkEdit|view)Api$/i.test(key)
@@ -288,7 +287,7 @@ export class FormPluginRefactor extends FormPlugin {
               form.deleteValueByName('api')
             }
             return value
-          },
+          }
         },
         {
           schema: context?.schema,
@@ -303,21 +302,20 @@ export class FormPluginRefactor extends FormPlugin {
             }
 
             return dsType
-          },
-        },
+          }
+        }
       )
       /** 默认数据源类型 */
       const defaultDsType = dsTypeSelector.value
       /** 数据源配置 */
       const dsSettings = flatten(
-        this.Features.map(feat =>
+        this.Features.map((feat) =>
           this.dsManager.buildCollectionFromBuilders((builder, builderKey, _index) => {
             return {
               type: 'container',
               className: 'form-item-gap',
-              visibleOn: `$\{feat === '${feat.value}' && (dsType == null ? '${builderKey}' === '${
-                defaultDsType || ApiDSBuilderKey
-              }' : dsType === '${builderKey}')}`,
+              visibleOn: `$\{feat === '${feat.value}' && (dsType == null ? '${builderKey}' === '${defaultDsType || ApiDSBuilderKey
+                }' : dsType === '${builderKey}')}`,
               body: flatten([
                 builder.makeSourceSettingForm({
                   feat: feat.value,
@@ -331,13 +329,13 @@ export class FormPluginRefactor extends FormPlugin {
                      * 1. 脚手架中，默认生成的是 viewApi
                      * 2. 配置面板中要读取Schema 配置，所以使用 initApi
                      */
-                    ...(feat.value === DSFeatureEnum.View ? { name: 'initApi' } : {}),
-                  },
-                }),
-              ]),
+                    ...(feat.value === DSFeatureEnum.View ? { name: 'initApi' } : {})
+                  }
+                })
+              ])
             }
-          }),
-        ),
+          })
+        )
       )
 
       return [dsTypeSelector, ...dsSettings]
@@ -357,23 +355,23 @@ export class FormPluginRefactor extends FormPlugin {
               label: '保存接口',
               sampleBuilder: () => {
                 return `{\n  "status": 0,\n  "msg": "",\n  // 可以不返回，如果返回了数据将被 merge 进来。\n  data: {}\n}`
-              },
+              }
             }),
             getSchemaTpl('apiControl', {
               name: 'asyncApi',
               label: tipedLabel(
                 '异步检测接口',
-                '设置此属性后，表单提交发送保存接口后，还会继续轮询请求该接口，直到返回 finished 属性为 true 才 结束',
+                '设置此属性后，表单提交发送保存接口后，还会继续轮询请求该接口，直到返回 finished 属性为 true 才 结束'
               ),
-              visibleOn: 'this.asyncApi != null',
+              visibleOn: 'this.asyncApi != null'
             }),
             getSchemaTpl('apiControl', {
               name: 'initAsyncApi',
               label: tipedLabel(
                 '异步检测接口',
-                '设置此属性后，表单请求 initApi 后，还会继续轮询请求该接口，直到返回 finished 属性为 true 才 结束',
+                '设置此属性后，表单请求 initApi 后，还会继续轮询请求该接口，直到返回 finished 属性为 true 才 结束'
               ),
-              visibleOn: 'data.initAsyncApi != null',
+              visibleOn: 'data.initAsyncApi != null'
             }),
             getSchemaTpl('apiControl', {
               name: 'initApi',
@@ -394,14 +392,14 @@ export class FormPluginRefactor extends FormPlugin {
                   {
                     status: 0,
                     msg: '',
-                    data: data,
+                    data: data
                   },
                   null,
-                  2,
+                  2
                 )
-              },
-            }),
-          ],
+              }
+            })
+          ]
         }
       } else {
         return {
@@ -425,7 +423,7 @@ export class FormPluginRefactor extends FormPlugin {
                 value: FormPluginFeat,
                 oldValue: FormPluginFeat,
                 model: IFormItemStore,
-                form: IFormStore,
+                form: IFormStore
               ) => {
                 if (value !== oldValue) {
                   form.setValues({
@@ -434,10 +432,10 @@ export class FormPluginRefactor extends FormPlugin {
                       DSFeatureEnum.Insert === value || DSFeatureEnum.BulkEdit === value
                         ? undefined
                         : '',
-                    api: undefined,
+                    api: undefined
                   })
                 }
-              },
+              }
             },
             ...generateDSControls(),
             {
@@ -445,7 +443,7 @@ export class FormPluginRefactor extends FormPlugin {
               label: '实体模型',
               name: 'dataModelEntity',
               overflowConfig: {
-                maxTagCount: -1,
+                maxTagCount: -1
               },
               modalClassName: 'app-popover :AMISCSSWrapper',
               multiple: false,
@@ -454,11 +452,11 @@ export class FormPluginRefactor extends FormPlugin {
                 url: '/system/structTab/query',
                 method: 'post',
                 data: {
-                  objName: '',
+                  objName: ''
                 },
                 adaptor: '',
                 messages: {},
-                dataType: 'json',
+                dataType: 'json'
               },
               labelField: 'remark',
               valueField: 'id',
@@ -467,16 +465,18 @@ export class FormPluginRefactor extends FormPlugin {
               pickerSchema: {
                 mode: 'list',
                 listItem: {
-                  title: '${remark}',
+                  title: '${remark}'
                 },
                 labelField: 'remark',
-                valueField: 'id',
-              },
-            },
-          ],
+                valueField: 'id'
+              }
+            }
+          ]
         }
       }
     }
+    const i18nEnabled = getI18nEnabled()
+
     return [
       getSchemaTpl('tabs', [
         {
@@ -488,23 +488,21 @@ export class FormPluginRefactor extends FormPlugin {
               {
                 title: '基本',
                 body: [
-                  {
-                    name: 'title',
-                    type: 'input-text',
+                  getSchemaTpl('pageTitle', {
                     label: '标题',
-                    visibleOn: isWrapped,
-                  },
+                    visibleOn: isWrapped
+                  }),
                   getSchemaTpl('switch', {
                     name: 'autoFocus',
-                    label: tipedLabel('自动聚焦', '设置后将让表单的第一个可输入的表单项获得焦点'),
+                    label: tipedLabel('自动聚焦', '设置后将让表单的第一个可输入的表单项获得焦点')
                   }),
                   getSchemaTpl('switch', {
                     name: 'persistData',
                     label: tipedLabel(
                       '本地缓存',
-                      '开启后，表单的数据会缓存在浏览器中，切换页面或关闭弹框不会清空当前表单内的数据',
+                      '开启后，表单的数据会缓存在浏览器中，切换页面或关闭弹框不会清空当前表单内的数据'
                     ),
-                    pipeIn: (value: boolean | string | undefined) => !!value,
+                    pipeIn: (value: boolean | string | undefined) => !!value
                   }),
                   {
                     type: 'container',
@@ -515,53 +513,58 @@ export class FormPluginRefactor extends FormPlugin {
                         name: 'persistData',
                         label: tipedLabel(
                           '持久化Key',
-                          '使用静态数据或者变量：<code>"\\${id}"</code>，来为Form指定唯一的Key',
+                          '使用静态数据或者变量：<code>"\\${id}"</code>，来为Form指定唯一的Key'
                         ),
                         pipeIn: (value: boolean | string | undefined) =>
-                          typeof value === 'string' ? value : '',
+                          typeof value === 'string' ? value : ''
                       }),
                       {
                         type: 'input-array',
                         label: tipedLabel(
                           '保留字段集合',
-                          '如果只需要保存Form中的部分字段值，请配置需要保存的字段名称集合，留空则保留全部字段',
+                          '如果只需要保存Form中的部分字段值，请配置需要保存的字段名称集合，留空则保留全部字段'
                         ),
                         name: 'persistDataKeys',
                         items: {
                           type: 'input-text',
                           placeholder: '请输入字段名',
-                          options: flatten(schema?.body ?? schema?.controls ?? [])
+                          options: flatten(
+                            schema?.body ?? schema?.controls ?? []
+                          )
                             .map((item: any) => {
-                              const isFormItem = getRendererByName(item?.type)?.isFormItem
+                              const isFormItem = getRendererByName(
+                                item?.type
+                              )?.isFormItem;
 
-                              return isFormItem && typeof item?.name === 'string'
+                              return isFormItem &&
+                                typeof item?.name === 'string'
                                 ? { label: item.name, value: item.name }
-                                : false
+                                : false;
                             })
-                            .filter(Boolean),
+                            .filter(Boolean)
                         },
-                        itemClassName: 'bg-transparent',
+                        itemClassName: 'bg-transparent'
                       },
                       getSchemaTpl('switch', {
                         name: 'clearPersistDataAfterSubmit',
                         label: tipedLabel(
                           '提交成功后清空缓存',
-                          '开启本地缓存并开启本配置项后，表单提交成功后，会自动清除浏览器中当前表单的缓存数据',
+                          '开启本地缓存并开启本配置项后，表单提交成功后，会自动清除浏览器中当前表单的缓存数据'
                         ),
-                        pipeIn: defaultValue(false),
-                      }),
-                    ],
+                        pipeIn: defaultValue(false)
+                      })
+                    ]
                   },
                   getSchemaTpl('switch', {
                     name: 'canAccessSuperData',
                     label: tipedLabel(
                       '自动填充数据域同名变量',
-                      '默认表单是可以获取到完整数据链中的数据的，如果想使表单的数据域独立，请关闭此配置',
+                      '默认表单是可以获取到完整数据链中的数据的，如果想使表单的数据域独立，请关闭此配置'
                     ),
-                    pipeIn: defaultValue(true),
+                    pipeIn: defaultValue(true)
                   }),
-                  getSchemaTpl('loadingConfig', { label: '加载设置' }, { context }),
-                ],
+                  getSchemaTpl('loadingConfig', { label: '加载设置' }, { context })
+                ]
               },
               {
                 title: '提交设置',
@@ -571,26 +574,32 @@ export class FormPluginRefactor extends FormPlugin {
                     type: 'input-text',
                     label: tipedLabel(
                       '提交按钮名称',
-                      '如果底部按钮不是自定义按钮时，可以通过该配置可以快速修改按钮名称，如果设置成空，则可以把默认按钮去掉。',
+                      '如果底部按钮不是自定义按钮时，可以通过该配置可以快速修改按钮名称，如果设置成空，则可以把默认按钮去掉。'
                     ),
                     pipeIn: defaultValue('提交'),
                     visibleOn: `${isWrapped} && !this.actions && (!Array.isArray(this.body) || !this.body.some(function(item) {return !!~['submit','button','reset','button-group'].indexOf(item.type);}))`,
-                    ...justifyLayout(4),
+                    ...justifyLayout(4)
                   },
                   getSchemaTpl('switch', {
                     name: 'submitOnChange',
-                    label: tipedLabel('修改即提交', '设置后，表单中每次有修改都会触发提交'),
+                    label: tipedLabel(
+                      '修改即提交',
+                      '设置后，表单中每次有修改都会触发提交'
+                    )
                   }),
                   getSchemaTpl('switch', {
                     name: 'resetAfterSubmit',
-                    label: tipedLabel('提交后重置表单', '表单提交后，让所有表单项的值还原成初始值'),
+                    label: tipedLabel(
+                      '提交后重置表单',
+                      '表单提交后，让所有表单项的值还原成初始值'
+                    )
                   }),
                   getSchemaTpl('switch', {
                     name: 'preventEnterSubmit',
                     label: tipedLabel(
                       '阻止回车提交',
-                      '默认按回车键触发表单提交，开启后将阻止这一行为',
-                    ),
+                      '默认按回车键触发表单提交，开启后将阻止这一行为'
+                    )
                   }),
                   // isCRUDFilter
                   //   ? null
@@ -603,11 +612,11 @@ export class FormPluginRefactor extends FormPlugin {
                   //     }),
                   isInDialog
                     ? getSchemaTpl('switch', {
-                        label: '提交后关闭对话框',
-                        name: 'closeDialogOnSubmit',
-                        pipeIn: (value: any) => value !== false,
-                      })
-                    : null,
+                      label: '提交后关闭对话框',
+                      name: 'closeDialogOnSubmit',
+                      pipeIn: (value: any) => value !== false
+                    })
+                    : null
                   // isCRUDFilter
                   //   ? null
                   //   : {
@@ -649,7 +658,7 @@ export class FormPluginRefactor extends FormPlugin {
                   //         ]
                   //       }
                   //     }
-                ],
+                ]
               },
               {
                 title: '组合校验',
@@ -666,53 +675,107 @@ export class FormPluginRefactor extends FormPlugin {
                       label: '添加校验规则',
                       block: true,
                       icon: 'fa fa-plus',
-                      className: cx('ae-Button--enhance'),
+                      className: cx('ae-Button--enhance')
                     },
                     items: [
                       {
                         type: 'ae-formulaControl',
                         name: 'rule',
                         label: '校验规则',
-                        ...justifyLayout(4),
+                        ...justifyLayout(4)
                       },
                       {
                         name: 'message',
                         label: '报错提示',
-                        type: 'input-text',
-                        ...justifyLayout(4),
-                      },
-                    ],
-                  },
-                ],
+                        type: i18nEnabled ? 'input-text-i18n' : 'input-text',
+                        ...justifyLayout(4)
+                      }
+                    ]
+                  }
+                ]
               },
               {
                 title: '状态',
-                body: [getSchemaTpl('disabled'), getSchemaTpl('visible'), getSchemaTpl('static')],
+                body: [getSchemaTpl('disabled'), getSchemaTpl('visible'), getSchemaTpl('static')]
               },
               {
                 title: '高级',
                 body: [
                   getSchemaTpl('switch', {
                     name: 'debug',
-                    label: tipedLabel('开启调试', '在表单顶部显示当前表单的数据'),
-                  }),
-                ],
-              },
-            ].filter(Boolean),
-          ),
+                    label: tipedLabel('开启调试', '在表单顶部显示当前表单的数据')
+                  })
+                ]
+              }
+            ].filter(Boolean)
+          )
         },
         {
-          title: getI18N(i18nExtendEnum.外观), //'外观',
+          title: '外观',
           body: getSchemaTpl('collapseGroup', [
             {
               title: '布局',
               body: [
-                getSchemaTpl('formItemMode', {
-                  isForm: true,
-                  /** Form组件默认为normal模式 */
-                  defaultValue: 'normal',
-                }),
-                getSchemaTpl('horizontal'),
+                {
+                  label: '布局',
+                  name: 'mode',
+                  type: 'select',
+                  pipeIn: defaultValue('flex'),
+                  options: [
+                    {
+                      label: '网格',
+                      value: 'flex'
+                    },
+                    {
+                      label: '内联',
+                      value: 'inline'
+                    },
+                    {
+                      label: '水平',
+                      value: 'horizontal'
+                    },
+                    {
+                      label: '垂直',
+                      value: 'normal'
+                    }
+                  ],
+                  pipeOut: (v: string) => (v ? v : undefined),
+                  onChange: (
+                    value: string,
+                    oldValue: string,
+                    model: any,
+                    form: any
+                  ) => {
+                    const body = [...form.data.body];
+                    let temp = body;
+                    if (value === 'flex') {
+                      temp = body?.map((item: any, index: number) => {
+                        return {
+                          ...item,
+                          row: index,
+                          mode: undefined
+                        };
+                      });
+                    } else {
+                      temp = body?.map((item: any, index: number) => {
+                        return {
+                          ...item,
+                          row: undefined,
+                          colSize: undefined,
+                          labelAlign: undefined,
+                          mode: undefined
+                        };
+                      });
+                    }
+                    form.setValueByName('body', temp);
+                  }
+                },
+                {
+                  type: 'col-count',
+                  name: '__rolCount',
+                  label: tipedLabel('列数', '仅对PC页面生效'),
+                  visibleOn: 'this.mode === "flex"'
+                },
                 {
                   label: '列数',
                   name: 'columnCount',
@@ -722,47 +785,248 @@ export class FormPluginRefactor extends FormPlugin {
                   precision: 0,
                   resetValue: '',
                   unitOptions: ['列'],
+                  hiddenOn: 'this.mode === "flex"',
                   pipeOut: (value: string) => {
                     if (value && typeof value === 'string') {
-                      const count = Number.parseInt(value?.replace(/\D+/g, ''), 10)
+                      const count = Number.parseInt(
+                        value?.replace(/\D+/g, ''),
+                        10
+                      );
 
-                      return isNaN(count) ? undefined : count
+                      return isNaN(count) ? undefined : count;
                     } else if (value && typeof value === 'number') {
-                      return value
+                      return value;
                     } else {
-                      return undefined
+                      return undefined;
                     }
-                  },
+                  }
                 },
-                {
-                  type: 'label-align',
-                  name: 'labelAlign',
-                  label: '标签位置',
-                },
-                getSchemaTpl('theme:select', {
-                  label: '标签宽度',
-                  name: 'labelWidth',
-                  hiddenOn: 'this.labelAlign == "top"',
-                }),
-              ],
-            },
-            {
-              title: getI18N(i18nExtendEnum.其他), //'其他',
-              body: [
                 getSchemaTpl('switch', {
                   name: 'wrapWithPanel',
                   label: tipedLabel(
                     'Panel包裹',
-                    '关闭后，表单只会展示表单项，标题和操作栏将不会显示。',
+                    '关闭后，表单只会展示表单项，标题和操作栏将不会显示。'
                   ),
-                  pipeIn: defaultValue(true),
+                  pipeIn: defaultValue(true)
                 }),
                 getSchemaTpl('switch', {
                   name: 'affixFooter',
-                  label: tipedLabel('吸附操作栏', '开启后，滚动表单内容区时使底部操作区悬浮吸附'),
-                  visibleOn: isWrapped,
+                  label: tipedLabel(
+                    '吸附操作栏',
+                    '开启后，滚动表单内容区时使底部操作区悬浮吸附'
+                  ),
+                  visibleOn: isWrapped
                 }),
-              ],
+                getSchemaTpl('switch', {
+                  name: 'collapsible',
+                  label: tipedLabel(
+                    '可折叠',
+                    '开启后，表单可以折叠显示，常用于搜索表单节省空间'
+                  ),
+                  disabledOn: 'this.mode!=="flex"',
+                  pipeIn: (value: any) => !!value
+                }),
+                {
+                  type: 'container',
+                  className: 'ae-ExtendMore mb-3',
+                  visibleOn: 'this.collapsible',
+                  body: [
+                    {
+                      type: 'input-number',
+                      name: 'collapseCount',
+                      label: tipedLabel(
+                        '默认显示行数',
+                        '设置默认显示的表单项行数，超出部分将被折叠'
+                      ),
+                      min: 1,
+                      max: 10,
+                      step: 1,
+                      precision: 0,
+                      pipeIn: defaultValue(1),
+                      ...justifyLayout(4)
+                    },
+                    getSchemaTpl('switch', {
+                      name: 'defaultCollapsed',
+                      label: tipedLabel(
+                        '默认折叠',
+                        '页面加载时是否默认折叠表单'
+                      ),
+                      pipeIn: defaultValue(false)
+                    }),
+                    {
+                      type: 'input-text',
+                      name: 'expandText',
+                      label: '展开按钮文字',
+                      placeholder: '展开',
+                      pipeIn: defaultValue('展开'),
+                      ...justifyLayout(4)
+                    },
+                    {
+                      type: 'input-text',
+                      name: 'collapseText',
+                      label: '收起按钮文字',
+                      placeholder: '收起',
+                      pipeIn: defaultValue('收起'),
+                      ...justifyLayout(4)
+                    }
+                  ]
+                }
+              ]
+            },
+            getSchemaTpl('theme:base', {
+              classname: 'formControlClassName',
+              title: '表单样式',
+              needState: false,
+              hiddenOn: isWrapped
+            }),
+            getSchemaTpl('theme:base', {
+              classname: 'panelClassName',
+              title: 'Panel样式',
+              editorValueToken: '--Panel',
+              hidePadding: true,
+              needState: false,
+              visibleOn: isWrapped
+            }),
+            getSchemaTpl('theme:base', {
+              classname: 'headerControlClassName',
+              title: '标题区样式',
+              visibleOn: isWrapped,
+              editorValueToken: '--Panel-heading',
+              hideRadius: true,
+              hideShadow: true,
+              hideMargin: true,
+              needState: false,
+              extra: [
+                getSchemaTpl('theme:font', {
+                  name: 'themeCss.headerTitleControlClassName.font',
+                  editorValueToken: '--Panel-heading'
+                })
+              ]
+            }),
+
+            getSchemaTpl('theme:base', {
+              classname: 'bodyControlClassName',
+              title: '内容区样式',
+              editorValueToken: '--Panel-body',
+              hideRadius: true,
+              hideShadow: true,
+              hideBorder: true,
+              hideMargin: true,
+              hideBackground: true,
+              needState: false,
+              visibleOn: isWrapped
+            }),
+            {
+              title: '表单项样式',
+              body: [
+                {
+                  type: 'select',
+                  name: 'labelAlign',
+                  label: '标题位置',
+                  selectFirst: true,
+                  hiddenOn:
+                    'this.mode === "normal" || this.mode === "inline" || this.mode === "horizontal"',
+                  options: [
+                    {
+                      label: '上下布局',
+                      value: 'top'
+                    },
+                    {
+                      label: '水平居左',
+                      value: 'left'
+                    },
+                    {
+                      label: '水平居右',
+                      value: 'right'
+                    }
+                  ]
+                },
+                {
+                  type: 'select',
+                  name: 'labelAlign',
+                  label: '标题位置',
+                  selectFirst: true,
+                  hiddenOn:
+                    'this.mode === "normal" || this.mode === "inline" || this.mode === "flex"',
+                  options: [
+                    {
+                      label: '水平居左',
+                      value: 'left'
+                    },
+                    {
+                      label: '水平居右',
+                      value: 'right'
+                    }
+                  ]
+                },
+                getSchemaTpl('theme:select', {
+                  label: '标题宽度',
+                  name: 'labelWidth',
+                  hiddenOn:
+                    'this.mode === "normal" || this.labelAlign === "top"'
+                }),
+                {
+                  name: 'labelOverflow',
+                  type: 'button-group-select',
+                  label: '文本超出处理',
+                  size: 'xs',
+                  mode: 'inline',
+                  inputClassName: 'mt-1 w-full',
+                  pipeIn: defaultValue('default'),
+                  options: [
+                    {
+                      label: '默认',
+                      value: 'default'
+                    },
+                    {
+                      label: '溢出隐藏',
+                      value: 'ellipsis'
+                    }
+                  ]
+                },
+
+                getSchemaTpl('theme:font', {
+                  label: '标题文字',
+                  editorValueToken: '--Form-item',
+                  hasSenior: false,
+                  name: 'themeCss.itemLabelClassName.font'
+                }),
+                getSchemaTpl('theme:paddingAndMargin', {
+                  label: '标题边距',
+                  hidePadding: true,
+                  name: 'themeCss.itemLabelClassName.padding-and-margin'
+                }),
+                getSchemaTpl('theme:paddingAndMargin', {
+                  label: '表单项边距',
+                  hidePadding: true,
+                  name: 'themeCss.itemClassName.padding-and-margin'
+                }),
+                getSchemaTpl('theme:font', {
+                  label: '静态展示文字',
+                  editorValueToken: '--Form-static',
+                  name: 'themeCss.staticClassName.font',
+                  visibleOn: '!!this.static || !!this.staticOn'
+                })
+              ]
+            },
+            getSchemaTpl('theme:base', {
+              classname: 'actionsControlClassName',
+              title: '操作区样式',
+              editorValueToken: '--Panel-footer',
+              hideRadius: true,
+              hideShadow: true,
+              hideMargin: true,
+              needState: false,
+              visibleOn: isWrapped
+            }),
+            {
+              title: '自定义样式',
+              body: [
+                {
+                  type: 'theme-cssCode',
+                  label: false
+                }
+              ]
             },
             /** */
             getSchemaTpl('style:classNames', {
@@ -771,26 +1035,26 @@ export class FormPluginRefactor extends FormPlugin {
                 getSchemaTpl('className', {
                   name: 'panelClassName',
                   label: 'Panel',
-                  visibleOn: isWrapped,
+                  visibleOn: isWrapped
                 }),
                 getSchemaTpl('className', {
                   name: 'headerClassName',
                   label: '标题区',
-                  visibleOn: isWrapped,
+                  visibleOn: isWrapped
                 }),
                 getSchemaTpl('className', {
                   name: 'bodyClassName',
                   label: '内容区',
-                  visibleOn: isWrapped,
+                  visibleOn: isWrapped
                 }),
                 getSchemaTpl('className', {
                   name: 'actionsClassName',
                   label: '操作区',
-                  visibleOn: isWrapped,
-                }),
-              ],
-            }),
-          ]),
+                  visibleOn: isWrapped
+                })
+              ]
+            })
+          ])
         },
         {
           title: getI18N(i18nExtendEnum.事件), //'事件',
@@ -798,11 +1062,11 @@ export class FormPluginRefactor extends FormPlugin {
           body: [
             getSchemaTpl('eventControl', {
               name: 'onEvent',
-              ...getEventControlConfig(this.manager, context),
-            }),
-          ],
-        },
-      ]),
+              ...getEventControlConfig(this.manager, context)
+            })
+          ]
+        }
+      ])
     ]
   }
 }
