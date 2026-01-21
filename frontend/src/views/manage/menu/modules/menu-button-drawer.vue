@@ -57,7 +57,9 @@ async function load() {
   loading.value = false;
 
   if (error) return;
-  rows.value = (data || []).map(r => ({ ...r, editing: false }));
+  rows.value = (data || [])
+    .map(r => ({ ...r, editing: false }))
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || String(a.id).localeCompare(String(b.id)));
 }
 
 watch(
@@ -184,7 +186,7 @@ async function create() {
 
   createForm.code = '';
   createForm.description = '';
-  createForm.order = 0;
+  createForm.order = rows.value.length ? Math.max(...rows.value.map(r => r.order ?? 0)) + 1 : 0;
 
   message.success('创建成功');
   await load();
@@ -222,9 +224,9 @@ async function create() {
             <tr>
               <th style="width: 180px">code</th>
               <th>说明</th>
-              <th style="width: 70px">排序</th>
+              <th style="width: 100px">排序</th>
               <th style="width: 70px">状态</th>
-              <th style="width: 150px">操作</th>
+              <th style="width: 200px">操作</th>
             </tr>
           </thead>
           <tbody>
@@ -246,7 +248,7 @@ async function create() {
                 </NButton>
               </td>
               <td>
-                <NSpace>
+                <NSpace size="small" :wrap="false">
                   <NButton v-if="!r.editing" size="small" type="primary" ghost @click="startEdit(r)">编辑</NButton>
                   <NButton v-else size="small" type="primary" @click="saveEdit(r)">保存</NButton>
                   <NButton size="small" quaternary :disabled="index === 0" @click="moveUp(index)">上移</NButton>
