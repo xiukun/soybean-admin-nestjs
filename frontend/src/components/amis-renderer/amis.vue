@@ -11,6 +11,7 @@ import { useThemeStore } from '@/store/modules/theme';
 import { useAppStore } from '@/store/modules/app';
 import { localStg } from '@/utils/storage';
 import { getSelectedLangPack } from '@/locales/amis-index';
+import '@/styles/scss/amis.scss'
 interface Props {
   schema?: any;
   locals?: any;
