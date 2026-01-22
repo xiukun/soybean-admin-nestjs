@@ -141,7 +141,7 @@ export function setTplApi() {
             hideRoot: true,
             showIcon: true,
             initiallyOpen: true,
-            source: '${window:AG_NEPTUNE_LOWCODE_MENUS}',
+            source: '${window:MAITA_LOWCODE_MENUS}',
             labelField: 'menuName',
             valueField: 'menuId',
             clearable: true,

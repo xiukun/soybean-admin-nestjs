@@ -19,12 +19,12 @@ export const setToken = () => {
   const searchParams = getSearchParams()
   const token = searchParams.get('token')
   if (token) {
-    window.AG_NEPTUNE_LOWCODE_TOKEN = token
-    localStorage.setItem('AG_NEPTUNE_LOWCODE_TOKEN', token)
+    window.MAITA_LOWCODE_TOKEN = token
+    localStorage.setItem('MAITA_LOWCODE_TOKEN', token)
   } else {
-    window.AG_NEPTUNE_LOWCODE_TOKEN = localStorage.getItem('AG_NEPTUNE_LOWCODE_TOKEN')
+    window.MAITA_LOWCODE_TOKEN = localStorage.getItem('MAITA_LOWCODE_TOKEN')
   }
 }
 
 export const getToken = () =>
-  window.AG_NEPTUNE_LOWCODE_TOKEN || localStorage.getItem('AG_NEPTUNE_LOWCODE_TOKEN')
+  window.MAITA_LOWCODE_TOKEN || localStorage.getItem('MAITA_LOWCODE_TOKEN')

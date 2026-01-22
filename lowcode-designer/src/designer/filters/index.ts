@@ -18,24 +18,24 @@ export function registerCustomFilters() {
   // 数据字典：根据 dictId 动态加载字典项（返回数组，供 AMIS select 使用）
   /**
    * 数据字典：同步从缓存中取 options，避免异步 filter 导致 AMIS 不渲染 & 避免重复请求
-   * - window.AG_NEPTUNE_LOWCODE_DICT_ALL: [{id,name,options:[{label,dictValue}]}]
+   * - window.MAITA_LOWCODE_DICT_ALL: [{id,name,options:[{label,dictValue}]}]
    */
   filtersObj.getDictById = (dictId: string) => {
     if (!dictId) return undefined
 
-    const cacheKey = 'AG_NEPTUNE_LOWCODE_DICT_ALL'
-    if (!(window as any).AG_NEPTUNE_LOWCODE_DICT_ALL) {
+    const cacheKey = 'MAITA_LOWCODE_DICT_ALL'
+    if (!(window as any).MAITA_LOWCODE_DICT_ALL) {
       const cached = localStorage.getItem(cacheKey)
       if (cached) {
         try {
-          ;(window as any).AG_NEPTUNE_LOWCODE_DICT_ALL = JSON.parse(cached)
+          ;(window as any).MAITA_LOWCODE_DICT_ALL = JSON.parse(cached)
         } catch {
           // ignore
         }
       }
     }
 
-    const dictAll = (window as any).AG_NEPTUNE_LOWCODE_DICT_ALL as any[] | undefined
+    const dictAll = (window as any).MAITA_LOWCODE_DICT_ALL as any[] | undefined
     const found = dictAll?.find(d => d.id === dictId)
     console.log('found?.options', found?.options)
     return found?.options || undefined

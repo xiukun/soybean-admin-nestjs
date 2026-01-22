@@ -373,7 +373,7 @@ export const dictIdProp = (content: any) => ({
   label: getI18N(i18nExtendEnum.数据字典),
   name: 'dictId',
   multiple: false,
-  source: '${ls:AG_NEPTUNE_LOWCODE_DICT_NAME_LIST}',
+  source: '${ls:MAITA_LOWCODE_DICT_NAME_LIST}',
   // source: {
   //   url: 'https://mock.apifox.com/m1/3546534-0-default/dictList',
   //   method: 'get',

@@ -11,6 +11,7 @@ const init = new AgGlobalConfig() // 初始化全局配置
      * @param clear 是否清除 默认false
      */
     dynimicColumnCache: (ctx: any, event: any, clear: boolean = false) => {
+      debugger
       //  前端缓存动态列，如果不存在动态列调整，读取当前json中的列配置缓存
       if (ctx?.props?.dynimicColumnKey && event?.data?.columns) {
         if (clear) {

@@ -4,7 +4,7 @@ import { getButtonMenusTreeApi } from '@/api/amis'
 import { treeFindPath } from '@/utils/utils'
 
 const searchParams = new URLSearchParams(location.hash || location.search)
-const menusName = 'AG_NEPTUNE_LOWCODE_MENUS' // 菜单缓存key
+const menusName = 'MAITA_LOWCODE_MENUS' // 菜单缓存key
 const useMenusStore = create((set: any, get: any) => ({
   pageId: '', // 菜单页面id
   menusTree: [], //菜单树数据

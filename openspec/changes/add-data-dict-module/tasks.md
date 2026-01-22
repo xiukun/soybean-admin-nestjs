@@ -16,7 +16,7 @@
 - [x] 3.3 实现字典管理页面：右侧字典项维护（CRUD、排序、启用/禁用、批量删除）
 
 ## 4. Lowcode Designer
-- [x] 4.1 重新实现 `window.AG_NEPTUNE_LOWCODE_DICT_NAME_LIST` 的加载/缓存/刷新
+- [x] 4.1 重新实现 `window.MAITA_LOWCODE_DICT_NAME_LIST` 的加载/缓存/刷新
 - [x] 4.2 确认 `dictIdProp` 的 source 与后端返回格式匹配（`labelField/valueField` 对齐）
 - [x] 4.3 实现/适配 `getDictById`（若当前过滤器不存在或不匹配）
 

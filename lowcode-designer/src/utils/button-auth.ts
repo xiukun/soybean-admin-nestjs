@@ -2,7 +2,7 @@ import to from 'await-to-js'
 import agHttp from '@/utils/amis-http'
 
 const BUTTONS_KEY = 'LOWCODE_USER_BUTTON_CODES'
-const DESIGNER_BUTTON_TREE_KEY = 'AG_NEPTUNE_LOWCODE_MENUS'
+const DESIGNER_BUTTON_TREE_KEY = 'MAITA_LOWCODE_MENUS'
 
 export async function fetchUserButtonCodes(): Promise<string[]> {
   const [err, res] = await to<any>(agHttp.get('/authorization/getUserButtons'))
@@ -15,7 +15,7 @@ export async function fetchUserButtonCodes(): Promise<string[]> {
 
 /**
  * 设计器用于“绑定权限”的按钮树（按 lowcode 菜单分组）
- * 写入 window.AG_NEPTUNE_LOWCODE_MENUS 供 amis schemaTpl tree-select 使用
+ * 写入 window.MAITA_LOWCODE_MENUS 供 amis schemaTpl tree-select 使用
  */
 export async function fetchDesignerButtonsTree(): Promise<any[]> {
   const [err, res] = await to<any>(agHttp.get('/lowcode/designer/buttons-tree'))

@@ -50,17 +50,17 @@
 - **WHEN** 管理员在同一个 dictId 下创建/更新字典项，且 `dictValue` 与已存在项重复
 - **THEN** 后端拒绝并返回明确错误信息
 
-### Requirement: 设计器加载字典名称列表（AG_NEPTUNE_LOWCODE_DICT_NAME_LIST）
-系统 SHALL 支持低代码设计器通过 `window.AG_NEPTUNE_LOWCODE_DICT_NAME_LIST` 获取字典名称列表，用于 AMIS `select` 组件的 `source: '${ls:AG_NEPTUNE_LOWCODE_DICT_NAME_LIST}'`。
+### Requirement: 设计器加载字典名称列表（MAITA_LOWCODE_DICT_NAME_LIST）
+系统 SHALL 支持低代码设计器通过 `window.MAITA_LOWCODE_DICT_NAME_LIST` 获取字典名称列表，用于 AMIS `select` 组件的 `source: '${ls:MAITA_LOWCODE_DICT_NAME_LIST}'`。
 
 #### Scenario: 设计器首屏加载并缓存字典名称列表
 - **WHEN** 用户打开低代码设计器
-- **THEN** 设计器从后端拉取字典名称列表并写入 `window.AG_NEPTUNE_LOWCODE_DICT_NAME_LIST`
+- **THEN** 设计器从后端拉取字典名称列表并写入 `window.MAITA_LOWCODE_DICT_NAME_LIST`
 - **AND** 设计器应采用缓存策略避免频繁请求（至少在同一会话内缓存）
 
 #### Scenario: 字典名称列表返回格式适配 AMIS select
 - **WHEN** AMIS `select` 使用 `labelField: 'name'`、`valueField: 'id'`
-- **THEN** `AG_NEPTUNE_LOWCODE_DICT_NAME_LIST` 的每个元素应至少包含 `id` 与 `name`
+- **THEN** `MAITA_LOWCODE_DICT_NAME_LIST` 的每个元素应至少包含 `id` 与 `name`
 
 ### Requirement: 设计器按 dictId 动态加载字典项（getDictById）
 系统 SHALL 支持在 AMIS schema 中通过 `source: "${'<dictId>'|getDictById}"` 动态加载字典项列表。

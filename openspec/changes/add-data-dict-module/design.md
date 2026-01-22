@@ -4,7 +4,7 @@
 ## Goals
 - 提供可维护的树形数据字典（支持层级、排序、启用/禁用）
 - 管理端默认可见入口，便于维护
-- 设计器通过 `window.AG_NEPTUNE_LOWCODE_DICT_NAME_LIST` 快速拿到字典名称列表（可缓存）
+- 设计器通过 `window.MAITA_LOWCODE_DICT_NAME_LIST` 快速拿到字典名称列表（可缓存）
 - `getDictById` 能按 dictId 返回 AMIS `options` 数组（label/value）
 
 ## Non-Goals
@@ -26,7 +26,7 @@
   - `{ status:0, msg:"", data:{ options:[{ label, dictValue }] } }`
 
 ## Caching Strategy (designer)
-- `window.AG_NEPTUNE_LOWCODE_DICT_NAME_LIST` 在首次进入设计器时加载一次并缓存（localStorage 或内存均可，默认内存 + 失败重试）
+- `window.MAITA_LOWCODE_DICT_NAME_LIST` 在首次进入设计器时加载一次并缓存（localStorage 或内存均可，默认内存 + 失败重试）
 - 保证返回为数组（供 `ls:` 读取），或以 `ls:` 支持的结构存储
 
 ## Risks

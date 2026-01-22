@@ -1,7 +1,7 @@
 # Change: 数据字典模块 + 低代码设计器动态字典加载
 
 ## Why
-当前低代码设计器的 `dictIdProp` 需要通过 `window.AG_NEPTUNE_LOWCODE_DICT_NAME_LIST` 提供可选的数据字典列表，并通过 `getDictById` 动态加载字典项。随着页面/表单配置增多，缺少统一的“数据字典”模块会导致：
+当前低代码设计器的 `dictIdProp` 需要通过 `window.MAITA_LOWCODE_DICT_NAME_LIST` 提供可选的数据字典列表，并通过 `getDictById` 动态加载字典项。随着页面/表单配置增多，缺少统一的“数据字典”模块会导致：
 - 字典来源分散、无法统一维护与复用
 - 设计器无法稳定加载字典列表/字典项，影响 AMIS `select` 的动态数据源能力
 
@@ -11,7 +11,7 @@
 - 新增后端接口：
   - 查询字典树/列表（给管理端维护、给设计器加载字典名称列表）
   - 按 dictId 查询字典项列表（适配 AMIS `select` 的 `source`）
-- lowcode-designer：重新实现 `window.AG_NEPTUNE_LOWCODE_DICT_NAME_LIST` 的加载与缓存，保证返回格式与管理端/后端一致
+- lowcode-designer：重新实现 `window.MAITA_LOWCODE_DICT_NAME_LIST` 的加载与缓存，保证返回格式与管理端/后端一致
 
 ## Impact
 - Affected specs: 新增 `data-dictionary`
