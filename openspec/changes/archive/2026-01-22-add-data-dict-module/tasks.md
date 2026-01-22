@@ -21,5 +21,5 @@
 - [x] 4.3 实现/适配 `getDictById`（若当前过滤器不存在或不匹配）
 
 ## 5. Validation
-- [ ] 5.1 `openspec validate add-data-dict-module --strict`
-- [ ] 5.2 联调验证：管理端维护字典树；设计器 select 可加载字典列表并根据 dictId 动态加载字典项
+- [x] 5.1 `openspec validate add-data-dict-module --strict`
+- [x] 5.2 联调验证：管理端维护字典树；设计器 select 可加载字典列表并根据 dictId 动态加载字典项
