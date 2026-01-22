@@ -394,6 +394,7 @@ export const dictIdProp = (content: any) => ({
         {
           ignoreError: false,
           script: async (_ctx: any, _ac: any, event: any) => {
+            console.log(event.data,'.dddd...')
             const dictId = event.data.dictId
             if (dictId) {
               content.node.updateSchema({

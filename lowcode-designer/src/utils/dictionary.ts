@@ -1,6 +1,5 @@
 import to from 'await-to-js'
 import agHttp from '@/utils/http'
-import { getScodeAllApi } from '@/api/amis'
 
 export const getDict = () => {
   if (localStorage.getItem(window.AG_NEPTUNE_GLOBAL_VARS.dict))
@@ -11,32 +10,52 @@ export const getDict = () => {
  * @returns
  */
 export const cacheDictionary = async () => {
-  const [err, data] = await to<any>(getScodeAllApi())
+  // 一次性加载“字典 + 字典项 options”，避免频繁请求
+  const [err, data] = await to<any>(agHttp.get('/dict/options-all'))
   if (err) return
 
-  const dict = data.data?.options
+  // backend ApiRes: { status, msg, data: { options: [{id,name,options:[{label,dictValue}]}] } }
+  const dictAll = data?.data?.options || []
+
+  const dictNameList = dictAll.map((d: any) => ({ id: d.id, name: d.name }))
+
+  // 缓存全量字典（包含 options），供 getDictById 同步读取
+  ;(window as any).AG_NEPTUNE_LOWCODE_DICT_ALL = dictAll
+  localStorage.setItem('AG_NEPTUNE_LOWCODE_DICT_ALL', JSON.stringify(dictAll))
   // window[window.AG_NEPTUNE_GLOBAL_VARS.dict] = dictJson
-  ;(window as any)[window.AG_NEPTUNE_GLOBAL_VARS.dict] = dict
-  localStorage.setItem(window.AG_NEPTUNE_GLOBAL_VARS.dict, JSON.stringify(dict))
-
-  const dictNameList = (dict as any).map((item: any) => {
-    return {
-      appName: item.appName,
-      id: item.keyName,
-      name: item.name,
-    }
-  })
-
-  window[window.AG_NEPTUNE_GLOBAL_VARS.dictNameList] = dictNameList
-
-  localStorage.setItem(window.AG_NEPTUNE_GLOBAL_VARS.dictNameList, JSON.stringify(dictNameList))
+  // 兼容原全局变量（如果存在）
+  if ((window as any).AG_NEPTUNE_GLOBAL_VARS?.dictNameList) {
+    ;(window as any)[(window as any).AG_NEPTUNE_GLOBAL_VARS.dictNameList] = dictNameList
+    localStorage.setItem((window as any).AG_NEPTUNE_GLOBAL_VARS.dictNameList, JSON.stringify(dictNameList))
+  }  // 供 AMIS ls:AG_NEPTUNE_LOWCODE_DICT_NAME_LIST 使用
+  ;(window as any).AG_NEPTUNE_LOWCODE_DICT_NAME_LIST = dictNameList
+  localStorage.setItem('AG_NEPTUNE_LOWCODE_DICT_NAME_LIST', JSON.stringify(dictNameList))
 }
-
 /**
  * 初始化时自动加载数据字典并缓存
  */
 export const initDictionary = () => {
-  if (!localStorage.getItem(window.AG_NEPTUNE_GLOBAL_VARS.dict)) {
-    cacheDictionary()
+  const listKey = 'AG_NEPTUNE_LOWCODE_DICT_NAME_LIST'
+  const allKey = 'AG_NEPTUNE_LOWCODE_DICT_ALL'
+
+  const cachedAll = localStorage.getItem(allKey)
+  if (cachedAll) {
+    try {
+      ;(window as any).AG_NEPTUNE_LOWCODE_DICT_ALL = JSON.parse(cachedAll)
+    } catch {
+      // ignore
+    }
   }
+
+  const cachedList = localStorage.getItem(listKey)
+  if (cachedList) {
+    try {
+      ;(window as any).AG_NEPTUNE_LOWCODE_DICT_NAME_LIST = JSON.parse(cachedList)
+      return
+    } catch {
+      // ignore parse error and refetch
+    }
+  }
+
+  cacheDictionary()
 }

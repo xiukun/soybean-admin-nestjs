@@ -268,6 +268,47 @@ model SysRoleButton {
   @@map("sys_role_button")
 }
 
+model SysDict {
+  id       String @id @default(cuid())
+  name     String @db.VarChar(100)
+  code     String @unique @db.VarChar(100)
+  pid      String @default("0") @db.VarChar(36)
+  sequence Int    @default(0) @map("sequence")
+  status   Status @default(ENABLED)
+  remark   String? @db.VarChar(255)
+
+  items SysDictItem[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  createdBy String    @map("created_by")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  updatedBy String?   @map("updated_by")
+
+  @@index([pid])
+  @@map("sys_dict")
+}
+
+model SysDictItem {
+  id        String @id @default(cuid())
+  dictId    String @map("dict_id")
+  label     String @db.VarChar(100)
+  dictValue String @map("dict_value") @db.VarChar(100)
+  sequence  Int    @default(0) @map("sequence")
+  status    Status @default(ENABLED)
+  remark    String? @db.VarChar(255)
+
+  dict SysDict @relation(fields: [dictId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  createdBy String    @map("created_by")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  updatedBy String?   @map("updated_by")
+
+  @@index([dictId])
+  @@unique([dictId, dictValue])
+  @@map("sys_dict_item")
+}
+
 // 低代码页面表
 model SysLowcodePage {
   id          String    @id @default(uuid())

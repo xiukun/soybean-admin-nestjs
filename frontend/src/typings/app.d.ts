@@ -568,8 +568,7 @@ declare namespace App {
               startTime: string;
               endTime: string;
             };
-          };
-          user: {
+          };          user: {
             title: string;
             userName: string;
             password: string;
@@ -599,10 +598,16 @@ declare namespace App {
               female: string;
             };
           };
+          /** data dictionary module */
+          dict: any;
+          /** version management module */
+          version: any;
+          /** history module */
+          history: any;
           menu: {
             home: string;
             title: string;
-            id: string;
+id: string;
             parentId: string;
             menuType: string;
             menuName: string;

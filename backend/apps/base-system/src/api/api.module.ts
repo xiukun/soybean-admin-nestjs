@@ -17,6 +17,7 @@ import { Controllers as LoginLogRest } from './log-audit/login-log/rest';
 import { Controllers as OperationLogRest } from './log-audit/operation-log/rest';
 import { LowcodePageApiModule } from './manage/lowcode-page/lowcode-page-api.module';
 import { VersionApiModule } from './manage/version/version-api.module';
+import { DictApiModule } from './manage/dict/dict-api.module';
 import { Controllers as SystemManageRest } from './system-manage/rest';
 
 @Module({
@@ -32,6 +33,7 @@ import { Controllers as SystemManageRest } from './system-manage/rest';
     AccessKeyInfraModule,
     LowcodePageApiModule,
     VersionApiModule,
+    DictApiModule,
   ],
   controllers: [
     ...IamRest,

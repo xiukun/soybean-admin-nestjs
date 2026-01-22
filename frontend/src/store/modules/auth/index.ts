@@ -7,6 +7,7 @@ import { useRouterPush } from '@/hooks/common/router';
 import { localStg } from '@/utils/storage';
 import { SetupStoreId } from '@/enum';
 import { $t } from '@/locales';
+import { preloadDictAllOnce } from '@/utils/amisFilters';
 import { useRouteStore } from '../route';
 import { useTabStore } from '../tab';
 import { clearAuthStorage, getToken } from './shared';
@@ -138,6 +139,13 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
 
     if (pass) {
       token.value = loginToken.token;
+
+      // 登录成功后预加载一次字典缓存（供 AMIS getDictById）
+      try {
+        await preloadDictAllOnce();
+      } catch {
+        // ignore
+      }
 
       return true;
     }
