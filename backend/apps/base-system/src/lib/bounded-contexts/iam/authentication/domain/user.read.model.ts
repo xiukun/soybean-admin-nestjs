@@ -24,15 +24,27 @@ export type UserOptionalProperties = Readonly<
 >;
 
 export type UserProperties = UserEssentialProperties &
-  Required<UserOptionalProperties>;
+  Required<UserOptionalProperties> & {
+    departments?: DeptLite[];
+  };
 
-export type UserCreateProperties = UserProperties & CreationAuditInfoProperties;
+export type UserCreateProperties = UserProperties & CreationAuditInfoProperties & {
+  deptIds?: string[];
+};
 
 export type UserUpdateProperties = Omit<
   UserProperties,
   'username' | 'password' | 'domain'
 > &
-  CreationAuditInfoProperties;
+  CreationAuditInfoProperties & {
+    deptIds?: string[];
+  };
+
+export type DeptLite = Readonly<{
+  id: string;
+  name: string;
+  code: string;
+}>;
 
 export class UserReadModel extends UpdateAuditInfo {
   @ApiProperty({ description: 'The unique identifier of the user' })
@@ -61,4 +73,7 @@ export class UserReadModel extends UpdateAuditInfo {
 
   @ApiProperty({ description: 'Phone number of the user', nullable: true })
   phoneNumber: string | null;
+
+  @ApiProperty({ description: 'Departments of the user', required: false, type: 'array' })
+  departments?: DeptLite[];
 }

@@ -40,7 +40,7 @@ export class UserUpdateHandler
       createdBy: command.uid,
     };
 
-    const user = new User(userUpdateProperties);
+    const user = new User({ ...userUpdateProperties, deptIds: command.deptIds });
     await this.userWriteRepository.update(user);
   }
 }

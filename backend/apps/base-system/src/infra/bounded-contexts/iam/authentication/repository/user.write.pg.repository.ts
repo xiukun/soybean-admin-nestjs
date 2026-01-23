@@ -54,6 +54,15 @@ export class UserWriteRepository implements UserWriteRepoPort {
     await this.prisma.sysUser.create({
       data: { ...user, password: user.password.getValue() },
     });
+
+    // deptIds is attached to user instance by command handler
+    const deptIds = (user as any).deptIds as string[] | undefined;
+    if (deptIds?.length) {
+      await (this.prisma as any).sysUserDept.createMany({
+        data: deptIds.map((deptId) => ({ userId: user.id, deptId })),
+        skipDuplicates: true,
+      });
+    }
   }
 
   async update(user: User): Promise<void> {
@@ -68,6 +77,19 @@ export class UserWriteRepository implements UserWriteRepoPort {
         updatedAt: user.createdAt,
         updatedBy: user.createdBy,
       },
+    });
+
+    const deptIds = (user as any).deptIds as string[] | undefined;
+    if (!deptIds) return;
+
+    await this.prisma.$transaction(async (prisma) => {
+      await (prisma as any).sysUserDept.deleteMany({ where: { userId: user.id } });
+      if (deptIds.length) {
+        await (prisma as any).sysUserDept.createMany({
+          data: deptIds.map((deptId) => ({ userId: user.id, deptId })),
+          skipDuplicates: true,
+        });
+      }
     });
   }
 }

@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import type { TreeOption } from 'naive-ui';
 import { enableStatusOptions } from '@/constants/business';
 import { useFormRules, useNaiveForm } from '@/hooks/common/form';
 import { translateOptions } from '@/utils/common';
 import { $t } from '@/locales';
+import { fetchGetDeptTree } from '@/service/api';
 
 defineOptions({
   name: 'UserSearch'
@@ -19,6 +21,28 @@ const emit = defineEmits<Emits>();
 const { formRef, validate, restoreValidation } = useNaiveForm();
 
 const model = defineModel<Api.SystemManage.UserSearchParams>('model', { required: true });
+
+// 部门树数据
+const deptTreeOptions = ref<TreeOption[]>([]);
+
+async function loadDeptTree() {
+  const { data, error } = await fetchGetDeptTree();
+  if (error || !data) return;
+
+  const buildOptions = (nodes: any[]): TreeOption[] => {
+    return nodes.map(node => ({
+      key: node.id,
+      label: `${node.name}（${node.code}）`,
+      children: node.children && node.children.length ? buildOptions(node.children) : []
+    }));
+  };
+
+  deptTreeOptions.value = buildOptions(data);
+}
+
+onMounted(() => {
+  loadDeptTree();
+});
 
 type RuleKey = Extract<keyof Api.SystemManage.UserSearchParams, 'email' | 'phoneNumber'>;
 
@@ -63,6 +87,16 @@ async function search() {
             v-model:value="model.status"
             :placeholder="$t('page.manage.user.form.userStatus')"
             :options="translateOptions(enableStatusOptions)"
+            clearable
+          />
+        </NFormItemGi>
+        <NFormItemGi span="24 s:12 m:6" label="所属部门" path="deptIds" class="pr-24px">
+          <NTreeSelect
+            v-model:value="model.deptIds"
+            :options="deptTreeOptions"
+            placeholder="请选择部门（可多选）"
+            multiple
+            filterable
             clearable
           />
         </NFormItemGi>

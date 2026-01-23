@@ -7,6 +7,7 @@ export class PageUsersQuery extends PaginationParams implements IQuery {
   readonly username?: string;
   readonly nickName?: string;
   readonly status?: Status;
+  readonly deptIds?: string[];
   constructor(options: PageUsersQuery) {
     super(options.current, options.size);
     Object.assign(this, options);

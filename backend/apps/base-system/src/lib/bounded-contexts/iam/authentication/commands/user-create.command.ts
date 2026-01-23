@@ -12,5 +12,6 @@ export class UserCreateCommand implements ICommand {
     readonly email: string | null,
     readonly phoneNumber: string | null,
     readonly uid: string,
+    readonly deptIds?: string[],
   ) {}
 }

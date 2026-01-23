@@ -1,7 +1,7 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { Status } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UserCreateDto {
   @ApiProperty({ required: true })
@@ -46,6 +46,11 @@ export class UserCreateDto {
   @IsEnum(Status, { message: 'status must be a valid Status enum value' })
   @IsNotEmpty({ message: 'status cannot be empty' })
   status: Status;
+
+  @ApiProperty({ required: false, type: [String], description: '关联部门ID列表（允许多部门）' })
+  @IsOptional()
+  @IsArray()
+  deptIds?: string[];
 }
 
 export class UserUpdateDto extends OmitType(UserCreateDto, [

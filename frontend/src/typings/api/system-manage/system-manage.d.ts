@@ -63,11 +63,19 @@ declare namespace Api {
 
     /** user search params */
     type UserSearchParams = CommonType.RecordNullable<
-      Pick<Api.SystemManage.User, 'username' | 'nickName' | 'phoneNumber' | 'email' | 'status'> & CommonSearchParams
+      Pick<Api.SystemManage.User, 'username' | 'nickName' | 'phoneNumber' | 'email' | 'status'> & CommonSearchParams & {
+        deptIds?: string[];
+      }
     >;
 
     /** user list */
-    type UserList = Common.PaginatingQueryRecord<User>;
+    type UserList = Common.PaginatingQueryRecord<User & {
+      departments?: Array<{
+        id: string;
+        name: string;
+        code: string;
+      }>;
+    }>;
 
     /**
      * menu type
@@ -149,5 +157,33 @@ declare namespace Api {
       pid: number;
       children?: MenuTree[];
     };
+
+    /** department */
+    type Dept = Common.CommonRecord<{
+      name: string;
+      code: string;
+      pid: string;
+      sequence: number;
+      status: Common.EnableStatus;
+      remark?: string | null;
+    }>;
+
+    /** department tree */
+    type DeptTree = Dept & {
+      children?: DeptTree[];
+    };
+
+    /** department create model */
+    type DeptCreateModel = {
+      name: string;
+      code: string;
+      pid?: string;
+      sequence?: number;
+      status?: Common.EnableStatus;
+      remark?: string | null;
+    };
+
+    /** department update model */
+    type DeptUpdateModel = DeptCreateModel;
   }
 }

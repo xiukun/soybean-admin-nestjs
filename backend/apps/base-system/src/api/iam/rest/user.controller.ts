@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   Param,
   Post,
   Put,
@@ -30,9 +31,11 @@ import { PageUsersDto } from '../dto/page-users.dto';
 import { UserCreateDto, UserUpdateDto } from '../dto/user.dto';
 
 @ApiTags('User - Module')
-@ApiJwtAuth() // 添加Bearer认证装饰器
+@ApiJwtAuth()
 @Controller('user')
 export class UserController {
+  private readonly logger = new Logger(UserController.name);
+
   constructor(
     private readonly queryBus: QueryBus,
     private readonly commandBus: CommandBus,
@@ -45,19 +48,58 @@ export class UserController {
   @ApiResponseDoc({ type: UserReadModel, isPaged: true })
   async page(
     @Query() queryDto: PageUsersDto,
+    @Request() req: any,
   ): Promise<ApiRes<PaginationResult<UserProperties>>> {
+    // 记录原始查询参数（从 URL）
+    const rawQuery = req.query || {};
+    this.logger.debug(`[page] 收到查询请求，原始 URL 参数: ${JSON.stringify(rawQuery)}`);
+    this.logger.debug(`[page] 转换后的 DTO: ${JSON.stringify(queryDto)}`);
+    this.logger.debug(`[page] deptIds 参数类型: ${typeof queryDto.deptIds}, 值: ${JSON.stringify(queryDto.deptIds)}`);
+    this.logger.debug(`[page] deptIds 是否为数组: ${Array.isArray(queryDto.deptIds)}`);
+    
+    // 如果 deptIds 未正确解析，从原始查询参数中手动提取
+    let deptIds = queryDto.deptIds;
+    if (!deptIds || !Array.isArray(deptIds) || deptIds.length === 0) {
+      const deptIdsValues: string[] = [];
+      Object.keys(rawQuery).forEach(key => {
+        // 匹配 deptIds[0], deptIds[1] 等格式
+        const match = key.match(/^deptIds\[(\d+)\]$/);
+        if (match) {
+          const val = rawQuery[key];
+          if (val && typeof val === 'string' && val.trim()) {
+            deptIdsValues.push(val.trim());
+          }
+        }
+      });
+      if (deptIdsValues.length > 0) {
+        deptIds = [...new Set(deptIdsValues)];
+        this.logger.debug(`[page] 从原始查询参数中提取 deptIds: ${JSON.stringify(deptIds)}`);
+      }
+    }
+    
     const query = new PageUsersQuery({
       current: queryDto.current,
       size: queryDto.size,
       username: queryDto.username,
       nickName: queryDto.nickName,
       status: queryDto.status,
+      deptIds: deptIds,
     });
+    
+    this.logger.debug(`[page] 构建的 PageUsersQuery: ${JSON.stringify(query)}`);
+    this.logger.debug(`[page] query.deptIds: ${JSON.stringify(query.deptIds)}`);
+    
     const result = await this.queryBus.execute<
       PageUsersQuery,
       PaginationResult<UserProperties>
     >(query);
-    return ApiRes.success(result);
+    
+    if (result.records.length > 0) {
+      const firstRecord = result.records[0] as any;
+    }
+    
+    const response = ApiRes.success(result);
+    return response;
   }
 
   @Post()
@@ -82,6 +124,7 @@ export class UserController {
         dto.email,
         dto.phoneNumber,
         req.user.uid,
+        dto.deptIds,
       ),
     );
     return ApiRes.ok();
@@ -108,6 +151,7 @@ export class UserController {
         dto.email,
         dto.phoneNumber,
         req.user.uid,
+        dto.deptIds,
       ),
     );
     return ApiRes.ok();

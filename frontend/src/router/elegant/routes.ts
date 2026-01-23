@@ -155,6 +155,15 @@ export const generatedRoutes: GeneratedRoute[] = [
     },
     children: [
       {
+        name: 'manage_dept',
+        path: '/manage/dept',
+        component: 'view.manage_dept',
+        meta: {
+          title: 'manage_dept',
+          i18nKey: 'route.manage_dept'
+        }
+      },
+      {
         name: 'manage_dict',
         path: '/manage/dict',
         component: 'view.manage_dict',
@@ -188,15 +197,6 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: 'manage_role',
           i18nKey: 'route.manage_role'
-        }
-      },
-      {
-        name: 'manage_dict',
-        path: '/manage/dict',
-        component: 'view.manage_dict',
-        meta: {
-          title: 'manage_dict',
-          i18nKey: 'route.manage_dict'
         }
       },
       {

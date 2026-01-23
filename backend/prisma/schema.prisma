@@ -53,7 +53,43 @@ model SysUser {
   updatedAt   DateTime? @updatedAt @map("updated_at")
   updatedBy   String?   @map("updated_by")
 
+  depts SysUserDept[]
+
   @@map("sys_user")
+}
+
+// 部门表（树形结构）
+model SysDept {
+  id       String @id @default(cuid())
+  name     String @db.VarChar(100)
+  code     String @unique @db.VarChar(100)
+  pid      String @default("0") @db.VarChar(36)
+  sequence Int    @default(0) @map("sequence")
+  status   Status @default(ENABLED)
+  remark   String? @db.VarChar(255)
+
+  users SysUserDept[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  createdBy String    @map("created_by")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  updatedBy String?   @map("updated_by")
+
+  @@index([pid])
+  @@map("sys_dept")
+}
+
+// 用户-部门 多对多
+model SysUserDept {
+  userId String @map("user_id")
+  deptId String @map("dept_id")
+
+  user SysUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dept SysDept @relation(fields: [deptId], references: [id], onDelete: Cascade)
+
+  @@id([userId, deptId])
+  @@index([deptId])
+  @@map("sys_user_dept")
 }
 
 enum Status {

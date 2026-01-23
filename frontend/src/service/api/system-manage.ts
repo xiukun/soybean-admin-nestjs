@@ -182,6 +182,7 @@ export type UserCreateModel = Pick<
 > & {
   password: string;
   avatar?: string | null;
+  deptIds?: string[];
 };
 
 export type UserUpdateModel = Pick<
@@ -189,6 +190,7 @@ export type UserUpdateModel = Pick<
   'id' | 'username' | 'nickName' | 'phoneNumber' | 'email' | 'status'
 > & {
   avatar?: string | null;
+  deptIds?: string[];
 };
 
 export type UserModel = UserCreateModel | UserUpdateModel;
@@ -358,4 +360,59 @@ export async function fetchGetRoleApiEndpoints(roleCode: string) {
   });
   const casbinRules = response.data || [];
   return casbinRules.map(item => `${item.v1}:${item.v2}`);
+}
+
+// ==================== Department APIs ====================
+
+/**
+ * 获取部门列表
+ */
+export function fetchGetDeptList(params?: { keyword?: string }) {
+  return request<Api.SystemManage.Dept[]>({
+    url: '/dept',
+    method: 'get',
+    params
+  });
+}
+
+/**
+ * 获取部门树
+ */
+export function fetchGetDeptTree() {
+  return request<Api.SystemManage.DeptTree[]>({
+    url: '/dept/tree',
+    method: 'get'
+  });
+}
+
+/**
+ * 创建部门
+ */
+export function createDept(req: Api.SystemManage.DeptCreateModel) {
+  return request<{ id: string }>({
+    url: '/dept',
+    method: 'post',
+    data: req
+  });
+}
+
+/**
+ * 更新部门
+ */
+export function updateDept(id: string, req: Api.SystemManage.DeptUpdateModel) {
+  return request({
+    url: `/dept/${id}`,
+    method: 'put',
+    data: req
+  });
+}
+
+/**
+ * 删除部门
+ */
+export function deleteDept(id: string) {
+  return request({
+    url: `/dept/${id}`,
+    method: 'delete'
+  });
 }

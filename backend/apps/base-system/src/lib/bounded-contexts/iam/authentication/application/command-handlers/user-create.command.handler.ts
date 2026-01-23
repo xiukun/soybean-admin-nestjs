@@ -49,7 +49,7 @@ export class UserCreateHandler
       createdBy: command.uid,
     };
 
-    const user = new User(userCreateProperties);
+    const user = new User({ ...userCreateProperties, deptIds: command.deptIds });
     await this.userWriteRepository.save(user);
     await user.created();
     this.publisher.mergeObjectContext(user);

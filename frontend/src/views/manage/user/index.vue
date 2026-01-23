@@ -32,7 +32,8 @@ const {
     username: null,
     nickName: null,
     phoneNumber: null,
-    email: null
+    email: null,
+    deptIds: null
   },
   columns: () => [
     {
@@ -84,6 +85,27 @@ const {
       title: $t('page.manage.user.userEmail'),
       align: 'center',
       minWidth: 200
+    },
+    {
+      key: 'departments',
+      title: '所属部门',
+      align: 'center',
+      minWidth: 200,
+      render: row => {
+        const depts = (row as any).departments || [];
+        if (!depts.length) {
+          return <span class="text-gray-400">-</span>;
+        }
+        return (
+          <div class="flex flex-wrap gap-4px">
+            {depts.map((dept: any) => (
+              <NTag size="small" type="info">
+                {dept.name}
+              </NTag>
+            ))}
+          </div>
+        );
+      }
     },
     {
       key: 'status',
@@ -187,7 +209,7 @@ function edit(id: string) {
         :data="data"
         size="small"
         :flex-height="!appStore.isMobile"
-        :scroll-x="962"
+        :scroll-x="1162"
         :loading="loading"
         remote
         :row-key="row => row.id"

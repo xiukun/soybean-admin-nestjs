@@ -1,12 +1,34 @@
 <script setup lang="ts">
-import { computed, reactive, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import type { TreeOption } from 'naive-ui';
 import { enableStatusOptions } from '@/constants/business';
 import type { UserCreateModel, UserUpdateModel } from '@/service/api';
-import { createUser, updateUser } from '@/service/api';
+import { createUser, updateUser, fetchGetDeptTree } from '@/service/api';
 import { useFormRules, useNaiveForm } from '@/hooks/common/form';
 import { $t } from '@/locales';
 
 type UserFormModel = UserCreateModel & Partial<Pick<UserUpdateModel, 'id'>>;
+
+// 部门树选项
+const deptTreeOptions = ref<TreeOption[]>([]);
+
+async function loadDeptOptions() {
+  const { data, error } = await fetchGetDeptTree();
+  if (error || !data) return;
+
+  const buildTreeOptions = (nodes: any[]): TreeOption[] => {
+    return nodes.map(node => ({
+      key: node.id,
+      label: `${node.name}（${node.code}）`,
+      children: node.children && node.children.length ? buildTreeOptions(node.children) : []
+    }));
+  };
+  deptTreeOptions.value = buildTreeOptions(data);
+}
+
+onMounted(() => {
+  loadDeptOptions();
+});
 
 defineOptions({
   name: 'UserOperateDrawer'
@@ -16,7 +38,13 @@ interface Props {
   /** the type of operation */
   operateType: NaiveUI.TableOperateType;
   /** the edit row data */
-  rowData?: Api.SystemManage.User | null;
+  rowData?: (Api.SystemManage.User & {
+    departments?: Array<{
+      id: string;
+      name: string;
+      code: string;
+    }>;
+  }) | null;
 }
 
 const props = defineProps<Props>();
@@ -53,7 +81,8 @@ function createDefaultModel(): UserFormModel {
     phoneNumber: '',
     email: '',
     status: 'ENABLED' as Api.Common.EnableStatus,
-    avatar: null
+    avatar: null,
+    deptIds: []
   };
 }
 
@@ -95,6 +124,9 @@ function handleInitModel() {
 
   if (props.operateType === 'edit' && props.rowData) {
     Object.assign(model, props.rowData);
+    // 处理部门数据
+    const departments = props.rowData.departments || [];
+    model.deptIds = departments.map(d => d.id);
   }
 }
 
@@ -114,7 +146,8 @@ async function handleSubmit() {
       phoneNumber: model.phoneNumber,
       email: model.email,
       status: model.status,
-      avatar: model.avatar
+      avatar: model.avatar,
+      deptIds: model.deptIds || []
     };
     const { error } = await createUser(createData);
     if (error) return;
@@ -131,7 +164,8 @@ async function handleSubmit() {
       phoneNumber: model.phoneNumber,
       email: model.email,
       status: model.status,
-      avatar: model.avatar
+      avatar: model.avatar,
+      deptIds: model.deptIds || []
     };
     const { error } = await updateUser(updateData);
     if (error) return;
@@ -176,6 +210,16 @@ watch(visible, () => {
           <NRadioGroup v-model:value="model.status">
             <NRadio v-for="item in enableStatusOptions" :key="item.value" :value="item.value" :label="$t(item.label)" />
           </NRadioGroup>
+        </NFormItem>
+        <NFormItem label="所属部门" path="deptIds">
+          <NTreeSelect
+            v-model:value="model.deptIds"
+            :options="deptTreeOptions"
+            placeholder="请选择部门（可多选）"
+            multiple
+            filterable
+            clearable
+          />
         </NFormItem>
       </NForm>
       <template #footer>
