@@ -280,6 +280,20 @@ export function deleteUser(id: string) {
 }
 
 /**
+ * 批量删除用户
+ *
+ * @param ids 用户ID数组
+ * @returns nothing
+ */
+export function batchDeleteUsers(ids: string[]) {
+  return request({
+    url: '/user/batch-delete',
+    method: 'post',
+    data: { ids }
+  });
+}
+
+/**
  * 创建角色
  *
  * @param req 角色实体

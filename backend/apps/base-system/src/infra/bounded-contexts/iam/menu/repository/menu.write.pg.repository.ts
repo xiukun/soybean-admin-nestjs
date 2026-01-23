@@ -20,6 +20,7 @@ export class MenuWritePostgresRepository implements MenuWriteRepoPort {
     const { id, uid, ...menuData } = menu;
 
     // Ensure we have the correct field mapping for Prisma
+    // Explicitly construct data object without id to prevent unique constraint violations
     const prismaData = {
       menuType: menuData.menuType,
       menuName: menuData.menuName,
@@ -28,22 +29,27 @@ export class MenuWritePostgresRepository implements MenuWriteRepoPort {
       routeName: menuData.routeName,
       routePath: menuData.routePath,
       component: menuData.component,
-      pathParam: menuData.pathParam,
+      pathParam: menuData.pathParam ?? null,
       status: menuData.status,
-      activeMenu: menuData.activeMenu,
-      hideInMenu: menuData.hideInMenu,
+      activeMenu: menuData.activeMenu ?? null,
+      hideInMenu: menuData.hideInMenu ?? false,
       pid: menuData.pid,
       order: menuData.order,
-      i18nKey: menuData.i18nKey,
-      keepAlive: menuData.keepAlive,
+      i18nKey: menuData.i18nKey ?? null,
+      keepAlive: menuData.keepAlive ?? false,
       constant: menuData.constant,
-      href: menuData.href,
-      multiTab: menuData.multiTab,
-      lowcodePageId: menuData.lowcodePageId, // 添加低代码页面ID字段
+      href: menuData.href ?? null,
+      multiTab: menuData.multiTab ?? false,
+      lowcodePageId: menuData.lowcodePageId ?? null,
       createdAt: menuData.createdAt,
       createdBy: menuData.createdBy,
       updatedAt: new Date(),
     };
+
+    // Double-check: ensure id is never included
+    if ('id' in prismaData) {
+      delete (prismaData as any).id;
+    }
 
     await this.prisma.sysMenu.create({
       data: prismaData,

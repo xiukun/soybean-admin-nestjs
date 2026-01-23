@@ -62,3 +62,11 @@ export class UserUpdateDto extends OmitType(UserCreateDto, [
   @IsNotEmpty({ message: 'id cannot be empty' })
   id: string;
 }
+
+export class BatchDeleteUserDto {
+  @ApiProperty({ required: true, description: 'Array of user IDs', type: [String] })
+  @IsArray({ message: 'ids must be an array' })
+  @IsString({ each: true, message: 'each id must be a string' })
+  @IsNotEmpty({ message: 'ids cannot be empty' })
+  ids: string[];
+}

@@ -26,6 +26,10 @@ import { GetLowcodePageVersionByIdQuery } from '@lowcode/page/queries/get-lowcod
 import { GetLowcodePageVersionsQuery } from '@lowcode/page/queries/get-lowcode-page-versions.query';
 import { GetLowcodePagesQuery } from '@lowcode/page/queries/get-lowcode-pages.query';
 
+// Menu Commands
+import { MenuUpdateCommand } from '@app/base-system/lib/bounded-contexts/iam/menu/commands/menu-update.command';
+import { MenusByIdsQuery } from '@app/base-system/lib/bounded-contexts/iam/menu/queries/menus.by-ids.query';
+
 import { ApiJwtAuth } from '@lib/infra/decorators/api-bearer-auth.decorator';
 import { ApiRes } from '@lib/infra/rest/res.response';
 
@@ -147,10 +151,15 @@ export class LowcodePageController {
     @Body() dto: { schema: any; title?: string; changelog?: string },
     @Request() req: any,
   ): Promise<ApiRes<any>> {
+    const menuIdNum = parseInt(menuId, 10);
+    const pageCode = `menu_${menuId}_code`;
+
     // 首先检查菜单是否已有低代码页面
-    const existingPage = await this.queryBus.execute(
-      new GetLowcodePageByMenuQuery(parseInt(menuId, 10)),
+    let existingPage = await this.queryBus.execute(
+      new GetLowcodePageByMenuQuery(menuIdNum),
     );
+
+    let pageId: string;
 
     if (existingPage) {
       // 更新现有页面
@@ -166,27 +175,81 @@ export class LowcodePageController {
           req.user.uid,
         ),
       );
-      return ApiRes.success(result);
+      pageId = existingPage.id;
     } else {
-      // 创建新页面
-      const result = await this.commandBus.execute(
-        new LowcodePageCreateCommand(
-          `menu_${menuId}_page`,
-          dto.title || `菜单${menuId}页面`,
-          `menu_${menuId}_code`,
-          `菜单${menuId}的低代码页面`,
-          dto.schema,
-          Status.ENABLED,
-          dto.changelog || `设计器创建 - ${new Date().toLocaleString()}`,
-          req.user.uid,
-        ),
+      // 检查页面代码是否已存在（可能之前创建过但菜单关联被移除了）
+      const pageByCode = await this.queryBus.execute(
+        new GetLowcodePageByCodeQuery(pageCode),
+      ).catch(() => null);
+
+      if (pageByCode) {
+        // 使用现有页面并更新
+        const result = await this.commandBus.execute(
+          new LowcodePageUpdateCommand(
+            pageByCode.id,
+            undefined, // name - 不更新
+            dto.title || pageByCode.title,
+            undefined, // description - 不更新
+            dto.schema,
+            undefined, // status - 不更新
+            dto.changelog || `设计器保存 - ${new Date().toLocaleString()}`,
+            req.user.uid,
+          ),
+        );
+        pageId = pageByCode.id;
+      } else {
+        // 创建新页面
+        const result = await this.commandBus.execute(
+          new LowcodePageCreateCommand(
+            `menu_${menuId}_page`,
+            dto.title || `菜单${menuId}页面`,
+            pageCode,
+            `菜单${menuId}的低代码页面`,
+            dto.schema,
+            Status.ENABLED,
+            dto.changelog || `设计器创建 - ${new Date().toLocaleString()}`,
+            req.user.uid,
+          ),
+        );
+        pageId = result.pageId;
+      }
+
+      // 将页面ID关联到菜单
+      const menus = await this.queryBus.execute(
+        new MenusByIdsQuery([menuIdNum]),
       );
+      const menu = menus[0];
 
-      // TODO: 需要将新创建的页面ID关联到菜单
-      // 这里需要调用菜单更新命令来设置lowcodePageId
-
-      return ApiRes.success(result);
+      if (menu) {
+        await this.commandBus.execute(
+          new MenuUpdateCommand(
+            menu.id,
+            menu.menuName,
+            menu.menuType,
+            menu.iconType ?? null,
+            menu.icon ?? null,
+            menu.routeName,
+            menu.routePath,
+            menu.component,
+            menu.pathParam ?? null,
+            menu.status,
+            menu.activeMenu ?? null,
+            menu.hideInMenu ?? false,
+            menu.pid,
+            menu.order,
+            menu.i18nKey ?? null,
+            menu.keepAlive ?? false,
+            menu.constant,
+            menu.href ?? null,
+            menu.multiTab ?? false,
+            pageId, // 设置 lowcodePageId
+            req.user.uid,
+          ),
+        );
+      }
     }
+
+    return ApiRes.success({ pageId });
   }
 
   @Put(':id')

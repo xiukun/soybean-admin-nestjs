@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import { User } from '@app/base-system/lib/bounded-contexts/iam/authentication/domain/user';
 import { UserWriteRepoPort } from '@app/base-system/lib/bounded-contexts/iam/authentication/ports/user.write.repo-port';
@@ -6,7 +6,7 @@ import { UserWriteRepoPort } from '@app/base-system/lib/bounded-contexts/iam/aut
 import { PrismaService } from '@lib/shared/prisma/prisma.service';
 
 @Injectable()
-export class UserWriteRepository implements UserWriteRepoPort {
+export class UserWriteRepository implements UserWriteRepoPort {  
   constructor(private prisma: PrismaService) {}
 
   async deleteUserRoleByRoleId(roleId: string): Promise<void> {
@@ -51,8 +51,36 @@ export class UserWriteRepository implements UserWriteRepoPort {
   }
 
   async save(user: User): Promise<void> {
+    // 显式构建 Prisma 需要的字段，避免传递 deptIds 等额外字段
+    // 使用 Object.assign 创建新对象，确保不会有任何原型链上的属性
+    const prismaData: {
+      id: string;
+      username: string;
+      password: string;
+      domain: string;
+      nickName: string;
+      status: any;
+      avatar: string | null;
+      email: string | null;
+      phoneNumber: string | null;
+      createdAt: Date;
+      createdBy: string;
+    } = Object.assign({}, {
+      id: user.id,
+      username: user.username,
+      password: user.password.getValue(),
+      domain: user.domain,
+      nickName: user.nickName,
+      status: user.status,
+      avatar: user.avatar,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      createdAt: user.createdAt,
+      createdBy: user.createdBy,
+    });
+    
     await this.prisma.sysUser.create({
-      data: { ...user, password: user.password.getValue() },
+      data: prismaData,
     });
 
     // deptIds is attached to user instance by command handler

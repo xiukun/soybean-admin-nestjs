@@ -202,7 +202,11 @@ function handleUpdateRoutePathByRouteName() {
 
 function handleUpdateI18nKeyByRouteName() {
   if (model.routeName) {
-    model.i18nKey = `route.${model.routeName}` as App.I18n.I18nKey;
+    if(model.menuType ==='lowcode') {
+      model.i18nKey = model.i18nKey || `route.${model.routeName}` as App.I18n.I18nKey;
+    } else {
+      model.i18nKey = `route.${model.routeName}` as App.I18n.I18nKey;
+    }
   } else {
     model.i18nKey = null;
   }
@@ -265,6 +269,7 @@ watch(visible, () => {
 watch(
   () => model.routeName,
   () => {
+    console.log('model.routeName', model);
     handleUpdateRoutePathByRouteName();
     handleUpdateI18nKeyByRouteName();
   }

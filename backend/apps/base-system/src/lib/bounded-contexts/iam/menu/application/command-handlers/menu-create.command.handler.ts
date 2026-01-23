@@ -42,11 +42,17 @@ export class MenuCreateHandler
       }
     }
 
-    // 自动生成低代码页面ID（如果菜单类型为lowcode）
+    // 处理低代码页面ID
+    // 注意：如果用户没有提供 lowcodePageId，保持为 null
+    // 因为外键约束要求 lowcodePageId 必须在 sys_lowcode_page 表中存在
+    // 如果需要在创建菜单时自动创建低代码页面，应该在这里先创建页面，然后使用其 ID
     let finalLowcodePageId = command.lowcodePageId;
-    if (command.menuType === MenuType.lowcode) {
-      // 为低代码菜单自动生成页面ID
-      finalLowcodePageId = this.lowcodePageIdGenerator.generateFromMenuName(command.menuName);
+    // 只有当用户明确提供了 lowcodePageId 时才使用，否则保持为 null
+    // 如果菜单类型是 lowcode 但没有提供 lowcodePageId，可以在后续流程中创建页面
+    if (command.menuType === MenuType.lowcode && !command.lowcodePageId) {
+      // 对于 lowcode 类型的菜单，如果没有提供 lowcodePageId，保持为 null
+      // 这样菜单可以创建成功，后续可以通过其他方式关联低代码页面
+      finalLowcodePageId = null;
     }
 
     const menuCreateProperties: MenuCreateProperties = {

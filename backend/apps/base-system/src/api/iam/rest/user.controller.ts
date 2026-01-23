@@ -13,6 +13,7 @@ import {
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+import { UserBatchDeleteCommand } from '@app/base-system/lib/bounded-contexts/iam/authentication/commands/user-batch-delete.command';
 import { UserCreateCommand } from '@app/base-system/lib/bounded-contexts/iam/authentication/commands/user-create.command';
 import { UserDeleteCommand } from '@app/base-system/lib/bounded-contexts/iam/authentication/commands/user-delete.command';
 import { UserUpdateCommand } from '@app/base-system/lib/bounded-contexts/iam/authentication/commands/user-update.command';
@@ -28,7 +29,7 @@ import { ApiRes } from '@lib/infra/rest/res.response';
 import { PaginationResult } from '@lib/shared/prisma/pagination';
 
 import { PageUsersDto } from '../dto/page-users.dto';
-import { UserCreateDto, UserUpdateDto } from '../dto/user.dto';
+import { BatchDeleteUserDto, UserCreateDto, UserUpdateDto } from '../dto/user.dto';
 
 @ApiTags('User - Module')
 @ApiJwtAuth()
@@ -166,6 +167,20 @@ export class UserController {
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   async deleteUser(@Param('id') id: string): Promise<ApiRes<null>> {
     await this.commandBus.execute(new UserDeleteCommand(id));
+    return ApiRes.ok();
+  }
+
+  @Post('batch-delete')
+  @ApiOperation({ summary: 'Batch Delete Users' })
+  @ApiResponse({
+    status: 200,
+    description: 'The users have been successfully deleted.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  async batchDeleteUsers(
+    @Body() dto: BatchDeleteUserDto,
+  ): Promise<ApiRes<null>> {
+    await this.commandBus.execute(new UserBatchDeleteCommand(dto.ids));
     return ApiRes.ok();
   }
 }

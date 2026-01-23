@@ -1,7 +1,7 @@
 <script setup lang="tsx">
 import { NAvatar, NButton, NPopconfirm, NTag } from 'naive-ui';
 import { enableStatusRecord } from '@/constants/business';
-import { deleteUser, fetchGetUserList } from '@/service/api';
+import { batchDeleteUsers, deleteUser, fetchGetUserList } from '@/service/api';
 import { useAppStore } from '@/store/modules/app';
 import { useTable, useTableOperate } from '@/hooks/common/table';
 import { $t } from '@/locales';
@@ -171,10 +171,15 @@ const {
 } = useTableOperate(data, getData);
 
 async function handleBatchDelete() {
-  // request
-  console.log(checkedRowKeys.value);
+  if (checkedRowKeys.value.length === 0) {
+    window.$message?.warning('请至少选择一个用户');
+    return;
+  }
 
-  onBatchDeleted();
+  const { error } = await batchDeleteUsers(checkedRowKeys.value);
+  if (error) return;
+
+  await onBatchDeleted();
 }
 
 async function handleDelete(id: string) {
